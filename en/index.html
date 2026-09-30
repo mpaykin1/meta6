@@ -152,6 +152,41 @@ const successorMap={
  cloud:['rain','water','forest','farm','wind'],fire:['water','rain','community','road','forest'],
  community:['home','school','market','garden','city']
 };
+const preparedForecasts={
+ city:{summary:'A city can attract people and concentrate activity, but it will also demand food, water, and energy.',immediate:['Population pressure may rise around the new settlement.','Nearby routes and resource flows may become more important.'],later:['Homes, markets, schools, roads, and power links may develop around it.'],risks:['Rapid growth can strain food, water, energy, and ecology.'],surprise:'A city placed near another active object may quickly become the center of a new visible relation.'},
+ forest:{summary:'A forest can strengthen ecology and provide a place for resources, movement, and recovery.',immediate:['Nature may improve around the forest.','People may begin moving between nearby settlements and the forest.'],later:['Water, gardens, rivers, or community activity may grow around it.'],risks:['Fire or excessive use can damage the forest edge.'],surprise:'A nearby city may create a people-and-timber flow instead of leaving the forest isolated.'},
+ volcano:{summary:'A volcano can provide energy opportunities while creating a serious hazard for nearby life.',immediate:['Nearby people may avoid the danger zone.','Energy potential may increase.'],later:['Geothermal development, evacuation routes, or new settlements may appear.'],risks:['Ash, fire, and displacement can reduce hope and ecology.'],surprise:'A dangerous volcano can become useful when connected to energy infrastructure.'},
+ energy:{summary:'An energy source can unlock growth and visible activity in nearby structures.',immediate:['Available power may rise.','Nearby cities or workshops may become more active.'],later:['Industry, markets, schools, or wind infrastructure may develop.'],risks:['Energy production may consume water or increase ecological pressure.'],surprise:'A power link to a city can become one of the clearest visible relationships in the world.'},
+ idea:{summary:'An idea can raise hope and open new development paths without needing a large physical footprint.',immediate:['People may gain a new direction for development.'],later:['Schools, communities, workshops, gardens, or homes may emerge from it.'],risks:['An idea without supporting resources may remain symbolic.'],surprise:'A small idea can redirect the next choices more strongly than a large structure.'},
+ water:{summary:'Water can support people, farming, ecology, and future settlement.',immediate:['Water availability may improve.','Food and ecology may benefit nearby.'],later:['Fields, gardens, rivers, cities, or forests may develop around it.'],risks:['Too much concentration around one water source can create dependency.'],surprise:'Water can become the missing link that activates several nearby objects at once.'},
+ mountain:{summary:'Mountains can shape movement, shelter, energy, and future routes.',immediate:['Travel may become more constrained or redirected.'],later:['Roads, bridges, wind power, homes, or rivers may become logical developments.'],risks:['Isolation can slow interaction between distant areas.'],surprise:'A mountain can become valuable when a road or bridge turns it from a barrier into a landmark.'},
+ farm:{summary:'Fields can increase food production but depend on water, routes, and markets.',immediate:['Food reserves may improve.','Water demand may rise.'],later:['Irrigation, markets, roads, cities, or gardens may develop.'],risks:['Drought or poor transport can limit the benefit.'],surprise:'A nearby river can transform fields into a visible irrigation chain.'},
+ road:{summary:'A road can connect existing objects and turn isolated places into an active network.',immediate:['Movement between nearby places may become easier.'],later:['Markets, bridges, cities, homes, and workshops may grow along the route.'],risks:['Roads can increase ecological pressure and attract growth into fragile areas.'],surprise:'A simple road may change where people move even without creating a new resource.'},
+ school:{summary:'A school can strengthen hope, knowledge, and the ability to generate new developments.',immediate:['Local hope may rise.'],later:['Ideas, communities, medicine, workshops, or cities may become more likely.'],risks:['A school without food, energy, or nearby residents may have limited effect.'],surprise:'Education can become a source of future actions rather than only a passive building.'},
+ market:{summary:'A market can turn nearby production into exchange and attract people and routes.',immediate:['Food and activity may circulate more visibly.'],later:['Roads, farms, cities, workshops, and homes may develop around trade.'],risks:['A market without supply routes may have little to exchange.'],surprise:'A farm-market link can become the start of a real logistics chain.'},
+ rain:{summary:'Rain can restore water and ecology while changing fire, rivers, and fields.',immediate:['Water, food, and ecology may improve.'],later:['Fields, rivers, forests, gardens, or water systems may strengthen.'],risks:['Too much water can eventually create flooding pressure.'],surprise:'Rain near fire can create an immediate visible extinguishing relationship.'},
+ workshop:{summary:'A workshop can convert energy and materials into useful activity and new production.',immediate:['Local production activity may increase.'],later:['Energy, markets, roads, cities, or new ideas may connect to it.'],risks:['It can consume energy faster than the world can supply it.'],surprise:'A workshop can turn an abstract idea into a visible production chain.'},
+ medicine:{summary:'Medicine can support population stability and increase hope near settlements.',immediate:['People may recover or remain in the area.'],later:['Homes, communities, schools, gardens, or cities may grow around care.'],risks:['Medicine still depends on food, energy, and access.'],surprise:'A medical point can become a migration attractor during a nearby crisis.'},
+ wind:{summary:'Wind can create cleaner energy and reshape which places are useful for power.',immediate:['Energy availability may improve with low direct ecological cost.'],later:['Energy systems, farms, roads, communities, or towers may develop.'],risks:['Wind alone may be unreliable without storage or other power sources.'],surprise:'A remote windy area can become important once a road or energy link reaches it.'},
+ bridge:{summary:'A bridge can create a new route across water or difficult terrain.',immediate:['Movement between separated areas may improve.'],later:['Roads, markets, cities, and homes may grow around the crossing.'],risks:['A bridge without useful destinations on both sides may add little value.'],surprise:'One bridge can reroute many people at once by shortening their paths.'},
+ night:{summary:'Night changes visibility, energy demand, movement, and the value of lighted places.',immediate:['Energy demand may become more noticeable.'],later:['Homes, cities, towers, energy, or controlled fire may gain new importance.'],risks:['Low energy can reduce activity and hope after dark.'],surprise:'Night can reveal which parts of the world are truly connected to power.'},
+ sun:{summary:'Sunlight can support food and energy while increasing pressure on water.',immediate:['Food and energy potential may improve.'],later:['Fields, gardens, power, water systems, or cities may develop.'],risks:['Dry conditions can reduce water availability.'],surprise:'Sun can help one system while creating a new problem for another.'},
+ river:{summary:'A river can become a source of water, food, movement, ecology, and new routes.',immediate:['Water and nearby food potential may improve.'],later:['Bridges, fields, cities, water systems, and forests may develop along it.'],risks:['Flooding or poor crossing points can divide areas.'],surprise:'A river beside fields can immediately create a visible irrigation relationship.'},
+ home:{summary:'Homes attract residents and can turn scattered activity into a neighborhood.',immediate:['Population may gather more strongly around the area.'],later:['Cities, roads, gardens, communities, and markets may grow nearby.'],risks:['More residents increase demand for food, water, and energy.'],surprise:'Several small homes can gradually reshape the center of population without a large city action.'},
+ garden:{summary:'A garden can improve food, ecology, and hope in a small local area.',immediate:['Food and nature may improve modestly.'],later:['Water, homes, communities, forests, or fields may connect to it.'],risks:['A garden can struggle without reliable water.'],surprise:'A garden near homes can create a soft green center for a growing settlement.'},
+ tower:{summary:'A tower can become a landmark, observation point, or infrastructure anchor.',immediate:['The area may gain visibility and identity.'],later:['Roads, cities, energy, wind systems, or schools may develop around it.'],risks:['A tower can consume resources without solving an immediate shortage.'],surprise:'A tower in the right location can later become part of a communication or energy network.'},
+ cloud:{summary:'Clouds can signal future rain and change water, food, and energy conditions.',immediate:['Water conditions may become more favorable.'],later:['Rain, water systems, forests, fields, or wind activity may follow.'],risks:['Reduced sunlight can temporarily reduce some energy or farm benefits.'],surprise:'Clouds can become the first step in a rain-to-fire or rain-to-farm chain.'},
+ fire:{summary:'Fire provides energy and warmth but can spread into nearby natural areas.',immediate:['Energy may rise locally while water and ecology come under pressure.'],later:['Water, rain, community response, roads, or forest damage may follow.'],risks:['Nearby forests can ignite and create a visible spreading-fire relation.'],surprise:'A dangerous fire can also generate new emergency routes and community behavior.'},
+ community:{summary:'A community can coordinate people and make several nearby systems work together.',immediate:['Hope and local cooperation may rise.'],later:['Homes, schools, markets, gardens, or cities may develop around shared activity.'],risks:['A community still needs enough food, water, and energy to remain stable.'],surprise:'A community can connect several smaller structures into a functioning settlement.'}
+};
+function preparedPredictionFor(kind){
+ const base=preparedForecasts[kind]||preparedForecasts.idea;
+ return {summary:base.summary,immediate:[...base.immediate],later:[...base.later],risks:[...base.risks],surprise:base.surprise,confidence:0.55}
+}
+function preparedIdeasFor(kind){
+ const ids=(successorMap[kind]||[]).slice(0,3);
+ return ids.map(id=>byId[id]).filter(Boolean)
+}
 const interactionSpecs={
  'city+forest':{type:'forest-city',label:'forest ↔ city',effect:{eco:2,hope:2}},
  'city+volcano':{type:'volcano-city',label:'volcano → city',effect:{hope:-5,pop:-1}},
@@ -243,7 +278,7 @@ function drawRelations(){for(const r of S.relations)drawRelation(r)}
 function drawObject(o){if(o.k==='city')drawCity(o);else if(o.k==='forest')drawForest(o);else if(o.k==='volcano')drawVolcano(o);else if(o.k==='energy')drawEnergy(o);else if(o.k==='farm')drawFarm(o);else if(o.k==='river')drawRiver(o);else if(o.k==='water')drawWater(o);else if(o.k==='mountain')drawMountain(o);else if(o.k==='road')drawRoad(o);else if(o.k==='market')drawMarket(o);else if(o.k==='wind')drawWind(o);else if(o.k==='bridge')drawBridge(o);else if(o.k==='idea')drawIdea(o);else if(o.k==='garden')drawGarden(o);else if(['sun','night','cloud','rain'].includes(o.k))drawWeather(o,o.k);else if(o.k==='fire')drawFire(o);else if(o.k==='community')drawCommunity(o);else drawBuilding(o,o.k)}
 function drawGlyph(o){const a=byId[o.k],p=iso(o.x,o.y,(o.k==='tower'?70:58)*o.s),q=Math.max(.72,Math.min(1.25,cam.zoom)),r=12*q;ctx.save();ctx.globalAlpha=.94;ctx.fillStyle='rgba(8,10,12,.80)';ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,r,0,7);ctx.fill();ctx.stroke();ctx.font='700 '+Math.round(15*q)+'px Georgia,"Times New Roman",serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=a.col;ctx.fillText(a.glyph,p.x,p.y+.5);ctx.restore()}
 function currentDeck(){return catalog.slice(0,5)}
-let selected=null,pending=null,pendingButton=null;
+let selected=null,pending=null,pendingButton=null,predictionRequestId=0;
 function makeActionButton(a,slot){
  const b=document.createElement('button');b.className='action';b.dataset.a=a.id;b.dataset.slot=slot;
  b.innerHTML='<span class="g">'+a.glyph+'</span><span class="name">'+a.name+'</span>';
@@ -269,33 +304,54 @@ function replaceConsumedSlot(slot,consumed){
 function visibleObjects(){return S.objects.filter(o=>inVisibleWorld(o.x,o.y,20))}
 function visibleCounts(){const out={};for(const o of visibleObjects())out[o.k]=(out[o.k]||0)+1;return out}
 function formatPrediction(p){let out=[];if(p.summary)out.push(p.summary);if(p.immediate?.length)out.push('\nImmediate:\n• '+p.immediate.join('\n• '));if(p.later?.length)out.push('\nLater:\n• '+p.later.join('\n• '));if(p.risks?.length)out.push('\nRisks:\n• '+p.risks.join('\n• '));if(p.surprise)out.push('\nUnexpected chain:\n'+p.surprise);return out.join('\n')}
+function formatPreparedFallback(kind){
+ const p=preparedPredictionFor(kind),ideas=preparedIdeasFor(kind);
+ let out=formatPrediction(p);
+ if(ideas.length)out+='\n\nPrepared Development Ideas:\n• '+ideas.map(a=>a.glyph+' '+a.name).join('\n• ');
+ return out
+}
 async function livePredict(){
  if(!pending)return;
+ const requestId=++predictionRequestId;
  const a=byId[pending.k],forecast=document.getElementById('forecast'),meta=document.getElementById('aiMeta'),yes=document.getElementById('yes'),retry=document.getElementById('retry');
- forecast.textContent='Live AI is reading the world state and the proposed action…';meta.textContent='Request to World Server /api/chain-ai';yes.disabled=true;retry.style.display='none';
- const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),16000);
+ const fallback=preparedPredictionFor(a.id);
+ forecast.textContent=formatPreparedFallback(a.id);
+ meta.textContent='PREPARED FORECAST · checking live AI…';
+ yes.disabled=false;
+ retry.style.display='none';
+ retry.textContent='Retry Live AI';
+ S.lastAI={provider:'prepared-fallback',prediction:fallback,at:Date.now(),fallback:true};
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),7000);
  const payload={text:'Predict action '+a.name,mode:'predict_action',language:'en',provider:'auto',action:{kind:a.id,name:a.name,glyph:a.glyph,location:'world x '+Math.round(pending.x)+', y '+Math.round(pending.y)+'; current visible area'},worldContext:{turn:S.turn,population:S.pop,power:S.energy,water:S.water,food:S.food,eco:S.eco,budget:S.hope,visible:visibleCounts()}};
  try{
   const res=await fetch(AI_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal});
   const data=await res.json().catch(()=>({}));
+  if(requestId!==predictionRequestId||!pending)return;
   if(!res.ok||!data.ok||!data.prediction)throw Error(data.detail||data.error||('HTTP '+res.status));
   if(data.language!=='en')throw Error('English AI locale is not active yet');
-  S.lastAI={provider:data.provider,prediction:data.prediction,at:Date.now()};
+  S.lastAI={provider:data.provider,prediction:data.prediction,at:Date.now(),fallback:false};
   forecast.textContent=formatPrediction(data.prediction);
   meta.textContent='LIVE AI · '+String(data.provider||'provider')+' · executed=false';
-  yes.disabled=false;retry.style.display='none';setAiBadge('AI: '+String(data.provider||'live'),true);
+  yes.disabled=false;
+  retry.style.display='none';
+  setAiBadge('AI: '+String(data.provider||'live'),true);
  }catch(err){
-  forecast.textContent='Live AI did not answer this time. The world has not changed. You can retry.';
-  meta.textContent='AI ERROR · '+String(err.message||err).slice(0,90);
-  yes.disabled=true;retry.style.display='block';setAiBadge('AI: retry',false);
+  if(requestId!==predictionRequestId||!pending)return;
+  S.lastAI={provider:'prepared-fallback',prediction:fallback,at:Date.now(),fallback:true,error:String(err.message||err)};
+  forecast.textContent=formatPreparedFallback(a.id);
+  meta.textContent='PREPARED FALLBACK · live AI unavailable · safe to continue';
+  yes.disabled=false;
+  retry.style.display='block';
+  retry.textContent='Retry Live AI';
+  setAiBadge('AI: fallback',false);
  }finally{clearTimeout(timer)}
 }
-function openForecastAt(id,wx,wy){const a=byId[id];pending={k:id,x:wx,y:wy};document.getElementById('modalTitle').textContent=a.glyph+' '+a.name+' — live forecast';document.getElementById('forecastModal').classList.add('show');livePredict()}
+function openForecastAt(id,wx,wy){const a=byId[id];pending={k:id,x:wx,y:wy};document.getElementById('modalTitle').textContent=a.glyph+' '+a.name+' — forecast';document.getElementById('forecastModal').classList.add('show');livePredict()}
 function setAiBadge(text,live){const b=document.getElementById('aiBadge');b.textContent=text;b.classList.toggle('live',!!live)}
 async function probeAI(){try{const r=await fetch(AI_URL,{cache:'no-store'}),d=await r.json();const n=Object.entries(d.providers||{}).filter(x=>x[1]).map(x=>x[0]);setAiBadge(n.length?'AI: '+n.length+' online':'AI: no providers',n.length>0)}catch{setAiBadge('AI: offline',false)}}
 document.getElementById('retry').onclick=()=>livePredict();
-document.getElementById('no').onclick=()=>{pending=null;document.getElementById('forecastModal').classList.remove('show')};
-document.getElementById('yes').onclick=()=>{if(!pending||document.getElementById('yes').disabled)return;const consumed=pending.k,slot=Number(pendingButton?.dataset.slot??-1);apply(pending.k,pending.x,pending.y);S.used.add(consumed);pending=null;selected=null;document.getElementById('forecastModal').classList.remove('show');if(slot>=0)setTimeout(()=>replaceConsumedSlot(slot,consumed),180)};
+document.getElementById('no').onclick=()=>{predictionRequestId++;pending=null;document.getElementById('forecastModal').classList.remove('show')};
+document.getElementById('yes').onclick=()=>{if(!pending||document.getElementById('yes').disabled)return;predictionRequestId++;const consumed=pending.k,slot=Number(pendingButton?.dataset.slot??-1);apply(pending.k,pending.x,pending.y);S.used.add(consumed);pending=null;selected=null;document.getElementById('forecastModal').classList.remove('show');if(slot>=0)setTimeout(()=>replaceConsumedSlot(slot,consumed),180)};
 function relationKey(a,b){return[a.k,b.k].sort().join('+')}
 function relationExists(a,b){return S.relations.some(r=>(r.a===a.id&&r.b===b.id)||(r.a===b.id&&r.b===a.id))}
 function applyRelationEffect(spec){for(const[q,v]of Object.entries(spec.effect||{}))S[q]=(S[q]||0)+v}
