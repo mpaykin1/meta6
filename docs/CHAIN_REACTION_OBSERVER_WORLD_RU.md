@@ -89,26 +89,38 @@ When an Observer dies, the simulation should retain:
 
 Do not present consequences primarily as dry numbers.
 
-Every meaningful tick/event should create a short original literary field report of roughly 60–160 words.
+### Mandatory event-text standard
 
-Voice requirements:
-- intelligent speculative-fiction narration;
+Every meaningful event must be rendered as ONE short paragraph of roughly 35–55 words.
+
+The paragraph must contain only three things, in this order:
+
+1. WHAT HAPPENED — the concrete event.
+2. WORLD REACTION — who reacted and how.
+3. POSSIBLE CONSEQUENCE — one or two plausible next effects or risks.
+
+No decorative exposition before the event. No long atmosphere passages. No repeated explanation of motives. No omniscient summary of the whole world.
+
+The prose should still feel like intelligent speculative fiction:
 - restrained irony;
-- concrete physical detail;
-- human behaviour before abstract statistics;
-- tension between what the Observer knows and what locals believe;
+- concrete physical or human detail;
 - moral ambiguity;
-- causal hints rather than omniscient explanations;
-- occasional bureaucratic Institute note as counterpoint;
+- visible causality;
+- tension between local interpretation and Observer knowledge;
 - no imitation or reuse of distinctive wording from any named author.
 
 BAD:
 "Food -12. Satisfaction -8. Riots +15%."
 
-GOOD STRUCTURE:
-A mill stops. Flour becomes expensive. A baker closes before noon. A guard takes bread without paying. Someone in the queue laughs at the wrong moment. By evening a rumour says the lord has hidden grain in the citadel. The Observer knows the granary is almost empty — but also knows that opening the Institute cache would alter far more than tonight's supper.
+TOO LONG:
+A long literary scene that spends most of its space on weather, scenery, biography, dialogue, or mood before reaching the causal consequence.
+
+TARGET:
+"The healer saved a dying boy with two tablets from our container. By evening the city was already calling it a miracle, and the guard captain sent men for him. If they arrest the healer, the source of help is lost. If we intervene, the guard may begin looking for whoever supplied the impossible medicine."
 
 Numbers remain available in diagnostics, but prose is the default player-facing consequence.
+
+This 35–55 word WHAT HAPPENED → WORLD REACTION → POSSIBLE CONSEQUENCE structure is the default for all ordinary Chain Reaction event cards. Longer prose is reserved only for rare major historical turning points.
 
 ## 6. Hieroglyph / macro-object vocabulary
 
