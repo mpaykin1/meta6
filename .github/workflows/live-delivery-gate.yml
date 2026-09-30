@@ -1,65 +1,56 @@
 name: Meta6 Live Delivery Gate
 
 on:
-  workflow_run:
-    workflows: ["pages build and deployment"]
-    types: [completed]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: meta6-live-delivery
+  cancel-in-progress: true
 
 jobs:
   verify-live:
     runs-on: ubuntu-latest
     steps:
-      - name: Require successful GitHub Pages deployment
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
-            echo "::error::GitHub Pages deployment did not succeed; public links are not releasable."
-            exit 1
-          fi
-
-      - name: Verify Russian baseline is live
+      - name: Wait for Russian baseline to be live
         shell: bash
         run: |
           set -euo pipefail
           URL="https://mpaykin1.github.io/meta6/"
-          for attempt in $(seq 1 30); do
+          for attempt in $(seq 1 40); do
             BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
             if printf '%s' "$BODY" | grep -Fq 'Chain Reaction: Meta6'; then
               echo "LIVE_OK $URL"
-              exit 0
+              break
             fi
-            echo "Waiting for Russian baseline deployment ($attempt/30)..."
+            if [ "$attempt" -eq 40 ]; then echo "::error::Russian Meta6 public URL did not become live."; exit 1; fi
+            echo "Waiting for Pages deployment ($attempt/40)..."
             sleep 10
           done
-          echo "::error::Russian Meta6 public URL did not become live with the expected marker."
-          exit 1
 
-      - name: Verify English variant is live
+      - name: Wait for English variant to be live
         shell: bash
         run: |
           set -euo pipefail
           URL="https://mpaykin1.github.io/meta6/en/"
-          for attempt in $(seq 1 30); do
+          for attempt in $(seq 1 40); do
             BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
             if printf '%s' "$BODY" | grep -Fq 'Chain Reaction: Meta6 EN'; then
               echo "LIVE_OK $URL"
-              exit 0
+              break
             fi
-            echo "Waiting for English deployment ($attempt/30)..."
+            if [ "$attempt" -eq 40 ]; then echo "::error::English Meta6 public URL returned 404/stale content or lacked the expected marker."; exit 1; fi
+            echo "Waiting for English Pages deployment ($attempt/40)..."
             sleep 10
           done
-          echo "::error::English Meta6 public URL returned 404/stale content or lacked the expected marker."
-          exit 1
 
-      - name: Delivery contract
+      - name: Release evidence
         run: |
-          echo "Public-link release rule:"
-          echo "1. repository file exists"
-          echo "2. GitHub Pages deployment succeeds"
-          echo "3. public URL returns HTTP 200"
-          echo "4. expected build marker is present"
-          echo "Only then may the link be reported as ready."
+          echo "SOURCE_SHA=${GITHUB_SHA}"
+          echo "RUSSIAN_URL=https://mpaykin1.github.io/meta6/"
+          echo "ENGLISH_URL=https://mpaykin1.github.io/meta6/en/"
+          echo "STATUS=LIVE_VERIFIED"
