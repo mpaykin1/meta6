@@ -35,6 +35,11 @@ jobs:
           Path("/tmp/observer-world.js").write_text("\n".join(blocks), encoding="utf-8")
           PY
           node --check /tmp/observer-world.js
+          grep -Fq 'function drawActivity' observer-world/index.html
+          grep -Fq 'function drawGlyph' observer-world/index.html
+          grep -Fq 'NEXT_ACTION' observer-world/index.html
+          grep -Fq 'inspectModal' observer-world/index.html
+          grep -Fq 'function openInspect' observer-world/index.html
 
       - name: Verify canonical old Meta6 remains present
         shell: bash
@@ -52,7 +57,11 @@ jobs:
             BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
             if printf '%s' "$BODY" | grep -Fq 'ЦЕПОЧКА · НАБЛЮДАТЕЛИ' \
               && printf '%s' "$BODY" | grep -Fq 'Институт исторических наблюдений' \
-              && printf '%s' "$BODY" | grep -Fq 'Наблюдатель погиб'; then
+              && printf '%s' "$BODY" | grep -Fq 'Наблюдатель погиб' \
+              && printf '%s' "$BODY" | grep -Fq 'function drawActivity' \
+              && printf '%s' "$BODY" | grep -Fq 'function drawGlyph' \
+              && printf '%s' "$BODY" | grep -Fq 'NEXT_ACTION' \
+              && printf '%s' "$BODY" | grep -Fq 'inspectModal'; then
               echo "LIVE_OK $URL"
               exit 0
             fi
