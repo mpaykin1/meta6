@@ -279,6 +279,7 @@ async function livePredict(){
   const res=await fetch(AI_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal});
   const data=await res.json().catch(()=>({}));
   if(!res.ok||!data.ok||!data.prediction)throw Error(data.detail||data.error||('HTTP '+res.status));
+  if(data.language!=='en')throw Error('English AI locale is not active yet');
   S.lastAI={provider:data.provider,prediction:data.prediction,at:Date.now()};
   forecast.textContent=formatPrediction(data.prediction);
   meta.textContent='LIVE AI · '+String(data.provider||'provider')+' · executed=false';
