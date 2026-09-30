@@ -38,11 +38,11 @@ jobs:
           URL="https://mpaykin1.github.io/meta6/en/"
           for attempt in $(seq 1 40); do
             BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
-            if printf '%s' "$BODY" | grep -Fq 'Chain Reaction: Meta6 EN'; then
+            if printf '%s' "$BODY" | grep -Fq 'Chain Reaction: Meta6 EN' && printf '%s' "$BODY" | grep -Fq 'PREPARED FALLBACK' && printf '%s' "$BODY" | grep -Fq 'Prepared Development Ideas'; then
               echo "LIVE_OK $URL"
               break
             fi
-            if [ "$attempt" -eq 40 ]; then echo "::error::English Meta6 public URL returned 404/stale content or lacked the expected marker."; exit 1; fi
+            if [ "$attempt" -eq 40 ]; then echo "::error::English Meta6 public URL returned 404/stale content or lacked the required fallback markers."; exit 1; fi
             echo "Waiting for English Pages deployment ($attempt/40)..."
             sleep 10
           done
