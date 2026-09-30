@@ -23,7 +23,7 @@ jobs:
           URL="https://mpaykin1.github.io/meta6/"
           for attempt in $(seq 1 40); do
             BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
-            if printf '%s' "$BODY" | grep -Fq 'Chain Reaction: Meta6'; then
+            if printf '%s' "$BODY" | grep -Fq 'Цепочка: Meta6'; then
               echo "LIVE_OK $URL"
               break
             fi
