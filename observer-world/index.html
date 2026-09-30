@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#17130d">
+<title>Цепочка — Наблюдатели</title>
+<style>
+:root{--ink:#f3ead6;--muted:#b9aa90;--panel:rgba(23,18,12,.86);--line:rgba(238,214,174,.18);--red:#df4b3f;--gold:#d7b36a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;position:fixed;inset:0;width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;background:#17130d;color:var(--ink);font-family:Georgia,"Times New Roman",serif;touch-action:none;-webkit-user-select:none;user-select:none}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;background:#29271d;touch-action:none}
+.ui{background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 44px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#head{position:fixed;left:10px;right:10px;top:max(9px,env(safe-area-inset-top));z-index:5;border-radius:16px;padding:9px 11px;display:flex;align-items:center;gap:12px;pointer-events:none}
+#head strong{font-size:14px;letter-spacing:.03em}#head small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+#status{margin-left:auto;text-align:right;font-family:ui-sans-serif,system-ui;font-size:9px;color:var(--muted)}#status b{display:block;color:#ff7d6f;font-size:11px}
+#story{position:fixed;left:10px;right:10px;bottom:calc(82px + env(safe-area-inset-bottom));z-index:5;border-radius:17px;padding:11px 13px;max-width:740px;margin:auto;pointer-events:none}
+#story .kicker{font-family:ui-sans-serif,system-ui;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+#storyText{font-size:13px;line-height:1.38;color:#f5eddc}
+#dock{position:fixed;left:7px;right:7px;bottom:max(6px,env(safe-area-inset-bottom));height:68px;z-index:6;border-radius:17px;padding:6px;display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x}
+#dock::-webkit-scrollbar{display:none}.tool{flex:0 0 58px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#f4ead5;border-radius:12px;padding:5px 2px;font-family:inherit;min-height:54px}
+.tool.active{outline:2px solid var(--gold);background:rgba(215,179,106,.15)}.tool .g{display:block;font-size:23px;line-height:1}.tool .n{display:block;margin-top:4px;font:8px ui-sans-serif,system-ui;color:#d8cbb5;white-space:nowrap}
+#hint{position:fixed;right:10px;top:75px;z-index:4;font:9px ui-sans-serif,system-ui;color:#d0c2aa;background:rgba(20,15,10,.58);border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:6px 9px;pointer-events:none}
+@media(max-width:700px){#story{bottom:calc(80px + env(safe-area-inset-bottom));padding:10px 11px}#storyText{font-size:12px}#head{padding:8px 10px}#hint{top:70px}.tool{flex-basis:55px}}
+@media(max-height:620px){#story{bottom:72px;padding:8px 10px}#storyText{font-size:11px}#dock{height:60px}.tool{min-height:47px}.tool .g{font-size:20px}}
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="Средневековый мир Цепочки"></canvas>
+<div id="head" class="ui">
+  <div><strong>ЦЕПОЧКА · НАБЛЮДАТЕЛИ</strong><small>Институт исторических наблюдений · полевая группа</small></div>
+  <div id="status"><span>население <b id="pop">0</b></span><span>подозрение <b id="sus">0</b></span></div>
+</div>
+<div id="hint">выбери знак → коснись земли · тащи мир пальцем</div>
+<div id="story" class="ui"><div class="kicker" id="storyKicker">Полевой журнал</div><div id="storyText">Здесь пока нет города. Есть только земля, вода и двое людей, которых местные когда-нибудь примут за чужеземцев. Институт рекомендует начать с малого: дать будущему поселению причину возникнуть — и посмотреть, что люди сделают с этой причиной сами.</div></div>
+<div id="dock" class="ui"></div>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d',{alpha:false});
+const dock=document.getElementById('dock'),story=document.getElementById('storyText'),kicker=document.getElementById('storyKicker');
+const popEl=document.getElementById('pop'),susEl=document.getElementById('sus');
+let W=0,H=0,DPR=Math.min(2,devicePixelRatio||1),time=0;
+const cam={x:0,y:0,zoom:1};
+const S={pop:0,food:8,order:20,suspicion:0,next:1,selected:'well',objects:[],history:[],chapter:0};
+const TYPES=[
+ ['well','井','Колодец'],['market','市','Рынок'],['school','文','Школа'],['castle','城','Замок'],
+ ['monastery','寺','Монастырь'],['guard','兵','Стража'],['prison','獄','Тюрьма'],['granary','倉','Амбар'],
+ ['healer','薬','Лекарь'],['fire','火','Пожар'],['plague','疫','Чума'],['observer','人','Наблюдатель']
+];
+const LABEL=Object.fromEntries(TYPES.map(x=>[x[0],x[2]]));
+function resize(){W=innerWidth;H=innerHeight;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);window.scrollTo(0,0)}
+addEventListener('resize',resize,{passive:true});addEventListener('orientationchange',()=>setTimeout(resize,80),{passive:true});resize();
+function rand(n=1){return(Math.sin((S.next*91.17+S.objects.length*17.31))*43758.5453%1+1)%1*n}
+function w2s(x,y,z=0){return{x:(x-cam.x)*cam.zoom+W/2,y:(y-cam.y)*cam.zoom+H/2-z*cam.zoom}}
+function s2w(x,y){return{x:(x-W/2)/cam.zoom+cam.x,y:(y-H/2)/cam.zoom+cam.y}}
+function shade(hex,f){const n=parseInt(hex.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;return`rgb(${Math.max(0,Math.min(255,r+f))},${Math.max(0,Math.min(255,g+f))},${Math.max(0,Math.min(255,b+f))})`}
+function poly(p,fill,stroke='rgba(0,0,0,.25)'){ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)ctx.lineTo(p[i][0],p[i][1]);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.stroke()}}
+function line(a,b,col,w=1){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.stroke()}
+function box(x,y,z,sx,sy,sz,col){const p=w2s(x,y,z),q=cam.zoom,ax=sx*q*.5,ay=sy*q*.26,h=sz*q;const A=[p.x,p.y-ay],B=[p.x+ax,p.y],C=[p.x,p.y+ay],D=[p.x-ax,p.y],At=[A[0],A[1]-h],Bt=[B[0],B[1]-h],Ct=[C[0],C[1]-h],Dt=[D[0],D[1]-h];poly([D,C,Ct,Dt],shade(col,-38));poly([C,B,Bt,Ct],shade(col,-20));poly([Dt,Ct,Bt,At],shade(col,18))}
+function roof(x,y,z,w,d,col='#6d3f32'){const p=w2s(x,y,z),q=cam.zoom,rx=w*q*.58,ry=d*q*.27,rh=10*q;poly([[p.x-rx,p.y],[p.x,p.y-ry-rh],[p.x+rx,p.y]],col);poly([[p.x-rx,p.y],[p.x,p.y+ry],[p.x+rx,p.y],[p.x,p.y-ry-rh]],shade(col,-16))}
+function ground(){ctx.fillStyle='#2f3224';ctx.fillRect(0,0,W,H);let step=70*cam.zoom,ox=((W/2-cam.x*cam.zoom)%step+step)%step,oy=((H/2-cam.y*cam.zoom)%step+step)%step;ctx.strokeStyle='rgba(233,220,178,.035)';ctx.lineWidth=1;for(let x=ox;x<W;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=oy;y<H;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ const pts=[];for(let i=-6;i<=6;i++){let wx=i*120,wy=Math.sin(i*.7)*46+120,p=w2s(wx,wy);pts.push(p)}ctx.lineCap='round';ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(const p of pts.slice(1))ctx.lineTo(p.x,p.y);ctx.strokeStyle='rgba(58,99,101,.75)';ctx.lineWidth=26*cam.zoom;ctx.stroke();ctx.strokeStyle='rgba(120,169,157,.55)';ctx.lineWidth=9*cam.zoom;ctx.stroke();ctx.lineCap='butt';
+ for(let i=0;i<18;i++){let x=-520+i*63,y=-180+Math.sin(i*2.3)*30,p=w2s(x,y);ctx.fillStyle='rgba(64,74,48,.65)';ctx.beginPath();ctx.arc(p.x,p.y,8*cam.zoom,0,7);ctx.fill()}}
+function human(o,red=false){const p=w2s(o.x,o.y,14),q=cam.zoom;if(o.dead){ctx.strokeStyle='#7d2924';ctx.lineWidth=3*q;ctx.beginPath();ctx.moveTo(p.x-7*q,p.y-7*q);ctx.lineTo(p.x+7*q,p.y+7*q);ctx.moveTo(p.x+7*q,p.y-7*q);ctx.lineTo(p.x-7*q,p.y+7*q);ctx.stroke();return}ctx.fillStyle=red?'#df4b3f':'#d0c2a5';ctx.beginPath();ctx.arc(p.x,p.y-5*q,4*q,0,7);ctx.fill();ctx.strokeStyle=red?'#f26457':'#c0b395';ctx.lineWidth=3*q;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,p.y+12*q);ctx.moveTo(p.x,p.y+4*q);ctx.lineTo(p.x-6*q,p.y+9*q);ctx.moveTo(p.x,p.y+4*q);ctx.lineTo(p.x+6*q,p.y+9*q);ctx.stroke()}
+function hut(o){box(o.x,o.y,0,23,18,14,'#9a7b56');roof(o.x,o.y,14,25,20,'#684638');let p=w2s(o.x+6,o.y+2,7);ctx.fillStyle='#e8a95d';ctx.fillRect(p.x-2,p.y-2,4,4)}
+function drawObject(o){if(o.kind==='hut')return hut(o);if(o.kind==='observer')return human(o,true);if(o.kind==='scholar')return human(o,false);
+ if(o.kind==='well'){let p=w2s(o.x,o.y);ctx.fillStyle='#7b7365';ctx.beginPath();ctx.ellipse(p.x,p.y,16*cam.zoom,8*cam.zoom,0,0,7);ctx.fill();ctx.fillStyle='#223f44';ctx.beginPath();ctx.ellipse(p.x,p.y-2*cam.zoom,10*cam.zoom,4*cam.zoom,0,0,7);ctx.fill();box(o.x-13,o.y,0,3,3,22,'#6e5438');box(o.x+13,o.y,0,3,3,22,'#6e5438');roof(o.x,o.y,22,34,12,'#6d5134');return}
+ if(o.kind==='market'){for(let i=-1;i<=1;i++){box(o.x+i*18,o.y+(i%2)*5,0,14,11,7,i===0?'#b98a4e':'#9f6845');roof(o.x+i*18,o.y+(i%2)*5,7,15,12,i===0?'#8b2f2f':'#d0a052')}return}
+ if(o.kind==='school'){box(o.x,o.y,0,35,25,22,'#a59273');roof(o.x,o.y,22,38,28,'#6d3f32');let p=w2s(o.x,o.y,31);ctx.fillStyle='#d9c39a';ctx.fillRect(p.x-6,p.y-2,12,4);return}
+ if(o.kind==='castle'){box(o.x,o.y,0,50,38,30,'#8b877a');for(const [dx,dy] of [[-25,-18],[25,-18],[-25,18],[25,18]])box(o.x+dx,o.y+dy,0,14,14,43,'#888477');let p=w2s(o.x,o.y,30);ctx.fillStyle='#512d25';ctx.fillRect(p.x-5,p.y,10,18*cam.zoom);return}
+ if(o.kind==='monastery'){box(o.x,o.y,0,40,26,24,'#9d927a');roof(o.x,o.y,24,42,28,'#59483f');box(o.x+19,o.y-8,0,12,12,36,'#8e846f');let p=w2s(o.x+19,o.y-8,39);ctx.strokeStyle='#d0bf93';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x,p.y-8);ctx.lineTo(p.x,p.y+8);ctx.moveTo(p.x-5,p.y-3);ctx.lineTo(p.x+5,p.y-3);ctx.stroke();return}
+ if(o.kind==='guard'){human(o,false);let p=w2s(o.x+6,o.y,10);ctx.strokeStyle='#9e382f';ctx.lineWidth=3*cam.zoom;ctx.beginPath();ctx.moveTo(p.x,p.y-12*cam.zoom);ctx.lineTo(p.x,p.y+9*cam.zoom);ctx.stroke();return}
+ if(o.kind==='prison'){box(o.x,o.y,0,42,30,26,'#716d66');for(let i=-1;i<=1;i++){let p=w2s(o.x+i*8,o.y-11,14);ctx.strokeStyle='#262524';ctx.lineWidth=2*cam.zoom;ctx.beginPath();ctx.moveTo(p.x,p.y-5);ctx.lineTo(p.x,p.y+5);ctx.stroke()}return}
+ if(o.kind==='granary'){box(o.x,o.y,0,38,26,20,'#9d7a4b');roof(o.x,o.y,20,41,29,'#694838');return}
+ if(o.kind==='healer'){box(o.x,o.y,0,30,22,18,'#8d866c');roof(o.x,o.y,18,33,25,'#5d463a');let p=w2s(o.x,o.y,12);ctx.fillStyle='#d8d0b6';ctx.fillRect(p.x-7,p.y-2,14,4);ctx.fillRect(p.x-2,p.y-7,4,14);return}
+ if(o.kind==='fire'){let p=w2s(o.x,o.y);for(let i=0;i<5;i++){let x=p.x+(i-2)*7*cam.zoom,h=(18+8*Math.sin(time*.006+i))*cam.zoom;poly([[x-7*cam.zoom,p.y],[x,p.y-h],[x+7*cam.zoom,p.y]],i%2?'#ff9c3d':'#d94c2f',null)}return}
+ if(o.kind==='plague'){let p=w2s(o.x,o.y);ctx.fillStyle='rgba(120,139,77,.28)';ctx.beginPath();ctx.arc(p.x,p.y,32*cam.zoom,0,7);ctx.fill();for(let i=0;i<7;i++){ctx.fillStyle=i%2?'#8e9d57':'#667646';ctx.beginPath();ctx.arc(p.x+(i-3)*7*cam.zoom,p.y+Math.sin(i)*8*cam.zoom,3*cam.zoom,0,7);ctx.fill()}return}}
+function render(){time=performance.now();ground();const sorted=[...S.objects].sort((a,b)=>a.y-b.y);for(const o of sorted)drawObject(o);requestAnimationFrame(render)}requestAnimationFrame(render);
+function add(kind,x,y,extra={}){const o={id:S.next++,kind,x,y,dead:false,...extra};S.objects.push(o);return o}
+function nearby(kind,x,y,r=150){return S.objects.filter(o=>o.kind===kind&&!o.dead&&Math.hypot(o.x-x,o.y-y)<r)}
+function report(title,text){kicker.textContent=title;story.textContent=text;S.history.push({title,text});popEl.textContent=S.pop;susEl.textContent=S.suspicion}
+function huts(x,y,n){for(let i=0;i<n;i++){let a=i/n*Math.PI*2+rand(.7),r=42+rand(45);add('hut',x+Math.cos(a)*r,y+Math.sin(a)*r*.6)}}
+function killObserver(obs,why){obs.dead=true;S.suspicion=Math.max(0,S.suspicion-1);report('Наблюдатель погиб',why+' Институт не отменил наблюдение: история не остановилась, жители запомнили смерть чужеземца, а его вещи могут стать уликой. Следующего сотрудника придётся вводить осторожнее — в мир, который уже изменён этой смертью.')}
+function consequence(o){
+ if(o.kind==='well'){S.pop+=5;S.food+=2;huts(o.x,o.y,2);report('Первые жители','У колодца остановились две семьи и старый кузнец. К вечеру они натянули навесы и уже спорили, кому доставать воду первым. Если рядом появится рынок, стоянка станет поселением; если порядок не возникнет сам, его скоро предложит человек с оружием.')}
+ if(o.kind==='market'){S.pop+=7;huts(o.x,o.y,2);report('Рынок','Три торговых воза свернули к новой площади, и к полудню здесь уже меняли зерно на железо. Вместе с торговцами пришли воры и сборщики долгов. Если рынок приживётся, поселение разбогатеет — и очень скоро кто-нибудь решит, что богатству нужен хозяин.')}
+ if(o.kind==='school'){S.pop+=2;S.suspicion++;add('scholar',o.x+34,o.y+9);report('Учёный','Учитель собрал детей в доме у площади, а через неделю один из его учеников начал записывать цены, болезни и смерти. Стража сочла записи подозрительными. Если знание продолжит накапливаться, город получит учёного; вместе с ним он получит и людей, которым вопросы опаснее преступлений.')}
+ if(o.kind==='castle'){S.order+=10;report('Власть','На холме закончили каменную башню, и вооружённые люди впервые начали называть её резиденцией. Торговцы приветствовали порядок, бедняки — новые поборы. Если гарнизон окрепнет, город переживёт набег; но человек, контролирующий ворота, вскоре сможет контролировать и сам город.')}
+ if(o.kind==='monastery'){S.order+=7;report('Монастырь','Монахи открыли кухню и начали кормить тех, кому рынок не оставил места. За месяц их слово стало весить больше приказов старосты. Если случится голод или болезнь, люди пойдут сюда за помощью — и благодарность незаметно превратится в политическую власть.')}
+ if(o.kind==='granary'){S.food+=18;report('Амбар','Первый общий амбар заполнили зерном до осенних дождей. Цена хлеба упала, зато возле дверей появился вооружённый сторож. Если урожай погибнет, этот запас спасёт город; если голод затянется, вопрос о том, кто владеет ключом, станет важнее самого зерна.')}
+ if(o.kind==='healer'){let p=nearby('plague',o.x,o.y,190);S.suspicion++;if(p.length){S.pop+=3;report('Лекарь','Лекарь спас нескольких больных способом, которого здесь никто не понимает. К вечеру у его двери уже ждали десятки людей, а священник потребовал объяснений. Если лечение продолжится, чума отступит; вместе с ней вырастет интерес к тому, откуда у лекаря невозможные знания.')}else report('Лекарь','Лекарь поселился возле рынка и за неделю перестал быть чужаком: он принимал роды, вправлял вывихи и спрашивал слишком точные вещи о воде. Если начнётся эпидемия, его знания спасут людей; если власть заметит их происхождение раньше — придётся спасать уже самого лекаря.')}
+ if(o.kind==='plague'){let heal=nearby('healer',o.x,o.y,190).length;S.pop=Math.max(0,S.pop-(heal?2:6));report('Чума',heal?'Болезнь пришла с торговым обозом, но лекарь сразу отделил заболевших и приказал кипятить воду. Смертей оказалось меньше, чем ожидали местные. Если это продолжится, город переживёт вспышку — и обязательно спросит, почему один человек знал то, чего не знали остальные.':'Болезнь пришла с торговым обозом и за три дня добралась до бедного квартала. Колокола уже звонят чаще, чем открываются лавки. Если люди обвинят чужаков, начнутся погромы; если никто не поймёт источник заражения, следующим закроется рынок — вместе с едой.')}
+ if(o.kind==='fire'){let victims=S.objects.filter(x=>!x.dead&&['hut','market','school','granary'].includes(x.kind)&&Math.hypot(x.x-o.x,x.y-o.y)<100);if(victims[0])victims[0].dead=true;S.pop=Math.max(0,S.pop-2);report('Пожар','Огонь перекинулся на деревянные крыши раньше, чем люди успели выстроить цепочку от колодца. Один дом уже потерян, остальные растаскивают по брёвнам. Если ветер усилится, выгорит квартал; если стража перекроет улицы, паника может оказаться опаснее самого огня.')}
+ if(o.kind==='prison'){S.order+=4;let scholars=nearby('scholar',o.x,o.y,180);if(scholars.length)scholars[0].captured=true;report('Тюрьма','В новом каменном подвале появился первый заключённый — человек, споривший со сборщиком налогов слишком громко. Горожане одобрили тишину, пока двери не закрылись за знакомым соседом. Если власть привыкнет решать споры камерой, следующими сюда приведут тех, кто задаёт неудобные вопросы.')}
+ if(o.kind==='guard'){S.order+=5;let obs=nearby('observer',o.x,o.y,180);if(obs.length&&S.suspicion>=2){killObserver(obs[0],'Стражники дождались Наблюдателя у выхода с площади. Он мог уйти, но тогда пришлось бы показать слишком многое. Арбалетчик выстрелил почти случайно — и этого оказалось достаточно.');return}report('Стража','Вооружённый десяток занял ворота и объявил, что отныне отвечает за порядок. На рынке стало тише, зато люди начали понижать голос при виде красных плащей. Если страх окажется удобнее закона, стража скоро будет защищать не город, а собственную необходимость.')}
+ if(o.kind==='observer'){report('Новый Наблюдатель','Институт ввёл в город нового сотрудника под видом странствующего писца. Здесь уже существуют слухи о слишком удачных лекарствах и людях, появлявшихся перед бедствиями. Если он повторит ошибки предшественников, местные свяжут истории между собой гораздо быстрее, чем рассчитывает Институт.')}
+}
+function place(kind,x,y){const o=add(kind,x,y);if(kind==='observer')S.suspicion=Math.max(0,S.suspicion-1);consequence(o)}
+add('observer',-85,25);add('observer',-45,38);
+function buildDock(){for(const [id,g,n] of TYPES){const b=document.createElement('button');b.className='tool'+(id===S.selected?' active':'');b.dataset.id=id;b.innerHTML=`<span class="g">${g}</span><span class="n">${n}</span>`;b.addEventListener('click',e=>{e.stopPropagation();S.selected=id;for(const x of dock.children)x.classList.toggle('active',x.dataset.id===id);report('Инструмент выбран',`Выбран знак «${n}». Коснитесь свободного места на земле. Институт рекомендует помнить: вы размещаете не декорацию, а причину. Мир сам решит, какие люди соберутся вокруг неё и кто попытается превратить возникшую возможность во власть.`)});dock.appendChild(b)}}buildDock();
+let down=null,moved=false;
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y};moved=false});
+canvas.addEventListener('pointermove',e=>{if(!down)return;let dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>8)moved=true;if(moved){cam.x=down.cx-dx/cam.zoom;cam.y=down.cy-dy/cam.zoom}});
+canvas.addEventListener('pointerup',e=>{if(!down)return;if(!moved){const p=s2w(e.clientX,e.clientY);place(S.selected,p.x,p.y)}down=null});
+canvas.addEventListener('wheel',e=>{e.preventDefault();cam.zoom=Math.max(.65,Math.min(1.65,cam.zoom*(e.deltaY>0?.9:1.1)))},{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('#dock'))e.preventDefault()},{passive:false});
+})();
+</script>
+</body>
+</html>
