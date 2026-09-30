@@ -264,7 +264,7 @@ function replaceConsumedSlot(slot,consumed){
  const next=chooseSuccessor(consumed);S.deck[slot]=next;
  const boxEl=document.getElementById('actions'),old=boxEl.children[slot],fresh=makeActionButton(next,slot);
  fresh.style.animation='none';old.replaceWith(fresh);
- document.getElementById('message').textContent='After '+byId[consumed].glyph+' the next opportunity appeared: '+next.glyph+' '+next.name+'.'
+ document.getElementById('message').textContent='After '+byId[consumed].name+', the next opportunity is '+next.glyph+' '+next.name+'.'
 }
 function visibleObjects(){return S.objects.filter(o=>inVisibleWorld(o.x,o.y,20))}
 function visibleCounts(){const out={};for(const o of visibleObjects())out[o.k]=(out[o.k]||0)+1;return out}
