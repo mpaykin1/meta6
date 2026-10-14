@@ -80,10 +80,24 @@ jobs:
             echo "::error::No Chromium browser on runner"
             exit 1
           fi
+          set +e
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
-            --virtual-time-budget=6500 --dump-dom \
-            "https://mpaykin1.github.io/meta6/observer-world-en-v2/?autotest=1" > /tmp/v2-dom.html
-          grep -Fq 'data-v2-selftest="pass"' /tmp/v2-dom.html
+            --disable-background-networking --no-first-run --no-default-browser-check \
+            --run-all-compositor-stages-before-draw --virtual-time-budget=9000 --dump-dom \
+            "https://mpaykin1.github.io/meta6/observer-world-en-v2/?autotest=1" > /tmp/v2-dom.html 2>/tmp/v2-chrome.err
+          CHROME_RC=$?
+          set -e
+          echo "CHROME_RC=$CHROME_RC"
+          echo "SELFTEST_ATTR=$(grep -o 'data-v2-selftest="[^"]*"' /tmp/v2-dom.html | tail -1 || true)"
+          echo "SELFTEST_JSON=$(grep -o '<div id="v2SelfTest"[^>]*>[^<]*' /tmp/v2-dom.html | tail -1 || true)"
+          if ! grep -Fq 'data-v2-selftest="pass"' /tmp/v2-dom.html; then
+            echo "--- chrome stderr tail ---"
+            tail -80 /tmp/v2-chrome.err || true
+            echo "--- selftest DOM ---"
+            grep -n -E 'v2SelfTest|data-v2-selftest|OBSERVER_WORLD_V2|Render recovered' /tmp/v2-dom.html | tail -40 || true
+            echo "::error::V2 browser combat self-test did not reach PASS"
+            exit 1
+          fi
           grep -Fq 'v2SelfTest' /tmp/v2-dom.html
           echo "BROWSER_COMBAT_SELFTEST=PASS"
 
