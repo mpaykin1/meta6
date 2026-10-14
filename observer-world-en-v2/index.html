@@ -225,7 +225,7 @@ function buildDock(){for(const id of TYPES){const [g,n]=actionInfo(id),b=documen
 
 // --- Living History V2: World Server Animation Lab + AGES combat adapters ---
 const FX_VERSION='ws-animation-lab-v2+water-v9+watercolor-brush-smoke+v10-v11-microdetail+living-light';
-const RELEASE_MARKER='OBSERVER_V2_DETERMINISTIC_COMBAT_SELFTEST_20261014';
+const RELEASE_MARKER='OBSERVER_V2_AI_BRIDGE_COMPAT_20261014';
 const reducedMotion=()=>Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 const clamp01=v=>Math.max(0,Math.min(1,v));
 const smoothstep=v=>{v=clamp01(v);return v*v*(3-2*v)};
@@ -411,8 +411,23 @@ function aiTextFromPrediction(p){if(!p)return'';return [p.summary,p.immediate?.[
 async function askLiveAI(text,action,worldContext,fallback,onDone){
  COMBAT.aiRequests++;aiBadge.textContent='AI: thinking…';aiBadge.classList.remove('live','warn');
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),6500);
+ const semantic=String(action?.kind||'world_event');
+ const safeAction={kind:'idea',name:String(action?.name||LABEL[semantic]||semantic),glyph:String(action?.glyph||'◆'),location:String(action?.location||'Observer World')};
+ const visible=worldContext?.visible||worldContext?.nearbyObjects||{};
+ const normalizedWorld={
+  turn:Number(worldContext?.turn??S.history.length)||0,
+  population:Number(worldContext?.population??S.pop)||0,
+  power:Number(worldContext?.power??worldContext?.order??S.order)||0,
+  water:Number(worldContext?.water??20)||20,
+  food:Number(worldContext?.food??S.food)||0,
+  eco:Number(worldContext?.eco??40)||40,
+  budget:Number(worldContext?.budget??worldContext?.order??S.order)||0,
+  visible
+ };
+ const extra={semanticKind:semantic,suspicion:worldContext?.suspicion??S.suspicion,order:worldContext?.order??S.order,nearbyFactions:worldContext?.nearbyFactions||{},combat:worldContext?.combat||{}};
+ const prompt=text+' Observer World semantic/context: '+JSON.stringify(extra);
  try{
-  const res=await fetch(AI_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text,mode:'predict_action',language:'en',provider:'auto',action,worldContext}),signal:ctrl.signal});
+  const res=await fetch(AI_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:prompt,mode:'predict_action',language:'en',provider:'auto',action:safeAction,worldContext:normalizedWorld}),signal:ctrl.signal});
   const data=await res.json().catch(()=>({}));if(!res.ok||!data.ok||!data.prediction)throw Error(data.detail||data.error||('HTTP '+res.status));
   const t=aiTextFromPrediction(data.prediction)||fallback;aiBadge.textContent='AI: '+String(data.provider||'live');aiBadge.classList.add('live');onDone?.(t,data);return t
  }catch(e){aiBadge.textContent='AI: fallback';aiBadge.classList.add('warn');onDone?.(fallback,{fallback:true,error:String(e.message||e)});return fallback}
