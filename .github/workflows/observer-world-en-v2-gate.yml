@@ -1,0 +1,121 @@
+name: Observer World Living History V2 Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'observer-world-en-v2/**'
+      - '.github/workflows/observer-world-en-v2-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: observer-world-en-v2-live-gate
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check V2 source and JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path("observer-world-en-v2/index.html")
+          html=p.read_text(encoding="utf-8")
+          required=[
+            "CHAIN REACTION · OBSERVERS V2",
+            "ws-animation-lab-v2+water-v9+watercolor-brush-smoke",
+            "drawBrushSmoke",
+            "drawAdvancedTerrain",
+            "drawSwordActor",
+            "actorDamage",
+            "Street clash",
+            "https://world-server.mmmpaykin.workers.dev/api/chain-ai",
+            "__OBSERVER_WORLD_V2__",
+            "pointercancel",
+            "visibilitychange",
+            "localStorage"
+          ]
+          for marker in required:
+            if marker not in html:
+              raise SystemExit("Missing V2 marker: "+marker)
+          blocks=re.findall(r"<script>(.*?)</script>",html,re.S)
+          if not blocks:
+            raise SystemExit("No inline JS")
+          Path("/tmp/observer-world-v2.js").write_text("\n".join(blocks),encoding="utf-8")
+          PY
+          node --check /tmp/observer-world-v2.js
+
+      - name: Wait for V2 public page
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://mpaykin1.github.io/meta6/observer-world-en-v2/"
+          for attempt in $(seq 1 45); do
+            BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
+            if printf '%s' "$BODY" | grep -Fq 'CHAIN REACTION · OBSERVERS V2'               && printf '%s' "$BODY" | grep -Fq 'drawBrushSmoke'               && printf '%s' "$BODY" | grep -Fq 'drawSwordActor'               && printf '%s' "$BODY" | grep -Fq '__OBSERVER_WORLD_V2__'; then
+              echo "LIVE_PAGE_OK $URL"
+              exit 0
+            fi
+            echo "Waiting for Pages V2 ($attempt/45)..."
+            sleep 8
+          done
+          echo "::error::V2 page not live with expected revision"
+          exit 1
+
+      - name: Verify internal AI providers
+        shell: bash
+        run: |
+          set -euo pipefail
+          AI="https://world-server.mmmpaykin.workers.dev/api/chain-ai"
+          curl -fLsS --max-time 25 "$AI" -o /tmp/ai-get.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/ai-get.json'))
+          online=[k for k,v in (d.get('providers') or {}).items() if v]
+          if not online:
+            raise SystemExit("No live AI providers reported: "+repr(d))
+          print("AI_PROVIDERS",online)
+          PY
+
+      - name: Verify internal AI prediction roundtrip
+        shell: bash
+        run: |
+          set -euo pipefail
+          AI="https://world-server.mmmpaykin.workers.dev/api/chain-ai"
+          cat >/tmp/payload.json <<'JSON'
+          {
+            "text":"Narrate a brief medieval street clash and one plausible consequence.",
+            "mode":"predict_action",
+            "language":"en",
+            "provider":"auto",
+            "action":{"kind":"street_clash","name":"Street clash","glyph":"⚔","location":"Observer World V2 gate"},
+            "worldContext":{"turn":1,"population":20,"food":20,"water":20,"power":5,"eco":40,"budget":20,"visible":{"guard":2,"militia":2}}
+          }
+          JSON
+          curl -fLsS --max-time 35 -H 'content-type: application/json' --data-binary @/tmp/payload.json "$AI" -o /tmp/ai-post.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/ai-post.json'))
+          if not d.get('ok') or not isinstance(d.get('prediction'),dict):
+            raise SystemExit("AI prediction failed: "+repr(d))
+          p=d['prediction']
+          if not (p.get('summary') or p.get('immediate') or p.get('surprise')):
+            raise SystemExit("AI prediction empty: "+repr(d))
+          print("AI_ROUNDTRIP_OK",d.get('provider'),d.get('language'))
+          PY
+
+      - name: Release evidence
+        run: |
+          echo "SOURCE_SHA=${GITHUB_SHA}"
+          echo "URL=https://mpaykin1.github.io/meta6/observer-world-en-v2/"
+          echo "STATUS=LIVE_VERIFIED"
+          echo "TECH=AnimationLabV2+WaterV9+WatercolorSmoke+AGESCombat+LiveAI"
