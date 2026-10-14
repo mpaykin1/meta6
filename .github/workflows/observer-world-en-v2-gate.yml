@@ -61,7 +61,7 @@ jobs:
           URL="https://mpaykin1.github.io/meta6/observer-world-en-v2/"
           for attempt in $(seq 1 45); do
             BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
-            if printf '%s' "$BODY" | grep -Fq 'CHAIN REACTION · OBSERVERS V2'               && printf '%s' "$BODY" | grep -Fq 'drawBrushSmoke'               && printf '%s' "$BODY" | grep -Fq 'drawSwordActor'               && printf '%s' "$BODY" | grep -Fq '__OBSERVER_WORLD_V2__'; then
+            if grep -Fq 'CHAIN REACTION · OBSERVERS V2' <<<"$BODY" && grep -Fq 'drawBrushSmoke' <<<"$BODY" && grep -Fq 'drawSwordActor' <<<"$BODY" && grep -Fq '__OBSERVER_WORLD_V2__' <<<"$BODY"; then
               echo "LIVE_PAGE_OK $URL"
               exit 0
             fi
