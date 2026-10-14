@@ -225,6 +225,7 @@ function buildDock(){for(const id of TYPES){const [g,n]=actionInfo(id),b=documen
 
 // --- Living History V2: World Server Animation Lab + AGES combat adapters ---
 const FX_VERSION='ws-animation-lab-v2+water-v9+watercolor-brush-smoke+v10-v11-microdetail+living-light';
+const RELEASE_MARKER='OBSERVER_V2_DETERMINISTIC_COMBAT_SELFTEST_20261014';
 const reducedMotion=()=>Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 const clamp01=v=>Math.max(0,Math.min(1,v));
 const smoothstep=v=>{v=clamp01(v);return v*v*(3-2*v)};
@@ -451,7 +452,7 @@ const SAVE_KEY='meta6-observer-living-history-v2';
 function persistV2(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,pop:S.pop,food:S.food,order:S.order,suspicion:S.suspicion,next:S.next,objects:S.objects,history:S.history.slice(-80),combat:COMBAT.actors,nextCombat:COMBAT.next}))}catch{}}
 function restoreV2(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(!d||d.v!==2)return;Object.assign(S,{pop:d.pop??S.pop,food:d.food??S.food,order:d.order??S.order,suspicion:d.suspicion??S.suspicion,next:d.next??S.next,objects:Array.isArray(d.objects)?d.objects:S.objects,history:Array.isArray(d.history)?d.history:S.history});COMBAT.actors=Array.isArray(d.combat)?d.combat:COMBAT.actors;COMBAT.next=d.nextCombat||COMBAT.next;for(const o of S.objects)if(!o.createdAt)o.createdAt=performance.now()-1000;popEl.textContent=S.pop;susEl.textContent=S.suspicion}catch{}}
 restoreV2();probeLivingAI();
-window.__OBSERVER_WORLD_V2__={ready:true,version:'living-history-v2',fx:FX_VERSION,aiUrl:AI_URL,combat:COMBAT,snapshot:()=>({state:S,combat:COMBAT,fx:{smokeBudget:40,shimmer:28,sway:18}}),save:persistV2};
+window.__OBSERVER_WORLD_V2__={ready:true,version:'living-history-v2',release:RELEASE_MARKER,fx:FX_VERSION,aiUrl:AI_URL,combat:COMBAT,snapshot:()=>({state:S,combat:COMBAT,fx:{smokeBudget:40,shimmer:28,sway:18}}),save:persistV2};
 if(new URLSearchParams(location.search).get('autotest')==='1'){
  localStorage.removeItem(SAVE_KEY);
  // Deterministic browser contract: exercise the exact combat state machine without relying on headless RAF timing.
