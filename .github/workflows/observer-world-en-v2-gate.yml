@@ -71,6 +71,22 @@ jobs:
           echo "::error::V2 page not live with expected revision"
           exit 1
 
+      - name: Browser smoke and combat self-test
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$CHROME" ]; then
+            echo "::error::No Chromium browser on runner"
+            exit 1
+          fi
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --virtual-time-budget=6500 --dump-dom \
+            "https://mpaykin1.github.io/meta6/observer-world-en-v2/?autotest=1" > /tmp/v2-dom.html
+          grep -Fq 'data-v2-selftest="pass"' /tmp/v2-dom.html
+          grep -Fq 'v2SelfTest' /tmp/v2-dom.html
+          echo "BROWSER_COMBAT_SELFTEST=PASS"
+
       - name: Verify internal AI providers
         shell: bash
         run: |
