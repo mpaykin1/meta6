@@ -454,17 +454,20 @@ restoreV2();probeLivingAI();
 window.__OBSERVER_WORLD_V2__={ready:true,version:'living-history-v2',fx:FX_VERSION,aiUrl:AI_URL,combat:COMBAT,snapshot:()=>({state:S,combat:COMBAT,fx:{smokeBudget:40,shimmer:28,sway:18}}),save:persistV2};
 if(new URLSearchParams(location.search).get('autotest')==='1'){
  localStorage.removeItem(SAVE_KEY);
- // Force a close-range guard/militia confrontation in test mode only.
+ // Deterministic browser contract: exercise the exact combat state machine without relying on headless RAF timing.
+ COMBAT.actors.length=0;COMBAT.next=1;COMBAT.wounds=0;COMBAT.deaths=0;COMBAT.clashes=0;COMBAT.lastNarrated=performance.now();
  spawnActor('guard',-18,4,{count:3});spawnActor('militia',18,4,{count:3});
+ COMBAT.lastT=0;
+ for(let testNow=50;testNow<=4200;testNow+=50)updateCombat(testNow);
+ // Execute the same sword renderer for every actor so browser smoke covers weapon drawing paths too.
+ for(const actor of COMBAT.actors)drawSwordActor(actor);
  const probe=document.createElement('div');probe.id='v2SelfTest';probe.hidden=true;document.body.appendChild(probe);
- const started=performance.now();
- (function selfTestFrame(){
-  if(performance.now()-started<2600){requestAnimationFrame(selfTestFrame);return}
-  const armed=COMBAT.actors.filter(a=>a.armed).length,engaged=COMBAT.actors.filter(a=>['chase','attack','wounded','dead'].includes(a.state)).length;
-  const ok=COMBAT.actors.length>=6&&armed>=6&&engaged>=2&&window.__OBSERVER_WORLD_V2__?.ready;
-  document.body.dataset.v2Selftest=ok?'pass':'fail';
-  probe.textContent=JSON.stringify({ok,actors:COMBAT.actors.length,armed,engaged,wounds:COMBAT.wounds,deaths:COMBAT.deaths,fx:FX_VERSION});
- })()
+ const armed=COMBAT.actors.filter(a=>a.armed).length;
+ const engaged=COMBAT.actors.filter(a=>['chase','attack','wounded','dead'].includes(a.state)).length;
+ const damaged=COMBAT.actors.filter(a=>a.hp<100).length;
+ const ok=COMBAT.actors.length>=6&&armed>=6&&engaged>=2&&damaged>=1&&window.__OBSERVER_WORLD_V2__?.ready;
+ document.body.dataset.v2Selftest=ok?'pass':'fail';
+ probe.textContent=JSON.stringify({ok,actors:COMBAT.actors.length,armed,engaged,damaged,wounds:COMBAT.wounds,deaths:COMBAT.deaths,fx:FX_VERSION});
 }
 
 let down=null,moved=false;
