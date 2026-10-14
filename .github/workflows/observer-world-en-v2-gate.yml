@@ -42,7 +42,8 @@ jobs:
             "__OBSERVER_WORLD_V2__",
             "pointercancel",
             "visibilitychange",
-            "localStorage"
+            "localStorage",
+            "OBSERVER_V2_DETERMINISTIC_COMBAT_SELFTEST_20261014"
           ]
           for marker in required:
             if marker not in html:
@@ -61,7 +62,7 @@ jobs:
           URL="https://mpaykin1.github.io/meta6/observer-world-en-v2/"
           for attempt in $(seq 1 45); do
             BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
-            if grep -Fq 'CHAIN REACTION · OBSERVERS V2' <<<"$BODY" && grep -Fq 'drawBrushSmoke' <<<"$BODY" && grep -Fq 'drawSwordActor' <<<"$BODY" && grep -Fq '__OBSERVER_WORLD_V2__' <<<"$BODY"; then
+            if grep -Fq 'CHAIN REACTION · OBSERVERS V2' <<<"$BODY" && grep -Fq 'drawBrushSmoke' <<<"$BODY" && grep -Fq 'drawSwordActor' <<<"$BODY" && grep -Fq '__OBSERVER_WORLD_V2__' <<<"$BODY" && grep -Fq 'OBSERVER_V2_DETERMINISTIC_COMBAT_SELFTEST_20261014' <<<"$BODY"; then
               echo "LIVE_PAGE_OK $URL"
               exit 0
             fi
