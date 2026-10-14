@@ -418,7 +418,12 @@ function announceClash(attacker,target,outcome){
  askLiveAI('Narrate the current armed clash and its likely historical consequence in concise literary English.',{kind:'street_clash',name:'Street clash',glyph:'⚔',location:'world x '+Math.round(anchor.x)+', y '+Math.round(anchor.y)},ctx,fallback,t=>{report('AI · Street clash',t);showBattleToast(t)});
 }
 const basePlaceV2=place;
-place=function livingHistoryPlace(kind,x,y){basePlaceV2(kind,x,y);armScenario(kind,x,y);persistV2()};
+let placeAiSeq=0;
+place=function livingHistoryPlace(kind,x,y){
+ basePlaceV2(kind,x,y);armScenario(kind,x,y);persistV2();
+ const seq=++placeAiSeq,fallback=story.textContent,ctx=snapshotFor({x,y});
+ askLiveAI('Interpret this new historical action in the current medieval world. State what changed, how nearby people react, and one plausible next consequence. Keep it compact and literary.',{kind,name:LABEL[kind]||kind,glyph:GLYPH[kind]||'◆',location:'world x '+Math.round(x)+', y '+Math.round(y)},ctx,fallback,t=>{if(seq===placeAiSeq)report('AI · '+(LABEL[kind]||'World event'),t)})
+};
 
 const baseOpenInspectV2=openInspect;
 openInspect=function aiObjectInspect(o){
@@ -432,6 +437,20 @@ function persistV2(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,pop:S
 function restoreV2(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(!d||d.v!==2)return;Object.assign(S,{pop:d.pop??S.pop,food:d.food??S.food,order:d.order??S.order,suspicion:d.suspicion??S.suspicion,next:d.next??S.next,objects:Array.isArray(d.objects)?d.objects:S.objects,history:Array.isArray(d.history)?d.history:S.history});COMBAT.actors=Array.isArray(d.combat)?d.combat:COMBAT.actors;COMBAT.next=d.nextCombat||COMBAT.next;for(const o of S.objects)if(!o.createdAt)o.createdAt=performance.now()-1000;popEl.textContent=S.pop;susEl.textContent=S.suspicion}catch{}}
 restoreV2();probeLivingAI();
 window.__OBSERVER_WORLD_V2__={ready:true,version:'living-history-v2',fx:FX_VERSION,aiUrl:AI_URL,combat:COMBAT,snapshot:()=>({state:S,combat:COMBAT,fx:{smokeBudget:40,shimmer:28,sway:18}}),save:persistV2};
+if(new URLSearchParams(location.search).get('autotest')==='1'){
+ localStorage.removeItem(SAVE_KEY);
+ // Force a close-range guard/militia confrontation in test mode only.
+ spawnActor('guard',-18,4,{count:3});spawnActor('militia',18,4,{count:3});
+ const probe=document.createElement('div');probe.id='v2SelfTest';probe.hidden=true;document.body.appendChild(probe);
+ const started=performance.now();
+ (function selfTestFrame(){
+  if(performance.now()-started<2600){requestAnimationFrame(selfTestFrame);return}
+  const armed=COMBAT.actors.filter(a=>a.armed).length,engaged=COMBAT.actors.filter(a=>['chase','attack','wounded','dead'].includes(a.state)).length;
+  const ok=COMBAT.actors.length>=6&&armed>=6&&engaged>=2&&window.__OBSERVER_WORLD_V2__?.ready;
+  document.body.dataset.v2Selftest=ok?'pass':'fail';
+  probe.textContent=JSON.stringify({ok,actors:COMBAT.actors.length,armed,engaged,wounds:COMBAT.wounds,deaths:COMBAT.deaths,fx:FX_VERSION});
+ })()
+}
 
 let down=null,moved=false;
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y};moved=false});
