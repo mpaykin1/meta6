@@ -64,11 +64,17 @@
    tile(ctx,1,p.x-6*q,roofY,10*q,.32)
   }
  }
+ function apngFrame(ctx,x,y,w,h){
+  const anim=root.ObserverAPNG?.image;
+  if(!anim||!anim.complete||anim.naturalWidth!==24||anim.naturalHeight!==24)return false;
+  ctx.drawImage(anim,x,y,w,h);
+  return true;
+ }
  function human(ctx,o,red,w2s,cam,t){
   if(!ok("hero"))return false;
   const p=w2s(o.x,o.y,14),q=cam.zoom,frame=o.dead?0:Math.floor(t/225+(o.id||0))%4,scale=q*.95;
   ctx.save();ctx.translate(p.x,p.y);if(o.dead){ctx.rotate(Math.PI/2);ctx.globalAlpha=.65}
-  picture(ctx,"hero",frame*24,0,24,24,-12*scale,-10*scale,24*scale,24*scale);
+  if(!apngFrame(ctx,-12*scale,-10*scale,24*scale,24*scale))picture(ctx,"hero",frame*24,0,24,24,-12*scale,-10*scale,24*scale,24*scale);
   if(red){ctx.fillStyle="rgba(209,51,45,.78)";ctx.beginPath();ctx.moveTo(-4*q,-4*q);ctx.lineTo(-9*q,13*q);ctx.lineTo(5*q,12*q);ctx.closePath();ctx.fill()}
   ctx.restore();return true
  }
@@ -78,7 +84,7 @@
   ctx.save();ctx.translate(p.x,p.y);
   if(a.state==="dead"){ctx.rotate(Math.PI/2);ctx.globalAlpha=.67}
   if(a.state==="wounded")ctx.rotate(-.22*dir);
-  picture(ctx,"hero",frame*24,0,24,24,-11*q,-10*q,22*q,22*q);
+  if(!apngFrame(ctx,-11*q,-10*q,22*q,22*q))picture(ctx,"hero",frame*24,0,24,24,-11*q,-10*q,22*q,22*q);
   const badge={guard:"#a5c0d7",militia:"#d5a071",guild:"#dfbe69",zealot:"#aa87a8",rebel:"#e8756c",house:"#adbbbf",scholar:"#bcb49c"};
   ctx.fillStyle=badge[a.faction]||"#e2c49f";ctx.fillRect(-4*q,-1*q,5*q,3*q);
   if(a.armed&&a.state!=="dead"){
@@ -98,5 +104,5 @@
  function waterTile(ctx,x,y,w,h,frame){
  return picture(ctx,"water",16*(frame%4),0,16,16,x,y,w,h);
 }
-root.IslandVisuals=Object.freeze({environment,decorate,human,fighter,info,tile,waterTile});
+root.IslandVisuals=Object.freeze({environment,decorate,human,fighter,info,tile,waterTile,apngFrame});
 })(window);
