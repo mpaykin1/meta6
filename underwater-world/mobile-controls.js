@@ -58,7 +58,7 @@ function create({native,onBuild,onSwap}){
  build.addEventListener("pointerdown",e=>{
   eat(e);
   if(forced())root.__uwButtonTrace={id:e.pointerId,previousId:shootId,state:native.G.state,wet:native.underwater?.isSubmerged(),bathy:native.underwater?.inBathyscaphe};
-  if(shootId!==null){if(forced())root.__uwButtonTrace.skipped=true;return;}
+  if(shootId!==null){native.mobileShootRelease?.();shootId=null;if(forced())root.__uwButtonTrace.recoveredStalePointer=true;}
   shootId=e.pointerId;try{build.setPointerCapture(e.pointerId)}catch{}
   buildCount++;
   // Fire through the actual V7 input interface, not the optional building-editor callback.
