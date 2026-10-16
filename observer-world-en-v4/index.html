@@ -720,6 +720,22 @@ if(new URLSearchParams(location.search).get('v4test')==='1'){
  document.body.dataset.v4Selftest=ok?'pass':'fail';
  const mark=document.createElement('span');mark.id='v4SelfTest';mark.hidden=true;mark.textContent=JSON.stringify(check);document.body.appendChild(mark);
 }
+if(new URLSearchParams(location.search).get('v4musicprobe')==='1'){
+ const node=document.createElement('pre');node.id='musicProbe';node.hidden=true;document.body.appendChild(node);
+ let attempts=0;
+ SOUND.start().then(ok=>{
+  (function check(){
+   const d=SOUND.diagnostics();attempts++;
+   const good=ok&&d.contextState==='running'&&d.musicBeats>=3&&d.musicRms>0.0005;
+   if(good||attempts>=18){
+    document.body.dataset.musicProbe=good?'pass':'fail';
+    node.textContent=JSON.stringify({good,attempts,contextState:d.contextState,musicRms:d.musicRms,
+      musicBeats:d.musicBeats,musicChords:d.musicChords,musicVolume:d.musicVolume,
+      fxEnabled:d.fxEnabled,ctxErrors:d.ctxErrors});
+   }else{setTimeout(check,280)}
+  })()
+ }).catch(e=>{document.body.dataset.musicProbe='fail';node.textContent=String(e)});
+}
 let down=null,moved=false;
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y};moved=false});
 canvas.addEventListener('pointermove',e=>{if(!down)return;let dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>8)moved=true;if(moved){cam.x=down.cx-dx/cam.zoom;cam.y=down.cy-dy/cam.zoom}});
