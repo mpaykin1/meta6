@@ -37,3 +37,15 @@ body.v7-touch #v6Toast,html.v7-test-mobile #v6Toast{top:calc(58px + env(safe-are
  #v7Swap{width:48px;height:48px;bottom:calc(211px + env(safe-area-inset-bottom))}
  body.v7-touch #v5Dock{height:54px!important}
 }
+
+/* Original informative HUD can be shown on phones; action controls remain only the three right buttons. */
+body.v7-touch #hud, html.v7-test-mobile #hud{display:block!important;pointer-events:none}
+body.v7-touch #hud .hud-row,html.v7-test-mobile #hud .hud-row{display:flex!important}
+body.v7-touch #hud .minimap,html.v7-test-mobile #hud .minimap{
+ position:absolute;top:calc(59px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));
+ width:88px!important;height:88px!important;pointer-events:none}
+body.v7-touch #hud .wpanel,html.v7-test-mobile #hud .wpanel{
+ position:absolute!important;left:8px!important;top:calc(66px + env(safe-area-inset-top))!important;
+ bottom:auto!important;max-width:220px!important;transform:scale(.78);transform-origin:top left}
+body.v7-touch #hud .hotbar,html.v7-test-mobile #hud .hotbar{display:none!important}
+body.v7-touch #hud .toast,html.v7-test-mobile #hud .toast{display:none}
