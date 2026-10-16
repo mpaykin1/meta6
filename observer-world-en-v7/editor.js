@@ -29,8 +29,8 @@ const NEXT={well:"settlement",settlement:"council",market:"guild",guild:"tax",
 const PRIMARY=["well","market","school","castle","monastery","guard","prison","granary","healer","fire","plague","observer","new","imp","shade","warden"];
 const KEY="observer-v7-mobile-island-builder";
 const $=id=>document.getElementById(id);
-let native=null, music=null, selected="well", placeMode=false, dragging=null, saving=false,relations=null,story=null,sceneClock=0;
-let state={version:6,pop:2,food:8,order:20,suspicion:0,next:1,objects:[],history:[],actors:[],deaths:0};
+let native=null, music=null, selected="well", placeMode=false, dragging=null, saving=false,relations=null,story=null,sceneClock=0,mobileHud=null,mobileTarget=null,marker=null;
+let state={version:7,pop:2,food:8,order:20,suspicion:0,next:1,objects:[],history:[],actors:[],deaths:0,clearedTrees:[]};
 const groups=new Map(),geos=new Map();
 let worldRoot=null,ray=null, pointer=null, musicTicker=null,interval=null,errors=0;
 function tell(title,text){
@@ -48,7 +48,7 @@ function restore(){
  try{
   const raw=localStorage.getItem(KEY);if(!raw)return;
   const data=JSON.parse(raw);
-  if(data.version!==6||!Array.isArray(data.objects))return;
+  if(data.version!==7||!Array.isArray(data.objects))return;
   state={...state,...data,objects:data.objects.slice(0,120),history:(data.history||[]).slice(-80)};
  }catch(e){errors++}
 }
@@ -68,7 +68,18 @@ function addCube(parent,mat,x,y,z,w,h,d,tile){
 function addBuilding(o){
  const THREE=native.THREE;
  const mat=new THREE.MeshLambertMaterial({map:native.atlasTex,side:THREE.FrontSide});
- const g=new THREE.Group();g.name="Observer V6 "+o.kind+" #"+o.id;g.position.set(o.x,o.y,o.z);
+ const g=new THREE.Group();g.name="Observer V7 "+o.kind+" #"+o.id;g.position.set(o.x,o.y,o.z);
+ // Original terrain remains unchanged; native-atlas stone foundation spans uneven ground.
+ const survey=native.buildGround?.(o.x,o.z,1.5);
+ if(survey){
+  const support=(x,z)=>{
+   const terrain=native.terrainTop(o.x+x,o.z+z),length=Math.min(7,Math.max(.22,o.y-terrain+.26));
+   const column=addCube(g,mat,x,-length/2,z,.62,length,.62,2);
+   column.receiveShadow=true;
+  };
+  for(const x of [-1.15,1.15])for(const z of [-1.15,1.15])support(x,z);
+  addCube(g,mat,0,-.16,0,3.55,.34,3.55,2);
+ }
  const box=(x,y,z,w,h,d,tile,angle=0)=>{
   const m=addCube(g,mat,x,y,z,w,h,d,tile);m.rotation.z=angle;return m
  };
@@ -100,10 +111,26 @@ function onPlace(kind,x,z,restoring=false){
  if(!Number.isFinite(h)||h<native.SEA-.05){
   if(!restoring)tell("Ground required","Select solid island ground, not open water");return null
  }
- if(state.objects.some(o=>Math.hypot(o.x-x,o.z-z)<2.5)){
+ if(state.objects.some(o=>Math.hypot(o.x-x,o.z-z)<(o.kind==="castle"||kind==="castle"?4.3:3.35))){
   if(!restoring)tell("Too close","Choose another patch of island so the buildings do not intersect");return null
  }
- const o={id:state.next++,kind,x,z,y:Math.max(native.SEA,h),age:0,created:Date.now()};
+ if(native.world?.tower&&Math.hypot(native.world.tower.x-x,native.world.tower.z-z)<5){
+  if(!restoring)tell("Protected tower","The island's original beacon cannot be covered by a building.");
+  return null
+ }
+ if(root.ObserverMobileControls?.isMobile()&&!restoring){
+  if(Math.hypot(native.player.pos.x-x,native.player.pos.z-z)<1.7){
+   tell("Too close","Leave space for the character to stand.");return null
+  }
+  const cleared=native.clearConstructionTrees(x,z,2.8);
+  if(cleared?.length){
+    state.clearedTrees ||= [];
+    for(const loc of cleared)if(!state.clearedTrees.some(q=>q[0]===loc[0]&&q[1]===loc[1]))state.clearedTrees.push(loc)
+  }
+ }
+ const survey=native.buildGround?.(x,z,1.5);
+ const safeTop=Math.max(h,survey?.max||h);
+ const o={id:state.next++,kind,x,z,y:Math.max(native.SEA,safeTop),age:0,created:Date.now()};
  state.objects.push(o);
  addBuilding(o);
  if(!restoring){
@@ -126,9 +153,11 @@ function onPlace(kind,x,z,restoring=false){
  return o
 }
 function activateBuild(kind){
- selected=kind;placeMode=true;document.body.classList.add("v5-placing");
+ selected=kind;placeMode=true;mobileTarget=null;document.body.classList.add("v5-placing");
  for(const b of $("v5Dock").querySelectorAll("button"))b.classList.toggle("selected",b.dataset.kind===kind);
- $("v5Hint").textContent="RIGHT-CLICK land to place "+ACTIONS[kind][1]+" · drag right mouse to orbit";
+ $("v5Hint").textContent=root.ObserverMobileControls?.isMobile()?
+  "Tap nearby terrain, then press the pixel hammer to build "+ACTIONS[kind][1]:
+  "RIGHT-CLICK land to place "+ACTIONS[kind][1]+" · drag right mouse to orbit";
 }
 function selectGround(event){
  const rect=native.canvas.getBoundingClientRect(),x=((event.clientX-rect.left)/rect.width)*2-1,
@@ -136,6 +165,43 @@ function selectGround(event){
  pointer.set(x,y);ray.setFromCamera(pointer,native.camera);
  const hit=ray.intersectObjects(native.terrainMeshes.filter(Boolean),false)[0];
  return hit?hit.point:null
+}
+function ensureMobileMarker(){
+ if(marker||!native?.THREE)return;
+ const T=native.THREE;
+ marker=new T.Mesh(new T.RingGeometry(1.35,1.55,24),new T.MeshBasicMaterial({
+   color:0x91ffb9,transparent:true,opacity:.55,depthWrite:false,side:T.DoubleSide
+ }));
+ marker.rotation.x=-Math.PI/2;marker.visible=false;marker.renderOrder=7;
+ native.scene.add(marker)
+}
+function mobilePlacementPoint(x,z){
+ const hero=native.player.pos,pdx=x-hero.x,pdz=z-hero.z,d=Math.hypot(pdx,pdz);
+ if(!Number.isFinite(d)||d<.001){x=hero.x+3.5;z=hero.z}
+ else if(d>7.5){x=hero.x+pdx/d*7.5;z=hero.z+pdz/d*7.5}
+ return {x:Math.max(3,Math.min(60,x)),z:Math.max(3,Math.min(60,z))}
+}
+function setMobilePoint(point){
+ if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.z))return null;
+ mobileTarget=mobilePlacementPoint(point.x,point.z);
+ ensureMobileMarker();
+ if(marker){marker.position.set(mobileTarget.x,native.terrainTop(mobileTarget.x,mobileTarget.z)+.13,mobileTarget.z);marker.visible=true}
+ return mobileTarget
+}
+function defaultMobilePoint(){
+ const p=native.player.pos,look=native.player.look;
+ return mobilePlacementPoint(p.x+(look?.x||.6)*3.4,p.z+(look?.z||.8)*3.4)
+}
+function buildSelectedMobile(){
+ if(!mobileHud?.enabled)return false;
+ if(!placeMode){tell("Choose a symbol","Select a building glyph in the bottom dock first.");return false}
+ const p=mobileTarget||defaultMobilePoint();
+ const built=onPlace(selected,p.x,p.z);
+ if(built){
+  mobileTarget=null;if(marker)marker.visible=false;
+  return true
+ }
+ return false
 }
 function openReader(title,body){
  $("v6ReaderTitle").textContent=String(title||"World History");
@@ -204,6 +270,8 @@ function start(){
  ray=new THREE.Raycaster();pointer=new THREE.Vector2();
  worldRoot=new THREE.Group();worldRoot.name="Observer V5 native voxel builder objects";scene.add(worldRoot);
  restore();
+ // Re-apply precisely the original tree removals from the last mobile session.
+ for(const t of state.clearedTrees||[])if(Array.isArray(t)&&t.length===2)native.clearConstructionTrees(t[0]+.5,t[1]+.5,.6);
  story=root.ObserverStorySystem.create({onChange:note=>{
   state.history.push(note);if(state.history.length>150)state.history.shift();
   $("v5Recent").textContent=note.short;
@@ -224,6 +292,9 @@ function start(){
  for(const o of state.objects){addBuilding(o);state.next=Math.max(state.next,o.id+1)}
  relations.reviveState(state.actors);
  interceptCanvas();
+ mobileHud=root.ObserverMobileControls?.create({native,onBuild:buildSelectedMobile,
+   onSwap:()=>{$("v5Weapon").value=native.combat?.weapon||$("v5Weapon").value}})||null;
+ if(mobileHud?.enabled)ensureMobileMarker();
  for(const kind of PRIMARY){
   const b=document.createElement("button");b.type="button";b.className="v5-tool";
   b.dataset.kind=kind;b.title=ACTIONS[kind][1];
@@ -256,7 +327,7 @@ function start(){
  $("v5Save").addEventListener("click",()=>{persist();tell("Saved","Historical construction saved in this browser")});
  $("v5Reset").addEventListener("click",()=>{if(!confirm("Reset V5 buildings and story? Original island remains untouched."))return;
   for(const item of groups.values()){worldRoot.remove(item.group);item.material.dispose()}
-  groups.clear();state={version:6,pop:2,food:8,order:20,suspicion:0,next:1,objects:[],history:[],actors:[],deaths:0};
+  groups.clear();state={version:7,pop:2,food:8,order:20,suspicion:0,next:1,objects:[],history:[],actors:[],deaths:0,clearedTrees:[]};
   persist();$("v5Dock").replaceChildren();tell("Reset","World construction cleared. Reload to restore original dock.");
   location.reload()
  });
@@ -278,11 +349,13 @@ function start(){
   music.tick(performance.now(),{objects:state.objects,combat:{actors:native.foes||[]},
    monsters:native.foes||[],order:state.order,suspicion:state.suspicion})
  }},1000);
- root.__OBSERVER_WORLD_V6__={ready:true,release:"V7_MOBILE_THREE_BUTTONS_BUILDING_20261016",
+ root.__OBSERVER_WORLD_V7__={ready:true,release:"V7_MOBILE_THREE_BUTTONS_BUILDING_20261016",
   originalRenderer:scene.type,objects:()=>state.objects,music:()=>music?.diagnostics(),state,
   get npcs(){return relations?.npcs},get story(){return story},get relations(){return relations},
   place:onPlace,select:activateBuild,get camera(){return native.camera},get native(){return native},
-  unload:()=>{clearInterval(interval);root.__observerV7Frame=null}};
+  get mobile(){return mobileHud},get mobileTarget(){return mobileTarget},
+  mobileBuild:buildSelectedMobile,mobilePoint:setMobilePoint,
+  unload:()=>{clearInterval(interval);root.__observerV7Frame=null;mobileHud?.dispose();if(marker){native.scene.remove(marker);marker.geometry.dispose();marker.material.dispose()}}};
  $("v6ReaderClose").addEventListener("click",()=>$("v6Reader").close());
  $("v6ReadLatest").addEventListener("click",()=>{
   const n=story.latest();openReader(n?.title||"Field Journal",n?.long||"Build a historical object to begin.")});
@@ -296,7 +369,7 @@ function start(){
   if(++sceneClock%90===0){state.actors=relations.snapshot();persist()}
  };
  
- document.body.dataset.v6Ready="true";
+ document.body.dataset.v7Ready="true";
  // Opt-in real-browser integration proof: executes the original Three.js render path,
  // places a native atlas-textured 3D building, and verifies no second 2D canvas.
  if(new URLSearchParams(location.search).get("v6test")==="1"){
