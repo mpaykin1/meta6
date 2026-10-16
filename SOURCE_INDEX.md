@@ -1,3 +1,24 @@
+## V5 — оригинальный 3D «Остров сумерек» с конструктором (16 октября 2026)
+
+**Публичная игра:** https://mpaykin1.github.io/meta6/observer-world-en-v5/
+
+**Главный исходник:** [observer-world-en-v5/index.html](observer-world-en-v5/index.html) — полный оригинальный Three.js/WebGL-движок из загруженного `Остров сумерек (1)(5).html`. Исходник содержит всю графику, шейдеры, 21 вид оружия и оригинальные звуки; камера сохранена без изменений.
+
+**Конструктор / исторические объекты:** [observer-world-en-v5/editor.js](observer-world-en-v5/editor.js) — добавление настоящих 3D-объектов в исходную сцену, нижние кнопки, меню, мини-история, сохранение.
+
+**Музыка Krieger:** [observer-world-en-v5/audio.js](observer-world-en-v5/audio.js) — отдельная музыка, оригинальные SFX по-прежнему принадлежат исходному движку.
+
+**Инструкция для Claude:** [observer-world-en-v5/CLAUDE.md](observer-world-en-v5/CLAUDE.md) — как исправлять игру, референс, границы и доказательства.
+
+**Автоматический контроль:** [.github/workflows/observer-v5-gate.yml](.github/workflows/observer-v5-gate.yml) — реальный Chrome/WebGL с постройкой в 3D, проверка не изменённого `updateCamera`, сохранение 21 оружия.
+
+**Оригинальные загруженные HTML:** [расширенный](observer-world-en-v4/reference/ostrov-sumerek-expanded-original.html) · [первоначальный](observer-world-en-v4/reference/ostrov-sumerek-original.html). Новый файл `(1)(5)` побайтно совпадает с расширенным эталоном `(1)(4)` (SHA-256 `fdbda0240b53f49d6e34aa0965531856e31a0154f4a12339e1682d60d5fe5c1f`). 
+
+**Статус:** технический WebGL/build gate PASS; визуальное сравнение со скриншотом, устройство, музыка на динамиках, AI и исторические механики — владелец PASS ещё не давал. **Не путать с завершённым продуктом.**
+
+
+---
+
 # Observer World — исходники из любого чата
 
 **Постоянная публичная точка входа:** https://github.com/mpaykin1/meta6/blob/main/SOURCE_INDEX.md
