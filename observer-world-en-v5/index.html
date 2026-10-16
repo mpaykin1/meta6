@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Остров сумерек</title>
+<title>Observer World V5 — original Island camera / World Builder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap">
@@ -260,6 +260,47 @@ kbd { font-family: var(--font-ui); font-size: 13px; color: var(--paper); padding
   .toast.show, .heart.hit, .coins.bump b, .title .dusk, .wmeter[data-state="hot"] i, .wnew, .wnew.out { animation: none; }
   .coin-ico { animation-duration: 1.6s; }
 }
+
+/* OBSERVER V5 EDITOR: exact original island Three.js, deliberately no second canvas. */
+html,body{position:fixed!important;inset:0!important;width:100%;height:100%;height:100dvh!important;overflow:hidden!important;overscroll-behavior:none}
+body{touch-action:none}#c{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#hud,.hud,.tools,.touch,#scrTitle,#scrPause,#scrEnd{display:none!important}
+#v5Menu{position:fixed;right:max(11px,env(safe-area-inset-right));top:max(9px,env(safe-area-inset-top));z-index:30;
+ max-width:min(95vw,360px);font:13px/1.4 "Pixelify Sans",system-ui,sans-serif;color:#f8eec8;touch-action:manipulation}
+#v5Menu>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:center;width:45px;height:45px;margin-left:auto;
+ border:2px solid rgba(248,238,200,.55);border-radius:9px;background:rgba(18,13,28,.82);font:27px/1 monospace;user-select:none}
+#v5Menu>summary::-webkit-details-marker{display:none}
+#v5Menu[open]{width:min(360px,95vw)}
+#v5Menu[open] .v5-controls{margin-top:6px;padding:12px;max-height:min(76dvh,630px);overflow-y:auto;overscroll-behavior:contain;
+ border:1px solid rgba(248,238,200,.5);border-radius:12px;background:rgba(18,13,28,.97);box-shadow:0 15px 35px #0009}
+.v5-controls button,.v5-controls select{cursor:pointer;background:#3b2b3b;color:#f8eec8;border:1px solid #87718e;border-radius:6px;
+ padding:8px 10px;font:12px "Pixelify Sans",monospace;min-height:34px}
+.v5-controls button:focus-visible,.v5-tool:focus-visible{outline:3px solid #ffd246;outline-offset:2px}
+.v5-controls button{flex:1 1 auto}.v5-controls label{font-size:13px}
+.v5-menu-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.v5-menu-section{border-top:1px solid #655368;margin-top:11px;padding-top:10px}
+.v5-menu-section b{color:#ffd246}
+#v5Audio,#v5Stats,#v5Recent{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#v5Dock{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));
+ bottom:max(7px,env(safe-area-inset-bottom));height:68px;display:flex;gap:6px;overflow:auto hidden;scrollbar-width:thin;
+ padding:5px;border:1px solid #e9d39a77;border-radius:9px;background:rgba(18,13,28,.84);z-index:18;touch-action:pan-x}
+.v5-tool{flex:0 0 61px;height:55px;padding:2px 4px;cursor:pointer;border:1px solid #bca78866;border-radius:5px;
+ background:#241c28;color:#f8eec8;font:12px "Pixelify Sans",sans-serif;touch-action:manipulation}
+.v5-tool span{font:25px Georgia,serif;display:block;line-height:1.15;color:#ffd246}
+.v5-tool small{font-size:9px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v5-tool.selected{border:2px solid #ffd246;background:#50422b}
+#v5Hint{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+ pointer-events:none;z-index:17;color:#f8eec8;text-shadow:0 1px 5px #000;background:rgba(18,13,28,.62);
+ border-radius:8px;padding:5px 10px;font:11px "Pixelify Sans",sans-serif;max-width:90vw;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+#v5JournalDialog{width:min(700px,calc(100vw - 24px));max-height:85dvh;overflow:auto;color:#f8eec8;border:1px solid #b7a989;
+ border-radius:12px;background:#1a1120;padding:18px;touch-action:pan-y;overscroll-behavior:contain}
+#v5JournalDialog::backdrop{background:rgba(0,0,0,.8)}
+#v5JournalBody{white-space:pre-wrap;font:17px/1.6 Georgia,serif;user-select:text;touch-action:pan-y}
+#v5JournalClose{position:sticky;top:0;float:right;border:1px solid #b7a989;background:#473343;color:white;padding:9px}
+body.v5-show-original-hud #hud{display:block!important}
+body.v5-show-original-hud .hud-row{display:flex!important}
+@media(max-width:720px){#v5Dock{height:60px}.v5-tool{height:50px;flex-basis:56px}.v5-tool span{font-size:22px}#v5Hint{bottom:calc(70px + env(safe-area-inset-bottom))}}
+@media(max-height:430px){#v5Hint{display:none}#v5Dock{height:52px}.v5-tool{height:44px}#v5Menu[open] .v5-controls{max-height:58dvh}}
 </style>
 
 <canvas id="c" tabindex="0" aria-label="Остров сумерек — игровое поле"></canvas>
@@ -358,6 +399,43 @@ kbd { font-family: var(--font-ui); font-size: 13px; color: var(--paper); padding
     if (l) l.textContent = 'Движок не загрузился. Проверь соединение и обнови страницу.';
   }, 20000);
 </script>
+
+<details id="v5Menu" aria-label="Game settings and controls">
+ <summary title="Open all controls" aria-label="Open game menu">☰</summary>
+ <div class="v5-controls">
+  <strong>ОСТРОВ СУМЕРЕК × OBSERVER V5</strong>
+  <div id="v5Stats">Live island / editable history</div>
+  <div class="v5-menu-section"><b>World & construction</b>
+   <div class="v5-menu-row"><button type="button" id="v5Explore">Explore / exit building</button><button type="button" id="v5Journal">Read history ⛶</button></div>
+   <div class="v5-menu-row"><button type="button" id="v5Save">Save buildings</button><button type="button" id="v5Reset">Reset buildings only</button></div>
+   <div id="v5Recent"></div>
+  </div>
+  <div class="v5-menu-section"><b>Music & original Krieger sounds</b>
+   <div class="v5-menu-row"><button type="button" id="v5Music">▶ Play music</button><button type="button" id="v5Sfx">Mute original SFX</button></div>
+   <div class="v5-menu-row"><label>Music volume <input id="v5MusicVolume" type="range" min="0" max="100" value="100"></label></div>
+   <div class="v5-menu-row"><label>Theme <select id="v5MusicTheme">
+    <option value="">Adaptive</option>
+    <option value="dawn">Dawn</option><option value="frontier">Frontier</option><option value="town">Market</option>
+    <option value="chapel">Monastery</option><option value="knowledge">Discovery</option><option value="night">Night</option>
+    <option value="plague">Plague</option><option value="monster">Monster</option><option value="battle">Battle</option>
+    <option value="aftermath">Aftermath</option><option value="victory">Victory</option><option value="mystery">Observer</option>
+   </select></label></div>
+   <div id="v5Audio">Music available after you press Play music</div>
+  </div>
+  <div class="v5-menu-section"><b>Original game controls</b>
+   <div class="v5-menu-row"><button type="button" id="v5Pause">Pause / resume</button><button type="button" id="v5Full">Fullscreen</button></div>
+   <div class="v5-menu-row"><label>Weapon <select id="v5Weapon"></select></label><button type="button" id="v5GetWeapons">Unlock original arsenal</button></div>
+   <div class="v5-menu-row"><label><input type="checkbox" id="v5OriginalHud"> Show original health/minimap</label></div>
+   <p>WASD move · Right-drag camera · Left click attack · Jump Space · Q/E weapon · R reload · Scroll zoom · Building: choose symbol below, then left-click land.</p>
+  </div>
+ </div>
+</details>
+<div id="v5Hint" role="status">Choose a symbol below to build on the original 3D island</div>
+<nav id="v5Dock" aria-label="Observer World create objects"></nav>
+<dialog id="v5JournalDialog" aria-label="Historical narrative"><button id="v5JournalClose" type="button">Close ✕</button><h2>The Living History</h2><article id="v5JournalBody"></article></dialog>
+<script src="./audio.js"></script>
+<script src="./editor.js"></script>
+
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -381,6 +459,7 @@ const ASSETS = {"weapons":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAC
 /* -----------------------------------------------------------------------------
    1 · Math kit
 ----------------------------------------------------------------------------- */
+const OBSERVER_V5_SOURCE='ORIGINAL_ISLAND_THREEJS_SHADER_RENDERER_UNMODIFIED';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -4719,6 +4798,7 @@ function start(data) {
   rig.look.set(b.x, b.y - 4.5, b.z);
   requestAnimationFrame(frame);
   setTimeout(() => {
+    if (G.state === 'title') startGame();
     loadingEl.classList.add('gone');
     $('scrTitle').hidden = false;
     $('best').textContent = G.best !== null ? `Рекорд этого острова — ${fmtTime(G.best)}` : '';
@@ -4732,6 +4812,12 @@ setTimeout(() => start({}), 2500);
 
 // small handle for debugging / automated checks
 window.__isle = {
+  // V5 direct access to original 3D runtime for Claude and the historical editor.
+  scene, camera, THREE, renderer, canvas, atlasTex, SEA, SFX,
+  terrainTop, get terrainMeshes(){return chunks},
+  spawnFoe(type,x,z){return spawnFoe(type,x,terrainTop(x,z)+1.1,z,true)},
+  pause:setPaused, toggleMute, toggleFullscreen,
+  clearInput(){releaseAll();keys.clear()}, get originalSfx(){return SFX},
   G, player, rig, perf, combat, aim, input, WEAPONS, ARSENAL_ORDER,
   get world() { return world; }, get foes() { return foes; }, get loot() { return loot; }, get projs() { return projs; },
   startGame, win, hurt: () => hurt(1), equip, cycleWeapon,
@@ -4778,7 +4864,7 @@ window.__isle = {
   collectAll(keepOne) { coins.forEach((c, i) => { if (c.alive && !(keepOne && i === coins.length - 1)) collectCoin(i); }); },
   teleport(x, z) { const s = world.stand[Math.floor(x) + Math.floor(z) * W]; player.pos.set(x, Math.min(s, H - 2), z); player.vel.set(0, 0, 0); },
 };
-
+window.dispatchEvent(new Event('observer-v5-ready'));
 
 </script>
 
