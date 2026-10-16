@@ -11,6 +11,11 @@
 | Оригинал RU | [observer-world/index.html](observer-world/index.html) | https://mpaykin1.github.io/meta6/observer-world/ |
 | Первый перевод EN | [observer-world-en/index.html](observer-world-en/index.html) | https://mpaykin1.github.io/meta6/observer-world-en/ |
 | **Принятый эталон V2 (PASS)** | [observer-world-en-v2/index.html](observer-world-en-v2/index.html) | https://mpaykin1.github.io/meta6/observer-world-en-v2/ |
+| **Новая V3 — графика из «Острова сумерек», улучшенная музыка, полноэкранный читатель** | [observer-world-en-v3/index.html](observer-world-en-v3/index.html) | https://mpaykin1.github.io/meta6/observer-world-en-v3/ |
+| V3: графика и встроенные пиксельные ассеты из загруженного эталона | [observer-world-en-v3/island-graphics.js](observer-world-en-v3/island-graphics.js) | — |
+| V3: новая музыкальная партитура / многослойный синтез | [observer-world-en-v3/audio.js](observer-world-en-v3/audio.js) | — |
+| V3: тесты музыки и графики | [audio.test.cjs](observer-world-en-v3/audio.test.cjs) · [island-graphics.test.cjs](observer-world-en-v3/island-graphics.test.cjs) | — |
+| V3: проверка браузера, текста, музыки и графики | [.github/workflows/observer-v3-gate.yml](.github/workflows/observer-v3-gate.yml) | — |
 | **Новая музыкальная редакция (отдельный выпуск)** | [observer-world-en-v2-audio/index.html](observer-world-en-v2-audio/index.html) | https://mpaykin1.github.io/meta6/observer-world-en-v2-audio/ |
 | Звуковой движок / синтезатор | [observer-world-en-v2-audio/audio.js](observer-world-en-v2-audio/audio.js) | — |
 | Тесты звукового движка | [observer-world-en-v2-audio/audio.test.cjs](observer-world-en-v2-audio/audio.test.cjs) | — |
@@ -41,3 +46,14 @@
 Публичный полный архив репозитория: https://github.com/mpaykin1/meta6/archive/refs/heads/main.zip
 
 Этот индекс является каноническим источником адресов. **От пользователя не нужно повторно загружать исходники в новый чат.**
+
+## Источник графики V3 — предоставленные пользователем эталоны
+
+- `Остров сумерек (1)(4).html`, SHA-256 `fdbda0240b53f49d6e34aa0965531856e31a0154f4a12339e1682d60d5fe5c1f` — версия с оружием, принята как графический источник.
+- `Остров сумерек(4).html`, SHA-256 `6856c60e616aa8c1ae8a7292b2e1e7570d663ae287f335623322e3be66e869cd` — первоначальная версия.
+- **В V3 действительно перенесены изображения**, извлечённые из встроенного блока `ASSETS`: шесть пиксельных материалов, четырёхкадровый спрайт человека, четыре кадра воды. Они встроены в `island-graphics.js` как data PNG, не зависят от сохранности этого чата.
+- Масштаб `cam.zoom`, размеры зданий и положение камеры Observer World не менялись. Не переносили тяжёлый Three.js 3D renderer из «Острова сумерек», это другая игровая архитектура.
+- Музыкальная система V3 содержит 7 полноценных 32-шаговых многоголосных тем с прогрессиями аккордов, басом, мелодиями, контрапунктом и аранжировочными вариациями. Звуки событий оставлены от отдельно принятого Krieger Audio Edition.
+- Полноэкранное чтение открывает текущий текст журнала, текст инспекции и боевые сообщения; A+/A− изменяют только шрифт читателя, не масштаб мира.
+
+**Применять PASS отдельно.** Принятая владельцем V2 не изменена, V3 — новая редакция до проверки владельца.
