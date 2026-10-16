@@ -35,10 +35,15 @@ export function createUnderwaterWorld(o) {
  ghost.add(new THREE.PointLight(0x4cefff,4,9));sub.add(new THREE.PointLight(0x9aeaff,2.5,8));
  scene.add(ghost,sub);ghost.visible=false;sub.visible=false;
  const hud=document.createElement('aside');hud.id='sunkenHUD';document.body.append(hud);
+ const minimap=document.createElement('canvas');minimap.id='sunkenMiniMap';
+ minimap.width=minimap.height=128;document.body.append(minimap);
+ const mini=minimap.getContext('2d',{alpha:false});
+ let lastMap=-99;
  const style=document.createElement('style');
  style.textContent='html,body{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;overflow:hidden!important;overscroll-behavior:none!important}canvas,#c{touch-action:none!important}'+
  '#sunkenHUD{position:fixed;top:160px;right:12px;z-index:4;max-width:min(250px,47vw);background:#001a2bd9;color:#d3ffff;padding:9px 11px;border-left:3px solid #4ae1e5;font:12px/1.4 monospace;text-shadow:0 1px #001;pointer-events:none;display:none;white-space:pre-line}'+
- '@media(pointer:coarse){#sunkenHUD{top:160px;left:9px;right:auto;max-width:min(48vw,185px);padding:6px 8px;font-size:10px}}';
+ '#sunkenMiniMap{position:fixed;top:14px;right:72px;width:132px;height:132px;border:3px solid #497989;image-rendering:pixelated;z-index:6;pointer-events:none;display:none}'+
+ '@media(pointer:coarse){#sunkenHUD{top:160px;left:9px;right:auto;max-width:min(43vw,168px);padding:6px 8px;font-size:10px}#sunkenMiniMap{top:54px;right:9px;width:92px;height:92px}}';
  document.head.append(style);
  function model(name){
   if(!models.has(name))models.set(name,new Promise(resolve=>{
@@ -59,6 +64,16 @@ export function createUnderwaterWorld(o) {
   });return ticket;
  }
  addModel(sub,'bathyscaphe',1.65);addModel(ghost,'diving_helmet',.55);
+ // Fixed narrative landmarks: these are the real generated animated GLB models.
+ const landmarks=[
+  ['cathedral_bell',75,34,1.7],['cathedral_tower',77,38,3.1],
+  ['treasure_chest',81,34,1],['treasure_chest',89,27,1],['treasure_chest',96,42,1],
+  ['street_lamp',80,37,1.5],['street_lamp',87,37,1.5],['street_lamp',94,37,1.5],
+  ['coral_branch_violet',80,42,1.5],['coral_branch_orange',93,46,1.5],
+  ['submarine_wreck',101,31,2],['arch',73,43,2.6],
+  ['angler',78,44,1.2]
+ ];
+ landmarks.forEach(([id,x,z,size])=>addModel(scene,id,size,x,seabedHeight(x,z,seed)+.4,z,hash(x,z,seed)*6.28));
  function chunk(cx,cz){
   const group=new THREE.Group(),pos=[],col=[],uv=[],faces=[],tickets=[];
   const corners=[[0,0],[1,0],[1,1],[0,1]];
@@ -158,6 +173,23 @@ export function createUnderwaterWorld(o) {
   if(within(player.pos,69,31,10)){toast('Хранитель Глубин: '+q[2],4900);return true;}
   return false;
  }
+ function drawMiniMap(){
+  mini.fillStyle='#061c32';mini.fillRect(0,0,128,128);
+  for(let z=0;z<32;z++)for(let x=0;x<32;x++){
+   const wx=player.pos.x+(x-16)*7,wz=player.pos.z+(z-16)*7,h=floor(wx,wz);
+   mini.fillStyle=h>SEA?'#3f8651':h>0?'#2c796a':h>-5?'#174a70':'#0a2a56';
+   mini.fillRect(x*4,z*4,4,4);
+  }
+  const marker=(x,z,color,size=5)=>{
+   const px=(x-player.pos.x)/7*4+64,pz=(z-player.pos.z)/7*4+64;
+   if(px<3||pz<3||px>125||pz>125)return;
+   mini.fillStyle=color;mini.fillRect(px-size/2,pz-size/2,size,size);
+  };
+  marker(69,31,'#b5faff',7);
+  const q=QUESTS[qi];if(q)for(const [x,z] of q[3])marker(x,z,'#f9d36a',4);
+  mini.fillStyle='#ffffff';mini.fillRect(61,61,6,6);
+  mini.strokeStyle='#081c23';mini.strokeRect(61,61,6,6);
+ }
  function update(dt){
   time+=dt;const wet=isSubmerged();
   if(wet||player.pos.x<3||player.pos.z<3||player.pos.x>60||player.pos.z>60)ensure();
@@ -169,10 +201,16 @@ export function createUnderwaterWorld(o) {
   ghost.visible=player.pos.x>53&&player.pos.x<98&&Math.abs(player.pos.z-31)<64;
   ghost.position.set(69,seabedHeight(69,31,seed)+2+Math.sin(time)*.25,31);
   ghost.rotation.y+=dt*.18;hud.style.display=wet?'block':'none';
+  minimap.style.display=wet?'block':'none';
+  if(wet&&time-lastMap>.45){lastMap=time;drawMiniMap();}
   if(wet){
    const q=QUESTS[qi],hint=bathy?(canFire()?'Батискаф: оружие готово':'Батискаф: найди стрелковое оружие'):'Удерживай прыжок: вверх. Отпусти: вниз.';
-   hud.textContent='◈ ГЛУБИНА '+(SEA-player.pos.y).toFixed(1)+'м\n'+(q?q[1]+' · '+q[2]:'Все задания выполнены')+'\n'+hint;
-   scene.fog.color.lerp(new THREE.Color(0x123e53),clamp(dt*4,0,1));
+   hud.textContent='◈ ГЛУБИНА '+(SEA-player.pos.y).toFixed(1)+'м\n'+(q?'Задание: '+q[1]:'Все задания выполнены')+'\n'+hint;
+   scene.fog.color.set('#0c4258');
+   o.skyU.uTop.value.set('#092c44');
+   o.skyU.uHorizon.value.set('#1a6076');
+   o.skyU.uBottom.value.set('#123044');
+   o.skyU.uSunVis.value=.02;
    scene.fog.density=.025+Math.max(0,SEA-player.pos.y)*.004;
    if(within(player.pos,69,31,7)&&time-lastHint>18){lastHint=time;interact();}
   }
