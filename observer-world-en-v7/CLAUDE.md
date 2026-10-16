@@ -2,7 +2,7 @@
 
 **Public game:** https://mpaykin1.github.io/meta6/observer-world-en-v7/
 
-**Graphical baseline:** user-approved V5 Island of Twilight original. V6 supplied gameplay, NPCs, 36 unique voxel buildings, consequences/journal, `新` and combat relationships. V7 forks V6 **without changing `updateCamera(dt)` or replacing the original Three.js WebGL renderer**. Previous V5/V6 untouched.
+**Graphical baseline:** user-approved V5 Island of Twilight original. V6 supplied gameplay, NPCs, 36 unique voxel buildings, consequences/journal, `新` and combat relationships. V7 forks V6 **without changing `updateCamera(dt)` or replacing the original Three.js WebGL renderer**. Previous V5/V6 untouched. **V7 is also accepted by the owner (2026-10-16)**; further changes should target V8 or a separately reviewed branch.
 
 ## Source map
 
@@ -33,7 +33,7 @@ CI evidence: https://github.com/mpaykin1/meta6/actions/workflows/observer-v7-gat
 
 `?v7test=1` forces the mobile overlay in headless Chrome and reports an actual WebGL/interaction test via `data-v7-selftest` and `#v7SelfTest`. Tests check exactly three right buttons, joystick input, combined jump + attack, button release, build via hammer, nearby placement, original tree destruction, foundations, no overlapping buildings, 21 weapons and original camera.
 
-`?v7test=1` is a **test-only simulation**, not evidence that the physical phone's hardware input or audio has been manually tested. Final visual/touch acceptance belongs to the user (**PASS / FAIL**). Do not claim a phone-owner PASS from green CI.
+`?v7test=1` is a **test-only simulation**, not evidence that the physical phone's hardware input or audio has been manually tested. The owner separately granted **PASS on 2026-10-16** after receiving V7. This is an explicit owner verdict, NOT proof of a particular physical-device benchmark. [Canonical success record](../docs/SUCCESS_OBSERVER_WORLD_V7_MOBILE_2026-10-16.md). Future changes require another PASS.
 
 All sources are publicly readable from any chat. GitHub write actions require a connected authorized account; no secrets or paid API providers.
 
