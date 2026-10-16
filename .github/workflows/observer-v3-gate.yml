@@ -1,0 +1,84 @@
+name: Observer V3 Illustrated Music and Reader Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'observer-world-en-v3/**'
+      - '.github/workflows/observer-v3-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: observer-v3-gate
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and focused music graphics tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check observer-world-en-v3/audio.js
+          node --check observer-world-en-v3/island-graphics.js
+          node --test observer-world-en-v3/audio.test.cjs observer-world-en-v3/island-graphics.test.cjs
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          v3=Path('observer-world-en-v3/index.html').read_text()
+          ref=Path('observer-world-en-v2-audio/index.html').read_text()
+          assert 'OBSERVER_V3_ISLAND_MUSIC_READER_20261016' in v3
+          assert 'OBSERVER_V3_ISLAND_MUSIC_READER_20261016' not in ref
+          for marker in ['island-graphics.js','audio.js','readerOverlay','readerClose','readerPlus','readerMinus','storyReader','inspectReader','battleReader','IslandVisuals']:
+            assert marker in v3,marker
+          js=re.findall(r'<script>(.*?)</script>',v3,re.S)
+          assert len(js)==1
+          Path('/tmp/v3.js').write_text(js[0])
+          PY
+          node --check /tmp/v3.js
+      - name: Verify public V3 source and asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://mpaykin1.github.io/meta6/observer-world-en-v3/'
+          for i in $(seq 1 50); do
+            HTML="$(curl -fLsS --max-time 25 "$URL" 2>/dev/null || true)"
+            ART="$(curl -fLsS --max-time 25 "${URL}island-graphics.js" 2>/dev/null || true)"
+            MUSIC="$(curl -fLsS --max-time 25 "${URL}audio.js" 2>/dev/null || true)"
+            if grep -Fq 'OBSERVER_V3_ISLAND_MUSIC_READER_20261016' <<<"$HTML" \
+              && grep -Fq 'source' <<<"$ART" \
+              && grep -Fq 'counterpointNotes' <<<"$MUSIC"; then
+              echo "V3_LIVE_EXACT=PASS SHA=${GITHUB_SHA} URL=${URL}"
+              exit 0
+            fi
+            sleep 7
+          done
+          echo '::error::Exact live V3 release not found'
+          exit 1
+      - name: Real Chrome fullscreen-reader, art and music smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --disable-background-networking --no-first-run --virtual-time-budget=8500 --dump-dom \
+            'https://mpaykin1.github.io/meta6/observer-world-en-v3/?v3test=1' >/tmp/v3-dom.html 2>/tmp/v3-chrome.err
+          if ! grep -Fq 'data-v3-selftest="pass"' /tmp/v3-dom.html; then
+            grep -o '<span id="v3SelfTest"[^>]*>[^<]*' /tmp/v3-dom.html | tail -3 || true
+            tail -20 /tmp/v3-chrome.err || true
+            exit 1
+          fi
+          grep -Fq 'id="readerOverlay"' /tmp/v3-dom.html
+          grep -Fq 'id="soundButton"' /tmp/v3-dom.html
+          echo "V3_BROWSER_READER_GRAPHICS_MUSIC=PASS"
+      - name: Record evidence
+        run: |
+          echo 'V3_LIVE_VERIFIED=PASS'
+          echo "SHA=${GITHUB_SHA}"
+          echo 'OLD_VERSION_LEFT_UNTOUCHED=TRUE'
