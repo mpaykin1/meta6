@@ -14,7 +14,9 @@ Contract: [CLAUDE.md](../CLAUDE.md). Source specification: [World_server #522](h
 - `quests/catalog.mjs`: six data-driven exploration quests and guardian descriptor.
 - `quests/guardian.mjs`: Russian dialogue and explicit accept/decline choices.
 - `quests/quests.test.mjs`: progression, duplicates, stale dialogue, hostile input, saves, callback failure/reentry and Unicode seed tests.
+- `quests/save-validation.test.mjs`: empty array slots must not become quest progress or poison a JSON save.
 - `creatures/index.mjs` and `catalog.mjs`: seeded population, exploration/flee/temporary defense, bounded streaming, saves and semantic events. `creatures/README.md` supplies detailed fauna options.
+- `creatures/failure-boundaries.test.mjs`: all thrown values cancel terrain frames, the first observer error is preserved, and observation saves require actual IDs.
 - Tests live alongside their modules. No original V7 files, renderer, gameplay, weapons, ammo, mobile controls, terrain, asset files or main ChatGPT files are changed.
 
 Do not infer a finished game or a player-visible quality percentage from these module tests. There is no owner PASS/FAIL for this work.
@@ -148,17 +150,21 @@ Run from repository root, using existing Node (no package install):
 node --test underwater-world/quests/*.test.mjs underwater-world/creatures/*.test.mjs
 ```
 
-Final module run: **29 tests, 0 failing, 0 skipped** (11 quest and 18 creature cases). Internal Codex review reproduced and corrected quest callback reentry, malformed-Unicode reward keys and sampling the floor at the moved position; this is not Claude review or owner acceptance. Separate read-only probes also exercised 700 streamed/save/restore states across different entity caps and a late sampler failure. All 14 species IDs and 3 distinct prop hints were checked against the fetched donor manifest.
+Current module run: **33 tests, 0 failing, 0 skipped** (12 quest and 21 creature cases). Four added regressions first reproduced errors on `5236f58`, then passed with the fixes in `ca62334`. Any thrown value (including `undefined`, `null`, `false`, `0`, `''`) now cancels the staged terrain frame without emitting its events; observer errors preserve the first thrown value after every queued callback is offered. Sparse arrays in quest/observation saves are rejected before replacing state. Valid saves, public API and version-1 schemas are unchanged.
 
-A real Chromium 154.0.8037.57 HTTP ES-module import smoke completed the bell quest, delivered one reward, spawned/updated 4 fauna, roundtripped their save and installed neither original renderer nor frame hook; no page errors. It was repeated after final runtime edits. This is a **module/browser check only**, not a game or physical-phone test. No packages, authentication, TLS settings or environment configuration were changed.
+Internal Codex review also reproduced and corrected quest callback reentry, malformed-Unicode reward keys and sampling the floor at the moved position; this is not Claude review or owner acceptance. Earlier separate read-only probes exercised 700 streamed/save/restore states across different entity caps and a late sampler failure. All 14 species IDs and 3 distinct prop hints were checked against the fetched donor manifest.
+
+A real Chromium 154.0.8037.57 HTTP ES-module smoke on `ca62334` rejected both malformed snapshots, cancelled a terrain frame throwing `undefined` with no state/event leakage, then completed the bell quest, delivered one reward, spawned/updated 6 fauna and roundtripped their save. It installed neither original renderer nor frame hook; no page errors. This is a **module/browser check only**, not a game or physical-phone test. No packages, authentication, TLS settings or environment configuration were changed.
 
 Still owned by primary ChatGPT: all visual ghost/creature placement and animations, six actual world interactions, stable prop IDs and persistent discoveries, primary save/ledger adapter, real damage and native weapon rules, underwater physics/vehicle/surface transitions, frame/chunk hooks, HUD/dialogue UI, desktop/mobile integration tests, independently measured player-visible quality, live publication and final review. No playable underwater URL is asserted here. Last accepted baseline source remains [Observer V7](https://github.com/mpaykin1/meta6/tree/main/observer-world-en-v7); source availability is not a fresh live-game verification.
 
 ## GitHub review request / checkpoint
 
-**Code + tests commit:** [`63eae5b298740fcafac740bc8d010a279b95a8ee`](https://github.com/mpaykin1/meta6/commit/63eae5b298740fcafac740bc8d010a279b95a8ee). A following documentation-only commit finalizes this checkpoint; use the branch HEAD for the complete handoff.
+**Current code + tests commit:** [`ca6233471da2f778c6c67038b88ce79f1547b1f3`](https://github.com/mpaykin1/meta6/commit/ca6233471da2f778c6c67038b88ce79f1547b1f3). Initial implementation: [`63eae5b298740fcafac740bc8d010a279b95a8ee`](https://github.com/mpaykin1/meta6/commit/63eae5b298740fcafac740bc8d010a279b95a8ee). A following documentation-only commit updates this checkpoint; use the branch HEAD for the complete handoff.
 
 **PR not created by Codex.** After successful push, `gh pr create` failed with `Post "https://api.github.com/graphql": Forbidden`. Issue #522 comments/checkpoints were **not updated**; this repository file is the saved checkpoint. No merge, Pages release, CI run or Claude review is claimed. The API block is external to the modules; no login/reset/reinstall was attempted.
+
+At continuation start the primary integration branch still pointed to `8e3eee4` (contract only); no underwater runtime or module integration was published there. Git refs showed PRs #1/#2 for unrelated V6/V8 work, no Codex modules PR. The owner reports Slack is connected, but no callable Slack tool is exposed in this session; no Slack messages were read or sent. Coordination is saved here in GitHub for the connected primary browser ChatGPT.
 
 PR target: `ai/chatgpt/twilight-underwater-20261016`. Head: `ai/codex/twilight-underwater-quests-20261016`. [Open the comparison / PR creation form](https://github.com/mpaykin1/meta6/compare/ai/chatgpt/twilight-underwater-20261016...ai/codex/twilight-underwater-quests-20261016?expand=1). This link is a form, **not an existing PR**.
 
@@ -166,7 +172,7 @@ Suggested PR title: `feat(underwater): guardian quests and passive wildlife modu
 
 Suggested review comment (after primary ChatGPT creates the PR):
 
-> Ревью для Claude: проверь отдельные модули `underwater-world/quests/` и `creatures/`, выполни 29 тестов командой из CODEX_HANDOFF.md, проверь сохранения/повторные награды/редкую агрессию и API интеграции. Код исходной V7 и файлы основного ChatGPT не изменены. Внутренние проверки Codex не заменяют твоё ревью. Не назначай пользовательский PASS/FAIL.
+> Ревью для Claude: проверь отдельные модули `underwater-world/quests/` и `creatures/`, выполни 33 теста командой из CODEX_HANDOFF.md, проверь сохранения/повторные награды/редкую агрессию и API интеграции. Код исходной V7 и файлы основного ChatGPT не изменены. Внутренние проверки Codex не заменяют твоё ревью. Не назначай пользовательский PASS/FAIL.
 
 Main ChatGPT should review and integrate only after its integration checks. Codex must not merge its own modules into the primary game. The owner alone decides PASS/FAIL. This checkpoint contains implementation evidence and limitations, not a verdict-based success/failure learning record.
 
@@ -180,7 +186,7 @@ Copy this block into the primary ChatGPT, or into a **new ordinary browser ChatG
 Основной репозиторий: https://github.com/mpaykin1/meta6
 Ветка основного ChatGPT: ai/chatgpt/twilight-underwater-20261016
 Ветка модулей Codex: ai/codex/twilight-underwater-quests-20261016
-Проверенный коммит кода и тестов: 63eae5b298740fcafac740bc8d010a279b95a8ee
+Проверенный коммит кода и тестов: ca6233471da2f778c6c67038b88ce79f1547b1f3
 Полный актуальный checkpoint/API:
 https://github.com/mpaykin1/meta6/blob/ai/codex/twilight-underwater-quests-20261016/underwater-world/docs/CODEX_HANDOFF.md
 Распределение файлов:
@@ -193,8 +199,11 @@ https://github.com/mpaykin1/meta6/tree/main/observer-world-en-v7
 Codex написал только quests/, creatures/ и docs/CODEX_HANDOFF.md внутри underwater-world/.
 Готовы Хранитель Глубин, русские диалоги, 6 квестов, 14 видов подводных обитателей,
 ограниченное состояние, сохранения, редкая временная защитная агрессия и API.
-29 тестов прошли (11 quests + 18 creatures), ошибок/пропусков нет.
-ES-модули проверены в Chromium154 по HTTP, ошибок страницы нет; это не проверка готовой игры/телефона.
+33 теста прошли (12 quests + 21 creatures), ошибок/пропусков нет.
+Дополнительно исправлены отмена кадра при любом исключении и пустые ID в сохранениях;
+4 новые регрессии воспроизвели ошибки на5236f58 и проходят после исправления.
+ES-модули/исправления проверены в Chromium154 по HTTP, ошибок страницы нет;
+это не проверка готовой игры/телефона. API и схема сохранений не изменились.
 Оригинальная V7, движок, графика, управление, террейн, батискаф и файлы интегратора не менялись.
 
 Первые действия:
@@ -202,7 +211,7 @@ ES-модули проверены в Chromium154 по HTTP, ошибок стр
 2. Через подключённый GitHub создать PR из ai/codex/twilight-underwater-quests-20261016
    в ai/chatgpt/twilight-underwater-20261016 (если такого PR ещё нет).
    Заголовок: feat(underwater): guardian quests and passive wildlife modules.
-   В описание включить границы изменений, 29 тестов, браузерную проверку и ограничения интеграции.
+   В описание включить границы изменений, 33 теста, браузерную проверку и ограничения интеграции.
 3. Обновить существующий checkpoint issue522 ссылкой на PR и этот файл; не создавать дубликат задания.
    Codex этого не сделал: Git push работает, gh API/GraphQL заблокирован облачным прокси Forbidden.
 4. Запустить: node --test underwater-world/quests/*.test.mjs underwater-world/creatures/*.test.mjs
