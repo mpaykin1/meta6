@@ -1,3 +1,17 @@
+# Claude / Codex — canonical game entrypoint
+
+**CURRENT ACCEPTED GAME: Observer World V7 — OWNER PASS (2026-10-16)**
+
+- Live: https://mpaykin1.github.io/meta6/observer-world-en-v7/
+- Full V7 development guide: [observer-world-en-v7/CLAUDE.md](observer-world-en-v7/CLAUDE.md)
+- Complete source catalog: [SOURCE_INDEX.md](SOURCE_INDEX.md)
+- Machine-readable version index: [game-source-index.json](game-source-index.json)
+- Official user PASS evidence: [docs/SUCCESS_OBSERVER_WORLD_V7_MOBILE_2026-10-16.md](docs/SUCCESS_OBSERVER_WORLD_V7_MOBILE_2026-10-16.md)
+- Technical CI green: https://github.com/mpaykin1/meta6/actions/runs/38896347402
+
+Repository visibility has been confirmed **PUBLIC**. You can read the sources from a new chat or Claude session without asking the user to re-upload files. Public access does **not** confer push privileges: write access still requires separately authorized GitHub account permissions. Do not modify the owner's accepted V7 directly; start V8 or a reviewable PR for future changes.
+
+
 ## CURRENT DEVELOPMENT TARGET: V7 smartphone game (2026-10-16)
 
 **Live URL:** https://mpaykin1.github.io/meta6/observer-world-en-v7/
@@ -6,9 +20,9 @@
 
 The owner has accepted the V5 graphics and the portrait HUD mockup. The V7 mobile implementation uses that original Three.js game with `mobile-controls.js`, `mobile-controls.css` and `editor.js`. **Phone only:** joystick and 3 right pixel buttons (weapon swap, hammer build, combined jump+attack/fire), scrollable bottom glyph toolbar. Tap near the character to choose a building site, press hammer; native tree destruction and support plinths clear terrain, overlapping buildings forbidden. PC keyboard/mouse logic remains from V6.
 
-**Verified automated Chrome/WebGL test:** https://github.com/mpaykin1/meta6/actions/runs/38896347402. Physical phone owner PASS is **not yet provided**.
+**Verified automated Chrome/WebGL test:** https://github.com/mpaykin1/meta6/actions/runs/38896347402. **OWNER PASS = ACCEPTED 2026-10-16** for V7 (explicit user verdict); Chrome touch simulation technical PASS is separate.
 
-Do not tell the user to reupload source; read this public repository. For GitHub changes, Claude needs an authorized connected GitHub account. Keep accepted V5 and previous V6 unchanged.
+Do not tell the user to reupload source; read this public repository. For GitHub changes, Claude needs an authorized connected GitHub account. Keep accepted V5, V6 and V7 unchanged; create V8 for future development.
 
 ## Current V6 gameplay implementation (2026-10-16)
 
