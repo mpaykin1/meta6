@@ -1,3 +1,17 @@
+## Current V6 gameplay implementation (2026-10-16)
+
+**The owner's visual approval is V5; V6 adds historical gameplay without touching the original perspective camera.**
+
+- [Open playable V6](https://mpaykin1.github.io/meta6/observer-world-en-v6/)
+- [V6 code and complete source map](observer-world-en-v6/CLAUDE.md)
+- [36 original-atlas building architectures](observer-world-en-v6/building-assets.js)
+- [16 animated character roles](observer-world-en-v6/npc-catalog.js)
+- [NPC fighting, companions, betrayal, hero death and New rebirth](observer-world-en-v6/combat-relations.js)
+- [Causal history and full-screen reading](observer-world-en-v6/story-system.js)
+- [V6 tests](.github/workflows/observer-v6-gate.yml)
+
+Keep V5 untouched as approved visual reference. Use V6 as the game currently being developed. The user should not need to re-upload files in any chat. Writing changes still requires connected GitHub permissions.
+
 # CLAUDE — meta6 / Observer World
 
 This repository contains multiple game editions. The **current exact-reference implementation** is [Observer World V5](observer-world-en-v5/).
