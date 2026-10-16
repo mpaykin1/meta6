@@ -133,7 +133,7 @@
     ]
   },
   "livingHistoryV6": {
-    "status": "CI_PENDING_OWNER_PASS",
+    "status": "TECHNICAL_CI_SUCCESS__OWNER_PASS_PENDING",
     "url": "https://mpaykin1.github.io/meta6/observer-world-en-v6/",
     "graphicalBaseline": "OWNER_PASS_V5",
     "main": "observer-world-en-v6/index.html",
@@ -158,6 +158,8 @@
       "onAttackCompanion": "hostile betrayal",
       "nativeNpcDamage": true,
       "fullScreenReader": true
-    }
+    },
+    "verifiedRun": "https://github.com/mpaykin1/meta6/actions/runs/38881658462",
+    "verifiedSourceSHA": "d835b44695455b1eb551002e202f314e4a6b71e7"
   }
 }
