@@ -11,6 +11,14 @@
 | Оригинал RU | [observer-world/index.html](observer-world/index.html) | https://mpaykin1.github.io/meta6/observer-world/ |
 | Первый перевод EN | [observer-world-en/index.html](observer-world-en/index.html) | https://mpaykin1.github.io/meta6/observer-world-en/ |
 | **Принятый эталон V2 (PASS)** | [observer-world-en-v2/index.html](observer-world-en-v2/index.html) | https://mpaykin1.github.io/meta6/observer-world-en-v2/ |
+| **V4 Mini-Island — реализация объединения (owner PASS ещё нет)** | [observer-world-en-v4/index.html](observer-world-en-v4/index.html) | https://mpaykin1.github.io/meta6/observer-world-en-v4/ |
+| V4: оригинальная игровая графика 12 материалов, 21 оружие | [original-assets.js](observer-world-en-v4/original-assets.js) | — |
+| V4: исходный APNG и персонажи | [hero-apng.js](observer-world-en-v4/hero-apng.js) · [island-graphics.js](observer-world-en-v4/island-graphics.js) | — |
+| V4: 12 музыкальных тем и раздельный микшер | [audio.js](observer-world-en-v4/audio.js) | — |
+| V4: монстры, бой и ландшафт | [living-world.js](observer-world-en-v4/living-world.js) · [weapon-catalog.js](observer-world-en-v4/weapon-catalog.js) | — |
+| **Подлинный оригинальный HTML «Остров сумерек»** | [ostrov-sumerek-original.html](observer-world-en-v4/reference/ostrov-sumerek-original.html) | — |
+| **Подлинный расширенный HTML «Остров сумерек»** | [ostrov-sumerek-expanded-original.html](observer-world-en-v4/reference/ostrov-sumerek-expanded-original.html) | — |
+| V4: регрессионные тесты и CI | [.github/workflows/observer-v4-gate.yml](.github/workflows/observer-v4-gate.yml) | — |
 | **Новая V3 — графика из «Острова сумерек», улучшенная музыка, полноэкранный читатель** | [observer-world-en-v3/index.html](observer-world-en-v3/index.html) | https://mpaykin1.github.io/meta6/observer-world-en-v3/ |
 | V3: графика и встроенные пиксельные ассеты из загруженного эталона | [observer-world-en-v3/island-graphics.js](observer-world-en-v3/island-graphics.js) | — |
 | V3: новая музыкальная партитура / многослойный синтез | [observer-world-en-v3/audio.js](observer-world-en-v3/audio.js) | — |
@@ -57,3 +65,28 @@
 - Полноэкранное чтение открывает текущий текст журнала, текст инспекции и боевые сообщения; A+/A− изменяют только шрифт читателя, не масштаб мира.
 
 **Применять PASS отдельно.** Принятая владельцем V2 не изменена, V3 — новая редакция до проверки владельца.
+
+## V4 — статус исполнения ТЗ от 2026-10-16
+
+**Новая, экспериментальная версия**, предыдущая V2 имеет решение владельца PASS, V3 — предшествующий прототип. V4 НЕ отмечать как PASS владельца без его решения.
+
+Работает и проверено технически:
+- исходные два полных HTML (blob SHA `d164562d0c75f4a0265d19ffe127b78a1bd27153` и `eb8b736d7f4610584f1afb9f533d328ccfb35831`) доступны в этом репозитории **байт-в-байт**, сравнение с загруженными файлами выполнено;
+- исходные графические атласы и 21 оружие, встроенные без сторонних CDN, с машинным каталогом WEAPONS и частью игровых свойств;
+- 4-кадровый APNG персонажа из оригинального sprite sheet, присоединённый к текущему renderer; пропорции камеры не изменялись;
+- оригинальные анимированные кадры воды, материализированная трава, глитч, 3 процедурных монстра Imp, Shade, Warden (ручное и ограниченное авто-появление), взаимодействие с фракциями;
+- сохранена история и взаимодействия Observer World (AI мост сохранён, не переименован);
+- раздельные кнопки музыки / звуков; музыка включается явно по user gesture, 12 адаптивных партитур, увеличен уровень музыкального канала, есть измеритель сигнала через WebAudio AnalyserNode и статус Context;
+- режим Build / Explore; доступен оригинальный каталог 21 оружия, базовые версии ближних и дальних атак, патроны и визуализация из атласа; advanced оружие закрыто за событием Наблюдателя/аномалии;
+- регрессионные unit/browser/live тесты работают в `observer-v4-gate.yml`.
+
+**ОСТАЁТСЯ НЕСДЕЛАННЫМ / требует evidence и owner PASS:**
+- подлинный комплексный Three.js/WebGL 3D renderer оригинала (в V4 на сегодня реализован совместимый 2.5D Canvas mini-island с настоящими материалами и анимациями);
+- полный паритет алгоритмов всех 21 видов оружия: рикошеты, зарядка, отражение, физика снарядов, цепные молнии, комбо, разрушения и прочие свойства пока сохранены **в оригинальных HTML**, но не все реализованы в V4;
+- качественная графика каждого существа и его движения на уровне оригинальных GLSL шейдеров;
+- реальные прослушивания музыки на iPhone 11/ПК владельца, измерения FPS, долгие стресс-тесты и пользовательский PASS/FAIL;
+- гарантия совместимости расширенного рендера с единой физикой и историей без регрессий.
+
+**Строгий принцип:** не называть V4 завершённым объединением двух игр, пока эти пункты не закрыты и не показана работа в живом браузере/на устройстве.
+
+Полный список файлов и испытаний лежит в данной папке. Любому новому чату достаточно начать с этого `SOURCE_INDEX.md`; повторно просить пользователя присылать оригинальные игры нельзя.
