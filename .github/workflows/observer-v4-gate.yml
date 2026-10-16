@@ -1,0 +1,84 @@
+name: Observer World V4 Integration Gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'observer-world-en-v4/**'
+      - '.github/workflows/observer-v4-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: observer-v4-gate
+  cancel-in-progress: true
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate code and actual music/monster behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check observer-world-en-v4/audio.js
+          node --check observer-world-en-v4/island-graphics.js
+          node --check observer-world-en-v4/living-world.js
+          node --test observer-world-en-v4/audio.test.cjs observer-world-en-v4/island-graphics.test.cjs observer-world-en-v4/living-world.test.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          base=Path('observer-world-en-v3/index.html').read_text()
+          html=Path('observer-world-en-v4/index.html').read_text()
+          assert 'OBSERVER_V4_MUSIC_MONSTER_ISLAND_20261016' in html
+          assert 'OBSERVER_V4_MUSIC_MONSTER_ISLAND_20261016' not in base
+          for x in ('living-world.js','island-graphics.js','audio.js','PLAY MUSIC','fxButton',
+                    'musicTheme','readerOverlay','nextCombat','imp','shade','warden','ObserverV4World'):
+            if x not in html: raise SystemExit('Missing required V4 marker: '+x)
+          js=re.findall(r'<script>(.*?)</script>',html,re.S)
+          assert len(js)==1
+          Path('/tmp/v4.js').write_text(js[0])
+          PY
+          node --check /tmp/v4.js
+      - name: Verify exact published revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://mpaykin1.github.io/meta6/observer-world-en-v4/'
+          for attempt in $(seq 1 65); do
+            HTML="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
+            AUDIO="$(curl -fLsS --max-time 20 "${URL}audio.js" 2>/dev/null || true)"
+            WORLD="$(curl -fLsS --max-time 20 "${URL}living-world.js" 2>/dev/null || true)"
+            if grep -Fq 'OBSERVER_V4_MUSIC_MONSTER_ISLAND_20261016' <<<"$HTML" \
+               && grep -Fq '11-track' <<<"$AUDIO" \
+               && grep -Fq 'Warden' <<<"$WORLD"; then
+              echo "V4_LIVE_EXACT=PASS SHA=${GITHUB_SHA} URL=${URL}"
+              exit 0
+            fi
+            echo "Waiting for exact V4 deploy ($attempt/65)"
+            sleep 8
+          done
+          echo '::error::V4 not served at public route with expected assets'
+          exit 1
+      - name: Browser smoke for Builder Monsters Reader and Audio UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --no-first-run --disable-background-networking --virtual-time-budget=6500 --dump-dom \
+            'https://mpaykin1.github.io/meta6/observer-world-en-v4/?v4test=1' >/tmp/v4-dom.html 2>/tmp/chrome-v4.log
+          if ! grep -Fq 'data-v4-selftest="pass"' /tmp/v4-dom.html; then
+            grep -o '<span id="v4SelfTest"[^>]*>[^<]*' /tmp/v4-dom.html | tail -3 || true
+            tail -20 /tmp/chrome-v4.log || true
+            echo "::error::V4 browser smoke failed"
+            exit 1
+          fi
+          grep -Fq 'id="readerOverlay"' /tmp/v4-dom.html
+          grep -Fq 'id="fxButton"' /tmp/v4-dom.html
+          echo "V4_BROWSER=PASS"
+      - name: Evidence
+        run: |
+          echo "V4_TECHNICAL_GATE=PASS"
+          echo "SHA=${GITHUB_SHA}"
+          echo 'OWNER_PASS=NOT_YET'
