@@ -1,0 +1,90 @@
+name: Observer V6 Living History QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'observer-world-en-v6/**'
+      - '.github/workflows/observer-v6-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: observer-v6
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax original camera and causal systems
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in observer-world-en-v6/*.js; do node --check "$path"; done
+          node --test observer-world-en-v6/v6-systems.test.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          old=Path('observer-world-en-v5/index.html').read_text()
+          new=Path('observer-world-en-v6/index.html').read_text()
+          assert old.split('function updateCamera(dt) {')[1].split('function updatePost(dt) {')[0]==new.split('function updateCamera(dt) {')[1].split('function updatePost(dt) {')[0]
+          for item in ['const scene = new THREE.Scene()','new THREE.PerspectiveCamera(46','const FinalShader = {','composer.render(raw)','heroTex','observer-v6-ready','__observerV6Frame']:
+            assert item in new,item
+          for item in ['building-assets.js','npc-catalog.js','combat-relations.js','story-system.js','editor.js','v6Reader','v6ReadLatest']:
+            assert item in new,item
+          m=re.findall(r'<script type="module">([\s\S]*?)</script>',new)
+          assert len(m)==1
+          Path('/tmp/v6.mjs').write_text(m[0])
+          print('V6_ORIGINAL_CAMERA_PASS')
+          PY
+          node --check /tmp/v6.mjs
+
+      - name: Wait for exact published V6
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://mpaykin1.github.io/meta6/observer-world-en-v6/'
+          for attempt in $(seq 1 55); do
+            HTML="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
+            EDITOR="$(curl -fLsS --max-time 20 "${URL}editor.js" 2>/dev/null || true)"
+            COMBAT="$(curl -fLsS --max-time 20 "${URL}combat-relations.js" 2>/dev/null || true)"
+            BUILD="$(curl -fLsS --max-time 20 "${URL}building-assets.js" 2>/dev/null || true)"
+            if grep -Fq 'Observer World V6' <<<"$HTML" &&
+               grep -Fq 'V6_LIVING_HISTORY_ALLIES_20261016' <<<"$EDITOR" &&
+               grep -Fq 'betrayal' <<<"$COMBAT" &&
+               grep -Fq 'fortress' <<<"$BUILD"; then
+              echo "V6_EXACT_LIVE=PASS SHA=${GITHUB_SHA}"
+              exit 0
+            fi
+            sleep 8
+          done
+          echo '::error::V6 CDN not serving expected revision'
+          exit 1
+
+      - name: Real Chrome 3D renderer and NPC relationship smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --enable-webgl            --ignore-gpu-blocklist --enable-unsafe-swiftshader --no-first-run            --disable-background-networking --virtual-time-budget=12500 --dump-dom            'https://mpaykin1.github.io/meta6/observer-world-en-v6/?v6test=1'            >/tmp/v6-dom.html 2>/tmp/v6-browser.err
+          if grep -Fq 'data-v6-selftest="pass"' /tmp/v6-dom.html; then
+            echo 'V6_WEBGL_CHARACTER_CAUSAL_BROWSER=PASS'
+            grep -o '<pre id="v6SelfTest"[^>]*>[^<]*' /tmp/v6-dom.html | tail -1 || true
+          else
+            echo '::error::V6 browser smoke failed'
+            grep -o '<pre id="v6SelfTest"[^>]*>[^<]*' /tmp/v6-dom.html | tail -1 || true
+            tail -30 /tmp/v6-browser.err || true
+            exit 1
+          fi
+
+      - name: Release evidence
+        run: |
+          echo 'V6_TECHNICAL_TEST=PASS'
+          echo "COMMIT=${GITHUB_SHA}"
+          echo 'OWNER_PASS=PENDING'
