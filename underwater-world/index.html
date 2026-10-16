@@ -2263,7 +2263,8 @@ const rig = {
 const UW = createUnderwaterWorld({
   THREE, scene, player, atlas: atlasTex, hero, water, skyU, SEA, seed: DEFAULT_SEED,
   terrainTop, toast, getWeapon: () => curWeapon(), getArsenal: () => combat.arsenal,
-  getAmmo: () => combat.ammo, getAim: () => aim
+  getAmmo: () => combat.ammo, getAim: () => aim,
+  onCreatureAttack: (amount,x,z) => hurt(amount,x,z)
 });
 function tryStep(nx, nz) {
   if (!player.onGround) return false;
