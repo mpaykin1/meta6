@@ -4876,8 +4876,8 @@ window.__isle = {
   // Fell original voxel trees using the source destruction/particles/chunk rebuild code.
   clearConstructionTrees(x,z,radius=2.7){
     const list=world.trees.filter(t=>Math.hypot(t.x+.5-x,t.z+.5-z)<radius).map(t=>[t.x,t.z]);
-    let count=0;for(const [tx,tz] of list)if(fellTree(tx,tz))count++;
-    return count
+    const felled=[];for(const [tx,tz] of list)if(fellTree(tx,tz))felled.push([tx,tz]);
+    return felled
   },
   // Ground elevations sampled from original voxels. New models use supports on slopes.
   buildGround(x,z,radius=1.45){
