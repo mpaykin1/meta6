@@ -58,7 +58,11 @@ function create({native,onBuild,onSwap}){
  build.addEventListener("pointerdown",e=>{
   eat(e);if(shootId!==null)return;
   shootId=e.pointerId;try{build.setPointerCapture(e.pointerId)}catch{}
-  buildCount++;onBuild();
+  buildCount++;
+  // Fire through the actual V7 input interface, not the optional building-editor callback.
+  if(native.underwater?.isSubmerged()&&native.underwater.inBathyscaphe){
+    native.mobileShoot();
+  }else onBuild();
  });
  for(const evt of ["pointerup","pointercancel","lostpointercapture"])build.addEventListener(evt,e=>{if(shootId!==e.pointerId)return;eat(e);shootId=null;native.mobileShootRelease?.()});
  swap.addEventListener("pointerdown",e=>{eat(e);native.mobileSwap();onSwap?.()});
