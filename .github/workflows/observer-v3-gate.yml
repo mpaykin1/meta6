@@ -34,6 +34,8 @@ jobs:
           ref=Path('observer-world-en-v2-audio/index.html').read_text()
           assert 'OBSERVER_V3_ISLAND_MUSIC_READER_20261016' in v3
           assert 'OBSERVER_V3_ISLAND_MUSIC_READER_20261016' not in ref
+          assert "e.target.closest('#readerOverlay')" in v3, 'iPhone reader must permit touch scroll'
+          assert 'cam.zoom=1' not in v3, 'reader must never forcibly reset camera zoom'
           for marker in ['island-graphics.js','audio.js','readerOverlay','readerClose','readerPlus','readerMinus','storyReader','inspectReader','battleReader','IslandVisuals']:
             assert marker in v3,marker
           js=re.findall(r'<script>(.*?)</script>',v3,re.S)
