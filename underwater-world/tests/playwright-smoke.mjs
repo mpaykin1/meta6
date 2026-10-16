@@ -116,8 +116,15 @@ const ascend=await m.page.evaluate(()=>({up:window.__isle.player.jumpHeld,shooti
 assert(ascend.up,'Phone lower control rises when held');
 assert.equal(ascend.shooting,false,'Phone ascent must not simultaneously shoot');
 await m.page.locator('#v7Action').dispatchEvent('pointerup',{pointerId:601,buttons:0,pointerType:'touch'});
+// Explicitly dive back down after testing ascent, as the jump may have surfaced the hero.
+await m.page.evaluate(()=>{const i=window.__isle;i.player.pos.set(70,2.1,31);i.player.vel.set(0,0,0);});
+const firePrereqs=await m.page.evaluate(()=>{const i=window.__isle;return {underwater:i.underwater.isSubmerged(),bathyscaphe:i.underwater.inBathyscaphe,weapon:i.combat.cur,ammo:i.combat.ammo.pistol,canFire:i.underwater.canFire()}});
+console.log('PHONE_FIRE_PREREQS',JSON.stringify(firePrereqs));
+assert(firePrereqs.underwater&&firePrereqs.bathyscaphe&&firePrereqs.canFire,'Prepare phone firing with underwater armed bathyscaphe');
 await m.page.locator('#v7Build').dispatchEvent('pointerdown',{pointerId:602,buttons:1,clientX:700,clientY:950,pointerType:'touch'});
-assert(await m.page.evaluate(()=>window.__isle.input.atk),'Middle button shoots only with picked ranged weapon');
+const fireActual=await m.page.evaluate(()=>{const i=window.__isle;return {attacking:i.input.atk,touchSource:i.input.src.touch,canFire:i.underwater.canFire(),y:i.player.pos.y}});
+console.log('PHONE_FIRE_ACTUAL',JSON.stringify(fireActual));
+assert(fireActual.attacking,'Middle button shoots only with picked ranged weapon: '+JSON.stringify({firePrereqs,fireActual}));
 await m.page.locator('#v7Build').dispatchEvent('pointerup',{pointerId:602,buttons:0,pointerType:'touch'});
 assert.equal(await m.page.evaluate(()=>window.__isle.input.atk),false,'Touch release must stop gunfire');
 await m.page.locator('#v7Stick').dispatchEvent('pointerdown',{pointerId:603,buttons:1,clientX:100,clientY:650,pointerType:'touch'});
