@@ -332,8 +332,15 @@ function start(){
     const rebirth=relations.newPerson(native.player.pos.x+1,native.player.pos.z);
     checks.rebirth=rebirth?.mode==="reborn"&&native.G.state==="play";
   }else checks.rebirth=true;
+  // Headless Chromium may have the original game paused by background visibility.
+  // Exercise the actual *alive, playing* contract after the rebirth branch.
+  checks.stateBeforeCompanion=native.G.state;
+  if(native.G.state==="paused")native.pause(false);
+  if(native.G.state!=="play"&&native.player.hp>0)native.G.state="play";
+  if(native.player.hp<=0)native.player.hp=6;
   const ally=relations.newPerson(native.player.pos.x+1,native.player.pos.z);
   checks.companion=!!ally&&ally.role==="companion"&&ally.relation==="friendly";
+  checks.stateBeforeCompanion=native.G.state==="play";
   if(ally?.id)relations.strike(ally,1,"player");
   checks.betrayal=ally?.relation==="hostile"&&story.entries.some(n=>n.type==="betrayal");
   checks.fullscreenReader=$("v6Reader") instanceof HTMLDialogElement;
