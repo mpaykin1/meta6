@@ -12,6 +12,7 @@ const root={localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set
 let clock=500;
 const sandbox={window:root,localStorage:root.localStorage,
  Math,Date,JSON,performance:{now:()=>clock},console};
+vm.runInNewContext(fs.readFileSync(__dirname+'/weapon-catalog.js','utf8'),sandbox,{filename:'weapon-catalog.js'});
 vm.runInNewContext(fs.readFileSync(__dirname+'/living-world.js','utf8'),sandbox,{filename:'living-world.js'});
 const S={objects:[{kind:'well',x:0,y:0}],history:[],pop:30,order:15,suspicion:0};
 const COMBAT={actors:[{id:1,x:24,y:12,hp:100,armed:true,state:'patrol',faction:'guard'}]};
