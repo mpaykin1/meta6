@@ -263,6 +263,36 @@ function start(){
   place:onPlace,select:activateBuild,get camera(){return native.camera},get native(){return native},
   unload:()=>clearInterval(interval)};
  document.body.dataset.v5Ready="true";
+ // Opt-in real-browser integration proof: executes the original Three.js render path,
+ // places a native atlas-textured 3D building, and verifies no second 2D canvas.
+ if(new URLSearchParams(location.search).get("v5test")==="1"){
+  let ground=null;
+  for(let z=14;z<50&&!ground;z++)for(let x=14;x<50;x++){
+    if(native.terrainTop(x,z)>native.SEA+1&&state.objects.every(o=>Math.hypot(o.x-x,o.z-z)>3)){
+      ground={x,z};break
+    }
+  }
+  const built=ground?onPlace("well",ground.x,ground.z):null;
+  const checks={
+   originalRenderer:native.scene.type==="Scene"&&native.camera.type==="PerspectiveCamera",
+   originalMap:native.world.vox.length===64*64*26,
+   originalWater:!!native.scene.getObjectByName&&native.scene.children.length>10,
+   originalWeapons:native.ARSENAL_ORDER.length===21,
+   originalAudio:!!native.SFX.init,
+   originalCamera:typeof native.rig.yaw==="number"&&typeof native.rig.pitch==="number",
+   threeDBuild:!!built&&groups.has(built.id)&&groups.get(built.id).group.children.length>=5,
+   oneCanvas:document.querySelectorAll("canvas#c").length===1,
+   bottomDock:$("v5Dock").querySelectorAll("button").length===PRIMARY.length,
+   menu:$("v5Menu").tagName==="DETAILS",
+   music:typeof music?.start==="function"
+  };
+  const pass=Object.values(checks).every(Boolean);
+  document.body.dataset.v5Selftest=pass?"pass":"fail";
+  const evidence=document.createElement("pre");evidence.id="v5SelfTest";evidence.hidden=true;
+  evidence.textContent=JSON.stringify({pass,checks,objectCount:state.objects.length});
+  document.body.appendChild(evidence);
+ }
+
 }
 root.addEventListener("observer-v5-ready",start);
 let attempts=0;
