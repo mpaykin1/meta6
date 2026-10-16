@@ -1,0 +1,91 @@
+name: Observer V7 Smartphone Builder Gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'observer-world-en-v7/**'
+      - '.github/workflows/observer-v7-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: observer-v7
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate mobile layout, source isolation and native camera
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in observer-world-en-v7/*.js; do node --check "$f"; done
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          old=Path('observer-world-en-v6/index.html').read_text()
+          new=Path('observer-world-en-v7/index.html').read_text()
+          assert old.split('function updateCamera(dt) {')[1].split('function updatePost(dt) {')[0]==new.split('function updateCamera(dt) {')[1].split('function updatePost(dt) {')[0]
+          for mark in ('observer-v7-ready','__observerV7Frame','mobile-controls.js','mobile-controls.css',
+                       'mobileMove(dx,dy)','mobileCombo(on)','mobileSwap()','clearConstructionTrees(x,z,radius=2.7)'):
+            assert mark in new, mark
+          assert 'Observer World V7' in new
+          assert '<script src="./editor.js"></script>' in new
+          style=Path('observer-world-en-v7/mobile-controls.css').read_text()
+          for target in ('#v7Stick','#v7Action','#v7Build','#v7Swap','opacity:.75','pointer:coarse'):
+            assert target in style,target
+          js=re.findall(r'<script type="module">([\s\S]*?)</script>',new)
+          assert len(js)==1
+          Path('/tmp/v7.mjs').write_text(js[0])
+          print('V7_NATIVE_CAMERA_ORIGINAL=PASS')
+          PY
+          node --check /tmp/v7.mjs
+      - name: Wait for exact published V7 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://mpaykin1.github.io/meta6/observer-world-en-v7/'
+          for i in $(seq 1 60); do
+            PAGE="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
+            EDITOR="$(curl -fLsS --max-time 20 "${URL}editor.js" 2>/dev/null || true)"
+            HUD="$(curl -fLsS --max-time 20 "${URL}mobile-controls.js" 2>/dev/null || true)"
+            CSS="$(curl -fLsS --max-time 20 "${URL}mobile-controls.css" 2>/dev/null || true)"
+            if grep -Fq 'Observer World V7' <<<"$PAGE" &&
+               grep -Fq 'V7_MOBILE_THREE_BUTTONS_BUILDING_20261016' <<<"$EDITOR" &&
+               grep -Fq 'mobileCombo' <<<"$HUD" &&
+               grep -Fq '#v7Stick' <<<"$CSS"; then
+               echo "V7_EXACT_LIVE=PASS SHA=${GITHUB_SHA}"
+               exit 0
+            fi
+            sleep 8
+          done
+          echo "::error::Live V7 did not publish expected files"
+          exit 1
+      - name: Original WebGL mobile HUD and construction browser smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --enable-webgl --ignore-gpu-blocklist \
+            --enable-unsafe-swiftshader --touch-events=enabled --window-size=430,900 --no-first-run \
+            --disable-background-networking --virtual-time-budget=15000 --dump-dom \
+            'https://mpaykin1.github.io/meta6/observer-world-en-v7/?v7test=1' \
+            >/tmp/v7-dom.html 2>/tmp/v7-chrome.log
+          if grep -Fq 'data-v7-selftest="pass"' /tmp/v7-dom.html; then
+             echo "V7_TOUCH_WEBGL_BUILD=PASS"
+             grep -o '<pre id="v7SelfTest"[^>]*>[^<]*' /tmp/v7-dom.html | tail -1 || true
+          else
+             echo '::error::V7 touch interaction or building smoke failed'
+             grep -o '<pre id="v7SelfTest"[^>]*>[^<]*' /tmp/v7-dom.html | tail -1 || true
+             tail -30 /tmp/v7-chrome.log || true
+             exit 1
+          fi
+      - name: Evidence
+        run: |
+          echo "V7_MOBILE_TECHNICAL_TEST=PASS"
+          echo "SHA=${GITHUB_SHA}"
+          echo "PC_CONTROLS_UNCHANGED=TRUE"
+          echo "OWNER_PASS=PENDING"
