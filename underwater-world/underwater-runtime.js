@@ -25,7 +25,7 @@ const QUESTS=[
 const within=(p,x,z,r=4)=>Math.hypot(p.x-x,p.z-z)<r;
 export function createUnderwaterWorld(o) {
  const {THREE,scene,player,atlas,hero,SEA,seed,toast,getWeapon,getArsenal,getAmmo,getAim}=o;
- const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[];
+ const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[],mixers=new Set();
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
  const floor=(x,z)=>inside(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed);
  let bathy=false,lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
@@ -50,7 +50,7 @@ export function createUnderwaterWorld(o) {
    loader.load('./models/'+name+'.glb',g=>{
     const object=g.scene,bb=new THREE.Box3().setFromObject(object),dims=new THREE.Vector3();
     bb.getSize(dims);object.scale.multiplyScalar(2/Math.max(.1,dims.x,dims.y,dims.z));
-    resolve(object);
+    resolve({object,clips:g.animations||[]});
    },undefined,()=>resolve(null));
   }));
   return models.get(name);
@@ -59,7 +59,10 @@ export function createUnderwaterWorld(o) {
   const ticket={live:true};
   model(name).then(proto=>{
    if(!ticket.live||!proto)return;
-   const obj=proto.clone(true);obj.scale.multiplyScalar(scale);obj.position.set(x,y,z);
+   const obj=proto.object.clone(true);obj.scale.multiplyScalar(scale);obj.position.set(x,y,z);
+   if(proto.clips.length && mixers.size<24 && /bathyscaphe|glow_fish|manta|angler|seahorse|kelp/.test(name)){
+    const mix=new THREE.AnimationMixer(obj);mix.clipAction(proto.clips[0]).play();mixers.add(mix);ticket.mixer=mix;
+   }
    obj.rotation.y=rotation;parent.add(obj);
   });return ticket;
  }
@@ -122,7 +125,7 @@ export function createUnderwaterWorld(o) {
    const k=(cx+x)+','+(cz+z);keep.add(k);if(!chunks.has(k))chunk(cx+x,cz+z);
   }
   for(const [k,g] of chunks)if(!keep.has(k)){
-   g.userData.tickets.forEach(x=>{x.live=false;});
+   g.userData.tickets.forEach(x=>{x.live=false;if(x.mixer)mixers.delete(x.mixer);});
    g.children.forEach(x=>x.geometry?.dispose());scene.remove(g);chunks.delete(k);
   }
   for(let i=creatures.length-1;i>=0;i--)if(!keep.has(creatures[i].chunk))creatures.splice(i,1);
@@ -214,7 +217,13 @@ export function createUnderwaterWorld(o) {
    scene.fog.density=.025+Math.max(0,SEA-player.pos.y)*.004;
    if(within(player.pos,69,31,7)&&time-lastHint>18){lastHint=time;interact();}
   }
+  for(const mixer of mixers)mixer.update(Math.min(dt,.05));
   for(const c of creatures)if(c.holder.visible){
+   if(wet&&c.kind==='angler'&&within(player.pos,c.holder.position.x,c.holder.position.z,3.6)
+      &&time-(c.lastAggro||-90)>50&&hash(Math.floor(time/19),Math.floor(c.x),seed)>.86){
+       c.lastAggro=time;toast('Осторожно: удильщик защищает гнездо!',1800);
+       o.onCreatureAttack?.(1,c.x,c.z);
+   }
    c.phase+=dt*(c.kind==='manta'?.5:1.2);
    c.holder.position.set(c.x+Math.sin(c.phase)*1,c.y+Math.sin(c.phase*.8)*.24,c.z+Math.cos(c.phase*.9)*.7);
    c.holder.rotation.y=c.phase*.3;
