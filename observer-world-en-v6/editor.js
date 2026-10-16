@@ -326,6 +326,12 @@ function start(){
   checks.story=typeof story.inspect==="function"&&story.entries.length>0;
   checks.newGlyph=$("v5Dock").querySelector('[data-kind="new"]')!==null;
   checks.originalSprite=!!native.heroTex?.image;
+  // The real Island's monsters may kill the player before this headless test starts.
+  // Test rebirth first if dead, then require the living branch to create a companion.
+  if(native.G.state==="dead"||native.player.hp<=0){
+    const rebirth=relations.newPerson(native.player.pos.x+1,native.player.pos.z);
+    checks.rebirth=rebirth?.mode==="reborn"&&native.G.state==="play";
+  }else checks.rebirth=true;
   const ally=relations.newPerson(native.player.pos.x+1,native.player.pos.z);
   checks.companion=!!ally&&ally.role==="companion"&&ally.relation==="friendly";
   if(ally?.id)relations.strike(ally,1,"player");
