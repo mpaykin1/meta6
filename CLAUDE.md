@@ -1,3 +1,15 @@
+## CURRENT DEVELOPMENT TARGET: V7 smartphone game (2026-10-16)
+
+**Live URL:** https://mpaykin1.github.io/meta6/observer-world-en-v7/
+
+**Full guide to the current source:** [observer-world-en-v7/CLAUDE.md](observer-world-en-v7/CLAUDE.md).
+
+The owner has accepted the V5 graphics and the portrait HUD mockup. The V7 mobile implementation uses that original Three.js game with `mobile-controls.js`, `mobile-controls.css` and `editor.js`. **Phone only:** joystick and 3 right pixel buttons (weapon swap, hammer build, combined jump+attack/fire), scrollable bottom glyph toolbar. Tap near the character to choose a building site, press hammer; native tree destruction and support plinths clear terrain, overlapping buildings forbidden. PC keyboard/mouse logic remains from V6.
+
+**Verified automated Chrome/WebGL test:** https://github.com/mpaykin1/meta6/actions/runs/38896347402. Physical phone owner PASS is **not yet provided**.
+
+Do not tell the user to reupload source; read this public repository. For GitHub changes, Claude needs an authorized connected GitHub account. Keep accepted V5 and previous V6 unchanged.
+
 ## Current V6 gameplay implementation (2026-10-16)
 
 **The owner's visual approval is V5; V6 adds historical gameplay without touching the original perspective camera.**
