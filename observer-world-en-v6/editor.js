@@ -36,7 +36,7 @@ let worldRoot=null,ray=null, pointer=null, musicTicker=null,interval=null,errors
 function tell(title,text){
  state.history.push({title,text,when:Date.now()});if(state.history.length>80)state.history.shift();
  $("v5Recent").textContent=title+" · "+text;
- $("v5JournalBody").textContent=state.history.slice(-20).map(e=>e.title+"\n"+e.text).join("\n\n");
+ $("v5JournalBody").textContent=story.readable||state.history.slice(-20).map(e=>e.title+"\n"+(e.long||e.text)).join("\n\n");
  $("v5Stats").textContent="Population "+state.pop+" · Order "+state.order+" · Suspicion "+state.suspicion;
  persist()
 }
@@ -204,7 +204,25 @@ function start(){
  ray=new THREE.Raycaster();pointer=new THREE.Vector2();
  worldRoot=new THREE.Group();worldRoot.name="Observer V5 native voxel builder objects";scene.add(worldRoot);
  restore();
+ story=root.ObserverStorySystem.create({onChange:note=>{
+  state.history.push(note);if(state.history.length>150)state.history.shift();
+  $("v5Recent").textContent=note.short;
+  $("v5JournalBody").textContent=story.readable;persist();
+  $("v6Toast").textContent=note.short;$("v6Toast").classList.add("visible");
+  clearTimeout(root.__v6ToastTimer);root.__v6ToastTimer=setTimeout(()=>$("v6Toast").classList.remove("visible"),5200);
+ }});
+ story.restore(state.history.filter(note=>note.long));
+ relations=root.ObserverCombatRelations.create({native,state,events:(kind,data)=>{
+  const n=story.emit(kind,data);
+  if(["betrayal","assault","killed","playerDeath","guardAlert"].includes(kind)){
+   state.suspicion++;state.order=Math.max(0,state.order-1)
+  }
+  if(kind==="killed")state.pop=Math.max(0,state.pop-1);
+  $("v5Stats").textContent="Population "+state.pop+" · Order "+state.order+" · Suspicion "+state.suspicion;
+  persist()
+ }});
  for(const o of state.objects){addBuilding(o);state.next=Math.max(state.next,o.id+1)}
+ relations.reviveState(state.actors);
  interceptCanvas();
  for(const kind of PRIMARY){
   const b=document.createElement("button");b.type="button";b.className="v5-tool";
@@ -251,7 +269,8 @@ function start(){
  $("v5GetWeapons").addEventListener("click",()=>native.giveAll());
  $("v5Menu").addEventListener("toggle",()=>{if($("v5Menu").open){dragging=null;placeMode=false;document.body.classList.remove("v5-placing");native.clearInput?.()}});
  $("v5Stats").textContent="Population "+state.pop+" · Order "+state.order+" · Suspicion "+state.suspicion;
- $("v5Recent").textContent=state.history.at(-1)?.text||"The exact original island is alive. Select a symbol below and click on solid ground to create history.";
+ $("v5Recent").textContent=state.history.at(-1)?.long||state.history.at(-1)?.text||
+ "Choose a symbol then RIGHT-CLICK land. LEFT-CLICK fights. Alt+LEFT-CLICK reads an object.";
  $("v5JournalBody").textContent=state.history.slice(-20).map(e=>e.title+"\n"+e.text).join("\n\n");
  // One audio scheduler belongs to audio.js; this slow status refresh is not another game loop.
  interval=setInterval(()=>{if(music?.enabled){const d=music.diagnostics();
@@ -259,11 +278,25 @@ function start(){
   music.tick(performance.now(),{objects:state.objects,combat:{actors:native.foes||[]},
    monsters:native.foes||[],order:state.order,suspicion:state.suspicion})
  }},1000);
- root.__OBSERVER_WORLD_V5__={ready:true,release:"V6_LIVING_HISTORY_ALLIES_20261016",
+ root.__OBSERVER_WORLD_V6__={ready:true,release:"V6_LIVING_HISTORY_ALLIES_20261016",
   originalRenderer:scene.type,objects:()=>state.objects,music:()=>music?.diagnostics(),state,
+  get npcs(){return relations?.npcs},get story(){return story},get relations(){return relations},
   place:onPlace,select:activateBuild,get camera(){return native.camera},get native(){return native},
-  unload:()=>clearInterval(interval)};
- document.body.dataset.v5Ready="true";
+  unload:()=>{clearInterval(interval);root.__observerV6Frame=null}};
+ $("v6ReaderClose").addEventListener("click",()=>$("v6Reader").close());
+ $("v6ReadLatest").addEventListener("click",()=>{
+  const n=story.latest();openReader(n?.title||"Field Journal",n?.long||"Build a historical object to begin.")});
+ $("v6ReadPlus").addEventListener("click",()=>{
+  const el=$("v6ReaderBody");el.style.fontSize=Math.min(40,(parseFloat(el.style.fontSize)||21)+3)+"px"});
+ $("v6ReadMinus").addEventListener("click",()=>{
+  const el=$("v6ReaderBody");el.style.fontSize=Math.max(16,(parseFloat(el.style.fontSize)||21)-3)+"px"});
+ root.__observerV6Frame=dt=>{
+  if(!relations)return;
+  relations.update(Math.min(.05,Math.max(0,dt)));
+  if(++sceneClock%90===0){state.actors=relations.snapshot();persist()}
+ };
+ 
+ document.body.dataset.v6Ready="true";
  // Opt-in real-browser integration proof: executes the original Three.js render path,
  // places a native atlas-textured 3D building, and verifies no second 2D canvas.
  if(new URLSearchParams(location.search).get("v6test")==="1"){
