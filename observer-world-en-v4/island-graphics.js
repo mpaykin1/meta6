@@ -116,8 +116,17 @@
   ctx.restore();return true
  }
  function info(){return{loaded:ready,failed:loads,source:"exact original user-uploaded Island of Twilight expanded atlas",tiles:original?.atlasNames?.length||6,weapons:Object.keys(original?.wmeta?.weapons||{}).length,apngFrames:root.ObserverAPNG?.frames||0,heroFrames:4,waterFrames:4,scale:"unchanged Observer World camera zoom"}}
+ function heldWeapon(ctx,id,wx,wy,w2s,cam,attack=0){
+  const m=root.IslandOriginalAssets?.wmeta?.weapons?.[id]?.cell;
+  if(!ok("weapons")||!m)return false;
+  const q=cam.zoom,p=w2s(wx,wy,13);
+  ctx.save();ctx.translate(p.x+7*q,p.y+3*q);
+  ctx.rotate(-.7+Math.sin(attack*Math.PI)*1.1);
+  ctx.imageSmoothingEnabled=false;ctx.drawImage(imgs.weapons,...m,-2*q,-7*q,16*q,16*q);
+  ctx.restore();return true;
+ }
  function waterTile(ctx,x,y,w,h,frame){
  return picture(ctx,"water",16*(frame%4),0,16,16,x,y,w,h);
 }
-root.IslandVisuals=Object.freeze({environment,decorate,human,fighter,info,tile,waterTile,apngFrame});
+root.IslandVisuals=Object.freeze({environment,decorate,human,fighter,heldWeapon,info,tile,waterTile,apngFrame});
 })(window);
