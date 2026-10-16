@@ -42,5 +42,18 @@
     "Use latest main and validate CI/deployed revision.",
     "Do not overwrite accepted V2; audio variant requires separate owner PASS.",
     "Game state is browser local; this index does not synchronize chat memory or live user save files."
-  ]
+  ],
+  "illustratedMusicV3": {
+    "status": "CI_PENDING_OWNER_PASS",
+    "path": "observer-world-en-v3/index.html",
+    "url": "https://mpaykin1.github.io/meta6/observer-world-en-v3/",
+    "music": "observer-world-en-v3/audio.js",
+    "visuals": "observer-world-en-v3/island-graphics.js",
+    "musicTest": "observer-world-en-v3/audio.test.cjs",
+    "visualsTest": "observer-world-en-v3/island-graphics.test.cjs",
+    "ci": ".github/workflows/observer-v3-gate.yml",
+    "originalScaleUnchanged": true,
+    "largeTextReader": true,
+    "assetSourceSHA256": "fdbda0240b53f49d6e34aa0965531856e31a0154f4a12339e1682d60d5fe5c1f"
+  }
 }
