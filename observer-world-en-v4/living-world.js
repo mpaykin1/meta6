@@ -11,9 +11,25 @@ const KINDS={imp:{hp:70,radius:13,speed:8,damage:9,segments:4,glow:"#bb4bff"},
 const qHash=n=>{let x=Math.imul((n|0)+4127,0x45d9f3b);x^=x>>>15;return(x>>>0)/4294967296};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function create({S,COMBAT,ctx,w2s,cam,report,sound,onSave,onMonstersChanged}){
+ const catalog=root.IslandWeaponCatalog||{};
+ const projectiles=[];
  const monsters=[],ripples=[],litter=[],EVENTS=[],timeline={cycle:0,lastFrame:0,ambientSpawn:0,glitchUntil:0,glitchPulse:0,spawned:0,dead:0,attacks:0,scenes:0};
- let lastSave=0,hero={x:0,y:0,mode:"builder",hp:100,weapon:"sword",facing:1};
- const worldRead=()=>({monsters,hero,events:EVENTS.slice(-20),timeline});
+ let lastSave=0,hero={x:0,y:0,mode:"builder",hp:100,weapon:"sword",facing:1,cooldown:0,ammo:{}};
+ const worldRead=()=>({monsters,hero,projectiles:projectiles.slice(0,16),events:EVENTS.slice(-20),timeline});
+ const medieval=new Set(['fists','stick','dagger','sword','katana','axe','hammer','spear','scythe','flail','sling','bow','xbow']);
+ function unlocked(id){
+   return medieval.has(id)||S.objects.some(o=>o.kind==='observer'||o.kind==='extraction')||
+     monsters.some(m=>!m.dead);
+ }
+ function equipWeapon(id){
+   if(!catalog[id]||!unlocked(id))return false;
+   hero.weapon=id;save();return true;
+ }
+ function damageFor(w){
+   if(!w)return 10;
+   return Array.isArray(w.damage)?w.damage[Math.min(w.damage.length-1,1)]:
+          Number(w.damage)||14;
+ }
  function restore(){
   try{
    const data=JSON.parse(localStorage.getItem("observer-world-v4-expansion")||'null');
@@ -190,6 +206,14 @@ function create({S,COMBAT,ctx,w2s,cam,report,sound,onSave,onMonstersChanged}){
      spawn("shade",center.x+110,center.y+55,false);
     }
   }
+  for(let i=projectiles.length-1;i>=0;i--){
+    const b=projectiles[i];b.t=Math.min(1,b.t+dt*b.speed/Math.max(15,b.distance));
+    if(b.t>=1){
+      damage(b.target,b.damage,'Observer / '+b.weapon);
+      ripple(b.target.x,b.target.y,7);
+      projectiles.splice(i,1)
+    }
+  }
   for(const m of monsters){
     m.fade=Math.min(1,m.fade+dt*.6);m.age+=dt;
     if(m.dead)continue;
@@ -222,19 +246,53 @@ function create({S,COMBAT,ctx,w2s,cam,report,sound,onSave,onMonstersChanged}){
   if(time-lastSave>18000){lastSave=time;save()}
  }
  function examine(x,y){
-  let best=null,dist=22;
+  if(hero.mode!=="explore")return false;
+  let best=null,dist=24;
   for(const m of monsters){if(m.dead)continue;const d=Math.hypot(m.x-x,m.y-y);if(d<dist){best=m;dist=d}}
-  if(best&&hero.mode==="explore"){
-    damage(best,20,"observer");sound?.event("steel");ripple(best.x,best.y,7);
-    return true;
+  if(!best)return false;
+  const w=catalog[hero.weapon]||catalog.sword,now=performance.now(),d=Math.hypot(hero.x-best.x,hero.y-best.y);
+  if(now<(hero.cooldown||0))return true;
+  const range=w.kind==="ranged"?Math.min(200,Math.max(55,Number(w.range||w.speed||25)*6)):
+    Math.max(20,Number(w.reach||2)*13);
+  if(d>range)return false;
+  if(w.mag){
+    hero.ammo[hero.weapon]??=w.mag;
+    if(hero.ammo[hero.weapon]<=0){
+      hero.ammo[hero.weapon]=w.mag;
+      hero.cooldown=now+Math.max(600,Number(w.reload||1)*1000);
+      sound?.event("gate");return true
+    }
+    hero.ammo[hero.weapon]--;
   }
-  return false
+  hero.cooldown=now+Math.max(100,Number(w.cooldown||.33)*1000);
+  const dmg=damageFor(w);
+  if(w.kind==="ranged"){
+    if(projectiles.length>=24)projectiles.shift();
+    projectiles.push({x:hero.x,y:hero.y,target:best,weapon:hero.weapon,
+      damage:dmg,distance:d,speed:Math.max(40,Number(Array.isArray(w.speed)?w.speed[1]:w.speed)||40)*8,t:0});
+    sound?.event("steel");
+  }else{
+    damage(best,dmg,'Observer / '+hero.weapon);sound?.event("swing");
+    ripple(best.x,best.y,7);
+  }
+  save();return true
+ }
+ function drawHeroAndWeapons(time){
+   if(hero.mode!=="explore")return;
+   root.IslandVisuals?.human(ctx,{x:hero.x,y:hero.y,id:11,dead:false},true,w2s,cam,time);
+   root.IslandVisuals?.heldWeapon?.(ctx,hero.weapon,hero.x,hero.y,w2s,cam,0);
+   const q=cam.zoom;
+   for(const b of projectiles){
+     const p=w2s(b.x+(b.target.x-b.x)*b.t,b.y+(b.target.y-b.y)*b.t,14);
+     ctx.strokeStyle=b.weapon==="laser"?"#ec91fa":"#f1d09f";ctx.lineWidth=Math.max(1,2*q);
+     ctx.beginPath();ctx.moveTo(p.x-3*q,p.y+3*q);ctx.lineTo(p.x+4*q,p.y-3*q);ctx.stroke();
+   }
  }
  function switchMode(mode){hero.mode=mode==="explore"?"explore":"builder";save();return hero.mode}
  function snapshot(){return{...worldRead(),night:Math.sin(performance.now()*.00004+1)<-.42}}
  restore();
  return Object.freeze({KINDS,isMonster,spawn,onBuild,update,drawGround,drawMonsters,drawGlitch,
-   examine,ripple,save,snapshot,switchMode,get monsters(){return monsters},get hero(){return hero}});
+   examine,ripple,save,snapshot,switchMode,equipWeapon,unlocked,drawHeroAndWeapons,get weapons(){return catalog},get monsters(){return monsters},get hero(){return hero}});
 }
 root.ObserverV4World=Object.freeze({create,KINDS});
 })(window);
