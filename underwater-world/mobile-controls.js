@@ -54,10 +54,15 @@ function create({native,onBuild,onSwap}){
   native.mobileCombo(true);action.classList.add("is-pressed");pressCount++;
  });
  for(const t of ["pointerup","pointercancel","lostpointercapture"])action.addEventListener(t,stopAction);
- build.addEventListener("pointerdown",e=>{eat(e);buildCount++;onBuild()});
- for(const evt of ["pointerup","pointercancel","lostpointercapture"])build.addEventListener(evt,e=>{eat(e);native.mobileShootRelease?.()});
+ let shootId=null;
+ build.addEventListener("pointerdown",e=>{
+  eat(e);if(shootId!==null)return;
+  shootId=e.pointerId;try{build.setPointerCapture(e.pointerId)}catch{}
+  buildCount++;onBuild();
+ });
+ for(const evt of ["pointerup","pointercancel","lostpointercapture"])build.addEventListener(evt,e=>{if(shootId!==e.pointerId)return;eat(e);shootId=null;native.mobileShootRelease?.()});
  swap.addEventListener("pointerdown",e=>{eat(e);native.mobileSwap();onSwap?.()});
- function release(){moveId=null;attackId=null;native.mobileRelease();zero();action.classList.remove("is-pressed")}
+ function release(){moveId=null;attackId=null;shootId=null;native.mobileShootRelease?.();native.mobileRelease();zero();action.classList.remove("is-pressed")}
  const hide=()=>{if(document.hidden)release()};
  document.addEventListener("visibilitychange",hide);
  root.addEventListener("blur",release);
