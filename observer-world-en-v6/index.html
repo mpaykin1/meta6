@@ -464,7 +464,7 @@ const ASSETS = {"weapons":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAC
 /* -----------------------------------------------------------------------------
    1 · Math kit
 ----------------------------------------------------------------------------- */
-const OBSERVER_V5_SOURCE='V6_ORIGINAL_ISLAND_CINEMATIC_GRAPHICS_PRESERVED';
+const OBSERVER_V6_SOURCE='V6_ORIGINAL_ISLAND_CINEMATIC_GRAPHICS_PRESERVED';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -4785,6 +4785,7 @@ function frame(now) {
   updateHUD(raw);
   updateCombatHud(raw);
   glow.flush(); dust.flush();
+  try{window.__observerV6Frame?.(raw)}catch(e){if(!window.__v6Reported){console.error('[V6 NPC frame]',e);window.__v6Reported=true}}
   composer.render(raw);
   perfMonitor(raw);
 }
@@ -4818,10 +4819,21 @@ setTimeout(() => start({}), 2500);
 // small handle for debugging / automated checks
 window.__isle = {
   // V5 direct access to original 3D runtime for Claude and the historical editor.
-  scene, camera, THREE, renderer, canvas, atlasTex, SEA, SFX,
+  scene, camera, THREE, renderer, canvas, atlasTex, heroTex, heroGeo, SEA, SFX,
   terrainTop, get terrainMeshes(){return chunks},
   spawnFoe(type,x,z){return spawnFoe(type,x,terrainTop(x,z)+1.1,z,true)},
   pause:setPaused, toggleMute, toggleFullscreen,
+  hurtBy:(amount,x,z)=>hurt(amount,x,z),
+  damageEnemy:(foe,amount)=>damageFoe(foe,amount,0,0,{silent:false}),
+  revivePerson(x,z){
+    if(G.state!=='dead'&&player.hp>0)return false;
+    const px=Math.max(2,Math.min(61,x)),pz=Math.max(2,Math.min(61,z));
+    player.pos.set(px,Math.max(terrainTop(px,pz),SEA)+.3,pz);
+    player.vis.copy(player.pos);player.safe.copy(player.pos);player.vel.set(0,0,0);
+    player.hp=HP_MAX;player.invuln=3;player.respawn=0;
+    G.state='play';G.endT=0;G.timeScale=1;G.desat=0;G.fade=0;G.hitstop=0;
+    $('scrEnd').hidden=true;releaseAll();updateHearts(false);return true
+  },
   clearInput(){releaseAll();keys.clear()}, get originalSfx(){return SFX},
   G, player, rig, perf, combat, aim, input, WEAPONS, ARSENAL_ORDER,
   get world() { return world; }, get foes() { return foes; }, get loot() { return loot; }, get projs() { return projs; },
