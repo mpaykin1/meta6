@@ -76,6 +76,23 @@ await d.page.waitForTimeout(200);
 assert(await d.page.evaluate(()=>window.__isle.underwater.canFire()),'picked pistol with ammo should fire');
 await d.page.evaluate(()=>{window.__isle.G.fade=1;window.__isle.G.todT=window.__isle.G.tod=.1;});
 await d.page.waitForTimeout(900);
+// Surface-to-ocean round trip and deterministic unbounded ocean chunks.
+const chunkEvidence=await d.page.evaluate(()=>{
+ const i=window.__isle,report=[];
+ for(const [x,z] of [[96,42],[-90,42],[190,-85],[-140,-140],[70,31]]){
+  i.player.pos.set(x,i.underwater.groundHeight(x,z)+.25,z);i.player.vel.set(0,0,0);
+  i.underwater.update(.016);
+  report.push({x,z,chunks:i.underwater.chunks,creatures:i.underwater.creatures});
+ }
+ i.player.pos.set(48,i.terrainTop(48,48)+1,48);i.underwater.update(.016);
+ return {report,surfaced:!i.underwater.isSubmerged(),bathyAfterSurface:i.underwater.inBathyscaphe};
+});
+assert(chunkEvidence.report.every(c=>c.chunks>=1&&c.chunks<=9),'Ocean chunks must stream with bounded memory');
+assert(chunkEvidence.surfaced,'Land must restore surface mode');
+assert(!chunkEvidence.bathyAfterSurface,'Bathyscaphe should exit on land');
+console.log('CHUNKS_PASS',JSON.stringify(chunkEvidence));
+await d.page.evaluate(()=>{const i=window.__isle;i.player.pos.set(70,2.1,31);i.player.vel.set(0,0,0);});
+await d.page.waitForTimeout(850);
 await d.page.screenshot({path:'underwater-world/evidence/diving-desktop.png'});
 console.log('DESKTOP_PASS',JSON.stringify({baseline:d.baseline,y0,y1,y2,bathy,armed:true}));
 await pc.close();
@@ -93,6 +110,23 @@ await m.page.evaluate(()=>{const i=window.__isle;i.player.pos.set(70,2.1,31);i.p
 await m.page.waitForTimeout(550);
 await m.page.locator('#v7Swap').dispatchEvent('pointerdown',{pointerId:501,buttons:1,clientX:336,clientY:650,pointerType:'touch'});
 assert(await m.page.evaluate(()=>window.__isle.underwater.inBathyscaphe),'Phone weapon button should enter bathyscaphe underwater');
+await m.page.evaluate(()=>{const i=window.__isle;i.giveAll();i.equip('pistol');i.combat.ammo.pistol=7;});
+await m.page.locator('#v7Action').dispatchEvent('pointerdown',{pointerId:601,buttons:1,clientX:690,clientY:1150,pointerType:'touch'});
+const ascend=await m.page.evaluate(()=>({up:window.__isle.player.jumpHeld,shooting:window.__isle.input.atk}));
+assert(ascend.up,'Phone lower control rises when held');
+assert.equal(ascend.shooting,false,'Phone ascent must not simultaneously shoot');
+await m.page.locator('#v7Action').dispatchEvent('pointerup',{pointerId:601,buttons:0,pointerType:'touch'});
+await m.page.locator('#v7Build').dispatchEvent('pointerdown',{pointerId:602,buttons:1,clientX:700,clientY:950,pointerType:'touch'});
+assert(await m.page.evaluate(()=>window.__isle.input.atk),'Middle button shoots only with picked ranged weapon');
+await m.page.locator('#v7Build').dispatchEvent('pointerup',{pointerId:602,buttons:0,pointerType:'touch'});
+assert.equal(await m.page.evaluate(()=>window.__isle.input.atk),false,'Touch release must stop gunfire');
+await m.page.locator('#v7Stick').dispatchEvent('pointerdown',{pointerId:603,buttons:1,clientX:100,clientY:650,pointerType:'touch'});
+await m.page.locator('#v7Stick').dispatchEvent('pointermove',{pointerId:603,buttons:1,clientX:150,clientY:620,pointerType:'touch'});
+const scrollCheck=await m.page.evaluate(()=>({x:scrollX,y:scrollY,overflow:getComputedStyle(document.body).overflow}));
+assert.deepEqual([scrollCheck.x,scrollCheck.y],[0,0],'Joystick must not scroll page');
+await m.page.locator('#v7Stick').dispatchEvent('pointerup',{pointerId:603,buttons:0,pointerType:'touch'});
+await m.page.waitForTimeout(450);
+console.log('MOBILE_INPUT_PASS',JSON.stringify({ascend,scrollCheck}));
 await m.page.screenshot({path:'underwater-world/evidence/diving-mobile.png'});
 console.log('MOBILE_PASS',JSON.stringify({baseline:m.baseline,...data}));
 assert.equal(m.errors.length,0,'Phone browser errors: '+m.errors.join('\n'));
