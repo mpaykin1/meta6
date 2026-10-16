@@ -1,3 +1,9 @@
+> Перед продолжением прочитайте [AGENTS.md](AGENTS.md) и
+> [Codex → обычный браузерный ChatGPT](docs/CODEX_TO_BROWSER_CHATGPT_HANDOFF.md).
+> Сохраняйте код, затем существующий checkpoint в
+> [World_server issue #80](https://github.com/mpaykin1/World_server/issues/80), затем
+> готовый промпт владельцу. Получатель — **обычный браузерный ChatGPT, НЕ новый Codex**.
+
 ## Observer World V6 — unique buildings, New hero, companions, retaliation (2026-10-16)
 
 - **Play V6:** https://mpaykin1.github.io/meta6/observer-world-en-v6/

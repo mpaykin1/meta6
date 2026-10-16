@@ -1,3 +1,8 @@
+> Все агенты: сначала прочитайте [AGENTS.md](AGENTS.md). При приближении лимита
+> передавайте работу **новому обычному браузерному ChatGPT, не новому Codex**, по
+> [постоянному правилу и готовому шаблону](docs/CODEX_TO_BROWSER_CHATGPT_HANDOFF.md).
+> Состояние сохраняется в существующем [issue #80](https://github.com/mpaykin1/World_server/issues/80).
+
 ## Current V6 gameplay implementation (2026-10-16)
 
 **The owner's visual approval is V5; V6 adds historical gameplay without touching the original perspective camera.**
