@@ -95,5 +95,8 @@
   ctx.restore();return true
  }
  function info(){return{loaded:ready,failed:loads,source:"user-uploaded Остров сумерек (1)(4).html",tiles:6,heroFrames:4,waterFrames:4,scale:"unchanged Observer World camera zoom"}}
- root.IslandVisuals=Object.freeze({environment,decorate,human,fighter,info});
+ function waterTile(ctx,x,y,w,h,frame){
+ return picture(ctx,"water",16*(frame%4),0,16,16,x,y,w,h);
+}
+root.IslandVisuals=Object.freeze({environment,decorate,human,fighter,info,tile,waterTile});
 })(window);
