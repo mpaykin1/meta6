@@ -97,7 +97,8 @@
     function setEnabled(value) {
       if(value)return start();
       enabled=false;updateBuses();
-      // Keep the context on mute for instant, gesture-safe resume; suspend in hidden tab.
+      // A muted but running AudioContext still costs CPU on phones. Suspend entirely.
+      if(ctx&&ctx.state==="running")return ctx.suspend().then(()=>false).catch(()=>{ctxErrors++;return false});
       return Promise.resolve(false)
     }
     function toggle(){return setEnabled(!enabled)}
