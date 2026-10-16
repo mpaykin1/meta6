@@ -18,7 +18,7 @@ const ACTIONS={
  fire:["火","Fire"],brigade:["桶","Fight Fire"],watch:["鐘","Watch"],
  plague:["疫","Plague"],cordon:["封","Cordon"],burial:["墓","Burial"],
  observer:["人","Observer"],contact:["信","Contact"],extraction:["門","Extraction"],
- imp:["鬼","Imp"],shade:["影","Shade"],warden:["魔","Warden"]
+ imp:["鬼","Imp"],shade:["影","Shade"],warden:["魔","Warden"],new:["新","New Person"]
 };
 const NEXT={well:"settlement",settlement:"council",market:"guild",guild:"tax",
  school:"scholarAction",scholarAction:"printing",castle:"court",court:"decree",
@@ -26,11 +26,11 @@ const NEXT={well:"settlement",settlement:"council",market:"guild",guild:"tax",
  prison:"inquiry",inquiry:"pardon",granary:"ration",ration:"caravan",
  healer:"quarantine",quarantine:"hospital",fire:"brigade",brigade:"watch",
  plague:"cordon",cordon:"burial",observer:"contact",contact:"extraction"};
-const PRIMARY=["well","market","school","castle","monastery","guard","prison","granary","healer","fire","plague","observer","imp","shade","warden"];
+const PRIMARY=["well","market","school","castle","monastery","guard","prison","granary","healer","fire","plague","observer","new","imp","shade","warden"];
 const KEY="observer-v6-living-history";
 const $=id=>document.getElementById(id);
-let native=null, music=null, selected="well", placeMode=false, dragging=null, saving=false;
-let state={version:5,pop:2,food:8,order:20,suspicion:0,next:1,objects:[],history:[]};
+let native=null, music=null, selected="well", placeMode=false, dragging=null, saving=false,relations=null,story=null,sceneClock=0;
+let state={version:6,pop:2,food:8,order:20,suspicion:0,next:1,objects:[],history:[],actors:[],deaths:0};
 const groups=new Map(),geos=new Map();
 let worldRoot=null,ray=null, pointer=null, musicTicker=null,interval=null,errors=0;
 function tell(title,text){
@@ -48,7 +48,7 @@ function restore(){
  try{
   const raw=localStorage.getItem(KEY);if(!raw)return;
   const data=JSON.parse(raw);
-  if(data.version!==5||!Array.isArray(data.objects))return;
+  if(data.version!==6||!Array.isArray(data.objects))return;
   state={...state,...data,objects:data.objects.slice(0,120),history:(data.history||[]).slice(-80)};
  }catch(e){errors++}
 }
@@ -66,64 +66,27 @@ function addCube(parent,mat,x,y,z,w,h,d,tile){
  parent.add(m);return m
 }
 function addBuilding(o){
- const {THREE,atlasTex,scene,SEA}=native;
- const mat=new THREE.MeshLambertMaterial({map:atlasTex,side:THREE.FrontSide});
- const g=new THREE.Group();g.name="Observer object "+o.kind+" "+o.id;
- g.position.set(o.x,o.y,o.z);
- const wood=3,brick=7,stone=2,dirt=1,leaf=5,bark=9,sand=4;
- const put=(x,y,z,w,h,d,t)=>addCube(g,mat,x,y,z,w,h,d,t);
- const roof=(width,top,depth,tile=brick)=>put(0,top,0,width,.55,depth,tile);
- const wall=(w=1.9,h=1.5,dep=1.7,t=wood)=>{
-  put(0,h/2,0,w,h,dep,t);
-  put(0,h+.15,0,w+.35,.43,dep+.38,brick);
-  put(0,.5,dep/2+.03,.48,.78,.11,bark)
+ const THREE=native.THREE;
+ const mat=new THREE.MeshLambertMaterial({map:native.atlasTex,side:THREE.FrontSide});
+ const g=new THREE.Group();g.name="Observer V6 "+o.kind+" #"+o.id;g.position.set(o.x,o.y,o.z);
+ const box=(x,y,z,w,h,d,tile,angle=0)=>{
+  const m=addCube(g,mat,x,y,z,w,h,d,tile);m.rotation.z=angle;return m
  };
- switch(o.kind){
-  case"well":
-   for(const [x,z] of [[-0.7,0],[-.7,-.7],[0,-.7],[.7,-.7],[.7,0],[.7,.7],[0,.7],[-.7,.7]])
-     put(x,.32,z,.62,.64,.62,stone);
-   put(0,.12,0,1.1,.16,1.1,6);
-   for(const x of [-.9,.9])put(x,1.25,0,.18,1.9,.18,bark);
-   put(0,2.18,0,2.2,.21,1.1,leaf);break;
-  case"castle":case"court":case"prison":case"inquiry":
-   put(0,1.2,0,3.1,2.5,2.9,brick);roof(3.6,2.67,3.3);
-   for(const x of [-1.1,1.1])for(const z of [-1,1]){
-      put(x,2.35,z,.85,3,.82,stone);
-      put(x,4,z,.95,.75,.92,brick)
-   }
-   put(0,.75,1.48,.65,1.5,.14,bark);break;
-  case"market":case"guild":case"tax":case"caravan":
-   for(const x of [-1.05,1.05])for(const z of [-.9,.9])put(x,1.12,z,.16,2.2,.16,wood);
-   roof(2.8,2.3,2.5,brick);
-   put(0,.47,0,2.3,.45,1.5,wood);
-   for(let x=-.75;x<1;x+=.75)put(x,.78,-.3,.48,.24,.35,leaf);break;
-  case"fire":case"brigade":case"watch":
-   put(0,.3,0,1.35,.4,1.3,wood);put(0,.7,0,.52,.85,.5,7);break;
-  case"plague":case"cordon":case"burial":
-   put(0,.35,0,1.9,.65,1.5,stone);put(0,1,0,.25,.9,.2,brick);break;
-  case"guard":case"patrol":case"militia":
-   put(0,.65,0,.8,1.3,.75,wood);put(0,1.55,0,.9,.45,.9,brick);
-   put(.55,1.1,0,.15,1.9,.1,stone);break;
-  case"observer":case"contact":case"extraction":
-   put(0,.12,0,1.4,.3,1.4,stone);
-   put(0,1.1,0,.55,1.8,.58,brick);
-   put(0,2.15,0,.74,.55,.74,leaf);break;
-  case"monastery":case"relief":case"doctrine":
-   wall(2.9,1.65,2.4,brick);put(0,2.6,-.6,.65,1.35,.6,stone);
-   put(0,3.55,-.6,.25,.65,.25,wood);break;
-  default: wall(
-   o.kind==="settlement"||o.kind==="granary"?2.6:1.9,
-   o.kind==="school"||o.kind==="printing"?2:1.5,
-   2.2,
-   o.kind==="granary"?stone:wood);
- }
- // Soft native-material accents: all block surfaces use the exact Island atlas.
- if(o.kind==="healer"||o.kind==="hospital")put(.6,1.8,0,.3,.62,.3,leaf);
- if(o.kind==="school"||o.kind==="scholarAction")put(-.3,1.15,1.15,.35,.3,.1,sand);
+ const beam=(x,y,z,w,h,d,t)=>box(x,y,z,w,h,d,t);
+ const post=(x,y,z,h,t)=>box(x,y,z,.21,h,.21,t);
+ const roof=(x,y,z,w,d,t)=>{
+  box(x-w*.25,y,z,w*.58,.25,d,t,Math.PI/8);
+  box(x+w*.25,y,z,w*.58,.25,d,t,-Math.PI/8);
+ };
+ const sign=(x,y,z,w,h,t)=>box(x,y,z,w,h,.13,t);
+ const fence=e=>{for(const x of [-e,e])for(const z of [-e,e])post(x,.6,z,1.2,9)};
+ if(!root.ObserverBuildingAssets.build(o.kind,{box,beam,post,roof,sign,fence}))
+  box(0,.6,0,1.1,1.2,1.1,3);
  worldRoot.add(g);groups.set(o.id,{group:g,material:mat});return g
 }
 function onPlace(kind,x,z,restoring=false){
  if(!native||!ACTIONS[kind])return null;
+ if(kind==="new"){const p=relations?.newPerson(x,z);persist();return p}
  if(["imp","shade","warden"].includes(kind)){
    const m=native.spawnFoe(kind,x,z);
    if(!m&&!restoring)tell("Anomaly","The creature could not appear at this location");
@@ -144,12 +107,14 @@ function onPlace(kind,x,z,restoring=false){
  state.objects.push(o);
  addBuilding(o);
  if(!restoring){
+  relations?.roleFromBuilding(kind,x,z);
   if(["settlement","granary","market","school","healer","monastery"].includes(kind))state.pop+=kind==="settlement"?4:1;
   if(["fire","plague","tax"].includes(kind)){state.order=Math.max(0,state.order-2);state.suspicion++}
   if(["council","guard","healer","relief","brigade"].includes(kind))state.order=Math.min(100,state.order+2);
   if(kind==="well")state.food++;
   const label=ACTIONS[kind][1];
-  tell("History · "+label,"The "+label.toLowerCase()+" changes how residents organize their lives. Every new building becomes a cause of future events.");
+  const n=story?.emit(kind,{x,z});
+  tell(n?.title||"History · "+label,n?.long||"The new building begins a chain of events.");
   // Keep Observer World causal buttons: action evolves into its historical consequence.
   if(NEXT[kind]){
     const button=$("v5Dock").querySelector('[data-kind="'+kind+'"]');
@@ -163,7 +128,7 @@ function onPlace(kind,x,z,restoring=false){
 function activateBuild(kind){
  selected=kind;placeMode=true;document.body.classList.add("v5-placing");
  for(const b of $("v5Dock").querySelectorAll("button"))b.classList.toggle("selected",b.dataset.kind===kind);
- $("v5Hint").textContent="Click on land to place "+ACTIONS[kind][1]+" · drag right mouse to orbit";
+ $("v5Hint").textContent="RIGHT-CLICK land to place "+ACTIONS[kind][1]+" · drag right mouse to orbit";
 }
 function selectGround(event){
  const rect=native.canvas.getBoundingClientRect(),x=((event.clientX-rect.left)/rect.width)*2-1,
@@ -238,7 +203,7 @@ function start(){
  $("v5Save").addEventListener("click",()=>{persist();tell("Saved","Historical construction saved in this browser")});
  $("v5Reset").addEventListener("click",()=>{if(!confirm("Reset V5 buildings and story? Original island remains untouched."))return;
   for(const item of groups.values()){worldRoot.remove(item.group);item.material.dispose()}
-  groups.clear();state={version:5,pop:2,food:8,order:20,suspicion:0,next:1,objects:[],history:[]};
+  groups.clear();state={version:6,pop:2,food:8,order:20,suspicion:0,next:1,objects:[],history:[],actors:[],deaths:0};
   persist();$("v5Dock").replaceChildren();tell("Reset","World construction cleared. Reload to restore original dock.");
   location.reload()
  });
