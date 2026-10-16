@@ -2261,7 +2261,7 @@ const rig = {
   pos: new THREE.Vector3(30, 22, 70), look: new THREE.Vector3(32, 8, 32), trauma: 0, blend: 1, vicA: 0, lift: 0, pitchEff: 0.62,
 };
 const UW = createUnderwaterWorld({
-  THREE, scene, player, atlas: atlasTex, hero, water, SEA, seed: DEFAULT_SEED,
+  THREE, scene, player, atlas: atlasTex, hero, water, skyU, SEA, seed: DEFAULT_SEED,
   terrainTop, toast, getWeapon: () => curWeapon(), getArsenal: () => combat.arsenal,
   getAmmo: () => combat.ammo, getAim: () => aim
 });
