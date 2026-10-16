@@ -79,7 +79,7 @@ body.reader-open #readerOverlay{display:flex}
 #soundScene{max-width:none;font-size:10px}
 #v4Panel{position:fixed;left:10px;bottom:calc(224px + env(safe-area-inset-bottom));z-index:11;display:flex;gap:6px;
  align-items:center;padding:5px;border-radius:10px;max-width:min(680px,calc(100vw - 20px));touch-action:manipulation}
-#v4Status{font:10px system-ui;max-width:360px}
+#v4Status{font:10px system-ui;max-width:360px}#weaponSelect{font:11px system-ui;color:#f5ead6;background:#342b43;border:1px solid #85718a;border-radius:8px;max-width:120px;min-height:31px}#weaponSelect:disabled{opacity:.4}
 @media(max-width:740px){
  #soundPanel{bottom:calc(151px + env(safe-area-inset-bottom));padding:5px 7px;gap:4px}
  #soundPanel button,#soundPanel select{font-size:10px;padding:6px}
@@ -127,6 +127,7 @@ body.reader-open #readerOverlay{display:flex}
 </div>
 <div id="v4Panel" class="ui">
  <button id="modeButton" type="button" aria-pressed="false">🛠 Build Mode</button>
+ <select id="weaponSelect" aria-label="Equipped weapon" disabled><option value="sword">Sword</option></select>
  <span id="v4Status" aria-live="polite">Choose a symbol to build · monsters at the end of the dock</span>
 </div>
 <div id="story" class="ui"><button type="button" id="storyReader" class="reader-mini" aria-label="Expand field journal fullscreen" title="Read fullscreen">⛶</button><div class="kicker" id="storyKicker">Field Journal</div><div id="storyText">There is no city here yet. Only land, water, and two people the locals may one day take for foreigners. The Institute recommends starting small: give a future settlement a reason to exist—and see what people do with that reason on their own.</div></div>
@@ -153,6 +154,7 @@ body.reader-open #readerOverlay{display:flex}
 <script src="./original-assets.js"></script>
 <script src="./hero-apng.js"></script>
 <script src="./island-graphics.js"></script>
+<script src="./weapon-catalog.js"></script>
 <script src="./living-world.js"></script>
 <script src="./audio.js"></script>
 <script>
@@ -245,7 +247,7 @@ function drawGlyph(o){
  S.glyphHits.push({id:o.id,x:p.x-r-5,y:p.y-r-5,w:r*2+10,h:r*2+10})
 }
 let renderErrors=0,lastSoundUI=0;
-function render(){time=performance.now();try{ground();window.IslandVisuals?.environment(ctx,cam,w2s,time,W,H);V4.drawGround(time,W,H);S.glyphHits=[];const sorted=S.objects.filter(o=>objectVisible(o,180)).sort((a,b)=>a.y-b.y);for(const o of sorted){drawObject(o);window.IslandVisuals?.decorate(ctx,o,w2s,cam);drawActivity(o);drawBuildEffect(o)}drawCombatLayer();V4.update(time);V4.drawMonsters(time);V4.drawGlitch(time,W,H);for(const o of sorted)drawGlyph(o);
+function render(){time=performance.now();try{ground();window.IslandVisuals?.environment(ctx,cam,w2s,time,W,H);V4.drawGround(time,W,H);S.glyphHits=[];const sorted=S.objects.filter(o=>objectVisible(o,180)).sort((a,b)=>a.y-b.y);for(const o of sorted){drawObject(o);window.IslandVisuals?.decorate(ctx,o,w2s,cam);drawActivity(o);drawBuildEffect(o)}drawCombatLayer();V4.update(time);V4.drawMonsters(time);V4.drawHeroAndWeapons(time);V4.drawGlitch(time,W,H);for(const o of sorted)drawGlyph(o);
  SOUND?.tick(time,{objects:S.objects,combat:COMBAT,monsters:V4.monsters,night:V4.snapshot().night,order:S.order,suspicion:S.suspicion});if(SOUND?.enabled&&time-lastSoundUI>900){lastSoundUI=time;updateSoundUI()}}catch(e){renderErrors++;console.error('[OBSERVER V2 RENDER]',e);if(renderErrors<4)showBattleToast('Render recovered after an animation error. World state was preserved.')}finally{requestAnimationFrame(render)}}requestAnimationFrame(render);
 function add(kind,x,y,extra={}){const o={id:S.next++,kind,x,y,dead:false,createdAt:performance.now(),...extra};S.objects.push(o);return o}
 function nearby(kind,x,y,r=150){return S.objects.filter(o=>o.kind===kind&&!o.dead&&Math.hypot(o.x-x,o.y-y)<r)}
@@ -439,10 +441,22 @@ const COMBAT={actors:[],next:1,lastT:performance.now(),lastNarrated:0,clashes:0,
 const SOUND=window.ObserverKriegerAudio?.create()||null;
 const V4=window.ObserverV4World.create({S,COMBAT,ctx,w2s,cam,report,sound:SOUND,onSave:persistV2});
 const modeButton=document.getElementById('modeButton'),v4Status=document.getElementById('v4Status');
+const weaponSelect=document.getElementById('weaponSelect');
+for(const [id,w] of Object.entries(V4.weapons)){
+ const opt=document.createElement('option');opt.value=id;opt.textContent=w.name+' · '+w.kind;weaponSelect.appendChild(opt)
+}
+weaponSelect.value=V4.hero.weapon;
+weaponSelect.addEventListener('change',e=>{
+ const id=e.target.value;
+ if(V4.equipWeapon(id)){v4Status.textContent='Equipped: '+V4.weapons[id].name;return}
+ weaponSelect.value=V4.hero.weapon;v4Status.textContent='This weapon requires an Observer or anomaly.'
+});
 modeButton.addEventListener('click',()=>{
  const mode=V4.switchMode(V4.hero.mode==='builder'?'explore':'builder');
  modeButton.textContent=mode==='explore'?'⚔ Explore Mode':'🛠 Build Mode';
  modeButton.setAttribute('aria-pressed',String(mode==='explore'));
+ weaponSelect.disabled=mode!=='explore';
+ for(const opt of weaponSelect.options)opt.disabled=!V4.unlocked(opt.value);
  v4Status.textContent=mode==='explore'?'Tap a monster to strike it; drag to explore.':'Choose a sign and touch the world to build.';
 });
 const originalSnapshotFor=snapshotFor;
