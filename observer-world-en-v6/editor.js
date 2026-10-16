@@ -137,30 +137,65 @@ function selectGround(event){
  const hit=ray.intersectObjects(native.terrainMeshes.filter(Boolean),false)[0];
  return hit?hit.point:null
 }
+function openReader(title,body){
+ $("v6ReaderTitle").textContent=String(title||"World History");
+ $("v6ReaderBody").textContent=String(body||"");
+ if(!$("v6Reader").open)$("v6Reader").showModal()
+}
+function inspectWorld(event){
+ const rect=native.canvas.getBoundingClientRect(),T=native.THREE;
+ let found=null,distance=55;
+ for(const o of state.objects){
+  const p=new T.Vector3(o.x,o.y+1.5,o.z).project(native.camera);
+  if(p.z<0||p.z>1)continue;
+  const x=rect.left+(p.x+1)*rect.width/2,y=rect.top+(1-p.y)*rect.height/2;
+  const d=Math.hypot(x-event.clientX,y-event.clientY);
+  if(d<distance){found=o;distance=d}
+ }
+ if(found){const n=story.inspect(found.kind,found,state);openReader(n.title,n.long);return true}
+ const actor=relations.nearAim(event.clientX,event.clientY);
+ if(actor){const role=root.ObserverNpcCatalog.ROLES[actor.role];
+  openReader(role.name,role.name+" is currently "+actor.relation+".\n\nHealth: "+actor.hp+
+  "\n\nActions and relationships change according to your choices.");return true}
+ return false
+}
 function interceptCanvas(){
- const c=native.canvas;
- c.addEventListener("pointerdown",e=>{
-  if(!placeMode||e.button!==0||$("v5Menu").open)return;
-  e.preventDefault();e.stopImmediatePropagation();
-  dragging={id:e.pointerId,x:e.clientX,y:e.clientY};
+ const canvas=native.canvas;
+ canvas.addEventListener("contextmenu",e=>{if(placeMode)e.preventDefault()},true);
+ canvas.addEventListener("pointerdown",e=>{
+  if(e.button===2&&placeMode&&!$("v5Menu").open){
+   e.preventDefault();e.stopImmediatePropagation();
+   dragging={id:e.pointerId,x:e.clientX,y:e.clientY};
+  }else if(e.button===0&&e.altKey){
+   e.preventDefault();e.stopImmediatePropagation();inspectWorld(e);
+  }else if(e.button===0&&native.G.state==="play"){
+   // Let the ORIGINAL engine process the LMB weapon and animation.
+   const target=relations?.nearAim(e.clientX,e.clientY);
+   if(target)relations.strike(target,1.5,"player")
+  }
  },true);
- c.addEventListener("pointermove",e=>{
+ canvas.addEventListener("pointermove",e=>{
   if(!dragging||e.pointerId!==dragging.id)return;
-  // Builder left-drag does not pan hero or attack. Right drag remains native orbit.
   e.preventDefault();e.stopImmediatePropagation()
  },true);
- const up=e=>{
+ canvas.addEventListener("pointerup",e=>{
   if(!dragging||e.pointerId!==dragging.id)return;
   e.preventDefault();e.stopImmediatePropagation();
   const d=Math.hypot(e.clientX-dragging.x,e.clientY-dragging.y);dragging=null;
   if(d>12)return;
-  const hit=selectGround(e);
-  if(hit)onPlace(selected,hit.x,hit.z);
-  else tell("Beyond island","Select a visible island surface")
- };
- c.addEventListener("pointerup",up,true);
- c.addEventListener("pointercancel",()=>dragging=null,true);
+  const hit=selectGround(e);if(hit)onPlace(selected,hit.x,hit.z);
+  else tell("Beyond island","Select a solid surface of the island.")
+ },true);
+ canvas.addEventListener("pointercancel",()=>{dragging=null},true);
+ window.addEventListener("keydown",e=>{
+  if(e.code==="Escape"&&placeMode&&!e.repeat){
+   e.preventDefault();e.stopImmediatePropagation();placeMode=false;dragging=null;
+   document.body.classList.remove("v5-placing");
+   for(const btn of $("v5Dock").children)btn.classList.remove("selected")
+  }
+ },true)
 }
+
 function start(){
  if(native)return;
  native=root.__isle;
