@@ -59,3 +59,13 @@ Technical gate: [V5 CI](.github/workflows/observer-v5-gate.yml); requires origin
 All game source links: [SOURCE_INDEX.md](SOURCE_INDEX.md) and [game-source-index.json](game-source-index.json).
 
 Do not overwrite previous accepted V2–V4; do not use paid APIs or print tokens; do not merge speculative breaking code without tests and owner's PASS.
+
+## New connected underwater game — active integration (16–17 October 2026)
+
+Source of truth for the new project: [underwater-world/CLAUDE.md](underwater-world/CLAUDE.md); [current game source](underwater-world/index.html); [seeded underwater world engine](underwater-world/underwater-runtime.js); [real Sunken City 3D models](underwater-world/models/); [procedural asset generator](underwater-world/generator/src/). Owner task and release rule: [World_server issue #522](https://github.com/mpaykin1/World_server/issues/522); implementation [PR #3](https://github.com/mpaykin1/meta6/pull/3).
+
+The game is an extension of accepted V7; original land gameplay, 21-weapon arsenal, camera and building editor must remain. Underwater mobile **lower button = ascend only**, middle button = attack with a legitimately picked ranged weapon when aboard bathyscaphe, upper weapon-swap button = enter/exit bathyscaphe. Hold jump / Space to rise and release to sink. No mobile touch overlay on desktop (WASD, arrows, Space, mouse/touchpad LMB/RMB). Fixed phone viewport, infinite deterministic chunks, distinct ghost quests and non-constant combat.
+
+The release workflow uses `.github/workflows/twilight-browser-smoke.yml` and `.github/workflows/build-twilight-sunken-assets.yml`; store screenshots under `underwater-world/evidence/` as CI artifacts and report visible gameplay coverage. **DO NOT issue a public test link before the published route, mobile + PC browser QA, visual difference >85%, and source asset loading have been verified. Never record owner PASS or FAIL without explicit user decision.**
+
+Primary integrator modifies runtime/terrain/controls; parallel Codex lane modifies only `underwater-world/quests/`, `underwater-world/creatures/`, `underwater-world/docs/CODEX_HANDOFF.md`; retain non-overlapping work until reviewed integration. Current game progress is tracked via GitHub, not chat memory.
