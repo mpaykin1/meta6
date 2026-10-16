@@ -161,5 +161,27 @@
     },
     "verifiedRun": "https://github.com/mpaykin1/meta6/actions/runs/38881658462",
     "verifiedSourceSHA": "d835b44695455b1eb551002e202f314e4a6b71e7"
+  },
+  "smartphoneV7": {
+    "status": "TECHNICAL_CHROME_MOBILE_SIMULATION_PASS__OWNER_PASS_PENDING",
+    "url": "https://mpaykin1.github.io/meta6/observer-world-en-v7/",
+    "graphicalBaseline": "V5_OWNER_GRAPHICS_PASS",
+    "previousPlayable": "observer-world-en-v6/index.html",
+    "engine": "observer-world-en-v7/index.html",
+    "builder": "observer-world-en-v7/editor.js",
+    "mobileHud": "observer-world-en-v7/mobile-controls.js",
+    "mobileCss": "observer-world-en-v7/mobile-controls.css",
+    "sourceGuide": "observer-world-en-v7/CLAUDE.md",
+    "workflow": ".github/workflows/observer-v7-gate.yml",
+    "verifiedRun": "https://github.com/mpaykin1/meta6/actions/runs/38896347402",
+    "behavior": {
+      "phone": "one joystick + three translucent right buttons + bottom glyph dock",
+      "build": "select glyph then tap terrain near hero then hammer; works with default near-hero position",
+      "destroyTrees": "original voxel fellTree particles and source chunk rebuild; removed tree locations persisted",
+      "terrain": "original surface with plinth supports",
+      "occupiedBuildings": "reject overlap and original protected beacon",
+      "desktop": "unchanged keyboard/mouse"
+    },
+    "manualPhoneVerification": "PENDING_OWNER_PASS"
   }
 }
