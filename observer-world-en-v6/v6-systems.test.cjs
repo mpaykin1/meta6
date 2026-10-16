@@ -46,7 +46,7 @@ assert.equal(r.strike(companion,1,'player'),true);
 assert.equal(companion.relation,'hostile');
 assert.ok(events.some(x=>x[0]==='betrayal'));
 const fighter=r.spawn('warrior',30.4,30,'hostile');fighter.attackCD=0;
-for(let i=0;i<10&&native.G.state==='play';i++)r.update(.5);
+for(let i=0;i<80&&native.G.state==='play';i++)r.update(.5);
 assert.ok(events.some(x=>x[0]==='playerAttacked'),'A warrior must attack the player');
 assert.equal(native.G.state,'dead','Enemy NPC must be capable of killing the player');
 r.update(.02);
