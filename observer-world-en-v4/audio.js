@@ -7,7 +7,12 @@
 (function (root) {
   "use strict";
   const THEMES = Object.freeze({
+    dawn: {label:"Dawn / First Light",scale:[0,2,4,7,9],root:146.83,bass:[0,2,7,4],pattern:[0,1,3,4,2,3,1,0],tempo:76,timbre:"sine"},
     frontier: {label:"Frontier", scale:[0,2,5,7,9], root:146.83, bass:[0,0,7,5], pattern:[0,2,4,1,3,2,1,0], tempo:88, timbre:"triangle"},
+    knowledge:{label:"The Discovery",scale:[0,2,4,6,9],root:196,bass:[0,4,2,7],pattern:[0,4,1,3,2,4,3,0],tempo:91,timbre:"triangle"},
+    night: {label:"Night on the Island",scale:[0,2,3,7,10],root:98,bass:[0,3,7,2],pattern:[0,3,1,4,2,3,0,1],tempo:66,timbre:"sine"},
+    monster: {label:"A Shadow Appears",scale:[0,1,3,6,8],root:103.83,bass:[0,6,1,8],pattern:[0,1,3,4,1,2,4,0],tempo:118,timbre:"sawtooth"},
+    victory: {label:"After the Darkness",scale:[0,2,4,7,11],root:174.61,bass:[0,4,7,2],pattern:[0,2,4,3,2,4,1,0],tempo:100,timbre:"triangle"},
     town:     {label:"Market Waltz",scale:[0,2,4,7,9],root:174.61,bass:[0,4,7,4],pattern:[0,2,4,3,1,4,2,0],tempo:102,timbre:"triangle"},
     chapel:   {label:"Chapel",scale:[0,3,5,7,10],root:130.81,bass:[0,5,7,3],pattern:[0,3,2,4,1,2,0,3],tempo:72,timbre:"sine"},
     mystery:  {label:"Observer",scale:[0,1,5,7,8],root:164.81,bass:[0,7,1,5],pattern:[0,3,1,4,2,0,4,1],tempo:78,timbre:"sine"},
@@ -26,11 +31,17 @@
     wounded:"wounded",killed:"death",death:"death",heal:"healing",clash:"alarm"
   });
   function create() {
-    let ctx=null,master=null,musicBus=null,fxBus=null,ambBus=null,wind=null,drone=null;
-    let noiseBuf=null,enabled=false,volume=0.48,theme="frontier",lastTheme="",
+    let ctx=null,master=null,musicBus=null,fxBus=null,ambBus=null,wind=null,drone=null,analyser=null;
+    let noiseBuf=null,enabled=false,fxEnabled=false,volume=0.8,musicVolume=1,fxVolume=0.65,theme="frontier",manualTheme="",lastTheme="",
         nextBeat=0,step=0,lastTick=0,lastFx=Object.create(null),lastVariant=Object.create(null),
         scheduled=0,events=0,musicBeats=0,switches=0,ctxErrors=0,wasRunning=false,musicChords=0,counterpointNotes=0,section=0,phrase=0;
-    try { const v=Number(localStorage.getItem("observer-audio-volume-v1"));if(Number.isFinite(v)&&v>=0&&v<=1)volume=v; } catch {}
+    try {
+      const stored=localStorage.getItem("observer-v4-master-volume");
+      if(stored!==null){const v=Number(stored);if(Number.isFinite(v)&&v>=0&&v<=1)volume=v}
+      for(const [key,assign] of [["observer-v4-music-volume",v=>musicVolume=v],["observer-v4-fx-volume",v=>fxVolume=v]]){
+        const raw=localStorage.getItem(key);if(raw!==null){const v=Number(raw);if(Number.isFinite(v)&&v>=0&&v<=1)assign(v)}
+      }
+    } catch {}
     const now=()=>ctx?ctx.currentTime:0;
     const finite=(n,lo,hi)=>Math.max(lo,Math.min(hi,Number(n)||lo));
     const midi=(root,semitones)=>root*Math.pow(2,semitones/12);
@@ -68,8 +79,11 @@
       try {
         ctx=new AC({latencyHint:"interactive"});
         const comp=ctx.createDynamicsCompressor();comp.threshold.value=-20;comp.ratio.value=4;
-        master=ctx.createGain();master.gain.value=volume*.72;master.connect(comp);comp.connect(ctx.destination);
-        musicBus=bus(.36);fxBus=bus(.62);ambBus=bus(.19);
+        master=ctx.createGain();master.gain.value=volume*.92;master.connect(comp);comp.connect(ctx.destination);
+        musicBus=bus(.95);fxBus=bus(.38);ambBus=bus(.08);
+        analyser=ctx.createAnalyser();analyser.fftSize=2048;
+        // Analyse only the music channel, not SFX. Keep music connected to output.
+        musicBus.disconnect();musicBus.connect(analyser);analyser.connect(master);
         const b=ctx.createBuffer(1,Math.round(ctx.sampleRate),ctx.sampleRate),data=b.getChannelData(0);
         let seed=1749;for(let i=0;i<data.length;i++){seed=(Math.imul(seed,1664525)+1013904223)|0;data[i]=((seed>>>0)/2147483648)-1}noiseBuf=b;
         wind=ctx.createBufferSource();wind.buffer=b;wind.loop=true;
@@ -84,31 +98,62 @@
     function updateBuses() {
       if(!ctx)return;
       const t=now(),danger=theme==="battle"||theme==="plague",sad=theme==="aftermath";
-      musicBus.gain.setTargetAtTime(danger?.31:sad?.24:.36,t,.3);
-      ambBus.gain.setTargetAtTime(danger?.28:.17,t,.5);
-      master.gain.setTargetAtTime(enabled?volume*.72:0,t,.08);
+      musicBus.gain.setTargetAtTime(enabled?musicVolume*(danger?.92:sad?.87:.95):0,t,.08);
+      fxBus.gain.setTargetAtTime(fxEnabled?fxVolume*.50:0,t,.06);
+      ambBus.gain.setTargetAtTime(enabled?.09:0,t,.5);
+      master.gain.setTargetAtTime((enabled||fxEnabled)?volume*.92:0,t,.08);
     }
     async function start(){
       if(!init())return false;
       enabled=true;
       try{if(ctx.state!=="running")await ctx.resume()}catch(e){ctxErrors++;enabled=false;return false}
-      nextBeat=ctx.currentTime+.09;updateBuses();return true;
+      nextBeat=ctx.currentTime+.09;lastTick=-1;updateBuses();
+      // Schedule audible music immediately in the same user gesture; no dependence on a future RAF.
+      beat(nextBeat);nextBeat+=60/THEMES[theme].tempo/2;
+      return true;
     }
     function setEnabled(value) {
       if(value)return start();
       enabled=false;updateBuses();
       // A muted but running AudioContext still costs CPU on phones. Suspend entirely.
-      if(ctx&&ctx.state==="running")return ctx.suspend().then(()=>false).catch(()=>{ctxErrors++;return false});
+      if(ctx&&ctx.state==="running"&&!fxEnabled)return ctx.suspend().then(()=>false).catch(()=>{ctxErrors++;return false});
       return Promise.resolve(false)
     }
     function toggle(){return setEnabled(!enabled)}
-    function setVolume(v){volume=finite(v,0,1);try{localStorage.setItem("observer-audio-volume-v1",String(volume))}catch{}updateBuses()}
+    function setMusicVolume(v){
+      musicVolume=finite(v,0,1);try{localStorage.setItem("observer-v4-music-volume",String(musicVolume))}catch{}updateBuses();
+    }
+    async function setFxEnabled(value){
+      if(value){
+        if(!init())return false;fxEnabled=true;
+        try{if(ctx.state!=="running")await ctx.resume()}catch{ctxErrors++;fxEnabled=false;return false}
+      }else{fxEnabled=false}
+      updateBuses();
+      if(!enabled&&!fxEnabled&&ctx?.state==="running")await ctx.suspend().catch(()=>{ctxErrors++});
+      return fxEnabled;
+    }
+    function setFxVolume(v){
+      fxVolume=finite(v,0,1);try{localStorage.setItem("observer-v4-fx-volume",String(fxVolume))}catch{}updateBuses();
+    }
+    function forceTheme(t){manualTheme=THEMES[t]?t:"";step=0;phrase=0;nextBeat=ctx?ctx.currentTime+.08:0;lastTick=-1;return manualTheme}
+    function musicMeter(){
+      if(!analyser||!enabled||ctx?.state!=="running")return 0;
+      const data=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(data);
+      let power=0;for(let i=0;i<data.length;i++)power+=data[i]*data[i];
+      return Math.round(Math.sqrt(power/data.length)*10000)/10000;
+    }
+    function setVolume(v){volume=finite(v,0,1);try{localStorage.setItem("observer-v4-master-volume",String(volume))}catch{}updateBuses()}
     function classify(state={}){
       const actors=state.combat?.actors||[],obj=state.objects||[];
+      if(manualTheme)return manualTheme;
+      if((state.monsters||[]).some(m=>m.hp>0&&!m.dead))return"monster";
+      if(state.victory)return"victory";
       const fighting=actors.some(a=>a.state==="attack"||a.state==="chase");
       if(fighting)return"battle";
       if(actors.some(a=>a.state==="wounded")||actors.some(a=>a.state==="dead")&&state.order<13)return"aftermath";
       if(obj.some(o=>!o.dead&&o.kind==="plague"))return"plague";
+      if(state.night)return"night";
+      if(obj.some(o=>!o.dead&&["school","scholarAction","printing"].includes(o.kind)))return"knowledge";
       if(obj.some(o=>!o.dead&&["monastery","doctrine","burial"].includes(o.kind)))return"chapel";
       if(obj.some(o=>!o.dead&&["market","guild","caravan"].includes(o.kind)))return"town";
       if((state.suspicion||0)>3)return"mystery";
@@ -117,6 +162,11 @@
     // Original multi-voice procedural score. 32-step phrases, four-chord progressions,
     // contrapuntal answer, bass movement and cadences; no additional SFX.
     const SCORE=Object.freeze({
+      dawn:{chords:[0,3,4,2],motif:[0,2,1,4,2,3,1,0],rhythm:[1,0,1,1,1,0,1,1],reply:[2,1,3,4],swing:0,drone:.023},
+      knowledge:{chords:[0,2,4,3],motif:[0,4,2,1,3,2,4,0],rhythm:[1,0,1,1,0,1,1,0],reply:[4,2,1,3],swing:.015,drone:.021},
+      night:{chords:[0,3,1,4],motif:[4,2,1,0,2,3,1,0],rhythm:[1,0,0,1,1,0,0,1],reply:[1,2,4,3],swing:0,drone:.025},
+      monster:{chords:[0,1,4,2],motif:[0,1,3,4,2,4,1,0],rhythm:[1,1,0,1,1,1,0,1],reply:[4,1,3,0],swing:0,drone:.038},
+      victory:{chords:[0,3,4,2],motif:[0,2,4,3,2,4,1,0],rhythm:[1,1,1,0,1,1,1,1],reply:[2,3,4,1],swing:.02,drone:.029},
       frontier:{chords:[0,3,4,2],motif:[0,2,3,4,2,1,3,0],rhythm:[1,0,1,1,0,1,1,0],reply:[4,3,1,2],swing:.025,drone:.016},
       town:{chords:[0,2,3,4],motif:[0,2,4,2,3,1,2,0],rhythm:[1,1,0,1,1,0,1,1],reply:[2,1,4,3],swing:.06,drone:.014},
       chapel:{chords:[0,3,1,4],motif:[0,4,2,3,1,2,4,0],rhythm:[1,0,1,0,1,1,0,1],reply:[3,4,2,1],swing:0,drone:.026},
@@ -173,7 +223,7 @@
         const octave=(rhythmStep===6&&variation>=1)?12:variation===3&&rhythmStep===7?-12:0;
         const melodicHz=midi(x.root,x.scale[melodicDegree]+octave+(variation===1?12:0));
         const noteLength=theme==="chapel"||theme==="aftermath"?.82:.38;
-        const velocity=.032+(rhythmStep===0?.012:0)+(theme==="battle"?.01:0);
+        const velocity=.074+(rhythmStep===0?.012:0)+(theme==="battle"?.01:0);
         musicNote(melodicHz,noteLength,t+(rhythmStep%2?score.swing:0),theme==="chapel"?"bell":"harp",velocity);
       }
       // Countermelody: call and response every second bar, distinct contour and register.
@@ -199,7 +249,7 @@
       let guard=0;while(nextBeat<t+.30&&guard++<3){beat(nextBeat);nextBeat+=spacing}
     }
     function event(name,detail={}){
-      if(!enabled||!ctx||ctx.state!=="running")return false;
+      if(!fxEnabled||!ctx||ctx.state!=="running")return false;
       const k=SOUND_GROUPS[name]||name,t=ctx.currentTime,prev=lastFx[k]||-100;
       if(t-prev<(k==="hit"?.13:k==="swing"?.2:.09))return false;
       lastFx[k]=t;const hi=variantFor(k)===1,p=(hi?1.18:.81)*(1+(Math.random()-.5)*.11),
@@ -233,8 +283,8 @@
       if(hidden){wasRunning=enabled;try{ctx.suspend()}catch{}}
       else if(wasRunning&&enabled){ctx.resume().then(()=>{nextBeat=ctx.currentTime+.12}).catch(()=>{ctxErrors++})}
     }
-    function diagnostics(){return{supported:!!(root.AudioContext||root.webkitAudioContext),enabled,volume,theme,label:THEMES[theme].label,contextState:ctx?.state||"not-created",events,musicBeats,scheduled,switches,musicChords,counterpointNotes,phrase,section,ctxErrors,source:"World_server/games/ostrov-sumerek/engine/32_audio.js"}}
-    return Object.freeze({start,toggle,setEnabled,setVolume,tick,event,onVisibility,diagnostics,get enabled(){return enabled},get volume(){return volume}});
+    function diagnostics(){return{supported:!!(root.AudioContext||root.webkitAudioContext),enabled,fxEnabled,volume,musicVolume,fxVolume,theme,label:THEMES[theme].label,contextState:ctx?.state||"not-created",musicRms:musicMeter(),events,musicBeats,scheduled,switches,musicChords,counterpointNotes,phrase,section,ctxErrors,source:"World_server/games/ostrov-sumerek/engine/32_audio.js"}}
+    return Object.freeze({start,toggle,setEnabled,setVolume,setMusicVolume,setFxEnabled,setFxVolume,forceTheme,tick,event,onVisibility,diagnostics,get enabled(){return enabled},get fxEnabled(){return fxEnabled},get musicVolume(){return musicVolume},get fxVolume(){return fxVolume},get volume(){return volume}});
   }
   root.ObserverKriegerAudio=Object.freeze({create,THEMES,SOUND_GROUPS});
 })(window);
