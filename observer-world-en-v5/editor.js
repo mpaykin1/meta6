@@ -161,7 +161,7 @@ function onPlace(kind,x,z,restoring=false){
  return o
 }
 function activateBuild(kind){
- selected=kind;placeMode=true;
+ selected=kind;placeMode=true;document.body.classList.add("v5-placing");
  for(const b of $("v5Dock").querySelectorAll("button"))b.classList.toggle("selected",b.dataset.kind===kind);
  $("v5Hint").textContent="Click on land to place "+ACTIONS[kind][1]+" · drag right mouse to orbit";
 }
@@ -229,6 +229,7 @@ function start(){
  $("v5Pause").addEventListener("click",()=>native.pause(native.G.state==="play"));
  $("v5OriginalHud").addEventListener("change",e=>document.body.classList.toggle("v5-show-original-hud",e.target.checked));
  $("v5Explore").addEventListener("click",()=>{placeMode=false;
+  document.body.classList.remove("v5-placing");
   $("v5Hint").textContent="Explore: WASD to move · right-drag orbit · click to attack";
   for(const b of $("v5Dock").children)b.classList.remove("selected")
  });
@@ -248,7 +249,7 @@ function start(){
   $("v5Weapon").appendChild(option);
  }
  $("v5GetWeapons").addEventListener("click",()=>native.giveAll());
- $("v5Menu").addEventListener("toggle",()=>{if($("v5Menu").open){dragging=null;placeMode=false;native.clearInput?.()}});
+ $("v5Menu").addEventListener("toggle",()=>{if($("v5Menu").open){dragging=null;placeMode=false;document.body.classList.remove("v5-placing");native.clearInput?.()}});
  $("v5Stats").textContent="Population "+state.pop+" · Order "+state.order+" · Suspicion "+state.suspicion;
  $("v5Recent").textContent=state.history.at(-1)?.text||"The exact original island is alive. Select a symbol below and click on solid ground to create history.";
  $("v5JournalBody").textContent=state.history.slice(-20).map(e=>e.title+"\n"+e.text).join("\n\n");
