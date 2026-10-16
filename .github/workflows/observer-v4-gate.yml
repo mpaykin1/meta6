@@ -49,7 +49,7 @@ jobs:
             AUDIO="$(curl -fLsS --max-time 20 "${URL}audio.js" 2>/dev/null || true)"
             WORLD="$(curl -fLsS --max-time 20 "${URL}living-world.js" 2>/dev/null || true)"
             if grep -Fq 'OBSERVER_V4_MUSIC_MONSTER_ISLAND_20261016' <<<"$HTML" \
-               && grep -Fq '11-track' <<<"$AUDIO" \
+               && grep -Fq 'musicMeter' <<<"$AUDIO" \
                && grep -Fq 'Warden' <<<"$WORLD"; then
               echo "V4_LIVE_EXACT=PASS SHA=${GITHUB_SHA} URL=${URL}"
               exit 0
