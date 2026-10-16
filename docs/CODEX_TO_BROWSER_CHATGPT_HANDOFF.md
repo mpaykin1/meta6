@@ -1,5 +1,12 @@
 # Codex → новый обычный браузерный чат ChatGPT
 
+> При подготовке эта редакция сохранена в отдельной
+> [ветке для ревью](https://github.com/mpaykin1/meta6/tree/ai/codex/browser-chatgpt-handoff),
+> без слияния в `main`. Новые `AGENTS.md` и этот документ доступны по рабочей ветке;
+> они не становятся инструкциями `main` до подтверждённого слияния PR. Передавайте
+> ссылки с полным SHA из checkpoint. Заменяйте их ссылками на `main` только после
+> проверки фактического слияния.
+
 Это постоянное правило владельца для [meta6](https://github.com/mpaykin1/meta6)
 и [World_server](https://github.com/mpaykin1/World_server).
 Получатель незавершённой работы — **НОВЫЙ ОБЫЧНЫЙ ЧАТ CHATGPT В БРАУЗЕРЕ,
@@ -75,6 +82,11 @@ ChatGPT → сообщить владельцу**.
 
 Прочитайте свежие версии и сопоставьте их с checkpoint до выбора работы:
 
+Действующий вводный текст корневого `CLAUDE.md` требует **сохранить V5 без изменений
+как одобренный визуальный эталон и вести текущую разработку в V6**. Следуйте этому
+разделению. Старые V5 TODO ниже — материалы для диагностики и проверки покрытия
+в V6; они не дают разрешения автоматически редактировать V5.
+
 - [SOURCE_INDEX.md](../SOURCE_INDEX.md) и [game-source-index.json](../game-source-index.json)
   — каталог версий, исходников, проверок и сохранённых ограничений.
 - [V5 CLAUDE.md](../observer-world-en-v5/CLAUDE.md) — требования к оригинальной
@@ -112,7 +124,7 @@ V5 сохраняет полный оригинальный runtime в `observer
 При добавлении этого правила документы содержали разные записи о принятии V5:
 V5 `CLAUDE.md` и раздел V5 в индексе ещё сообщали об ожидаемой визуальной оценке, а V6
 `CLAUDE.md` и новый корневой вводный текст ссылались на графическое одобрение V5.
-Это **расхождение записей**, а не повод агенту вынести новое решение. Найдите
+Это **расхождение записей**, а не повод агенту вынести новое решение или менять V5. Найдите
 последнее явное решение владельца в существующей координации, процитируйте его и
 уточните область решения. Не переносите одобрение графики V5 на gameplay V6.
 
@@ -137,9 +149,13 @@ PR: <прямая ссылка или UNKNOWN и точный блокер со�
 Рабочая ветка / полный commit SHA: <...>.
 Изменения отправлены в GitHub: <да/нет; что осталось локально и где>.
 
-Сначала прочитай:
-https://github.com/mpaykin1/meta6/blob/main/AGENTS.md
-https://github.com/mpaykin1/meta6/blob/main/docs/CODEX_TO_BROWSER_CHATGPT_HANDOFF.md
+Эта редакция инструкций сохранена в ветке для ревью и ещё не в main, пока
+фактическое слияние не подтверждено. Сначала прочитай новые инструкции из неё:
+https://github.com/mpaykin1/meta6/blob/ai/codex/browser-chatgpt-handoff/AGENTS.md
+https://github.com/mpaykin1/meta6/blob/ai/codex/browser-chatgpt-handoff/docs/CODEX_TO_BROWSER_CHATGPT_HANDOFF.md
+Замени ref в этих двух ссылках полным SHA сохранённой ветки из checkpoint перед
+отправкой промпта. Не подменяй их main до подтверждённого merge.
+Затем прочитай существующие исходники и действующие инструкции:
 https://github.com/mpaykin1/meta6/blob/main/CLAUDE.md
 https://github.com/mpaykin1/meta6/blob/main/SOURCE_INDEX.md
 https://github.com/mpaykin1/meta6/blob/main/game-source-index.json
@@ -147,8 +163,10 @@ https://github.com/mpaykin1/meta6/blob/main/observer-world-en-v5/CLAUDE.md
 https://github.com/mpaykin1/meta6/blob/main/observer-world-en-v6/CLAUDE.md
 https://github.com/mpaykin1/World_server/blob/master/AI_START_HERE.md
 https://github.com/mpaykin1/World_server/blob/master/AGENTS.md
-Затем checkpoint, актуальные PR и точные исходники рабочей ветки. Если инструкции
-есть пока только в PR, прочитай их по ссылке с его полным commit SHA: <...>.
+Затем checkpoint, актуальные PR и точные исходники рабочей ветки. Сохранённая
+редакция новых инструкций, полный SHA и статус слияния: <прямые ссылки и статус>.
+Корневой CLAUDE требует сохранить V5 без изменений как визуальный эталон и
+продолжать gameplay в V6; исторические V5 TODO не разрешают автоматически менять V5.
 
 Codex сделал: <конкретные изменения и файлы; не приписывать работу других чатов>.
 Осталось по ТЗ Observer World V5: <конкретные пункты; что уже реализовано в V6>.
