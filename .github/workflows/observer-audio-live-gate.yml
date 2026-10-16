@@ -1,0 +1,84 @@
+name: Observer Audio Live Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'observer-world-en-v2-audio/**'
+      - '.github/workflows/observer-audio-live-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: observer-audio-live
+  cancel-in-progress: true
+
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify audio synthesis and source integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check observer-world-en-v2-audio/audio.js
+          node --test observer-world-en-v2-audio/audio.test.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          new=Path('observer-world-en-v2-audio/index.html').read_text()
+          old=Path('observer-world-en-v2/index.html').read_text()
+          if 'OBSERVER_AUDIO_KRIEGER_V1_20261016' not in new: raise SystemExit('Audio release marker missing')
+          if 'ObserverKriegerAudio' not in new: raise SystemExit('Audio not wired')
+          if 'ObserverKriegerAudio' in old or 'audio.js' in old: raise SystemExit('Accepted V2 was modified')
+          blocks=re.findall(r'<script>(.*?)</script>',new,re.S)
+          if len(blocks)!=1: raise SystemExit('Inline script count differs from baseline')
+          Path('/tmp/observer-audio-game.js').write_text(blocks[0])
+          PY
+          node --check /tmp/observer-audio-game.js
+      - name: Verify exact live audio revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://mpaykin1.github.io/meta6/observer-world-en-v2-audio/"
+          for i in $(seq 1 55); do
+            BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
+            JS="$(curl -fLsS --max-time 20 "${URL}audio.js" 2>/dev/null || true)"
+            if grep -Fq 'OBSERVER_AUDIO_KRIEGER_V1_20261016' <<<"$BODY" \
+              && grep -Fq 'soundButton' <<<"$BODY" \
+              && grep -Fq 'ObserverKriegerAudio' <<<"$JS" \
+              && grep -Fq 'Steel & Ash' <<<"$JS"; then
+              echo "AUDIO_LIVE_EXACT=PASS ${URL} SHA=${GITHUB_SHA}"
+              exit 0
+            fi
+            echo "Waiting for exact audio deploy ($i/55)"
+            sleep 8
+          done
+          echo "::error::Exact audio deploy not live"
+          exit 1
+      - name: Real-browser smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --no-first-run --disable-background-networking --virtual-time-budget=7000 --dump-dom \
+            "https://mpaykin1.github.io/meta6/observer-world-en-v2-audio/?audiotest=1" \
+            >/tmp/audio-dom.html 2>/tmp/chrome-stderr.log
+          grep -Fq 'data-audio-selftest="pass"' /tmp/audio-dom.html || {
+            grep -o 'audioSelfTest[^<]*' /tmp/audio-dom.html | tail -2 || true
+            tail -10 /tmp/chrome-stderr.log || true
+            exit 1
+          }
+          grep -Fq 'id="soundButton"' /tmp/audio-dom.html
+          grep -Fq 'observer-audio-volume-v1' /tmp/audio-dom.html || grep -Fq 'audioSelfTest' /tmp/audio-dom.html
+          echo "AUDIO_BROWSER=PASS"
+      - name: Evidence
+        run: |
+          echo "AUDIO_LIVE_VERIFIED=PASS"
+          echo "COMMIT=${GITHUB_SHA}"
+          echo "SOURCE_REPO=https://github.com/mpaykin1/meta6"
