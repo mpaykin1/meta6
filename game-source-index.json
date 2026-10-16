@@ -95,5 +95,41 @@
       "iPhone audio proof",
       "owner PASS"
     ]
+  },
+  "original3dBuilderV5": {
+    "status": "CI_LIVE_WEBGL_BUILD_PASS__OWNER_VISUAL_PASS_PENDING",
+    "title": "Observer V5 uses exact original Island of Twilight Three.js engine and camera",
+    "url": "https://mpaykin1.github.io/meta6/observer-world-en-v5/",
+    "fullOriginalRuntime": "observer-world-en-v5/index.html",
+    "builder": "observer-world-en-v5/editor.js",
+    "soundtrack": "observer-world-en-v5/audio.js",
+    "claudeHandoff": "observer-world-en-v5/CLAUDE.md",
+    "originalSourceSHA256": "fdbda0240b53f49d6e34aa0965531856e31a0154f4a12339e1682d60d5fe5c1f",
+    "tests": ".github/workflows/observer-v5-gate.yml",
+    "preserved": [
+      "full shader WebGL Three.js scene",
+      "original perspective camera unchanged",
+      "original 64x64x26 voxel world",
+      "original terrain and water atlas",
+      "native particles/shader effects",
+      "original SFX",
+      "21 weapons and projectiles",
+      "Imp Shade Warden"
+    ],
+    "added": [
+      "3D placeable original-textured buildings",
+      "bottom historical symbol dock",
+      "collapsible menu",
+      "Krieger score",
+      "local building save",
+      "Claude source guide"
+    ],
+    "incomplete": [
+      "owner screenshot comparison",
+      "iPhone 11 visual/audio proof",
+      "AI integration into V5",
+      "full Observer historical/faction parity",
+      "collision mesh for placed buildings"
+    ]
   }
 }
