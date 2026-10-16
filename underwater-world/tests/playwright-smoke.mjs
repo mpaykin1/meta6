@@ -51,13 +51,15 @@ const y0=await d.page.evaluate(()=>window.__isle.player.pos.y);
 await d.page.keyboard.down('Space');
 const y1=await d.page.evaluate(()=>{
  const i=window.__isle;
- for(let n=0;n<65;n++)i.sim(.016,0,0,true,false);
+ if(!i.player.jumpHeld)throw Error('Space down did not set jumpHeld');
+ for(let n=0;n<85;n++)i.underwater.physicsStep(.016);
  return i.player.pos.y;
 });
 await d.page.keyboard.up('Space');
 const y2=await d.page.evaluate(()=>{
  const i=window.__isle;
- for(let n=0;n<120;n++)i.sim(.016,0,0,false,false);
+ if(i.player.jumpHeld)throw Error('Space up did not clear jumpHeld');
+ for(let n=0;n<180;n++)i.underwater.physicsStep(.016);
  return i.player.pos.y;
 });
 assert(y1>y0+.12,'Hold Space should rise: '+[y0,y1,y2]);
