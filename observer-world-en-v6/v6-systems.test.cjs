@@ -38,9 +38,7 @@ const events=[],native={
  foes:[],hurtBy(dmg){native.player.hp-=dmg;if(native.player.hp<=0)native.G.state='dead';return true},
  revivePerson(x,z){native.player.hp=6;native.G.state='play';return true}
 };
-const OLD=C.createMesh,oldAnim=C.animate;
-C.createMesh=()=>({mesh:{visible:true},ring:{visible:true}});
-C.animate=()=>{};C.dispose=()=>{};
+w.ObserverNpcCatalog={...C,createMesh:()=>({mesh:{visible:true},ring:{visible:true}}),animate:()=>{},dispose:()=>{}};
 const r=w.ObserverCombatRelations.create({native,state:{deaths:0},events:(k,v)=>events.push([k,v])});
 const companion=r.newPerson(31,30);
 assert.equal(companion.role,'companion');assert.equal(companion.relation,'friendly');
