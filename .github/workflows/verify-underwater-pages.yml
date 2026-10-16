@@ -1,0 +1,59 @@
+name: Verify published Twilight underwater game (real Pages)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'underwater-world/**'
+      - '.github/workflows/verify-underwater-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Wait for public GitHub Pages publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL=https://mpaykin1.github.io/meta6/underwater-world/
+          for n in $(seq 1 36); do
+            if curl --max-time 20 -fsSL "$URL" -o /tmp/twilight-index.html && grep -q createUnderwaterWorld /tmp/twilight-index.html; then
+              echo "PUBLIC_HTML_VERIFIED=$URL"
+              break
+            fi
+            echo "Waiting for actual Pages content, attempt $n/36"
+            sleep 10
+          done
+          grep -q createUnderwaterWorld /tmp/twilight-index.html
+          curl --retry 8 --retry-delay 5 -fsSL "${URL}underwater-runtime.js" -o /tmp/twilight-runtime.js
+          grep -q createUnderwaterWorld /tmp/twilight-runtime.js
+          curl --retry 8 --retry-delay 5 -fsSL "${URL}models/bathyscaphe.glb" -o /tmp/twilight-bathyscaphe.glb
+          test "$(wc -c < /tmp/twilight-bathyscaphe.glb)" -gt 1024
+          curl --retry 8 --retry-delay 5 -fsSL "https://mpaykin1.github.io/meta6/observer-world-en-v7/" -o /tmp/twilight-original.html
+          test "$(wc -c < /tmp/twilight-original.html)" -gt 100000
+          echo "PUBLIC_SOURCE_AND_ASSETS_VERIFIED"
+      - name: Install browser for actual desktop and phone deployment
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test actual permanent GitHub Pages route
+        env:
+          TEST_BASE: https://mpaykin1.github.io/meta6/underwater-world/
+        run: node underwater-world/tests/playwright-smoke.mjs
+      - name: Measure player-visible transformation over 85%
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow numpy
+          python3 underwater-world/tests/visual-visibility.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: publicly-deployed-underwater-desktop-mobile-evidence
+          path: underwater-world/evidence/
+          retention-days: 14
