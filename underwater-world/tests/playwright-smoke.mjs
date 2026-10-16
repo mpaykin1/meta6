@@ -84,7 +84,7 @@ const chunkEvidence=await d.page.evaluate(()=>{
   i.underwater.update(.016);
   report.push({x,z,chunks:i.underwater.chunks,creatures:i.underwater.creatures});
  }
- i.player.pos.set(48,i.terrainTop(48,48)+1,48);i.underwater.update(.016);
+ const b=i.world.beacon;i.player.pos.set(b.x,Math.max(i.__sea||4.8,b.y+1.5),b.z);i.underwater.update(.016);
  return {report,surfaced:!i.underwater.isSubmerged(),bathyAfterSurface:i.underwater.inBathyscaphe};
 });
 assert(chunkEvidence.report.every(c=>c.chunks>=1&&c.chunks<=9),'Ocean chunks must stream with bounded memory');
