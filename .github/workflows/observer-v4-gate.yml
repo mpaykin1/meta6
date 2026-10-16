@@ -23,7 +23,12 @@ jobs:
           node --check observer-world-en-v4/audio.js
           node --check observer-world-en-v4/island-graphics.js
           node --check observer-world-en-v4/living-world.js
-          node --test observer-world-en-v4/audio.test.cjs observer-world-en-v4/island-graphics.test.cjs observer-world-en-v4/living-world.test.cjs
+          node --check observer-world-en-v4/hero-apng.js
+          node --check observer-world-en-v4/original-assets.js
+          node --check observer-world-en-v4/weapon-catalog.js
+          node --test observer-world-en-v4/audio.test.cjs observer-world-en-v4/island-graphics.test.cjs observer-world-en-v4/living-world.test.cjs observer-world-en-v4/original-assets.test.cjs
+          test "$(git hash-object observer-world-en-v4/reference/ostrov-sumerek-original.html)" = 'd164562d0c75f4a0265d19ffe127b78a1bd27153'
+          test "$(git hash-object observer-world-en-v4/reference/ostrov-sumerek-expanded-original.html)" = 'eb8b736d7f4610584f1afb9f533d328ccfb35831'
           python3 - <<'PY'
           from pathlib import Path
           import re
@@ -32,7 +37,7 @@ jobs:
           assert 'OBSERVER_V4_MUSIC_MONSTER_ISLAND_20261016' in html
           assert 'OBSERVER_V4_MUSIC_MONSTER_ISLAND_20261016' not in base
           for x in ('living-world.js','island-graphics.js','audio.js','PLAY MUSIC','fxButton',
-                    'musicTheme','readerOverlay','nextCombat','imp','shade','warden','ObserverV4World'):
+                    'musicTheme','readerOverlay','nextCombat','imp','shade','warden','ObserverV4World','original-assets.js','hero-apng.js','weapon-catalog.js','weaponSelect'):
             if x not in html: raise SystemExit('Missing required V4 marker: '+x)
           js=re.findall(r'<script>(.*?)</script>',html,re.S)
           assert len(js)==1
@@ -76,6 +81,7 @@ jobs:
           fi
           grep -Fq 'id="readerOverlay"' /tmp/v4-dom.html
           grep -Fq 'id="fxButton"' /tmp/v4-dom.html
+          grep -Fq 'id="weaponSelect"' /tmp/v4-dom.html
           echo "V4_BROWSER=PASS"
       - name: Evidence
         run: |
