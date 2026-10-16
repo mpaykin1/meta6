@@ -229,7 +229,12 @@ function interceptCanvas(){
  const canvas=native.canvas;
  canvas.addEventListener("contextmenu",e=>{if(placeMode)e.preventDefault()},true);
  canvas.addEventListener("pointerdown",e=>{
-  if(e.button===2&&placeMode&&!$("v5Menu").open){
+  if(e.pointerType==="touch"&&root.ObserverMobileControls?.isMobile()&&placeMode&&!$("v5Menu").open){
+   // On a phone touching the landscape selects a spot; only the hammer commits it.
+   e.preventDefault();e.stopImmediatePropagation();
+   dragging={id:e.pointerId,x:e.clientX,y:e.clientY,mobile:true};
+   try{canvas.setPointerCapture(e.pointerId)}catch{}
+  }else if(e.button===2&&placeMode&&!$("v5Menu").open){
    e.preventDefault();e.stopImmediatePropagation();
    dragging={id:e.pointerId,x:e.clientX,y:e.clientY};
   }else if(e.button===0&&e.altKey){
@@ -247,9 +252,15 @@ function interceptCanvas(){
  canvas.addEventListener("pointerup",e=>{
   if(!dragging||e.pointerId!==dragging.id)return;
   e.preventDefault();e.stopImmediatePropagation();
-  const d=Math.hypot(e.clientX-dragging.x,e.clientY-dragging.y);dragging=null;
-  if(d>12)return;
-  const hit=selectGround(e);if(hit)onPlace(selected,hit.x,hit.z);
+  const d=Math.hypot(e.clientX-dragging.x,e.clientY-dragging.y),phoneTap=dragging.mobile;dragging=null;
+  if(d>16)return;
+  const hit=selectGround(e);
+  if(phoneTap){
+   if(hit)setMobilePoint(hit);
+   else tell("Select terrain","Touch visible island land, then press the hammer button.");
+   return
+  }
+  if(hit)onPlace(selected,hit.x,hit.z);
   else tell("Beyond island","Select a solid surface of the island.")
  },true);
  canvas.addEventListener("pointercancel",()=>{dragging=null},true);
