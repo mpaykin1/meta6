@@ -1,4 +1,24 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+/* V6 reading experience and small event toast; no changes to original perspective camera. */
+#v6Toast{position:fixed;z-index:28;left:50%;top:max(18px,env(safe-area-inset-top));transform:translateX(-50%);
+ max-width:min(580px,78vw);padding:8px 12px;border-radius:9px;border:1px solid rgba(242,226,180,.45);
+ background:rgba(25,16,28,.92);font:13px/1.4 Georgia,serif;color:#f6e9cb;opacity:0;pointer-events:none;
+ transition:opacity .3s;text-align:center}
+#v6Toast.visible{opacity:1}
+#v6Reader{width:min(760px,calc(100vw - 20px));max-height:90dvh;color:#f9ecd9;border:1px solid #998b7f;
+ border-radius:12px;background:#18151e;box-shadow:0 8px 60px #0009;padding:14px;touch-action:pan-y}
+#v6Reader::backdrop{background:rgba(8,6,13,.89)}
+#v6ReaderHeader{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;
+ border-bottom:1px solid #736677;padding-bottom:10px}
+#v6ReaderTitle{font:700 clamp(17px,3vw,24px) Georgia,serif;color:#ffd985}
+#v6ReaderHeader button{background:#342939;color:#fff2dc;border:1px solid #8b7988;border-radius:8px;min-width:40px;min-height:40px}
+#v6ReaderBody{font:21px/1.65 Georgia,serif;white-space:pre-wrap;overflow-y:auto;max-height:65dvh;padding:12px 8px;
+ user-select:text;-webkit-user-select:text;touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#v6ReadLatest{font:12px system-ui;background:#3b2b3b;border:1px solid #87718e;color:#f8eec8;
+ border-radius:6px;padding:8px}
+body.v6-dead #v6Toast{top:10px;background:#522f37}
+@media(max-width:600px){#v6Toast{top:59px;max-width:94vw}#v6Reader{padding:9px}#v6ReaderBody{font-size:20px}}
+</style></head><body>
 <title>Observer World V6 — Living History & Allies</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -407,7 +427,7 @@ body.v5-show-original-hud .hud-row{display:flex!important}
   <strong>ОСТРОВ СУМЕРЕК × OBSERVER V5</strong>
   <div id="v5Stats">Live island / editable history</div>
   <div class="v5-menu-section"><b>World & construction</b>
-   <div class="v5-menu-row"><button type="button" id="v5Explore">Explore / exit building</button><button type="button" id="v5Journal">Read history ⛶</button></div>
+   <div class="v5-menu-row"><button type="button" id="v5Explore">Explore / exit building</button><button type="button" id="v5Journal">Open journal ⛶</button><button type="button" id="v6ReadLatest">Read latest event ⛶</button></div>
    <div class="v5-menu-row"><button type="button" id="v5Save">Save buildings</button><button type="button" id="v5Reset">Reset buildings only</button></div>
    <div id="v5Recent"></div>
   </div>
@@ -427,14 +447,23 @@ body.v5-show-original-hud .hud-row{display:flex!important}
    <div class="v5-menu-row"><button type="button" id="v5Pause">Pause / resume</button><button type="button" id="v5Full">Fullscreen</button></div>
    <div class="v5-menu-row"><label>Weapon <select id="v5Weapon"></select></label><button type="button" id="v5GetWeapons">Unlock original arsenal</button></div>
    <div class="v5-menu-row"><label><input type="checkbox" id="v5OriginalHud"> Show original health/minimap</label></div>
-   <p>WASD move · Right-drag camera · Left click attack · Jump Space · Q/E weapon · R reload · Scroll zoom · Building: choose symbol below, then left-click land.</p>
+   <p>WASD move · RIGHT CLICK build · LEFT CLICK attack · Alt+LEFT CLICK read · Esc cancel · Jump Space · Q/E weapon · R reload · Scroll zoom · Building: choose symbol below, then left-click land.</p>
   </div>
  </div>
 </details>
-<div id="v5Hint" role="status">Choose a symbol below to build on the original 3D island</div>
+<div id="v5Hint" role="status">Choose a symbol, then RIGHT-CLICK to build · LEFT-CLICK to attack</div>
 <nav id="v5Dock" aria-label="Observer World create objects"></nav>
 <dialog id="v5JournalDialog" aria-label="Historical narrative"><button id="v5JournalClose" type="button">Close ✕</button><h2>The Living History</h2><article id="v5JournalBody"></article></dialog>
 <script src="./audio.js"></script>
+<div id="v6Toast" role="status"></div>
+<dialog id="v6Reader" aria-label="Read historical consequences fullscreen">
+ <header id="v6ReaderHeader"><strong id="v6ReaderTitle">World history</strong>
+  <div><button type="button" id="v6ReadMinus">A−</button>
+  <button type="button" id="v6ReadPlus">A+</button>
+  <button type="button" id="v6ReaderClose">Close ✕</button></div>
+ </header>
+ <article id="v6ReaderBody"></article>
+</dialog>
 <script src="./building-assets.js"></script>
 <script src="./npc-catalog.js"></script>
 <script src="./combat-relations.js"></script>
