@@ -140,6 +140,8 @@ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:60
 const fireActual=await m.page.evaluate(()=>{const i=window.__isle;return {attacking:i.input.atk,touchSource:i.input.src.touch,canFire:i.underwater.canFire(),y:i.player.pos.y}});
 console.log('PHONE_FIRE_ACTUAL',JSON.stringify(fireActual));
 console.log('PHONE_BUILD_PROBE',JSON.stringify(await m.page.evaluate(()=>({probe:window.__phoneBuildProbe,atPoint:document.elementFromPoint(...[document.getElementById('v7Build').getBoundingClientRect().left+30,document.getElementById('v7Build').getBoundingClientRect().top+30])?.id}))));
+const directFireDiagnostic=await m.page.evaluate(()=>{const i=window.__isle;const before={gameState:i.G.state,hp:i.player.hp,canFire:i.underwater.canFire(),batyscaphe:i.underwater.inBathyscaphe,input:i.input.atk};const called=i.mobileShoot();return {before,called,after:i.input.atk}});
+console.log('PHONE_DIRECT_FIRE_DIAG',JSON.stringify(directFireDiagnostic));
 assert(fireActual.attacking,'Middle button shoots only with picked ranged weapon: '+JSON.stringify({firePrereqs,fireActual}));
 await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
 assert.equal(await m.page.evaluate(()=>window.__isle.input.atk),false,'Touch release must stop gunfire');
