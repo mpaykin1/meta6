@@ -1,3 +1,18 @@
+## Observer World V7 — approved mobile-control layout (2026-10-16)
+
+**Play:** https://mpaykin1.github.io/meta6/observer-world-en-v7/
+
+**Claude/Codex handoff:** [observer-world-en-v7/CLAUDE.md](observer-world-en-v7/CLAUDE.md)
+
+Source files: [3D game](observer-world-en-v7/index.html) · [historical builder](observer-world-en-v7/editor.js) · [mobile input](observer-world-en-v7/mobile-controls.js) · [phone layout](observer-world-en-v7/mobile-controls.css) · [architecture](observer-world-en-v7/building-assets.js) · [NPCs](observer-world-en-v7/npc-catalog.js) · [relationships](observer-world-en-v7/combat-relations.js) · [narrative](observer-world-en-v7/story-system.js) · [music](observer-world-en-v7/audio.js).
+
+**Phone:** joystick left, exactly three right controls (combined jump+strike/fire, hammer build, weapon cycle), bottom glyph toolbar. Select glyph, tap island ground near hero (green preview ring), press hammer. Source tree-felling clears trees at site and persists removals; stone columns support buildings over uneven terrain; refuses existing structures. **Desktop V6 keyboard/mouse unchanged.**
+
+**CI:** [observer-v7-gate.yml](.github/workflows/observer-v7-gate.yml), [successful Chrome mobile interaction run](https://github.com/mpaykin1/meta6/actions/runs/38896347402). This confirms WebGL and touch-handler simulation; physical-device owner PASS still pending.
+
+
+---
+
 ## Observer World V6 — unique buildings, New hero, companions, retaliation (2026-10-16)
 
 - **Play V6:** https://mpaykin1.github.io/meta6/observer-world-en-v6/
