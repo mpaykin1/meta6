@@ -6,6 +6,10 @@ on:
     paths:
       - 'underwater-world/generator/**'
       - '.github/workflows/build-twilight-sunken-assets.yml'
+  pull_request:
+    paths:
+      - 'underwater-world/generator/**'
+      - '.github/workflows/build-twilight-sunken-assets.yml'
   workflow_dispatch:
 permissions:
   contents: write
