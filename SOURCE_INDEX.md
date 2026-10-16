@@ -1,4 +1,6 @@
-## Observer World V7 — approved mobile-control layout (2026-10-16)
+## Observer World V7 — OWNER PASS / accepted mobile release (2026-10-16)
+
+**OWNER PASS = ACCEPTED 2026-10-16** · [Success record](docs/SUCCESS_OBSERVER_WORLD_V7_MOBILE_2026-10-16.md)
 
 **Play:** https://mpaykin1.github.io/meta6/observer-world-en-v7/
 
@@ -8,7 +10,7 @@ Source files: [3D game](observer-world-en-v7/index.html) · [historical builder]
 
 **Phone:** joystick left, exactly three right controls (combined jump+strike/fire, hammer build, weapon cycle), bottom glyph toolbar. Select glyph, tap island ground near hero (green preview ring), press hammer. Source tree-felling clears trees at site and persists removals; stone columns support buildings over uneven terrain; refuses existing structures. **Desktop V6 keyboard/mouse unchanged.**
 
-**CI:** [observer-v7-gate.yml](.github/workflows/observer-v7-gate.yml), [successful Chrome mobile interaction run](https://github.com/mpaykin1/meta6/actions/runs/38896347402). This confirms WebGL and touch-handler simulation; physical-device owner PASS still pending.
+**CI:** [observer-v7-gate.yml](.github/workflows/observer-v7-gate.yml), [successful Chrome mobile interaction run](https://github.com/mpaykin1/meta6/actions/runs/38896347402). This confirms WebGL and touch-handler simulation; owner PASS explicitly accepted on 2026-10-16; no independent hardware benchmark claimed.
 
 
 ---
