@@ -34,7 +34,7 @@
     let ctx=null,master=null,musicBus=null,fxBus=null,ambBus=null,wind=null,drone=null,analyser=null;
     let noiseBuf=null,enabled=false,fxEnabled=false,volume=0.8,musicVolume=1,fxVolume=0.65,theme="frontier",manualTheme="",lastTheme="",
         nextBeat=0,step=0,lastTick=0,lastFx=Object.create(null),lastVariant=Object.create(null),
-        scheduled=0,events=0,musicBeats=0,switches=0,ctxErrors=0,wasRunning=false,musicChords=0,counterpointNotes=0,section=0,phrase=0;
+        scheduled=0,events=0,musicBeats=0,switches=0,ctxErrors=0,wasRunning=false,musicChords=0,counterpointNotes=0,section=0,phrase=0,musicTimer=null,lastWorldState={objects:[],combat:{actors:[]},order:20,suspicion:0};
     try {
       const stored=localStorage.getItem("observer-v4-master-volume");
       if(stored!==null){const v=Number(stored);if(Number.isFinite(v)&&v>=0&&v<=1)volume=v}
@@ -103,6 +103,19 @@
       ambBus.gain.setTargetAtTime(enabled?.09:0,t,.5);
       master.gain.setTargetAtTime((enabled||fxEnabled)?volume*.92:0,t,.08);
     }
+    function stopMusicClock(){
+      if(musicTimer!==null&&typeof root.clearInterval==="function")root.clearInterval(musicTimer);
+      musicTimer=null;
+    }
+    function armMusicClock(){
+      if(musicTimer!==null||typeof root.setInterval!=="function")return;
+      // One bounded shared music lookahead scheduler, independent of graphical FPS.
+      musicTimer=root.setInterval(()=>{
+        if(!enabled||!ctx||ctx.state!=="running")return;
+        try{tick(root.performance?.now?.()||Date.now(),lastWorldState)}
+        catch(e){ctxErrors++;if(ctxErrors>4)stopMusicClock()}
+      },120);
+    }
     async function start(){
       if(!init())return false;
       enabled=true;
@@ -110,11 +123,11 @@
       nextBeat=ctx.currentTime+.09;lastTick=-1;updateBuses();
       // Schedule audible music immediately in the same user gesture; no dependence on a future RAF.
       beat(nextBeat);nextBeat+=60/THEMES[theme].tempo/2;
-      return true;
+      armMusicClock();return true;
     }
     function setEnabled(value) {
       if(value)return start();
-      enabled=false;updateBuses();
+      enabled=false;stopMusicClock();updateBuses();
       // A muted but running AudioContext still costs CPU on phones. Suspend entirely.
       if(ctx&&ctx.state==="running"&&!fxEnabled)return ctx.suspend().then(()=>false).catch(()=>{ctxErrors++;return false});
       return Promise.resolve(false)
@@ -240,6 +253,7 @@
       musicBeats++;step++;
     }
     function tick(ms,state){
+      if(state)lastWorldState=state;
       if(!enabled||!ctx||ctx.state!=="running")return;
       if(ms-lastTick<110)return;lastTick=ms;
       const desired=classify(state);
@@ -280,10 +294,10 @@
     }
     function onVisibility(hidden){
       if(!ctx)return;
-      if(hidden){wasRunning=enabled;try{ctx.suspend()}catch{}}
-      else if(wasRunning&&enabled){ctx.resume().then(()=>{nextBeat=ctx.currentTime+.12}).catch(()=>{ctxErrors++})}
+      if(hidden){wasRunning=enabled;stopMusicClock();try{ctx.suspend()}catch{}}
+      else if(wasRunning&&enabled){ctx.resume().then(()=>{nextBeat=ctx.currentTime+.12;armMusicClock()}).catch(()=>{ctxErrors++})}
     }
-    function diagnostics(){return{supported:!!(root.AudioContext||root.webkitAudioContext),enabled,fxEnabled,volume,musicVolume,fxVolume,theme,label:THEMES[theme].label,contextState:ctx?.state||"not-created",musicRms:musicMeter(),events,musicBeats,scheduled,switches,musicChords,counterpointNotes,phrase,section,ctxErrors,source:"World_server/games/ostrov-sumerek/engine/32_audio.js"}}
+    function diagnostics(){return{supported:!!(root.AudioContext||root.webkitAudioContext),enabled,fxEnabled,volume,musicVolume,fxVolume,schedulerActive:musicTimer!==null,theme,label:THEMES[theme].label,contextState:ctx?.state||"not-created",musicRms:musicMeter(),events,musicBeats,scheduled,switches,musicChords,counterpointNotes,phrase,section,ctxErrors,source:"World_server/games/ostrov-sumerek/engine/32_audio.js"}}
     return Object.freeze({start,toggle,setEnabled,setVolume,setMusicVolume,setFxEnabled,setFxVolume,forceTheme,tick,event,onVisibility,diagnostics,get enabled(){return enabled},get fxEnabled(){return fxEnabled},get musicVolume(){return musicVolume},get fxVolume(){return fxVolume},get volume(){return volume}});
   }
   root.ObserverKriegerAudio=Object.freeze({create,THEMES,SOUND_GROUPS});
