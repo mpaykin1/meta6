@@ -289,7 +289,7 @@ body{touch-action:none}#c{position:absolute;inset:0;width:100%;height:100%;touch
 .v5-tool span{font:25px Georgia,serif;display:block;line-height:1.15;color:#ffd246}
 .v5-tool small{font-size:9px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .v5-tool.selected{border:2px solid #ffd246;background:#50422b}
-#v5Hint{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+#v5Hint{display:none;position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
  pointer-events:none;z-index:17;color:#f8eec8;text-shadow:0 1px 5px #000;background:rgba(18,13,28,.62);
  border-radius:8px;padding:5px 10px;font:11px "Pixelify Sans",sans-serif;max-width:90vw;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
 #v5JournalDialog{width:min(700px,calc(100vw - 24px));max-height:85dvh;overflow:auto;color:#f8eec8;border:1px solid #b7a989;
@@ -297,6 +297,7 @@ body{touch-action:none}#c{position:absolute;inset:0;width:100%;height:100%;touch
 #v5JournalDialog::backdrop{background:rgba(0,0,0,.8)}
 #v5JournalBody{white-space:pre-wrap;font:17px/1.6 Georgia,serif;user-select:text;touch-action:pan-y}
 #v5JournalClose{position:sticky;top:0;float:right;border:1px solid #b7a989;background:#473343;color:white;padding:9px}
+body.v5-placing #v5Hint{display:block}
 body.v5-show-original-hud #hud{display:block!important}
 body.v5-show-original-hud .hud-row{display:flex!important}
 @media(max-width:720px){#v5Dock{height:60px}.v5-tool{height:50px;flex-basis:56px}.v5-tool span{font-size:22px}#v5Hint{bottom:calc(70px + env(safe-area-inset-bottom))}}
