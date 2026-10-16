@@ -426,6 +426,8 @@ function start(){
    p($("v7Build"),"pointerdown",73,750,450);
    placed=state.objects.at(-1);
    checks.hammerBuild=state.objects.length===n+1&&placed?.kind==="well"&&mobileHud.counters.buildCount===1;
+   // Never leave the self-test pointer pressed: production bathyscaphe uses this button too.
+   p($("v7Build"),"pointerup",73,750,450);
    if(placed){
     const second=onPlace("market",placed.x,placed.z);
     checks.overlapRejected=!second&&state.objects.length===n+1;
