@@ -4864,6 +4864,27 @@ window.__isle = {
     G.state='play';G.endT=0;G.timeScale=1;G.desat=0;G.fade=0;G.hitstop=0;
     $('scrEnd').hidden=true;releaseAll();updateHearts(false);return true
   },
+  // V7 mobile overlay calls ORIGINAL game controls; desktop keyboard/mouse are unchanged.
+  mobileMove(dx,dy){touch.vx=clamp(dx,-1,1);touch.vy=clamp(dy,-1,1)},
+  mobileCombo(on){
+    if(on&&G.state==='play'){onJumpPress();setAttack('touch',true)}
+    else{onJumpRelease();setAttack('touch',false)}
+  },
+  mobileSwap(){if(G.state==='play')cycleWeapon(1)},
+  mobileRelease(){touch.vx=touch.vy=0;onJumpRelease();setAttack('touch',false)},
+  // Fell original voxel trees using the source destruction/particles/chunk rebuild code.
+  clearConstructionTrees(x,z,radius=2.7){
+    const list=world.trees.filter(t=>Math.hypot(t.x+.5-x,t.z+.5-z)<radius).map(t=>[t.x,t.z]);
+    let count=0;for(const [tx,tz] of list)if(fellTree(tx,tz))count++;
+    return count
+  },
+  // Ground elevations sampled from original voxels. New models use supports on slopes.
+  buildGround(x,z,radius=1.45){
+    const h=[];
+    for(let dz=-radius;dz<=radius;dz+=radius)for(let dx=-radius;dx<=radius;dx+=radius)
+      h.push(terrainTop(x+dx,z+dz));
+    return {min:Math.min(...h),max:Math.max(...h),center:terrainTop(x,z),sea:SEA}
+  },
   clearInput(){releaseAll();keys.clear()}, get originalSfx(){return SFX},
   G, player, rig, perf, combat, aim, input, WEAPONS, ARSENAL_ORDER,
   get world() { return world; }, get foes() { return foes; }, get loot() { return loot; }, get projs() { return projs; },
