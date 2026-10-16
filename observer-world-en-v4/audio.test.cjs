@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 const src=fs.readFileSync(__dirname+'/audio.js','utf8');
-let made=0,stopped=0,started=0,active=0,suspended=0,lastContext=null;
+let made=0,stopped=0,started=0,active=0,suspended=0,lastContext=null,musicScheduler=null;
 const param=(value=0)=>({value,setValueAtTime(x){this.value=x},linearRampToValueAtTime(x){this.value=x},exponentialRampToValueAtTime(x){this.value=x},setTargetAtTime(x){this.value=x}});
 class Node { constructor(){this.frequency=param(220);this.detune=param(0);this.gain=param(0);this.Q=param(0);this.playbackRate=param(1);this.threshold=param(-12);this.ratio=param(3);this.channelCount=1;this.type='sine'}connect(){return this}disconnect(){}getFloatTimeDomainData(array){array.fill(.032)}start(){started++;active++}stop(){stopped++;active=Math.max(0,active-1)} }
 class AudioContext {
@@ -15,7 +15,7 @@ class AudioContext {
  async close(){this.state='closed'}
 }
 const store=new Map();
-const sandbox={window:{AudioContext},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},Math,Number,Object,Promise,console};
+const sandbox={window:{AudioContext,performance:{now:()=>lastContext?.currentTime*1000||0},setInterval:fn=>{musicScheduler=fn;return 27},clearInterval:()=>{musicScheduler=null}},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},Math,Number,Object,Promise,console};
 vm.runInNewContext(src,sandbox,{filename:'audio.js'});
 const impl=sandbox.window.ObserverKriegerAudio,system=impl.create();
 assert.ok(Object.keys(impl.THEMES).length>=11);
@@ -25,6 +25,7 @@ assert.equal(system.diagnostics().contextState,'not-created');
 (async()=>{
  assert.equal(await system.start(),true);
  assert.equal(system.diagnostics().musicBeats>=1,true,'Music must schedule immediately from the start gesture');
+ assert.equal(typeof musicScheduler,'function','independent music scheduler must start');
  assert.ok(system.diagnostics().musicRms>0,'Analyser must observe non-zero music signal');
  assert.ok(system.diagnostics().musicVolume>=.8,'Default audible music volume should not be nearly silent');
  assert.equal(system.event('hit'),false,'SFX remains independently muted');
@@ -36,6 +37,10 @@ assert.equal(system.diagnostics().contextState,'not-created');
  }
  assert.ok(system.diagnostics().events>=13,'Every event gets synthesis');
  assert.ok(system.diagnostics().scheduled>25,'Synth voices were scheduled');
+ const pre=system.diagnostics().musicBeats;
+ for(let i=0;i<12;i++){lastContext.currentTime+=.25;musicScheduler()}
+ assert.ok(system.diagnostics().musicBeats>pre+3,'Music must continue via timer even without graphical RAF');
+ 
  let t=3000;
  for(const state of [
   {objects:[{kind:'market'}],combat:{actors:[]},order:20},
@@ -50,6 +55,7 @@ assert.equal(system.diagnostics().contextState,'not-created');
  assert.ok(system.diagnostics().switches>=4,'World must change musical themes');
  system.setVolume(.2);assert.equal(system.diagnostics().volume,.2);
  await system.setFxEnabled(false);await system.setEnabled(false);assert.equal(system.diagnostics().enabled,false);
+ assert.equal(musicScheduler,null,'single audio scheduler must stop when disabled');
  assert.equal(lastContext.state,'suspended','muting must suspend context to save mobile CPU');
  const events=system.diagnostics().events;
  system.event('hit');assert.equal(system.diagnostics().events,events,'mute must silence game sounds');
