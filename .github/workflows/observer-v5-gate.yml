@@ -1,0 +1,88 @@
+name: Observer V5 Original Island Renderer Gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'observer-world-en-v5/**'
+      - '.github/workflows/observer-v5-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: observer-v5
+  cancel-in-progress: true
+jobs:
+  original-renderer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate original source, unchanged camera, editor and music
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check observer-world-en-v5/editor.js
+          node --check observer-world-en-v5/audio.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          src=Path('observer-world-en-v5/index.html').read_text()
+          old=Path('observer-world-en-v4/reference/ostrov-sumerek-expanded-original.html').read_text()
+          for name in ['function updateCamera(dt)', 'const scene = new THREE.Scene()', 'const camera = new THREE.PerspectiveCamera(46', 'const FinalShader = {', 'function buildTerrainGeometry(', 'function updateFoes(dt)', 'function renderFoes()', 'const SFX = {', 'function updateCombat(dt)', 'function updateProjectiles(dt)', 'composer.render(raw)']:
+            assert name in old and name in src,name
+          assert old.split('function updateCamera(dt) {')[1].split('function updatePost(dt) {')[0]==src.split('function updateCamera(dt) {')[1].split('function updatePost(dt) {')[0]
+          assert 'get terrainMeshes(){return chunks}' in src
+          assert 'OBSERVER_V5_SOURCE' in src
+          assert 'observer-v5-ready' in src
+          assert 'id="v5Dock"' in src and 'id="v5Menu"' in src
+          assert 'new THREE.WebGLRenderer({ canvas' in src
+          mods=re.findall(r'<script type="module">([\s\S]*?)</script>',src)
+          assert len(mods)==1
+          Path('/tmp/v5-source.mjs').write_text(mods[0])
+          print('V5_ORIGINAL_CAMERA_CODE_EXACT=PASS')
+          PY
+          node --check /tmp/v5-source.mjs
+          test "$(git hash-object observer-world-en-v4/reference/ostrov-sumerek-expanded-original.html)" = 'eb8b736d7f4610584f1afb9f533d328ccfb35831'
+      - name: Verify published release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://mpaykin1.github.io/meta6/observer-world-en-v5/'
+          for i in $(seq 1 75); do
+            PAGE="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
+            EDITOR="$(curl -fLsS --max-time 20 "$URL"editor.js 2>/dev/null || true)"
+            MUSIC="$(curl -fLsS --max-time 20 "$URL"audio.js 2>/dev/null || true)"
+            if grep -Fq 'ORIGINAL_ISLAND_THREEJS_SHADER_RENDERER_UNMODIFIED' <<<"$PAGE" \
+             && grep -Fq 'OBSERVER_WORLD_V5' <<<"$EDITOR" \
+             && grep -Fq 'musicMeter' <<<"$MUSIC"; then
+              echo "V5_EXACT_PUBLIC=PASS SHA=$GITHUB_SHA"; exit 0
+            fi
+            sleep 8
+          done
+          echo '::error::V5 source or assets not published';exit 1
+      - name: Live Chrome WebGL and actual 3D building
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless --no-sandbox --disable-dev-shm-usage \
+           --enable-webgl --ignore-gpu-blocklist --enable-unsafe-swiftshader \
+           --no-first-run --disable-background-networking --virtual-time-budget=12500 \
+           --dump-dom 'https://mpaykin1.github.io/meta6/observer-world-en-v5/?v5test=1' \
+           >/tmp/v5-dom.html 2>/tmp/v5-chrome.log
+          if grep -Fq 'data-v5-selftest="pass"' /tmp/v5-dom.html; then
+            echo 'V5_ORIGINAL_3D_BUILDER=PASS'
+            grep -o '<pre id="v5SelfTest"[^>]*>[^<]*' /tmp/v5-dom.html | tail -1 || true
+          else
+            echo '::error::Original 3D scene and construction failed'
+            grep -o '<pre id="v5SelfTest"[^>]*>[^<]*' /tmp/v5-dom.html | tail -1 || true
+            tail -25 /tmp/v5-chrome.log || true
+            exit 1
+          fi
+      - name: Evidence
+        run: |
+          echo 'V5_CI=PASS'
+          echo "COMMIT=$GITHUB_SHA"
+          echo 'OWNER_VISUAL_PASS=PENDING'
+          echo 'ORIGINAL_CAMERA=UNCHANGED'
