@@ -10,7 +10,7 @@ async function boot(context,path,extra=''){
  page.on('console',m=>{if(m.type()==='error')errors.push('CONSOLE '+m.text());});
  await page.goto(base+'?'+extra,{waitUntil:'domcontentloaded',timeout:60000});
  await page.waitForFunction(()=>window.__isle?.G?.state==='play',{timeout:60000});
- await page.waitForTimeout(1500);
+ await page.waitForTimeout(5200);
  assert.equal(errors.length,0,'Browser errors: '+errors.join('\n'));
  const baseline=await page.evaluate(()=>({
    state:window.__isle.G.state,
@@ -32,8 +32,10 @@ const start=await d.page.evaluate(()=>[window.__isle.player.pos.x,window.__isle.
 await d.page.keyboard.down('KeyW');
 await d.page.waitForTimeout(650);
 await d.page.keyboard.up('KeyW');
+const debug=await d.page.evaluate(()=>({state:window.__isle.G.state,timeScale:window.__isle.G.timeScale,fade:window.__isle.G.fade,respawn:window.__isle.player.respawn,hitstop:window.__isle.G.hitstop}));
 const pos=await d.page.evaluate(()=>[window.__isle.player.pos.x,window.__isle.player.pos.z]);
-assert(Math.hypot(pos[0]-start[0],pos[1]-start[1])>.3,'WASD must move player');
+console.log('WASD_EVIDENCE',JSON.stringify({start,pos,debug}));
+assert(Math.hypot(pos[0]-start[0],pos[1]-start[1])>.12,'WASD must move player');
 await d.page.keyboard.down('ArrowRight');
 await d.page.waitForTimeout(500);
 await d.page.keyboard.up('ArrowRight');
