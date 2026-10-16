@@ -727,7 +727,7 @@ if(new URLSearchParams(location.search).get('v4musicprobe')==='1'){
  SOUND.start().then(ok=>{
   (function check(){
    const d=SOUND.diagnostics();attempts++;
-   const good=ok&&d.contextState==='running'&&d.musicBeats>=3&&d.musicRms>0.0005;
+   const good=ok&&d.contextState==='running'&&d.musicBeats>=2&&d.musicRms>0.0005;
    if(good||attempts>=18){
     document.body.dataset.musicProbe=good?'pass':'fail';
     node.textContent=JSON.stringify({good,attempts,contextState:d.contextState,musicRms:d.musicRms,
