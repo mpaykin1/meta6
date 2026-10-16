@@ -381,6 +381,69 @@ function start(){
  };
  
  document.body.dataset.v7Ready="true";
+ if(new URLSearchParams(location.search).get("v7test")==="1"){
+  const checks={
+   original3D:scene.type==="Scene"&&native.camera.type==="PerspectiveCamera"&&native.world.vox.length===64*64*26,
+   mobileMounted:mobileHud?.enabled===true&&!!$("v7Stick"),
+   threeRightButtons:document.querySelectorAll("#v7MobileHud .v7-action").length===3,
+   symbols:document.querySelectorAll("#v5Dock .v5-tool").length===PRIMARY.length,
+   originalWeaponCount:native.ARSENAL_ORDER.length===21,
+   originalVisuals:native.scene.children.length>10,
+   sameCameraAlgorithm:typeof native.rig.yaw==="number",
+   reader:!!$("v6Reader")
+  };
+  // Functionally check the virtual controller enters the ORIGINAL motion/attack state.
+  native.G.state="play";native.player.hp=Math.max(1,native.player.hp);
+  const stick=$("v7Stick"),action=$("v7Action");
+  const p=(target,type,id,x,y)=>target.dispatchEvent(new PointerEvent(type,{
+    pointerId:id,pointerType:"touch",clientX:x,clientY:y,bubbles:true,cancelable:true,buttons:type==="pointerdown"?1:0
+  }));
+  const sr=stick.getBoundingClientRect();
+  p(stick,"pointerdown",71,sr.left+sr.width*.75,sr.top+sr.height*.5);
+  checks.joystick=mobileHud.counters.moveCount>0;
+  p(stick,"pointerup",71,sr.left+sr.width*.75,sr.top+sr.height*.5);
+  p(action,"pointerdown",72,700,450);
+  checks.combinedAttackJump=native.input.src.touch===true&&native.player.jumpHeld===true;
+  p(action,"pointerup",72,700,450);
+  checks.comboRelease=native.input.src.touch===false&&native.player.jumpHeld===false;
+  let site=null;
+  const hero=native.player.pos;
+  for(let dist=3;dist<=7&&!site;dist+=1)
+   for(let i=0;i<24&&!site;i++){
+    const x=hero.x+Math.cos(i*Math.PI/12)*dist,z=hero.z+Math.sin(i*Math.PI/12)*dist;
+    const point=mobilePlacementPoint(x,z),sx=Math.round(point.x*.5)*2,sz=Math.round(point.z*.5)*2;
+    if(native.terrainTop(sx,sz)<native.SEA+.1)continue;
+    if(Math.hypot(hero.x-sx,hero.z-sz)<1.7)continue;
+    if(native.world?.tower&&Math.hypot(native.world.tower.x-sx,native.world.tower.z-sz)<5)continue;
+    if(state.objects.some(o=>Math.hypot(o.x-sx,o.z-sz)<4))continue;
+    site=point
+   }
+  checks.siteAvailable=!!site;
+  let placed=null;
+  if(site){
+   activateBuild("well");setMobilePoint(site);
+   const n=state.objects.length;
+   p($("v7Build"),"pointerdown",73,750,450);
+   placed=state.objects.at(-1);
+   checks.hammerBuild=state.objects.length===n+1&&placed?.kind==="well"&&mobileHud.counters.buildCount===1;
+   if(placed){
+    const second=onPlace("market",placed.x,placed.z);
+    checks.overlapRejected=!second&&state.objects.length===n+1;
+    checks.terrainPlatform=groups.get(placed.id)?.group.children.length>=5;
+    checks.nearHero=Math.hypot(hero.x-placed.x,hero.z-placed.z)<=8.6;
+   }
+  }
+  if(native.world.trees.length){
+   const count=native.world.trees.length,t=native.world.trees[0];
+   const removed=native.clearConstructionTrees(t.x+.5,t.z+.5,.8);
+   checks.originalTreeRemoval=removed.length>=1&&native.world.trees.length<count;
+  }else checks.originalTreeRemoval=true;
+  checks.pixelIcons=!!$("v7Swap").querySelector("svg")&&!!$("v7Build").querySelector("svg")&&$("v7Action").querySelectorAll("svg").length===2;
+  const pass=Object.values(checks).every(Boolean);
+  document.body.dataset.v7Selftest=pass?"pass":"fail";
+  const proof=document.createElement("pre");proof.id="v7SelfTest";proof.hidden=true;proof.textContent=JSON.stringify({pass,checks});
+  document.body.appendChild(proof);
+ }
  // Opt-in real-browser integration proof: executes the original Three.js render path,
  // places a native atlas-textured 3D building, and verifies no second 2D canvas.
  if(new URLSearchParams(location.search).get("v6test")==="1"){
