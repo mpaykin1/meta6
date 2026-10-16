@@ -112,7 +112,7 @@ export function createQuestSystem({ seed = 0, emit = () => {}, onReward = null }
       const seen = {};
       for (const goal of quest.objectives) {
         const ids = state.seen[goal.id];
-        if (!Array.isArray(ids) || ids.length > goal.count || ids.some(id => !validId(id) || (goal.equals !== undefined && id !== goal.equals)) || new Set(ids).size !== ids.length) return { ok: false, reason: 'invalid-objective-progress' };
+        if (!Array.isArray(ids) || ids.length > goal.count || Array.from(ids).some(id => !validId(id) || (goal.equals !== undefined && id !== goal.equals)) || new Set(ids).size !== ids.length) return { ok: false, reason: 'invalid-objective-progress' };
         seen[goal.id] = [...ids];
       }
       const candidate = { id: quest.id, accepted: state.accepted, completed: state.completed, rewardDelivered: state.rewardDelivered, seen };

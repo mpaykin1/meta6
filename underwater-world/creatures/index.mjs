@@ -121,9 +121,10 @@ export function createCreatureSystem({
     mutating = true;
     let result;
     let workError;
-    try { result = work(); } catch (error) { workError = error; }
+    let workFailed = false;
+    try { result = work(); } catch (error) { workFailed = true; workError = error; }
     finally { mutating = false; }
-    if (workError) {
+    if (workFailed) {
       pending = [];
       throw workError;
     }
@@ -131,12 +132,16 @@ export function createCreatureSystem({
     pending = [];
     dispatching = true;
     let callbackError;
+    let callbackFailed = false;
     try {
       for (const event of events) {
-        try { emit(copy(event)); } catch (error) { callbackError ??= error; }
+        try { emit(copy(event)); } catch (error) {
+          if (!callbackFailed) callbackError = error;
+          callbackFailed = true;
+        }
       }
     } finally { dispatching = false; }
-    if (callbackError) throw callbackError;
+    if (callbackFailed) throw callbackError;
     return result;
   }
 
@@ -378,7 +383,7 @@ export function createCreatureSystem({
         chunk.ids.push(entity.id);
       }
     }
-    if (restoredEntities.size > maxEntities || state.observed.some(id => typeof id !== 'string' || id.length > 160 || !id.startsWith(prefix)) ||
+    if (restoredEntities.size > maxEntities || Array.from(state.observed).some(id => typeof id !== 'string' || id.length > 160 || !id.startsWith(prefix)) ||
         new Set(state.observed).size !== state.observed.length) throw new TypeError('Creature save exceeds limits or has invalid observations');
     return mutate(() => {
       chunks = restoredChunks;
