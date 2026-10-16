@@ -4,11 +4,11 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
 const src=fs.readFileSync(__dirname+'/audio.js','utf8');
 let made=0,stopped=0,started=0,active=0,suspended=0,lastContext=null;
 const param=(value=0)=>({value,setValueAtTime(x){this.value=x},linearRampToValueAtTime(x){this.value=x},exponentialRampToValueAtTime(x){this.value=x},setTargetAtTime(x){this.value=x}});
-class Node { constructor(){this.frequency=param(220);this.detune=param(0);this.gain=param(0);this.Q=param(0);this.playbackRate=param(1);this.threshold=param(-12);this.ratio=param(3);this.channelCount=1;this.type='sine'}connect(){return this}start(){started++;active++}stop(){stopped++;active=Math.max(0,active-1)} }
+class Node { constructor(){this.frequency=param(220);this.detune=param(0);this.gain=param(0);this.Q=param(0);this.playbackRate=param(1);this.threshold=param(-12);this.ratio=param(3);this.channelCount=1;this.type='sine'}connect(){return this}disconnect(){}getFloatTimeDomainData(array){array.fill(.032)}start(){started++;active++}stop(){stopped++;active=Math.max(0,active-1)} }
 class AudioContext {
  constructor(){made++;lastContext=this;this.sampleRate=24000;this.state='running';this.currentTime=1;this.destination=new Node()}
  createGain(){return new Node()}createOscillator(){return new Node()}
- createDynamicsCompressor(){return new Node()}createBufferSource(){return new Node()}
+ createDynamicsCompressor(){return new Node()}createAnalyser(){return new Node()}createBufferSource(){return new Node()}
  createBiquadFilter(){return new Node()}
  createBuffer(channels,length){return{getChannelData:()=>new Float32Array(length)}}
  async resume(){this.state='running'}async suspend(){this.state='suspended';suspended++}
@@ -18,12 +18,17 @@ const store=new Map();
 const sandbox={window:{AudioContext},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},Math,Number,Object,Promise,console};
 vm.runInNewContext(src,sandbox,{filename:'audio.js'});
 const impl=sandbox.window.ObserverKriegerAudio,system=impl.create();
-assert.equal(Object.keys(impl.THEMES).length,7);
+assert.ok(Object.keys(impl.THEMES).length>=11);
 assert.ok(Object.keys(impl.SOUND_GROUPS).length>=35);
 assert.equal(made,0,'Context must not be created until user gesture');
 assert.equal(system.diagnostics().contextState,'not-created');
 (async()=>{
  assert.equal(await system.start(),true);
+ assert.equal(system.diagnostics().musicBeats>=1,true,'Music must schedule immediately from the start gesture');
+ assert.ok(system.diagnostics().musicRms>0,'Analyser must observe non-zero music signal');
+ assert.ok(system.diagnostics().musicVolume>=.8,'Default audible music volume should not be nearly silent');
+ assert.equal(system.event('hit'),false,'SFX remains independently muted');
+ assert.equal(await system.setFxEnabled(true),true,'FX can be enabled independently');
  assert.equal(made,1);
  for(const kind of ['well','market','monastery','guard','plague','fire','healer','militia','wounded','killed','burial','printing','observer']){
   lastContext.currentTime+=.4;assert.equal(system.event(kind),true);
@@ -44,7 +49,7 @@ assert.equal(system.diagnostics().contextState,'not-created');
  }
  assert.ok(system.diagnostics().switches>=4,'World must change musical themes');
  system.setVolume(.2);assert.equal(system.diagnostics().volume,.2);
- await system.setEnabled(false);assert.equal(system.diagnostics().enabled,false);
+ await system.setFxEnabled(false);await system.setEnabled(false);assert.equal(system.diagnostics().enabled,false);
  assert.equal(lastContext.state,'suspended','muting must suspend context to save mobile CPU');
  const events=system.diagnostics().events;
  system.event('hit');assert.equal(system.diagnostics().events,events,'mute must silence game sounds');
@@ -60,6 +65,10 @@ assert.equal(system.diagnostics().contextState,'not-created');
  assert.ok(score.musicChords>=4,'multi-bar chord progressions must play');
  assert.ok(score.counterpointNotes>=4,'answering counterpoint must be audible');
  assert.ok(score.phrase>=1,'at least one 32-step phrase must develop');
+ system.forceTheme('monster');system.tick(t+80000,{monsters:[{hp:50}],objects:[],combat:{actors:[]},order:0});
+ assert.equal(system.diagnostics().theme,'monster','monster must switch the musical score');
+ system.forceTheme('');system.setMusicVolume(.5);
+ assert.equal(system.diagnostics().musicVolume,.5);
  assert.ok(started>4,'real oscillator/noise nodes started');
  console.log('AUDIO_ENGINE_PASS',JSON.stringify({...system.diagnostics(),made,started,stopped,suspended}));
 })().catch(e=>{console.error(e);process.exitCode=1});
