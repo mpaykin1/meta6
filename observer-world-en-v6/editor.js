@@ -278,7 +278,7 @@ function start(){
   music.tick(performance.now(),{objects:state.objects,combat:{actors:native.foes||[]},
    monsters:native.foes||[],order:state.order,suspicion:state.suspicion})
  }},1000);
- root.__OBSERVER_WORLD_V6__={ready:true,release:"V6_LIVING_HISTORY_ALLIES_20261016",
+ root.__OBSERVER_WORLD_V6__={ready:true,release:"V6_EXACT_REBIRTH_BETRAYAL_20261016_0934",
   originalRenderer:scene.type,objects:()=>state.objects,music:()=>music?.diagnostics(),state,
   get npcs(){return relations?.npcs},get story(){return story},get relations(){return relations},
   place:onPlace,select:activateBuild,get camera(){return native.camera},get native(){return native},
