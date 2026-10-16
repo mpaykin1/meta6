@@ -55,5 +55,45 @@
     "originalScaleUnchanged": true,
     "largeTextReader": true,
     "assetSourceSHA256": "fdbda0240b53f49d6e34aa0965531856e31a0154f4a12339e1682d60d5fe5c1f"
+  },
+  "miniIslandV4": {
+    "status": "TECHNICAL_GATE_PASS__OWNER_PASS_PENDING",
+    "game": "https://mpaykin1.github.io/meta6/observer-world-en-v4/",
+    "path": "observer-world-en-v4/index.html",
+    "fullOriginals": [
+      {
+        "path": "observer-world-en-v4/reference/ostrov-sumerek-original.html",
+        "gitBlobSHA": "d164562d0c75f4a0265d19ffe127b78a1bd27153",
+        "source": "Остров сумерек(4).html"
+      },
+      {
+        "path": "observer-world-en-v4/reference/ostrov-sumerek-expanded-original.html",
+        "gitBlobSHA": "eb8b736d7f4610584f1afb9f533d328ccfb35831",
+        "source": "Остров сумерек (1)(4).html"
+      }
+    ],
+    "modules": [
+      "observer-world-en-v4/original-assets.js",
+      "observer-world-en-v4/hero-apng.js",
+      "observer-world-en-v4/island-graphics.js",
+      "observer-world-en-v4/living-world.js",
+      "observer-world-en-v4/weapon-catalog.js",
+      "observer-world-en-v4/audio.js"
+    ],
+    "tests": [
+      "observer-world-en-v4/original-assets.test.cjs",
+      "observer-world-en-v4/island-graphics.test.cjs",
+      "observer-world-en-v4/living-world.test.cjs",
+      "observer-world-en-v4/audio.test.cjs"
+    ],
+    "workflow": ".github/workflows/observer-v4-gate.yml",
+    "features": "actual original atlas and full source; 4-frame APNG; 12 music scores with meter; separate Music/SFX; canvas mini-island, three scripted enemies, builder and exploration, partial 21-weapon combat integration",
+    "incomplete": [
+      "full original Three.js rendering",
+      "original all-weapon physics parity",
+      "visual match to original screenshot",
+      "iPhone audio proof",
+      "owner PASS"
+    ]
   }
 }
