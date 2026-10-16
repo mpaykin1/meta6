@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#17130d">
-<title>Observer World — Illustrated Musical Edition V3</title>
+<title>Observer World V4 — Living Mini-Island, Music & Monsters</title>
 <style>
 :root{--ink:#f3ead6;--muted:#b9aa90;--panel:rgba(23,18,12,.86);--line:rgba(238,214,174,.18);--red:#df4b3f;--gold:#d7b36a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -68,26 +68,66 @@ body.reader-open #readerOverlay{display:flex}
 #story,#inspectModal .inspectCard{background:rgba(21,17,27,.91);border-color:rgba(255,210,70,.24)}
 #soundButton[aria-pressed=true]{background:#38334b}
 @media(max-height:480px){#battleReader{top:69px}}
+
+#soundPanel{left:10px;right:10px;top:auto;bottom:calc(154px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;max-width:680px;
+ z-index:14;gap:7px;align-items:center;background:rgba(14,13,22,.92);padding:7px 9px}
+#soundPanel button,#soundPanel select,#v4Panel button{font:600 11px system-ui;color:#fff2d5;background:#373046;border:1px solid #927f94;
+ border-radius:9px;padding:7px 10px;min-height:33px;touch-action:manipulation}
+#soundPanel button[aria-pressed=true]{background:#2c644e;border-color:#72c8a0}
+#soundPanel label{font:10px system-ui;display:flex;gap:4px;align-items:center}
+#soundPanel input[type=range]{width:68px}
+#soundScene{max-width:none;font-size:10px}
+#v4Panel{position:fixed;left:10px;bottom:calc(224px + env(safe-area-inset-bottom));z-index:11;display:flex;gap:6px;
+ align-items:center;padding:5px;border-radius:10px;max-width:min(680px,calc(100vw - 20px));touch-action:manipulation}
+#v4Status{font:10px system-ui;max-width:360px}
+@media(max-width:740px){
+ #soundPanel{bottom:calc(151px + env(safe-area-inset-bottom));padding:5px 7px;gap:4px}
+ #soundPanel button,#soundPanel select{font-size:10px;padding:6px}
+ #soundPanel label{font-size:9px}
+ #soundPanel input[type=range]{width:40px}
+ #v4Panel{bottom:calc(215px + env(safe-area-inset-bottom))}#v4Status{font-size:9px;max-width:210px}
+ #soundScene{font-size:9px}
+}
+@media(max-height:550px){
+ #soundPanel{bottom:calc(68px + env(safe-area-inset-bottom));top:auto;max-width:92vw}
+ #v4Panel{bottom:calc(113px + env(safe-area-inset-bottom))}
+ #story{bottom:calc(128px + env(safe-area-inset-bottom));max-width:min(480px,70vw);left:auto;right:8px}
+}
 </style>
 </head>
 <body>
 <canvas id="game" aria-label="Medieval Chain Reaction World"></canvas>
 <div id="head" class="ui">
-  <div><strong>CHAIN REACTION · OBSERVERS V3</strong><small>Twilight Artwork · Living Music · Historical Simulation</small></div>
+  <div><strong>CHAIN REACTION · OBSERVERS V4</strong><small>Mini-Island · Real Music · Monsters · World Builder</small></div>
   <div id="status"><span>population <b id="pop">0</b></span><span>suspicion <b id="sus">0</b></span></div>
 </div>
 <div id="hint">choose a sign → touch the ground · drag the world</div>
 <div id="systemBadges">
   <span id="aiBadge" class="sysBadge">AI: checking…</span>
-  <span class="sysBadge live">FX: WS Lab v2</span>
+  <span class="sysBadge live">FX: Island world V4</span>
   <span id="combatBadge" class="sysBadge">combat: dormant</span>
 </div>
 <div id="battleToast" class="ui"></div>
 <button type="button" id="battleReader" class="reader-mini" aria-label="Read the battle story fullscreen" title="Fullscreen text">⛶</button>
-<div id="soundPanel" class="ui" aria-label="Game audio controls">
- <button id="soundButton" type="button" aria-pressed="false" aria-label="Enable original procedural game music and effects">♫ Sound: Off</button>
- <input id="soundVolume" type="range" min="0" max="100" step="5" value="48" aria-label="Sound volume">
- <span id="soundScene" aria-live="polite">Silent</span>
+<div id="soundPanel" class="ui" aria-label="Separate music and sound effect controls">
+ <button id="soundButton" type="button" aria-pressed="false" aria-label="Play or pause musical soundtrack">▶ PLAY MUSIC</button>
+ <button id="fxButton" type="button" aria-pressed="false" aria-label="Enable sound effects independently">SFX OFF</button>
+ <label for="soundVolume">Music <input id="soundVolume" type="range" min="0" max="100" step="5" value="100" aria-label="Music volume"></label>
+ <label for="fxVolume">FX <input id="fxVolume" type="range" min="0" max="100" step="5" value="65" aria-label="Effects volume"></label>
+ <select id="musicTheme" aria-label="Choose musical composition">
+  <option value="">Adaptive score</option>
+  <option value="dawn">Dawn / First Light</option><option value="frontier">Frontier</option>
+  <option value="town">Market Waltz</option><option value="chapel">Chapel</option>
+  <option value="knowledge">The Discovery</option><option value="mystery">Observer</option>
+  <option value="night">Night on the Island</option><option value="plague">Plague</option>
+  <option value="monster">A Shadow Appears</option><option value="battle">Steel & Ash</option>
+  <option value="aftermath">Aftermath</option><option value="victory">After the Darkness</option>
+ </select>
+ <span id="soundScene" aria-live="polite">Music paused</span>
+</div>
+<div id="v4Panel" class="ui">
+ <button id="modeButton" type="button" aria-pressed="false">🛠 Build Mode</button>
+ <span id="v4Status" aria-live="polite">Choose a symbol to build · monsters at the end of the dock</span>
 </div>
 <div id="story" class="ui"><button type="button" id="storyReader" class="reader-mini" aria-label="Expand field journal fullscreen" title="Read fullscreen">⛶</button><div class="kicker" id="storyKicker">Field Journal</div><div id="storyText">There is no city here yet. Only land, water, and two people the locals may one day take for foreigners. The Institute recommends starting small: give a future settlement a reason to exist—and see what people do with that reason on their own.</div></div>
 <div id="dock" class="ui"></div>
@@ -111,6 +151,7 @@ body.reader-open #readerOverlay{display:flex}
  <article id="readerBody" tabindex="0"></article>
 </div>
 <script src="./island-graphics.js"></script>
+<script src="./living-world.js"></script>
 <script src="./audio.js"></script>
 <script>
 (()=>{'use strict';
@@ -135,9 +176,10 @@ const ACTIONS={
  healer:['薬','Healer'],quarantine:['隔','Quarantine'],hospital:['療','Hospital'],
  fire:['火','Fire'],brigade:['桶','Fight Fire'],watch:['鐘','Watch'],
  plague:['疫','Plague'],cordon:['封','Cordon'],burial:['墓','Burial'],
- observer:['人','Observer'],contact:['信','Contact'],extraction:['門','Extraction']
+ observer:['人','Observer'],contact:['信','Contact'],extraction:['門','Extraction'],
+ imp:['鬼','Imp'],shade:['影','Shade'],warden:['魔','Warden']
 };
-const TYPES=['well','market','school','castle','monastery','guard','prison','granary','healer','fire','plague','observer'];
+const TYPES=['well','market','school','castle','monastery','guard','prison','granary','healer','fire','plague','observer','imp','shade','warden'];
 const NEXT_ACTION={well:'settlement',settlement:'council',market:'guild',guild:'tax',school:'scholarAction',scholarAction:'printing',castle:'court',court:'decree',monastery:'relief',relief:'doctrine',guard:'patrol',patrol:'militia',prison:'inquiry',inquiry:'pardon',granary:'ration',ration:'caravan',healer:'quarantine',quarantine:'hospital',fire:'brigade',brigade:'watch',plague:'cordon',cordon:'burial',observer:'contact',contact:'extraction'};
 const SECONDARY=new Set(Object.keys(ACTIONS).filter(k=>!TYPES.includes(k)));
 const LABEL=Object.fromEntries(Object.entries(ACTIONS).map(([k,v])=>[k,v[1]]));
@@ -201,7 +243,8 @@ function drawGlyph(o){
  S.glyphHits.push({id:o.id,x:p.x-r-5,y:p.y-r-5,w:r*2+10,h:r*2+10})
 }
 let renderErrors=0,lastSoundUI=0;
-function render(){time=performance.now();try{ground();window.IslandVisuals?.environment(ctx,cam,w2s,time,W,H);S.glyphHits=[];const sorted=S.objects.filter(o=>objectVisible(o,180)).sort((a,b)=>a.y-b.y);for(const o of sorted){drawObject(o);window.IslandVisuals?.decorate(ctx,o,w2s,cam);drawActivity(o);drawBuildEffect(o)}drawCombatLayer();for(const o of sorted)drawGlyph(o);SOUND?.tick(time,{objects:S.objects,combat:COMBAT,order:S.order,suspicion:S.suspicion});if(SOUND?.enabled&&time-lastSoundUI>1200){lastSoundUI=time;updateSoundUI()}}catch(e){renderErrors++;console.error('[OBSERVER V2 RENDER]',e);if(renderErrors<4)showBattleToast('Render recovered after an animation error. World state was preserved.')}finally{requestAnimationFrame(render)}}requestAnimationFrame(render);
+function render(){time=performance.now();try{ground();window.IslandVisuals?.environment(ctx,cam,w2s,time,W,H);V4.drawGround(time,W,H);S.glyphHits=[];const sorted=S.objects.filter(o=>objectVisible(o,180)).sort((a,b)=>a.y-b.y);for(const o of sorted){drawObject(o);window.IslandVisuals?.decorate(ctx,o,w2s,cam);drawActivity(o);drawBuildEffect(o)}drawCombatLayer();V4.update(time);V4.drawMonsters(time);V4.drawGlitch(time,W,H);for(const o of sorted)drawGlyph(o);
+ SOUND?.tick(time,{objects:S.objects,combat:COMBAT,monsters:V4.monsters,night:V4.snapshot().night,order:S.order,suspicion:S.suspicion});if(SOUND?.enabled&&time-lastSoundUI>900){lastSoundUI=time;updateSoundUI()}}catch(e){renderErrors++;console.error('[OBSERVER V2 RENDER]',e);if(renderErrors<4)showBattleToast('Render recovered after an animation error. World state was preserved.')}finally{requestAnimationFrame(render)}}requestAnimationFrame(render);
 function add(kind,x,y,extra={}){const o={id:S.next++,kind,x,y,dead:false,createdAt:performance.now(),...extra};S.objects.push(o);return o}
 function nearby(kind,x,y,r=150){return S.objects.filter(o=>o.kind===kind&&!o.dead&&Math.hypot(o.x-x,o.y-y)<r)}
 function report(title,text){kicker.textContent=title;story.textContent=text;S.history.push({title,text});popEl.textContent=S.pop;susEl.textContent=S.suspicion}
@@ -279,7 +322,7 @@ function buildDock(){for(const id of TYPES){const [g,n]=actionInfo(id),b=documen
 
 // --- Living History V2: World Server Animation Lab + AGES combat adapters ---
 const FX_VERSION='ws-animation-lab-v2+water-v9+watercolor-brush-smoke+v10-v11-microdetail+living-light';
-const RELEASE_MARKER='OBSERVER_V3_ISLAND_MUSIC_READER_20261016';
+const RELEASE_MARKER='OBSERVER_V4_MUSIC_MONSTER_ISLAND_20261016';
 const reducedMotion=()=>Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 const clamp01=v=>Math.max(0,Math.min(1,v));
 const smoothstep=v=>{v=clamp01(v);return v*v*(3-2*v)};
@@ -392,19 +435,36 @@ const FACTION_COLORS={guard:'#a9afb4',militia:'#b9896f',guild:'#c6a36e',zealot:'
 const HOSTILE={guard:new Set(['rebel','militia']),militia:new Set(['guard','house','zealot']),guild:new Set(['rebel']),zealot:new Set(['scholar','rebel','militia']),house:new Set(['rebel','militia']),rebel:new Set(['guard','guild','house','zealot']),scholar:new Set(['zealot'])};
 const COMBAT={actors:[],next:1,lastT:performance.now(),lastNarrated:0,clashes:0,deaths:0,wounds:0,aiRequests:0};
 const SOUND=window.ObserverKriegerAudio?.create()||null;
+const V4=window.ObserverV4World.create({S,COMBAT,ctx,w2s,cam,report,sound:SOUND,onSave:persistV2});
+const modeButton=document.getElementById('modeButton'),v4Status=document.getElementById('v4Status');
+modeButton.addEventListener('click',()=>{
+ const mode=V4.switchMode(V4.hero.mode==='builder'?'explore':'builder');
+ modeButton.textContent=mode==='explore'?'⚔ Explore Mode':'🛠 Build Mode';
+ modeButton.setAttribute('aria-pressed',String(mode==='explore'));
+ v4Status.textContent=mode==='explore'?'Tap a monster to strike it; drag to explore.':'Choose a sign and touch the world to build.';
+});
+const originalSnapshotFor=snapshotFor;
+snapshotFor=function v4Snapshot(o){const v=originalSnapshotFor(o);v.monsters=V4.monsters.filter(m=>!m.dead).map(m=>({kind:m.kind,hp:m.hp,x:m.x,y:m.y}));return v};
 const soundButton=document.getElementById('soundButton'),soundVolume=document.getElementById('soundVolume'),soundScene=document.getElementById('soundScene');
+const fxButton=document.getElementById('fxButton'),fxVolume=document.getElementById('fxVolume'),musicTheme=document.getElementById('musicTheme');
 function updateSoundUI(){
- if(!SOUND){soundButton.textContent='Audio unsupported';soundButton.disabled=true;return}
- const d=SOUND.diagnostics();soundButton.textContent=d.enabled?'♫ Sound: On':'♫ Sound: Off';
- soundButton.setAttribute('aria-pressed',String(d.enabled));soundScene.textContent=d.enabled?d.label:'Silent';
+ if(!SOUND){soundButton.textContent='Audio unavailable';soundButton.disabled=true;return}
+ const d=SOUND.diagnostics();soundButton.textContent=d.enabled?'Ⅱ PAUSE MUSIC':'▶ PLAY MUSIC';
+ soundButton.setAttribute('aria-pressed',String(d.enabled));
+ fxButton.textContent=d.fxEnabled?'SFX ON':'SFX OFF';fxButton.setAttribute('aria-pressed',String(d.fxEnabled));
+ soundScene.textContent=d.enabled ? d.label+' · '+d.contextState+' · signal '+d.musicRms : 'Music paused · '+d.contextState;
 }
 if(SOUND){
- soundVolume.value=String(Math.round(SOUND.volume*100));
+ soundVolume.value=String(Math.round(SOUND.musicVolume*100));
+ fxVolume.value=String(Math.round(SOUND.fxVolume*100));
  soundButton.addEventListener('click',async e=>{
-  e.stopPropagation();const ok=await SOUND.toggle();
-  updateSoundUI();if(ok)SOUND.event('ui')
+  e.stopPropagation();const ok=await SOUND.toggle();updateSoundUI();
+  if(!ok&&SOUND.diagnostics().contextState!=='suspended')soundScene.textContent='Audio blocked: tap PLAY MUSIC again';
  });
- soundVolume.addEventListener('input',e=>{SOUND.setVolume(Number(e.target.value)/100);updateSoundUI()});
+ fxButton.addEventListener('click',async e=>{e.stopPropagation();await SOUND.setFxEnabled(!SOUND.fxEnabled);updateSoundUI()});
+ soundVolume.addEventListener('input',e=>{SOUND.setMusicVolume(Number(e.target.value)/100);updateSoundUI()});
+ fxVolume.addEventListener('input',e=>{SOUND.setFxVolume(Number(e.target.value)/100);updateSoundUI()});
+ musicTheme.addEventListener('change',e=>{SOUND.forceTheme(e.target.value);updateSoundUI()});
  document.addEventListener('visibilitychange',()=>SOUND.onVisibility(document.hidden));
 }
 updateSoundUI();
@@ -523,7 +583,8 @@ function announceClash(attacker,target,outcome){
 const basePlaceV2=place;
 let placeAiSeq=0;
 place=function livingHistoryPlace(kind,x,y){
- basePlaceV2(kind,x,y);SOUND?.event(kind);armScenario(kind,x,y);persistV2();
+ if(V4.isMonster(kind)){V4.spawn(kind,x,y,true);persistV2();return}
+ basePlaceV2(kind,x,y);V4.onBuild(kind,x,y);SOUND?.event(kind);armScenario(kind,x,y);persistV2();
  const seq=++placeAiSeq,fallback=story.textContent,ctx=snapshotFor({x,y});
  askLiveAI('Interpret this new historical action in the current medieval world. State what changed, how nearby people react, and one plausible next consequence. Keep it compact and literary.',{kind,name:LABEL[kind]||kind,glyph:GLYPH[kind]||'◆',location:'world x '+Math.round(x)+', y '+Math.round(y)},ctx,fallback,t=>{if(seq===placeAiSeq)report('AI · '+(LABEL[kind]||'World event'),t)})
 };
@@ -535,11 +596,11 @@ openInspect=function aiObjectInspect(o){
 };
 
 // Lightweight crash/reload continuity for the new branch only.
-const SAVE_KEY='meta6-observer-living-history-v2';
+const SAVE_KEY='meta6-observer-living-history-v4';
 function persistV2(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,pop:S.pop,food:S.food,order:S.order,suspicion:S.suspicion,next:S.next,objects:S.objects,history:S.history.slice(-80),combat:COMBAT.actors,nextCombat:COMBAT.next}))}catch{}}
 function restoreV2(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(!d||d.v!==2)return;Object.assign(S,{pop:d.pop??S.pop,food:d.food??S.food,order:d.order??S.order,suspicion:d.suspicion??S.suspicion,next:d.next??S.next,objects:Array.isArray(d.objects)?d.objects:S.objects,history:Array.isArray(d.history)?d.history:S.history});COMBAT.actors=Array.isArray(d.combat)?d.combat:COMBAT.actors;COMBAT.next=d.nextCombat||COMBAT.next;for(const o of S.objects)if(!o.createdAt)o.createdAt=performance.now()-1000;popEl.textContent=S.pop;susEl.textContent=S.suspicion}catch{}}
 restoreV2();probeLivingAI();
-window.__OBSERVER_WORLD_V2__={ready:true,version:'living-history-v3-illustrated-score',release:RELEASE_MARKER,fx:FX_VERSION,visuals:window.IslandVisuals?.info()||null,aiUrl:AI_URL,combat:COMBAT,audio:SOUND,snapshot:()=>({state:S,combat:COMBAT,fx:{smokeBudget:40,shimmer:28,sway:18}}),save:persistV2};
+window.__OBSERVER_WORLD_V2__={ready:true,version:'living-history-v4-mini-island',release:RELEASE_MARKER,fx:FX_VERSION,visuals:window.IslandVisuals?.info()||null,world:V4,aiUrl:AI_URL,combat:COMBAT,audio:SOUND,snapshot:()=>({state:S,combat:COMBAT,fx:{smokeBudget:40,shimmer:28,sway:18}}),save:persistV2};
 if(new URLSearchParams(location.search).get('autotest')==='1'){
  localStorage.removeItem(SAVE_KEY);
  // Deterministic browser contract: exercise the exact combat state machine without relying on headless RAF timing.
@@ -619,20 +680,42 @@ if(new URLSearchParams(location.search).get('v3test')==='1'){
  storyReader.click();
  const opened=readerOverlay.classList.contains('show')&&readerBody.textContent.includes('There is no city');
  readerPlus.click();const zoomed=readerSize>23;readerClose.click();const closed=!readerOverlay.classList.contains('show');
- const ok=rd&&opened&&zoomed&&closed&&Object.keys(music).length===7&&!!art.source;
+ const ok=rd&&opened&&zoomed&&closed&&Object.keys(music).length>=11&&!!art.source;
  document.body.dataset.v3Selftest=ok?'pass':'fail';
  const probe=document.createElement('span');probe.id='v3SelfTest';probe.hidden=true;
  probe.textContent=JSON.stringify({ok,reader:rd,opened,zoomed,closed,art,musicThemes:Object.keys(music).length});
  document.body.appendChild(probe);
 }
 
+if(new URLSearchParams(location.search).get('v4test')==='1'){
+ const originalLength=S.objects.length;
+ const origScale=cam.zoom;
+ const m=V4.spawn('imp',62,17,true);
+ V4.update(performance.now()+1100);V4.drawMonsters(performance.now()+1200);
+ const dry=V4.snapshot(),check={
+  ready:window.__OBSERVER_WORLD_V2__?.ready,
+  monster:m?.kind==='imp',monsterState:dry.monsters.length>=1,
+  oldWorldPreserved:S.objects.length===originalLength,scale:cam.zoom===origScale,
+  musicSeparate:typeof SOUND?.setFxEnabled==='function'&&typeof SOUND?.setMusicVolume==='function',
+  themes:Object.keys(window.ObserverKriegerAudio?.THEMES||{}).length>=11,
+  graphics:typeof window.IslandVisuals?.waterTile==='function'
+ };
+ const ok=Object.values(check).every(v=>v===true);
+ document.body.dataset.v4Selftest=ok?'pass':'fail';
+ const mark=document.createElement('span');mark.id='v4SelfTest';mark.hidden=true;mark.textContent=JSON.stringify(check);document.body.appendChild(mark);
+}
 let down=null,moved=false;
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y};moved=false});
 canvas.addEventListener('pointermove',e=>{if(!down)return;let dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>8)moved=true;if(moved){cam.x=down.cx-dx/cam.zoom;cam.y=down.cy-dy/cam.zoom}});
-canvas.addEventListener('pointerup',e=>{if(!down)return;if(!moved){const hit=S.glyphHits.find(h=>e.clientX>=h.x&&e.clientX<=h.x+h.w&&e.clientY>=h.y&&e.clientY<=h.y+h.h);if(hit){const o=S.objects.find(x=>x.id===hit.id);if(o)openInspect(o)}else{const p=s2w(e.clientX,e.clientY);place(S.selected,p.x,p.y)}}down=null});
+canvas.addEventListener('pointerup',e=>{if(!down)return;if(!moved){
+ const p=s2w(e.clientX,e.clientY);
+ if(V4.hero.mode==='explore'){if(!V4.examine(p.x,p.y)){V4.hero.x=p.x;V4.hero.y=p.y;V4.ripple(p.x,p.y,5)}}
+ else{const hit=S.glyphHits.find(h=>e.clientX>=h.x&&e.clientX<=h.x+h.w&&e.clientY>=h.y&&e.clientY<=h.y+h.h);
+ if(hit){const o=S.objects.find(x=>x.id===hit.id);if(o)openInspect(o)}else place(S.selected,p.x,p.y)}
+ }down=null});
 canvas.addEventListener('pointercancel',()=>{down=null;moved=false});canvas.addEventListener('lostpointercapture',()=>{down=null;moved=false});document.addEventListener('visibilitychange',()=>{down=null;moved=false;if(!document.hidden){COMBAT.lastT=performance.now();resize()}});
 canvas.addEventListener('wheel',e=>{e.preventDefault();cam.zoom=Math.max(.65,Math.min(1.65,cam.zoom*(e.deltaY>0?.9:1.1)))},{passive:false});
-document.addEventListener('touchmove',e=>{if(!e.target.closest('#dock')&&!e.target.closest('#readerOverlay'))e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('#dock')&&!e.target.closest('#readerOverlay')&&!e.target.closest('#soundPanel'))e.preventDefault()},{passive:false});
 })();
 </script>
 </body>
