@@ -23,6 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ai/chatgpt/twilight-underwater-20261016
+          fetch-depth: 0
           persist-credentials: true
       - uses: actions/setup-python@v5
         with:
@@ -57,4 +59,6 @@ jobs:
             exit 0
           fi
           git commit -m "build(underwater): generated original Sunken City GLB assets"
+          git fetch origin ai/chatgpt/twilight-underwater-20261016
+          git rebase origin/ai/chatgpt/twilight-underwater-20261016
           git push origin HEAD:ai/chatgpt/twilight-underwater-20261016
