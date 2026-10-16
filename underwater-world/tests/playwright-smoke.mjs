@@ -126,10 +126,20 @@ console.log('PHONE_FIRE_PREREQS',JSON.stringify(firePrereqs));
 assert(firePrereqs.underwater&&firePrereqs.bathyscaphe&&firePrereqs.canFire,'Prepare phone firing with underwater armed bathyscaphe');
 // Playwright DOM-synthesized pointer events can instantly lose capture.
 const buildRect=await m.page.locator('#v7Build').boundingBox();
+await m.page.evaluate(()=>{
+ const build=document.getElementById('v7Build');
+ window.__phoneBuildProbe={down:false,target:'',stateAfterHandler:null};
+ build.addEventListener('pointerdown',e=>{
+  const p=window.__phoneBuildProbe;
+  p.down=true;p.target=e.target.id;p.pointerType=e.pointerType;
+  p.stateAfterHandler={attacking:window.__isle.input.atk,canFire:window.__isle.underwater.canFire()};
+ });
+});
 const cdp=await m.page.context().newCDPSession(m.page);
 await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:602,x:buildRect.x+buildRect.width/2,y:buildRect.y+buildRect.height/2}]});
 const fireActual=await m.page.evaluate(()=>{const i=window.__isle;return {attacking:i.input.atk,touchSource:i.input.src.touch,canFire:i.underwater.canFire(),y:i.player.pos.y}});
 console.log('PHONE_FIRE_ACTUAL',JSON.stringify(fireActual));
+console.log('PHONE_BUILD_PROBE',JSON.stringify(await m.page.evaluate(()=>({probe:window.__phoneBuildProbe,atPoint:document.elementFromPoint(...[document.getElementById('v7Build').getBoundingClientRect().left+30,document.getElementById('v7Build').getBoundingClientRect().top+30])?.id}))));
 assert(fireActual.attacking,'Middle button shoots only with picked ranged weapon: '+JSON.stringify({firePrereqs,fireActual}));
 await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
 assert.equal(await m.page.evaluate(()=>window.__isle.input.atk),false,'Touch release must stop gunfire');
