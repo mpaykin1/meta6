@@ -1,3 +1,22 @@
+## Observer World V6 — unique buildings, New hero, companions, retaliation (2026-10-16)
+
+- **Play V6:** https://mpaykin1.github.io/meta6/observer-world-en-v6/
+- **Original source & WebGL renderer:** [V6 index.html](observer-world-en-v6/index.html) — owner-approved V5 graphics and exact original camera preserved
+- **Create objects & controls:** [editor.js](observer-world-en-v6/editor.js) — ПКМ build, ЛКМ attack, Alt+ЛКМ inspect, Esc cancel; lower toolbar includes **新 New**
+- **36 distinct building types:** [building-assets.js](observer-world-en-v6/building-assets.js), native atlas and voxel geometry
+- **16 animated resident professions:** [npc-catalog.js](observer-world-en-v6/npc-catalog.js) — original lit hero sprite frames
+- **Companion / enemies / death / rebirth:** [combat-relations.js](observer-world-en-v6/combat-relations.js)
+- **Literary journal and fullscreen reading:** [story-system.js](observer-world-en-v6/story-system.js)
+- **12-track procedural Krieger music:** [audio.js](observer-world-en-v6/audio.js)
+- **Automated evidence:** [V6 Gate](.github/workflows/observer-v6-gate.yml), [unit tests](observer-world-en-v6/v6-systems.test.cjs)
+- **Claude technical handoff:** [V6 CLAUDE.md](observer-world-en-v6/CLAUDE.md)
+- **Unchanged graphical PASS baseline:** [V5](observer-world-en-v5/index.html)
+
+**Status:** V6 implementation and source files are available. Release remains **owner PASS pending**. Claude can read the entire public source from any chat; writing commits requires GitHub authorization.
+
+
+---
+
 ## V5 — оригинальный 3D «Остров сумерек» с конструктором (16 октября 2026)
 
 **Публичная игра:** https://mpaykin1.github.io/meta6/observer-world-en-v5/
