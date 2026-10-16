@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.0.0",
+  "project": "Observer World / Chain Reaction",
+  "owner": "mpaykin1",
+  "canonicalUrl": "https://github.com/mpaykin1/meta6/blob/main/SOURCE_INDEX.md",
+  "repository": "https://github.com/mpaykin1/meta6",
+  "ref": "main",
+  "acceptedBaseline": {
+    "status": "OWNER_PASS",
+    "date": "2026-10-16",
+    "path": "observer-world-en-v2/index.html",
+    "url": "https://mpaykin1.github.io/meta6/observer-world-en-v2/",
+    "verifiedRun": "https://github.com/mpaykin1/meta6/actions/runs/38507248287"
+  },
+  "audioEdition": {
+    "status": "CI_VERIFIED_PENDING_OWNER_PASS",
+    "path": "observer-world-en-v2-audio/index.html",
+    "url": "https://mpaykin1.github.io/meta6/observer-world-en-v2-audio/",
+    "soundEngine": "observer-world-en-v2-audio/audio.js",
+    "soundTest": "observer-world-en-v2-audio/audio.test.cjs",
+    "ci": ".github/workflows/observer-audio-live-gate.yml"
+  },
+  "legacy": {
+    "ru": "observer-world/index.html",
+    "en": "observer-world-en/index.html"
+  },
+  "supportingDocs": [
+    "docs/CANONICAL_INFINITE_IMAGE_SYMBOLIC_INTERACTIVE_NOVEL.md",
+    "docs/FAILURE_OBSERVER_WORLD_LANDSCAPE_CHROME_AND_FREEZE_2026-09-30.md",
+    "docs/SUCCESS_OBSERVER_WORLD_ENGLISH_LOCALIZATION_2026-10-03.md"
+  ],
+  "upstream": {
+    "audioEngine": "https://github.com/mpaykin1/World_server/blob/master/games/ostrov-sumerek/engine/32_audio.js",
+    "audioRecipes": "https://github.com/mpaykin1/World_server/blob/master/games/ostrov-sumerek/packs/base/sounds.js",
+    "worldBootstrap": "https://github.com/mpaykin1/World_server/blob/master/AI_START_HERE.md",
+    "issue": "https://github.com/mpaykin1/World_server/issues/80",
+    "techLab": "https://github.com/mpaykin1/world-server-tech-lab/blob/main/LIVE_STATUS.json"
+  },
+  "archive": "https://github.com/mpaykin1/meta6/archive/refs/heads/main.zip",
+  "agentInstructions": [
+    "Fetch this manifest and SOURCE_INDEX.md instead of asking user to reupload sources.",
+    "Use latest main and validate CI/deployed revision.",
+    "Do not overwrite accepted V2; audio variant requires separate owner PASS.",
+    "Game state is browser local; this index does not synchronize chat memory or live user save files."
+  ]
+}
