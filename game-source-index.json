@@ -131,5 +131,33 @@
       "full Observer historical/faction parity",
       "collision mesh for placed buildings"
     ]
+  },
+  "livingHistoryV6": {
+    "status": "CI_PENDING_OWNER_PASS",
+    "url": "https://mpaykin1.github.io/meta6/observer-world-en-v6/",
+    "graphicalBaseline": "OWNER_PASS_V5",
+    "main": "observer-world-en-v6/index.html",
+    "files": {
+      "editor": "observer-world-en-v6/editor.js",
+      "buildings": "observer-world-en-v6/building-assets.js",
+      "npcs": "observer-world-en-v6/npc-catalog.js",
+      "relations": "observer-world-en-v6/combat-relations.js",
+      "story": "observer-world-en-v6/story-system.js",
+      "audio": "observer-world-en-v6/audio.js",
+      "test": "observer-world-en-v6/v6-systems.test.cjs",
+      "workflow": ".github/workflows/observer-v6-gate.yml",
+      "claude": "observer-world-en-v6/CLAUDE.md"
+    },
+    "features": {
+      "input": "right-click build; left-click original weapon attack; Alt-left inspect; Escape cancel",
+      "buildingTypes": 36,
+      "npcRoles": 16,
+      "glyph": "新",
+      "newWhenAlive": "friendly companion",
+      "newWhenDead": "new controllable Observer same persistent world",
+      "onAttackCompanion": "hostile betrayal",
+      "nativeNpcDamage": true,
+      "fullScreenReader": true
+    }
   }
 }
