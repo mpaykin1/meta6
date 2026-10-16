@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
-const base = 'http://127.0.0.1:8765/underwater-world/';
+const base = process.env.TEST_BASE || 'http://127.0.0.1:8765/underwater-world/';
 await mkdir('underwater-world/evidence',{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-certificate-errors']});
 async function boot(context,path,extra=''){
