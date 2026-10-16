@@ -4891,7 +4891,7 @@ window.__isle = {
   // V7 mobile overlay calls ORIGINAL game controls; desktop keyboard/mouse are unchanged.
   mobileMove(dx,dy){touch.vx=clamp(dx,-1,1);touch.vy=clamp(dy,-1,1)},
   mobileCombo(on){
-    if(on&&G.state==='play'){onJumpPress();if(!UW.isSubmerged()||(UW.inBathyscaphe&&UW.canFire()))setAttack('touch',true)}
+    if(on&&G.state==='play'){onJumpPress();if(!UW.isSubmerged())setAttack('touch',true)}
     else{onJumpRelease();setAttack('touch',false)}
   },
   mobileSwap(){if(G.state==='play'){if(UW.isSubmerged())UW.toggleBathyscaphe();else cycleWeapon(1)}},
