@@ -31,7 +31,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check numpy Pillow
       - name: Render selected original Sunken City animated models
         run: |
-          python underwater-world/generator/src/build.py --only bathyscaphe,diving_helmet,glow_fish_teal,glow_fish_violet,manta,seahorse,angler,kelp_tall,seagrass,coral_branch_violet,coral_branch_orange,arch,cathedral_tower,street_lamp,submarine_wreck,angel_statue --no-zip
+          python underwater-world/generator/src/build.py --only bathyscaphe,diving_helmet,glow_fish,manta,seahorse,angler,kelp,seagrass,coral_branch,arch,cathedral_tower,street_lamp,submarine_wreck,angel_statue --no-zip
       - name: Validate, copy and stage real GLB models
         shell: bash
         run: |
