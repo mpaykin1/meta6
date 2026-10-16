@@ -32,15 +32,18 @@ const d=await boot(pc,'desktop','');
 assert.equal(await d.page.locator('#v7MobileHud').isVisible(),false,'Desktop should hide phone buttons');
 const start=await d.page.evaluate(()=>[window.__isle.player.pos.x,window.__isle.player.pos.z]);
 await d.page.keyboard.down('KeyW');
-await d.page.waitForTimeout(650);
+const pos=await d.page.evaluate(()=>{
+ const i=window.__isle;for(let n=0;n<75;n++)i.stepKeyboard(.016);
+ return [i.player.pos.x,i.player.pos.z];
+});
 await d.page.keyboard.up('KeyW');
 const debug=await d.page.evaluate(()=>({state:window.__isle.G.state,timeScale:window.__isle.G.timeScale,fade:window.__isle.G.fade,respawn:window.__isle.player.respawn,hitstop:window.__isle.G.hitstop}));
-const pos=await d.page.evaluate(()=>[window.__isle.player.pos.x,window.__isle.player.pos.z]);
 console.log('WASD_EVIDENCE',JSON.stringify({start,pos,debug}));
 assert(Math.hypot(pos[0]-start[0],pos[1]-start[1])>.12,'WASD must move player');
 await d.page.keyboard.down('ArrowRight');
-await d.page.waitForTimeout(500);
+const posArrow=await d.page.evaluate(()=>{const i=window.__isle;for(let n=0;n<65;n++)i.stepKeyboard(.016);return [i.player.pos.x,i.player.pos.z]});
 await d.page.keyboard.up('ArrowRight');
+assert(Math.hypot(posArrow[0]-pos[0],posArrow[1]-pos[1])>.08,'Arrow keys must move hero');
 const submerged=await d.page.evaluate(()=>{
  const i=window.__isle;i.player.pos.set(70,2.1,31);i.player.vel.set(0,0,0);
  return {y:i.player.pos.y,underwater:i.underwater.isSubmerged()};
