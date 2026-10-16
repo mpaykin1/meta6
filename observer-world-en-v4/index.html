@@ -722,6 +722,7 @@ if(new URLSearchParams(location.search).get('v4test')==='1'){
 }
 if(new URLSearchParams(location.search).get('v4musicprobe')==='1'){
  const node=document.createElement('pre');node.id='musicProbe';node.hidden=true;document.body.appendChild(node);
+ document.body.dataset.musicProbe='pending';node.textContent=JSON.stringify({stage:'before_start',audio:SOUND?.diagnostics()});
  let attempts=0;
  SOUND.start().then(ok=>{
   (function check(){
