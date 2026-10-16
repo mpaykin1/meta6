@@ -2,11 +2,11 @@
 'use strict';
 const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 const src=fs.readFileSync(__dirname+'/audio.js','utf8');
-let made=0,stopped=0,started=0,active=0,suspended=0;
+let made=0,stopped=0,started=0,active=0,suspended=0,lastContext=null;
 const param=(value=0)=>({value,setValueAtTime(x){this.value=x},exponentialRampToValueAtTime(x){this.value=x},setTargetAtTime(x){this.value=x}});
 class Node { constructor(){this.frequency=param(220);this.detune=param(0);this.gain=param(0);this.Q=param(0);this.playbackRate=param(1);this.threshold=param(-12);this.ratio=param(3);this.channelCount=1;this.type='sine'}connect(){return this}start(){started++;active++}stop(){stopped++;active=Math.max(0,active-1)} }
 class AudioContext {
- constructor(){made++;this.sampleRate=24000;this.state='running';this.currentTime=1;this.destination=new Node()}
+ constructor(){made++;lastContext=this;this.sampleRate=24000;this.state='running';this.currentTime=1;this.destination=new Node()}
  createGain(){return new Node()}createOscillator(){return new Node()}
  createDynamicsCompressor(){return new Node()}createBufferSource(){return new Node()}
  createBiquadFilter(){return new Node()}
@@ -26,7 +26,7 @@ assert.equal(system.diagnostics().contextState,'not-created');
  assert.equal(await system.start(),true);
  assert.equal(made,1);
  for(const kind of ['well','market','monastery','guard','plague','fire','healer','militia','wounded','killed','burial','printing','observer']){
-  assert.equal(system.event(kind),true);
+  lastContext.currentTime+=.4;assert.equal(system.event(kind),true);
   system.tick((system.diagnostics().events+1)*120,{objects:[{kind}],combat:{actors:[]},order:20,suspicion:0});
  }
  assert.ok(system.diagnostics().events>=13,'Every event gets synthesis');
