@@ -22,6 +22,8 @@ async function boot(context,path,extra=''){
  }));
  assert(baseline.webgl,'WebGL renderer should initialize');
  assert(baseline.uw,'Underwater runtime should exist');
+ await page.evaluate(()=>{window.__isle.G.fade=1;window.__isle.G.todT=window.__isle.G.tod=.1;});
+ await page.waitForTimeout(750);
  await page.screenshot({path:'underwater-world/evidence/'+path+'.png'});
  return {page,baseline,errors};
 }
@@ -47,11 +49,17 @@ assert(submerged.underwater,'Teleport into water should activate diving');
 await d.page.waitForTimeout(450);
 const y0=await d.page.evaluate(()=>window.__isle.player.pos.y);
 await d.page.keyboard.down('Space');
-await d.page.waitForTimeout(650);
-const y1=await d.page.evaluate(()=>window.__isle.player.pos.y);
+const y1=await d.page.evaluate(()=>{
+ const i=window.__isle;
+ for(let n=0;n<65;n++)i.sim(.016,0,0,true,false);
+ return i.player.pos.y;
+});
 await d.page.keyboard.up('Space');
-await d.page.waitForTimeout(650);
-const y2=await d.page.evaluate(()=>window.__isle.player.pos.y);
+const y2=await d.page.evaluate(()=>{
+ const i=window.__isle;
+ for(let n=0;n<120;n++)i.sim(.016,0,0,false,false);
+ return i.player.pos.y;
+});
 assert(y1>y0+.12,'Hold Space should rise: '+[y0,y1,y2]);
 assert(y2<y1-.08,'Release Space should descend: '+[y0,y1,y2]);
 await d.page.keyboard.press('KeyB');
@@ -64,6 +72,8 @@ assert.equal(bathy.unarmed,false,'Without picked ranged weapon no firing');
 await d.page.evaluate(()=>{const i=window.__isle;i.giveAll();i.equip('pistol');i.combat.ammo.pistol=6});
 await d.page.waitForTimeout(200);
 assert(await d.page.evaluate(()=>window.__isle.underwater.canFire()),'picked pistol with ammo should fire');
+await d.page.evaluate(()=>{window.__isle.G.fade=1;window.__isle.G.todT=window.__isle.G.tod=.1;});
+await d.page.waitForTimeout(900);
 await d.page.screenshot({path:'underwater-world/evidence/diving-desktop.png'});
 console.log('DESKTOP_PASS',JSON.stringify({baseline:d.baseline,y0,y1,y2,bathy,armed:true}));
 await pc.close();
