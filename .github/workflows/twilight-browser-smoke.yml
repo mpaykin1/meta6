@@ -1,0 +1,48 @@
+name: Twilight underwater desktop and phone smoke
+on:
+  pull_request:
+    paths:
+      - 'underwater-world/**'
+      - '.github/workflows/twilight-browser-smoke.yml'
+  push:
+    branches:
+      - ai/chatgpt/twilight-underwater-20261016
+    paths:
+      - 'underwater-world/**'
+      - '.github/workflows/twilight-browser-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install free Playwright
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve game locally
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          curl -fsS http://127.0.0.1:8765/underwater-world/ > /dev/null
+      - name: Exercise real desktop and phone WebGL
+        run: node underwater-world/tests/playwright-smoke.mjs
+      - name: Measure actual >85% player-visible underwater scene coverage
+        run: |
+          python3 -m pip install --quiet numpy Pillow
+          python3 underwater-world/tests/measure-visible-change.py
+      - name: Verify above-85% player-visible scene transformation
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow numpy
+          python3 underwater-world/tests/visual-visibility.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: twilight-underwater-desktop-mobile-evidence
+          path: underwater-world/evidence/
+          retention-days: 7

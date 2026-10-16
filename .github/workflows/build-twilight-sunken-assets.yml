@@ -1,0 +1,64 @@
+name: Build Sunken City real 3D assets
+on:
+  push:
+    branches:
+      - ai/chatgpt/twilight-underwater-20261016
+    paths:
+      - 'underwater-world/generator/**'
+      - '.github/workflows/build-twilight-sunken-assets.yml'
+  pull_request:
+    paths:
+      - 'underwater-world/generator/**'
+      - '.github/workflows/build-twilight-sunken-assets.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: twilight-assets-generation
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/twilight-underwater-20261016
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install free image and voxel dependencies
+        run: python -m pip install --disable-pip-version-check numpy Pillow
+      - name: Render selected original Sunken City animated models
+        run: |
+          python underwater-world/generator/src/build.py --only bathyscaphe,diving_helmet,glow_fish,manta,seahorse,angler,kelp,seagrass,coral_branch,arch,cathedral_tower,street_lamp,submarine_wreck,angel_statue,cathedral_bell,treasure_chest,ship_wheel --no-zip
+      - name: Validate, copy and stage real GLB models
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=underwater-world/generator/out/pack/3d/glb
+          dest=underwater-world/models
+          mkdir -p "$dest"
+          for name in bathyscaphe diving_helmet glow_fish_teal glow_fish_violet manta seahorse angler kelp_tall seagrass coral_branch_violet coral_branch_orange arch cathedral_tower street_lamp submarine_wreck angel_statue cathedral_bell treasure_chest ship_wheel; do
+            test -s "$src/$name.glb"
+            cp "$src/$name.glb" "$dest/$name.glb"
+          done
+          test "$(find "$dest" -type f -name '*.glb' | wc -l)" -eq 19
+          ls -lh "$dest" | tail -20
+      - name: Publish generated assets into the same feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add underwater-world/models/
+          if git diff --cached --quiet; then
+            echo "MODEL_OUTPUT_UNCHANGED"
+            exit 0
+          fi
+          git commit -m "build(underwater): generated original Sunken City GLB assets"
+          git fetch origin ai/chatgpt/twilight-underwater-20261016
+          git rebase origin/ai/chatgpt/twilight-underwater-20261016
+          git push origin HEAD:ai/chatgpt/twilight-underwater-20261016
