@@ -55,7 +55,7 @@ jobs:
             COMBAT="$(curl -fLsS --max-time 20 "${URL}combat-relations.js" 2>/dev/null || true)"
             BUILD="$(curl -fLsS --max-time 20 "${URL}building-assets.js" 2>/dev/null || true)"
             if grep -Fq 'Observer World V6' <<<"$HTML" &&
-               grep -Fq 'V6_EXACT_REBIRTH_BETRAYAL_20261016_0934' <<<"$EDITOR" &&
+               grep -Fq 'V6_QA_PLAYING_BETRAYAL_20261016_0937' <<<"$EDITOR" &&
                grep -Fq 'betrayal' <<<"$COMBAT" &&
                grep -Fq 'fortress' <<<"$BUILD"; then
               echo "V6_EXACT_LIVE=PASS SHA=${GITHUB_SHA}"
