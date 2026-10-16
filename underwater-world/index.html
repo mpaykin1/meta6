@@ -4921,6 +4921,7 @@ window.__isle = {
   setTod(v) { G.todT = G.tod = v; },
   get coins() { return coins; },
   rebuild(seed) { buildWorld(seed); resetRun(); },
+  stepKeyboard(dt=1/60){updatePlayer(dt)},
   sim(dt, x, z, jump, fight) {
     simDir = [x, z];
     if (jump) { if (!player.jumpHeld) onJumpPress(); } else onJumpRelease();
