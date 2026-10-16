@@ -49,6 +49,8 @@ assert.equal(system.diagnostics().contextState,'not-created');
  const events=system.diagnostics().events;
  system.event('hit');assert.equal(system.diagnostics().events,events,'mute must silence game sounds');
  await system.setEnabled(true);system.onVisibility(true);assert.equal(suspended,2,'mute and background both suspend the audio graph');
+ // Resume after explicitly testing background suspension, then run musical score.
+ await lastContext.resume();
  // New authored-score contract: four-bar harmony and counterpoint must really schedule.
  for(let i=0;i<110;i++){
   lastContext.currentTime+=.28;
