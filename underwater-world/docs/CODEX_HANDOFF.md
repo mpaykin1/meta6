@@ -156,7 +156,76 @@ Still owned by primary ChatGPT: all visual ghost/creature placement and animatio
 
 ## GitHub review request / checkpoint
 
-Code commit, final test count and PR status will be recorded before final handoff. PR target is `ai/chatgpt/twilight-underwater-20261016`, head is this Codex branch. Main ChatGPT should review/merge only after its integration checks, and request Claude review if available. Codex must not merge its own modules into the primary game. The owner alone decides PASS/FAIL.
+**Code + tests commit:** [`63eae5b298740fcafac740bc8d010a279b95a8ee`](https://github.com/mpaykin1/meta6/commit/63eae5b298740fcafac740bc8d010a279b95a8ee). A following documentation-only commit finalizes this checkpoint; use the branch HEAD for the complete handoff.
+
+**PR not created by Codex.** After successful push, `gh pr create` failed with `Post "https://api.github.com/graphql": Forbidden`. Issue #522 comments/checkpoints were **not updated**; this repository file is the saved checkpoint. No merge, Pages release, CI run or Claude review is claimed. The API block is external to the modules; no login/reset/reinstall was attempted.
+
+PR target: `ai/chatgpt/twilight-underwater-20261016`. Head: `ai/codex/twilight-underwater-quests-20261016`. [Open the comparison / PR creation form](https://github.com/mpaykin1/meta6/compare/ai/chatgpt/twilight-underwater-20261016...ai/codex/twilight-underwater-quests-20261016?expand=1). This link is a form, **not an existing PR**.
+
+Suggested PR title: `feat(underwater): guardian quests and passive wildlife modules`.
+
+Suggested review comment (after primary ChatGPT creates the PR):
+
+> Ревью для Claude: проверь отдельные модули `underwater-world/quests/` и `creatures/`, выполни 29 тестов командой из CODEX_HANDOFF.md, проверь сохранения/повторные награды/редкую агрессию и API интеграции. Код исходной V7 и файлы основного ChatGPT не изменены. Внутренние проверки Codex не заменяют твоё ревью. Не назначай пользовательский PASS/FAIL.
+
+Main ChatGPT should review and integrate only after its integration checks. Codex must not merge its own modules into the primary game. The owner alone decides PASS/FAIL. This checkpoint contains implementation evidence and limitations, not a verdict-based success/failure learning record.
+
+## Ready prompt for the current or a new ordinary browser ChatGPT
+
+Copy this block into the primary ChatGPT, or into a **new ordinary browser ChatGPT** if the primary chat is unavailable. Do not start a new Codex or a new project.
+
+```text
+Продолжай текущую совместную разработку подводного продолжения «Острова сумерек».
+
+Основной репозиторий: https://github.com/mpaykin1/meta6
+Ветка основного ChatGPT: ai/chatgpt/twilight-underwater-20261016
+Ветка модулей Codex: ai/codex/twilight-underwater-quests-20261016
+Проверенный коммит кода и тестов: 63eae5b298740fcafac740bc8d010a279b95a8ee
+Полный актуальный checkpoint/API:
+https://github.com/mpaykin1/meta6/blob/ai/codex/twilight-underwater-quests-20261016/underwater-world/docs/CODEX_HANDOFF.md
+Распределение файлов:
+https://github.com/mpaykin1/meta6/blob/ai/codex/twilight-underwater-quests-20261016/underwater-world/CLAUDE.md
+Базовая принятая игра (исходники):
+https://github.com/mpaykin1/meta6/tree/main/observer-world-en-v7
+Полное ТЗ: https://github.com/mpaykin1/World_server/issues/522
+Донор ассетов: https://github.com/mpaykin1/World_server/pull/521
+
+Codex написал только quests/, creatures/ и docs/CODEX_HANDOFF.md внутри underwater-world/.
+Готовы Хранитель Глубин, русские диалоги, 6 квестов, 14 видов подводных обитателей,
+ограниченное состояние, сохранения, редкая временная защитная агрессия и API.
+29 тестов прошли (11 quests + 18 creatures), ошибок/пропусков нет.
+ES-модули проверены в Chromium154 по HTTP, ошибок страницы нет; это не проверка готовой игры/телефона.
+Оригинальная V7, движок, графика, управление, террейн, батискаф и файлы интегратора не менялись.
+
+Первые действия:
+1. Прочитать CLAUDE.md и полный CODEX_HANDOFF.md из ветки Codex, сверить полное issue522.
+2. Через подключённый GitHub создать PR из ai/codex/twilight-underwater-quests-20261016
+   в ai/chatgpt/twilight-underwater-20261016 (если такого PR ещё нет).
+   Заголовок: feat(underwater): guardian quests and passive wildlife modules.
+   В описание включить границы изменений, 29 тестов, браузерную проверку и ограничения интеграции.
+3. Обновить существующий checkpoint issue522 ссылкой на PR и этот файл; не создавать дубликат задания.
+   Codex этого не сделал: Git push работает, gh API/GraphQL заблокирован облачным прокси Forbidden.
+4. Запустить: node --test underwater-world/quests/*.test.mjs underwater-world/creatures/*.test.mjs
+5. Проверить/подключить API и запросить ревью Claude через комментарий PR из checkpoint.
+
+API: createQuestSystem({seed,emit,onReward}) из quests/index.mjs;
+createCreatureSystem({seed,emit,chunkSize}) из creatures/index.mjs.
+Quest world events требуют underwater:true и стабильных ID подтверждённых взаимодействий.
+onReward синхронный, внешний ledger атомарно дедуплицирует deliveryId.
+Fauna Y=0 на поверхности: вычитай engine SEA из player/terrain и прибавляй для mesh.
+После spawn сначала update с положительным dt + seabedHeight, потом отображай resolved snapshots.
+Нет дополнительного requestAnimationFrame, DOM/storage побочных эффектов или прямого урона.
+
+Основной ChatGPT отвечает за основной движок, графику, бесконечный мир, батискаф, погружение,
+управление, UI призрака, реальные квестовые объекты, сохранение мира/находок/ledger и адаптеры.
+Этого ещё нет в модулях Codex. Сохрани оригинальные оружие, лут, маячного призрака, камеру и HUD.
+Точные условия заданий (3 разных места для средних четырёх квестов, последовательность,
+knowledge-награды) — проверяемые решения модуля; сверь их с полным ТЗ522.
+Не переписывай готовые модули заново, не переустанавливай окружение/gh, не повторяй авторизацию.
+Используй бесплатные инструменты; не меняй main/master напрямую и не публикуй непроверенную игру.
+Полноценная опубликованная подводная игра этим коммитом НЕ заявлена.
+Пользовательский PASS/FAIL назначает исключительно владелец; его решения для этого среза нет.
+```
 
 ## Continuation rule
 
