@@ -2666,6 +2666,12 @@ function updateCamera(dt) {
   const dx = Math.sin(t * 0.53) * 0.06 + (Math.sin(t * 37.1) + Math.sin(t * 23.3)) * 0.12 * sh;
   const dy = Math.sin(t * 0.71) * 0.05 + (Math.sin(t * 41.7) + Math.sin(t * 29.9)) * 0.1 * sh;
   camera.position.set(rig.pos.x + dx, rig.pos.y + dy, rig.pos.z);
+  // Cross the water line with the hero; otherwise the transparent surface still obscures the seabed.
+  if (UW.isSubmerged()) {
+    const tDive = smooth(SEA - 0.08, SEA - 1.45, player.pos.y);
+    const underwaterCamera = Math.min(SEA - 0.65, player.vis.y + 1.5);
+    camera.position.y = lerp(camera.position.y, underwaterCamera, tDive);
+  }
   camera.lookAt(rig.look);
   camera.rotateZ(Math.sin(t * 0.37) * 0.004 + Math.sin(t * 31.0) * 0.012 * sh);
   camera.updateMatrixWorld();
