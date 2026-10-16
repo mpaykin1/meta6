@@ -56,13 +56,16 @@ function create({native,onBuild,onSwap}){
  for(const t of ["pointerup","pointercancel","lostpointercapture"])action.addEventListener(t,stopAction);
  let shootId=null;
  build.addEventListener("pointerdown",e=>{
-  eat(e);if(shootId!==null)return;
+  eat(e);
+  if(forced())root.__uwButtonTrace={id:e.pointerId,previousId:shootId,state:native.G.state,wet:native.underwater?.isSubmerged(),bathy:native.underwater?.inBathyscaphe};
+  if(shootId!==null){if(forced())root.__uwButtonTrace.skipped=true;return;}
   shootId=e.pointerId;try{build.setPointerCapture(e.pointerId)}catch{}
   buildCount++;
   // Fire through the actual V7 input interface, not the optional building-editor callback.
   if(native.underwater?.isSubmerged()&&native.underwater.inBathyscaphe){
-    native.mobileShoot();
-  }else onBuild();
+    const fired=native.mobileShoot();
+    if(forced())Object.assign(root.__uwButtonTrace,{fired,attackImmediately:native.input.atk});
+  }else {onBuild();if(forced())root.__uwButtonTrace.usedEditor=true;}
  });
  for(const evt of ["pointerup","pointercancel","lostpointercapture"])build.addEventListener(evt,e=>{if(shootId!==e.pointerId)return;eat(e);shootId=null;native.mobileShootRelease?.()});
  swap.addEventListener("pointerdown",e=>{eat(e);native.mobileSwap();onSwap?.()});
