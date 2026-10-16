@@ -320,6 +320,21 @@ function start(){
    menu:$("v5Menu").tagName==="DETAILS",
    music:typeof music?.start==="function"
   };
+  // V6 new mechanics smoke, test mode only. All NPC graphics use original lit hero sprite sheet.
+  checks.uniqueBuildings=root.ObserverBuildingAssets.kinds.length===36;
+  checks.npcRoles=Object.keys(root.ObserverNpcCatalog.ROLES).length===16;
+  checks.story=typeof story.inspect==="function"&&story.entries.length>0;
+  checks.newGlyph=$("v5Dock").querySelector('[data-kind="new"]')!==null;
+  checks.originalSprite=!!native.heroTex?.image;
+  const ally=relations.newPerson(native.player.pos.x+1,native.player.pos.z);
+  checks.companion=!!ally&&ally.role==="companion"&&ally.relation==="friendly";
+  if(ally?.id)relations.strike(ally,1,"player");
+  checks.betrayal=ally?.relation==="hostile"&&story.entries.some(n=>n.type==="betrayal");
+  checks.fullscreenReader=$("v6Reader") instanceof HTMLDialogElement;
+  const report=document.createElement("pre");report.id="v6SelfTest";report.hidden=true;
+  const ok6=Object.values(checks).every(Boolean);
+  report.textContent=JSON.stringify({ok6,checks});
+  document.body.dataset.v6Selftest=ok6?"pass":"fail";document.body.appendChild(report);
   const pass=Object.values(checks).every(Boolean);
   document.body.dataset.v5Selftest=pass?"pass":"fail";
   const evidence=document.createElement("pre");evidence.id="v5SelfTest";evidence.hidden=true;
