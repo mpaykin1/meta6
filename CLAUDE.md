@@ -81,3 +81,7 @@ The game is an extension of accepted V7; original land gameplay, 21-weapon arsen
 The release workflow uses `.github/workflows/twilight-browser-smoke.yml` and `.github/workflows/build-twilight-sunken-assets.yml`; store screenshots under `underwater-world/evidence/` as CI artifacts and report visible gameplay coverage. **DO NOT issue a public test link before the published route, mobile + PC browser QA, visual difference >85%, and source asset loading have been verified. Never record owner PASS or FAIL without explicit user decision.**
 
 Primary integrator modifies runtime/terrain/controls; parallel Codex lane modifies only `underwater-world/quests/`, `underwater-world/creatures/`, `underwater-world/docs/CODEX_HANDOFF.md`; retain non-overlapping work until reviewed integration. Current game progress is tracked via GitHub, not chat memory.
+
+## ISLAND-BIOMES — независимые миры Острова сумерек (owner verdict pending)
+
+Пароль `island-biomes` / «биомы острова»: сразу открыть [корневой alias](island-biomes.md), [исходный Three.js HTML](island-sumerek-biomes/index.html) и [правила разработки](island-sumerek-biomes/README.md). Это публичный источник для новых чатов Claude, Codex и ChatGPT; никакой повторной загрузки. Игровой маршрут: https://mpaykin1.github.io/meta6/island-sumerek-biomes/ . Исходная Observer World V7 не изменена. Все технические тесты и коммиты не означают решения владельца PASS/FAIL.
