@@ -34,3 +34,22 @@ jobs:
           name: island-biomes-browser-evidence
           path: island-sumerek-biomes/evidence/
           if-no-files-found: warn
+      - name: Verify permanent GitHub Pages game route after publish
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://mpaykin1.github.io/meta6/island-sumerek-biomes/'
+          for n in $(seq 1 60); do
+            if curl -fLsS --max-time 20 "$url" -o /tmp/island-live.html 2>/dev/null &&
+               grep -Fq 'const BIOME_DEFS' /tmp/island-live.html &&
+               grep -Fq 'addAnimated3DCharacter' /tmp/island-live.html; then
+              echo "ISLAND_BIOMES_PERMANENT_LIVE=PASS"
+              echo "GAME_URL=$url"
+              echo "OWNER_PASS_PENDING=true"
+              exit 0
+            fi
+            sleep 6
+          done
+          echo '::error::Permanent Pages route not yet serving exact biomes game'
+          exit 1
