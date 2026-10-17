@@ -1688,6 +1688,23 @@ const PALETTES = {
 const prepPal = (p) => { const o = {}; for (const k in p) o[k] = typeof p[k] === 'string' ? new THREE.Color(p[k]) : Array.isArray(p[k]) ? p[k].slice() : p[k]; return o; };
 const PAL = {}; for (const k in PALETTES) PAL[k] = prepPal(PALETTES[k]);
 const pal = prepPal(PALETTES.dusk);
+// Artistic biome atmosphere: recognizable palettes across the entire scene,
+// not merely small decals; final-grade lift keeps night details readable.
+// Preserves the original moving sun, moon and dawn transitions.
+const BIOME_ATMOSPHERE = {
+ gothic: {top:'#70569a', horizon:'#a26891', fog:'#63486d', lift:[.27,.12,.32], gain:[1.1,.98,1.18]},
+ tokyo: {top:'#203c94', horizon:'#a73f9e', fog:'#593e8e', lift:[.11,.22,.36], gain:[.98,1.1,1.3]},
+ future: {top:'#154868', horizon:'#287ab1', fog:'#245c8a', lift:[.09,.23,.34], gain:[.98,1.2,1.3]},
+ sakura: {top:'#834677', horizon:'#d49aa6', fog:'#ae7e95', lift:[.25,.17,.25], gain:[1.18,1.04,1.1]},
+ frost: {top:'#41639a', horizon:'#7dbfd8', fog:'#81abc5', lift:[.16,.25,.33], gain:[1.02,1.13,1.18]},
+ volcano: {top:'#562833', horizon:'#d2643d', fog:'#ac563e', lift:[.34,.17,.07], gain:[1.22,1.0,.87]},
+ mushroom: {top:'#532a8c', horizon:'#ad5bc6', fog:'#8853a8', lift:[.27,.12,.34], gain:[1.13,1.0,1.24]},
+ desert: {top:'#925b55', horizon:'#ddb08a', fog:'#c59a77', lift:[.32,.24,.15], gain:[1.18,1.08,.97]},
+ crystal: {top:'#413587', horizon:'#9476ba', fog:'#7461a6', lift:[.20,.16,.37], gain:[1.05,1.03,1.28]},
+};
+for(const b of Object.values(BIOME_ATMOSPHERE)) {
+ b.top=new THREE.Color(b.top);b.horizon=new THREE.Color(b.horizon);b.fog=new THREE.Color(b.fog);
+}
 function mixInto(out, a, b, t) {
   for (const k in out) {
     const v = out[k];
@@ -1701,11 +1718,15 @@ function applyPalette(tod, dawn) {
   if (tod < 0.5) mixInto(pal, PAL.dusk, PAL.twi, smooth(0, 1, tod / 0.5));
   else mixInto(pal, PAL.twi, PAL.night, smooth(0, 1, (tod - 0.5) / 0.5));
   if (dawn > 0.001) mixInto(pal, pal, PAL.dawn, dawn);
+  const atmosphere=BIOME_ATMOSPHERE[activeBiome];
   const az = G.sunAz;
   sunDir.set(Math.cos(pal.sunEl) * Math.cos(az), Math.sin(pal.sunEl), Math.cos(pal.sunEl) * Math.sin(az));
   keyDir.copy(sunDir).lerp(moonDir, pal.moonMix).normalize();
-  scene.fog.color.copy(pal.fog).lerp(biomeFogColor,0.30); scene.fog.density = pal.fogD * (activeBiome === 'classic' ? 1 : 0.57); U.fogD.value = scene.fog.density;
-  skyU.uTop.value.copy(pal.skyTop); skyU.uHorizon.value.copy(pal.skyHor); skyU.uBottom.value.copy(pal.fog);
+  scene.fog.color.copy(pal.fog).lerp(atmosphere?.fog || biomeFogColor, atmosphere?.62:.3);
+  scene.fog.density = pal.fogD * (activeBiome === 'classic' ? 1 : 0.53); U.fogD.value = scene.fog.density;
+  skyU.uTop.value.copy(pal.skyTop).lerp(atmosphere?.top || pal.skyTop,atmosphere?.8:0);
+  skyU.uHorizon.value.copy(pal.skyHor).lerp(atmosphere?.horizon || pal.skyHor,atmosphere?.82:0);
+  skyU.uBottom.value.copy(pal.fog).lerp(atmosphere?.fog || pal.fog,atmosphere?.8:0);
   skyU.uSunCol.value.copy(pal.keyCol); skyU.uSunDir.value.copy(sunDir); skyU.uSunVis.value = pal.sunVis;
   skyU.uNight.value = pal.stars; skyU.uMoonDir.value.copy(moonDir);
   keyLight.color.copy(pal.keyCol); keyLight.intensity = pal.keyI * (activeBiome === 'classic' ? 1 : 1.67);
@@ -1721,8 +1742,8 @@ function applyPalette(tod, dawn) {
   coinHaloMat.uniforms.uIntensity.value = pal.halo;
   heartHaloMat.uniforms.uIntensity.value = pal.halo * 0.8;
   FX.uGrain.value = pal.grain * (REDUCED ? 0.5 : 1) * (activeBiome==='classic'?1:.65);
-  FX.uGain.value.setRGB(pal.gain[0], pal.gain[1], pal.gain[2]);
-  FX.uLift.value.setRGB(pal.lift[0], pal.lift[1], pal.lift[2]);
+  FX.uGain.value.setRGB(...(atmosphere?.gain || pal.gain));
+  FX.uLift.value.setRGB(...(atmosphere?.lift || pal.lift));
 }
 
 /* -----------------------------------------------------------------------------
@@ -2714,12 +2735,18 @@ function landmark(type,x,y,z,r){
   addGeom(group,new THREE.BoxGeometry(1.67,.17,1.67),glow,0,height*.33,0);
   addGeom(group,new THREE.BoxGeometry(1.55,.1,1.55),glow,0,height+.02,0);
   // Windows and neon are actual luminous geometry, not painted scenery.
-  for(let y=1;y<height-.35;y+=.58){
-    for(const z of [-.766,.766])for(const x of [-.42,.42])
-      addGeom(group,new THREE.PlaneGeometry(.22,.28),glow,x,y,z).rotation.y=z<0?Math.PI:0;
-    for(const x of [-.766,.766])for(const z of [-.42,.42])
-      addGeom(group,new THREE.PlaneGeometry(.22,.28),glow,x,y,z).rotation.y=x<0?-Math.PI/2:Math.PI/2;
+  const winTransforms=[];
+  for(let wy=1;wy<height-.35;wy+=.58){
+    for(const z of [-.766,.766])for(const wx of [-.42,.42])winTransforms.push([wx,wy,z,z<0?Math.PI:0]);
+    for(const wx of [-.766,.766])for(const z of [-.42,.42])winTransforms.push([wx,wy,z,wx<0?-Math.PI/2:Math.PI/2]);
   }
+  const windows=new THREE.InstancedMesh(new THREE.PlaneGeometry(.22,.28),glow,winTransforms.length);
+  const winObj=new THREE.Object3D();
+  winTransforms.forEach(([wx,wy,wz,angle],i)=>{
+    winObj.position.set(wx,wy,wz);winObj.rotation.y=angle;
+    winObj.updateMatrix();windows.setMatrixAt(i,winObj.matrix);
+  });
+  windows.instanceMatrix.needsUpdate=true;windows.frustumCulled=false;group.add(windows);biomeMetrics.mesh3d++;
   if(type==='tokyo'){
     const sign=addGeom(group,new THREE.BoxGeometry(.33,1.6,.08),new THREE.MeshBasicMaterial({color:0x191323}),1.01,1.65,.84);
     addGeom(group,new THREE.BoxGeometry(.24,1.48,.085),new THREE.MeshBasicMaterial({color:0xff43d7,toneMapped:false}),1.01,1.65,.90);
