@@ -1,0 +1,36 @@
+name: Island Sumerek Biomes Browser Gate
+on:
+  pull_request:
+    paths:
+      - 'island-sumerek-biomes/**'
+      - '.github/workflows/island-biomes-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'island-sumerek-biomes/**'
+      - '.github/workflows/island-biomes-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Check deterministic generation and module syntax
+        run: |
+          node island-sumerek-biomes/tests/test-seeds.cjs
+          node island-sumerek-biomes/tests/check-module.cjs
+      - name: Install browser smoke dependencies
+        run: python3 -m pip install --quiet playwright pillow
+      - name: Desktop and mobile Three.js Chrome WebGL smoke
+        run: python3 island-sumerek-biomes/tests/browser-smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: island-biomes-browser-evidence
+          path: island-sumerek-biomes/evidence/
+          if-no-files-found: warn
