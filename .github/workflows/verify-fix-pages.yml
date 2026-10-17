@@ -1,0 +1,39 @@
+name: Verify permanent FIX short link
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fix.md'
+      - 'fix/**'
+      - '.github/workflows/verify-fix-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-short-link:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify published prompt and source from real HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='https://mpaykin1.github.io/meta6/fix/'
+          md='https://mpaykin1.github.io/meta6/fix.md'
+          for attempt in $(seq 1 50); do
+            if curl --max-time 20 -fsSL "$html" -o /tmp/fix-published.html \
+                && curl --max-time 20 -fsSL "$md" -o /tmp/fix-source.md \
+                && grep -q 'id="prompt"' /tmp/fix-published.html \
+                && grep -q 'id="copy"' /tmp/fix-published.html \
+                && grep -q 'rig.pos.lerp' /tmp/fix-source.md \
+                && grep -q 'FIX_PENDING_OWNER_VERDICT' /tmp/fix-source.md; then
+              echo "FIX_PUBLIC_SHORT_LINK_VERIFIED=$html"
+              echo "FIX_PUBLIC_SOURCE_VERIFIED=$md"
+              wc -c /tmp/fix-published.html /tmp/fix-source.md
+              exit 0
+            fi
+            echo "Waiting for real published page $attempt/50"
+            sleep 10
+          done
+          echo 'ERROR: permanent FIX short link not yet published' >&2
+          exit 1
