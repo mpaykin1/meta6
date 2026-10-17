@@ -358,3 +358,17 @@ blendLight(dt);const eye=[Math.sin(yaw)*Math.cos(pitch)*zoom,Math.sin(pitch)*zoo
 gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
 drawScene(view,time,dt);weatherFX.tick(nowms,MODES[mode][2],yaw);
 const w=MODES[mode][2],isLeaf=w==='leaves',isPetal=['white','red','black','pink','multi'].includes(w),isSnow=['snow','magic'].includes(w),isFire=['flies','magic','mist'].includes(w);
+const fade=clamp((nowms-modeChanged)/900,0,1);
+if(texReady){moveLayer(leafLayer,'leaf',dt,time,yaw,isLeaf);moveLayer(petalLayer,'petal',dt,time,yaw,isPetal);moveLayer(snowLayer,'snow',dt,time,yaw,isSnow);moveLayer(fireLayer,'fire',dt,time,yaw,isFire);
+if(isLeaf)drawParticles(leafLayer,textures.leaves,8,fade,0,view,time);
+if(isPetal)drawParticles(petalLayer,textures.petals,8,fade,w==='black'?.3:0,view,time);
+if(isSnow)drawParticles(snowLayer,textures.fx,1,fade,.1,view,time);
+if(isFire)drawParticles(fireLayer,textures.fx,1,fade,.65,view,time);
+}if(w==='storm')drawRain(view,dt);
+if(w==='storm'&&Math.sin(time*2.5)*Math.sin(time*3.7)>.90){lightning=1;flashUntil=time+.12};lightning=Math.max(0,lightning-dt*2);flash.style.opacity=(time<flashUntil?.33+Math.random()*.12:0).toFixed(3);
+fpsAcc+=dt;fpsFrames++;if(fpsAcc>1){fps=Math.round(fpsFrames/fpsAcc);fpsAcc=0;fpsFrames=0}window.weatherDemoStats={mode:w,frame,particles:isLeaf?budgets.leaf:isPetal?budgets.petals:isSnow?budgets.snow:isFire?budgets.fire:w==='storm'?budgets.rain:0,atlasCount:texReady?3:0,drawcalls:meshes.length+(texReady?1:0),fps,webgl:true,threeDimensional:true,wind:WIND_MODES[windIndex][2],windMotion:window.weatherDemoWindMotion||null};
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body></html>
