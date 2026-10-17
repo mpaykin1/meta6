@@ -29,7 +29,10 @@ try:
    assert page.locator('#biomeSelect option').count()==10
    page.locator('#btnStart').click(timeout=10000)
    page.wait_for_function('window.__isle.G.state === "play"',timeout=20000)
-   page.wait_for_timeout(2500)
+   # A fixed sleep captured a dark fade frame on software WebGL runners.
+   # Force the intro transition to its steady state before assessing artwork.
+   page.evaluate('window.__isle.G.fade = 1')
+   page.wait_for_timeout(5000)
    state=page.evaluate("""() => ({
       biome:window.__isle.biome, coinCount:window.__isle.world.coins.length,
       props:window.__isle.biomeMetrics.spriteProps,
@@ -39,6 +42,7 @@ try:
       landmarks:window.__isle.biomeMetrics.landmarks,
       fps:window.__isle.perf.lastFps || 0,
       touch:!document.getElementById('touch').hidden,
+      fade:window.__isle.G.fade,
       state:window.__isle.G.state
     })""")
    assert state['biome']==biome and state['coinCount']==20 and state['state']=='play',state
