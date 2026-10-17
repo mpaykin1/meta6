@@ -8,7 +8,7 @@ function boot(){
  wrap.innerHTML='<button id="v8Toggle" aria-label="Switch observer and person modes"><span id="v8Pixel">▦</span><span id="v8ModeLabel">👁 НАБЛЮДАТЕЛЬ</span></button>';
  menu.insertBefore(wrap,menu.querySelector('summary').nextSibling);
  const layer=document.createElement('section');layer.id='v8Observer';layer.hidden=true;
- layer.innerHTML='<canvas id="v8Map" aria-label="Overhead island map"></canvas><div id="v8Actions"><button data-action="build">⚒ Построить</button><button data-action="spawn">♟ Персонаж</button><button data-action="story">▤ История</button></div><div id="v8Story" hidden><button id="v8Close">×</button><button id="v8Expand">⛶</button><article id="v8Text"></article></div>';
+ layer.innerHTML='<button id="v8Return" type="button">♟ Вернуться к персонажу</button><canvas id="v8Map" aria-label="Overhead island map"></canvas><div id="v8Actions"><button data-action="build">⚒ Построить</button><button data-action="spawn">♟ Персонаж</button><button data-action="story">▤ История</button></div><div id="v8Story" hidden><button id="v8Close">×</button><button id="v8Expand">⛶</button><article id="v8Text"></article></div>';
  document.body.appendChild(layer);
  const canvas=$('#v8Map'),ctx=canvas.getContext('2d');let touches=new Map(),lastPinch=0,frame=0;
  function noise(x,y){let n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n)}
@@ -29,7 +29,7 @@ function boot(){
  }
  function redraw(){cancelAnimationFrame(frame);frame=requestAnimationFrame(draw)}
  function mode(next){state.mode=next;layer.hidden=next!=='eye';document.body.classList.toggle('v8-eye',next==='eye');$('#v8ModeLabel').textContent=next==='eye'?'♟ ПЕРСОНАЖ':'👁 НАБЛЮДАТЕЛЬ';if(next==='eye'){window.__observerV8?.onEnter?.();redraw()}else{window.ObserverMobileControls?.active?.release?.()}menu.open=false}
- $('#v8Toggle').onclick=()=>mode(state.mode==='eye'?'person':'eye');
+ $('#v8Toggle').onclick=()=>mode(state.mode==='eye'?'person':'eye');$('#v8Return').onclick=()=>mode('person');
  canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});lastPinch=0});
  canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.preventDefault();let old=touches.get(e.pointerId),dx=e.clientX-old.x,dy=e.clientY-old.y;touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){state.x-=dx/(18*state.zoom);state.y-=dy/(18*state.zoom)}else if(touches.size===2){const [a,b]=[...touches.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(lastPinch)state.zoom=Math.max(.45,Math.min(3.8,state.zoom*d/lastPinch));lastPinch=d}redraw()});
  const end=e=>{touches.delete(e.pointerId);lastPinch=0};canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
