@@ -9,3 +9,4 @@ watchdog: 2026-10-18T18:30Z сторож: heartbeat ChatGPT 18:10Z (жив), RES
 controller 2026-10-18T19:09:20Z: аудит 017 разобран (подтв. №3,№4,№7), отправлено 013-audit-triage; открытых PR ChatGPT нет, ветка stage-7-playtest без кода; ChatGPT heartbeat 18:10Z (<3ч), ALERT не нужен
 
 controller 2026-10-18T20:10:09Z: ранний разбор A+B+C отправлен (015), PR нет
+controller: PR #47 (урок, docs-only) открыт, merge мне запрещён классификатором, ждёт слияния ChatGPT/владельцем
