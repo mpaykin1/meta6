@@ -11,6 +11,16 @@ export function islandHeight(x,z,seed=1337){
  // A nonzero periodic component prevents cancellation of all terrain octaves.
  return 4+hills+ridge+1.1*Math.sin(x*.24+seed*.01)+.9*Math.cos(z*.21-seed*.02);
 }
+export function ashHeight(x,z,seed=1337){
+ const dunes=2*Math.sin(x*.13+noise(x*.03,z*.03,seed)*3)+1.1*Math.cos(z*.18);
+ const ridge=3*(1-Math.abs(noise(x*.05,z*.05,seed+20)*2-1));
+ const crater=Math.exp(-((x+118)**2+(z-34)**2)/140)*3;
+ return 8+dunes+ridge-crater;
+}
+export function waterHeight(x,z,seed=1337){
+ const depth=clamp((x-64)/28,0,1),ridge=2.5*Math.sin(x*.10+noise(x*.02,z*.02,seed)*4);
+ return 1-depth*(8+3*noise(x*.06,z*.06,seed+31))+depth*ridge+.28*Math.sin(z*.31+x*.21);
+}
 export function createHeightSource(seed,core){
  // Preserve the accepted core, including its constructed plaza and shoreline.
  // Outside, blend from the exact boundary sample into the same seeded extension.
@@ -18,8 +28,10 @@ export function createHeightSource(seed,core){
   if(x>=0&&z>=0&&x<64&&z<64)return core(Math.floor(x),Math.floor(z));
   const bx=clamp(x,0,64),bz=clamp(z,0,64),distance=Math.hypot(x-bx,z-bz);
   const edge=core(Math.min(63,Math.floor(bx)),Math.min(63,Math.floor(bz))),t=smooth(distance/20);
-  const volcanic=clamp((-x-24)/40,0,1);
-  return edge*(1-t)+(islandHeight(x,z,seed)+volcanic*4)*t;
+  let extension=islandHeight(x,z,seed);
+  if(x<0){const a=smooth((-x-20)/40);extension=extension*(1-a)+ashHeight(x,z,seed)*a;}
+  if(x>=64){const a=smooth((x-64)/12);extension=extension*(1-a)+waterHeight(x,z,seed)*a;}
+  return edge*(1-t)+extension*t;
  };
 }
 export class ChunkWindow {

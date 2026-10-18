@@ -77,7 +77,7 @@ export function createUnderwaterWorld(o) {
   ['submarine_wreck',101,31,2],['arch',73,43,2.6],
   ['angler',78,44,1.2]
  ];
- landmarks.forEach(([id,x,z,size])=>addModel(scene,id,size,x,seabedHeight(x,z,seed)+.4,z,hash(x,z,seed)*6.28));
+ landmarks.forEach(([id,x,z,size])=>addModel(scene,id,size,x,floor(x,z)+.4,z,hash(x,z,seed)*6.28));
  function chunk(cx,cz){
   const group=new THREE.Group(),pos=[],col=[],uv=[],faces=[],tickets=[];
   const corners=[[0,0],[1,0],[1,1],[0,1]];
@@ -103,7 +103,7 @@ export function createUnderwaterWorld(o) {
    const x=cx*CHUNK+2+Math.floor(hash(cx*97+i,cz*43+i,seed)*19);
    const z=cz*CHUNK+2+Math.floor(hash(cx*41+i,cz*79-i,seed)*19);
    if(inside(x,z))continue;
-   const y=seabedHeight(x,z,seed);if(y>=SEA-.4)continue;
+   const y=floor(x,z);if(y>=SEA-.4)continue;
    const choices=y<-4?['kelp_tall','coral_branch_violet','arch','cathedral_tower','submarine_wreck']:['seagrass','kelp_tall','coral_branch_orange','street_lamp','arch','angel_statue'];
    const name=choices[Math.floor(hash(x,z,seed+5)*choices.length)];
    tickets.push(addModel(group,name,name==='cathedral_tower'?2.8:name==='arch'?1.8:1.1,x+.5,y,z+.5,hash(z,x,seed)*6.28));
@@ -111,7 +111,7 @@ export function createUnderwaterWorld(o) {
   for(let i=0;i<3;i++){
    const x=cx*CHUNK+3+hash(cx*13+i,cz*17-i,seed)*18,z=cz*CHUNK+3+hash(cx*29-i,cz*31+i,seed)*18;
    if(inside(x,z))continue;
-   const fy=seabedHeight(x,z,seed);if(fy>=SEA-1.7)continue;
+   const fy=floor(x,z);if(fy>=SEA-1.7)continue;
    const kind=['glow_fish_teal','glow_fish_violet','manta','seahorse','angler'][Math.floor(hash(x,z,seed+11)*5)];
    const holder=new THREE.Group();holder.position.set(x,Math.min(SEA-1,fy+2),z);group.add(holder);
    tickets.push(addModel(holder,kind,kind==='angler'?1:.65));
@@ -135,7 +135,7 @@ export function createUnderwaterWorld(o) {
  function physicsStep(h){
   const p=player.pos,v=player.vel,vy=player.jumpHeld?3.0:-1.0;
   v.y+=(vy-v.y)*clamp(h*3.6,0,1);p.x+=v.x*h;p.z+=v.z*h;
-  const gy=floor(p.x,p.z);p.y=clamp(p.y+v.y*h,gy+.08,SEA+.55);
+  const gy=floor(p.x,p.z);p.y=clamp(p.y+v.y*h,gy+.08,Math.max(gy+.08,SEA+.55));
   player.onGround=p.y<=gy+.09;
   if(player.onGround)v.y=Math.max(0,v.y);
   if(p.y>=SEA+.5)v.y=Math.min(0,v.y);
@@ -203,9 +203,9 @@ export function createUnderwaterWorld(o) {
   sub.rotation.y=Math.atan2(player.look.x,player.look.z);
   if(bathy)hero.visible=false;
   ghost.visible=player.pos.x>53&&player.pos.x<98&&Math.abs(player.pos.z-31)<64;
-  ghost.position.set(69,seabedHeight(69,31,seed)+2+Math.sin(time)*.25,31);
-  ghost.rotation.y+=dt*.18;hud.style.display=wet?'block':'none';
-  minimap.style.display=wet?'block':'none';
+  ghost.position.set(69,floor(69,31)+2+Math.sin(time)*.25,31);
+  ghost.rotation.y+=dt*.18;hud.style.display='none';
+  minimap.style.display='none';
   if(wet&&time-lastMap>.45){lastMap=time;drawMiniMap();}
   if(wet){
    const q=QUESTS[qi],hint=bathy?(canFire()?'Батискаф: оружие готово':'Батискаф: найди стрелковое оружие'):'Удерживай прыжок: вверх. Отпусти: вниз.';

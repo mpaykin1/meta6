@@ -1854,7 +1854,10 @@ function groundBelow(px, py, pz) {
 let heightSource = null;
 function terrainTop(px, pz) {
   const x = Math.floor(px), z = Math.floor(pz);
-  if (x < 0 || z < 0 || x >= W || z >= D) return heightSource ? heightSource(px,pz) : 1;
+  if (x < 0 || z < 0 || x >= W || z >= D) if(!heightSource)return 1;
+  const a=Math.floor(px),b=Math.floor(pz),u=px-a,v=pz-b;
+  const h00=heightSource(a,b),h10=heightSource(a+1,b),h01=heightSource(a,b+1),h11=heightSource(a+1,b+1);
+  return u+v<=1?h00+(h10-h00)*u+(h01-h00)*v:h11+(h01-h11)*(1-u)+(h10-h11)*(1-v);
   return world.hgt[x + z * W];
 }
 function rayFree(o, d, maxT) {
@@ -2285,6 +2288,12 @@ function tryStep(nx, nz) {
 function physicsStep(h) {
   const p = player.pos, v = player.vel;
   if (UW.isSubmerged(p)) return UW.physicsStep(h);
+  if(p.x<0||p.z<0||p.x>=W||p.z>=D){
+    const nx=p.x+v.x*h,nz=p.z+v.z*h,gy=terrainTop(nx,nz);
+    if(!ashWorld?.blocks(nx,p.y,nz)&&(!player.onGround||gy-p.y<1.05)){p.x=nx;p.z=nz}else{v.x=v.z=0}
+    v.y=Math.max(-28,v.y-PL.grav*h);p.y+=v.y*h;
+    const floor=terrainTop(p.x,p.z);if(p.y<=floor){const impact=-v.y;p.y=floor;v.y=0;player.onGround=true;return impact}player.onGround=false;return 0;
+  }
   let landed = 0;
   if (v.x) { const nx = p.x + v.x * h; if (!hits(nx, p.y, p.z)) p.x = nx; else if (!tryStep(nx, p.z)) v.x = 0; }
   if (v.z) { const nz = p.z + v.z * h; if (!hits(p.x, p.y, nz)) p.z = nz; else if (!tryStep(p.x, nz)) v.z = 0; }
@@ -4273,11 +4282,21 @@ let chunks = [];
 const dirtyChunks = new Set();
 let terrainWindow = null;
 const worlds = new WorldManager();
-worlds.register('island', {init(){}, update(dt,p){terrainWindow?.update(p.x,p.z)}, dispose(){terrainWindow?.clear()}});
+for(const id of ['island','ash','water'])worlds.register(id,{init(){},update(dt,p){terrainWindow?.update(p.x,p.z)},dispose(){}});
+function buildExtensionGeometry(cx,cz){
+ const pos=[],uv=[],colors=[],indices=[];
+ for(let z=0;z<=16;z++)for(let x=0;x<=16;x++){
+  const wx=cx*16+x,wz=cz*16+z,y=terrainTop(wx,wz),aw=ashWeight(wx);
+  pos.push(wx,y,wz);uv.push(x/16*.246+.002,1/3+z/16*.328+.002);
+  const wet=y<SEA?.72:1;colors.push(wet*(1-aw*.16),wet*(1-aw*.48),wet*(1-aw*.44));
+ }
+ for(let z=0;z<16;z++)for(let x=0;x<16;x++){const i=x+z*17;indices.push(i,i+17,i+1,i+1,i+17,i+18)}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setAttribute('aCut',new THREE.Float32BufferAttribute(new Float32Array(pos.length/3),1));g.setIndex(indices);g.computeVertexNormals();return g;
+}
 function buildChunks() {
   terrainWindow?.clear();
   terrainWindow = new ChunkWindow({radius:2,
-    create(cx,cz){const mesh=new THREE.Mesh(buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH),terrainMat);scene.add(mesh);return mesh},
+    create(cx,cz){const mesh=new THREE.Mesh((cx>=0&&cz>=0&&cx<4&&cz<4?buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH):buildExtensionGeometry(cx,cz)),terrainMat);scene.add(mesh);return mesh},
     dispose(mesh){scene.remove(mesh);mesh.geometry.dispose()}
   });
   terrainWindow.update(world.spawn.x,world.spawn.z);
@@ -4289,7 +4308,7 @@ function rebuildChunk(i) {
   const cx=i%(W/CH),cz=Math.floor(i/(W/CH)),key=cx+','+cz;
   const old=terrainWindow.items.get(key);if(!old)return;
   scene.remove(old);old.geometry.dispose();
-  const mesh=new THREE.Mesh(buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH),terrainMat);
+  const mesh=new THREE.Mesh((cx>=0&&cz>=0&&cx<4&&cz<4?buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH):buildExtensionGeometry(cx,cz)),terrainMat);
   scene.add(mesh);terrainWindow.items.set(key,mesh);chunks=[...terrainWindow.items.values()];
 }
 function markDirty(x0, z0, x1, z1) {
@@ -4843,6 +4862,8 @@ function frame(now) {
   updateBeacon(raw);
   updateCamera(raw);
   updateHeroMesh(raw);
+  const worldId=UW.isSubmerged()?'water':player.pos.x<-64?'ash':'island';
+  if(worlds.active!==worldId&&!worlds.transition)void worlds.enter(worldId);
   worlds.update(raw,player.pos);
   chunks=[...terrainWindow.items.values()];
   UW.update(raw);
