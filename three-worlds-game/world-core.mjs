@@ -1,5 +1,7 @@
 // Shared deterministic terrain and lifecycle. No renderer, DOM or network dependencies.
 export const CHUNK_SIZE = 16;
+// Island plus western ash route are surface terrain; the eastern domain is seabed.
+export const usesSurfaceTerrain = (x,z)=>x<64;
 export const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
 export const isOriginalIslandCell = (x,z)=>x>=0&&x<64&&z>=0&&z<64;
 const smooth = x => {x=clamp(x,0,1);return x*x*(3-2*x)};
