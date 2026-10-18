@@ -1,3 +1,4 @@
+import {createBrain,stepBrain} from './creature-brain.mjs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const CHUNK=24;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -114,7 +115,7 @@ export function createUnderwaterWorld(o) {
    const kind=['glow_fish_teal','glow_fish_violet','manta','seahorse','angler'][Math.floor(hash(x,z,seed+11)*5)];
    const holder=new THREE.Group();holder.position.set(x,Math.min(SEA-1,fy+2),z);group.add(holder);
    tickets.push(addModel(holder,kind,kind==='angler'?1:.65));
-   creatures.push({holder,chunk:cx+','+cz,x,z,y:holder.position.y,kind,phase:hash(z,x,seed)*6.28,health:50});
+   creatures.push({holder,chunk:cx+','+cz,x,z,y:holder.position.y,kind,phase:hash(z,x,seed)*6.28,health:50,brain:createBrain(kind+':'+cx+':'+cz+':'+i,{x,z},seed+i)});
   }
   group.userData.tickets=tickets;scene.add(group);chunks.set(cx+','+cz,group);
  }
@@ -224,9 +225,10 @@ export function createUnderwaterWorld(o) {
        c.lastAggro=time;toast('Осторожно: удильщик защищает гнездо!',1800);
        o.onCreatureAttack?.(1,c.x,c.z);
    }
-   c.phase+=dt*(c.kind==='manta'?.5:1.2);
-   c.holder.position.set(c.x+Math.sin(c.phase)*1,c.y+Math.sin(c.phase*.8)*.24,c.z+Math.cos(c.phase*.9)*.7);
-   c.holder.rotation.y=c.phase*.3;
+   c.brain.hp=c.health;
+   stepBrain(c.brain,c.holder.position,dt,{player:player.pos,height:floor,aquatic:true,sea:SEA});
+   if(Number.isFinite(c.brain.heading))c.holder.rotation.y=c.brain.heading;
+   c.phase=c.brain.phase;
   }
  }
  return {groundHeight:(x,z)=>seabedHeight(x,z,seed),isSubmerged,physicsStep,

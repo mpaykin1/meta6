@@ -484,6 +484,7 @@ body.v5-show-original-hud .hud-row{display:flex!important}
 //  Three.js r160 · HD-2D billboards · procedural world · cinematic post
 // =============================================================================
 import * as THREE from 'three';
+import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
 import { createUnderwaterWorld } from './underwater-runtime.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -4341,7 +4342,7 @@ function blastLeaves(q, R) {
 let loot = [];
 function buildLoot() {
   let a = 0, b = 0;
-  loot = world.loot.map((s) => ({ id: s.near ? LOOT_NEAR[a++] : LOOT_FAR[b++], x: s.x, y: s.y + 1.0, z: s.z, gy: s.y, alive: true, phase: Math.random() * TAU }))
+  loot = world.loot.map((entry,index) => { const s=entry.near?entry:lootPlacement(index,G.seed,entry,terrainTop); return ({ id: s.near ? LOOT_NEAR[a++] : LOOT_FAR[b++], x: s.x, y: s.y + 1.0, z: s.z, gy: s.y, alive: true, phase: Math.random() * TAU })})
     .filter((L) => L.id);
 }
 function updateLoot() {
