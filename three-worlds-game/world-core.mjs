@@ -1,6 +1,7 @@
 // Shared deterministic terrain and lifecycle. No renderer, DOM or network dependencies.
 export const CHUNK_SIZE = 16;
 export const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+export const isOriginalIslandCell = (x,z)=>x>=0&&x<64&&z>=0&&z<64;
 const smooth = x => {x=clamp(x,0,1);return x*x*(3-2*x)};
 export function hash(x,z,s=0){let n=Math.imul(x|0,374761393)^Math.imul(z|0,668265263)^Math.imul(s|0,362437);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
 function noise(x,z,s){const a=Math.floor(x),b=Math.floor(z),u=smooth(x-a),v=smooth(z-b);return (hash(a,b,s)*(1-u)+hash(a+1,b,s)*u)*(1-v)+(hash(a,b+1,s)*(1-u)+hash(a+1,b+1,s)*u)*v}
@@ -15,7 +16,7 @@ export function createHeightSource(seed,core){
  // Preserve the accepted core, including its constructed plaza and shoreline.
  // Outside, blend from the exact boundary sample into the same seeded extension.
  return (x,z)=>{
-  if(x>=0&&z>=0&&x<64&&z<64)return core(Math.floor(x),Math.floor(z));
+  if(isOriginalIslandCell(x,z))return core(Math.floor(x),Math.floor(z));
   const bx=clamp(x,0,64),bz=clamp(z,0,64),distance=Math.hypot(x-bx,z-bz);
   const edge=core(Math.min(63,Math.floor(bx)),Math.min(63,Math.floor(bz))),t=smooth(distance/20);
   return edge*(1-t)+islandHeight(x,z,seed)*t;
