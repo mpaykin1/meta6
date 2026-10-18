@@ -11,7 +11,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  const dialogue=new DialogueGenerator(snapshot);
  function line(g,state){const text=dialogue.next({home:g.home,world:player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island',state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
  const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
- let clock=0,cooldown=0,guest=null,factory=null,sheet=null,triggered=false;
+ let clock=0,cooldown=0,guest=null,factory=null,sheet=null,guestCycle=0,nextGuestIn=50;
  const geometry=new THREE.PlaneGeometry(3.5,5);
  const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,uniforms:{time:{value:0}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec2 vUv;uniform float time;void main(){vec2 p=(vUv-.5)*2.;float r=length(p);float ring=exp(-abs(r-.72)*23.);float arc=.65+.35*sin(atan(p.y,p.x)*7.+time*2.);float fog=exp(-r*r*6.)*.12;gl_FragColor=vec4(vec3(.38,.24,1.)*(ring*arc+fog)*2.,clamp(ring+fog,0.,.8));}'});
  for(const p of portals){const m=new THREE.Mesh(geometry,material);m.position.set(p.x,height(p.x,p.z)+2.4,p.z);scene.add(m);meshes.push(m)}
@@ -34,13 +34,13 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
   for(let i=0;i<portals.length;i++){const p=portals[i],m=meshes[i];m.lookAt(camera.position.x,m.position.y,camera.position.z);if(cooldown===0&&Math.hypot(player.pos.x-p.x,player.pos.z-p.z)<1.5&&Math.abs(player.pos.y-height(p.x,p.z))<3)travel(p)}
-  if(!triggered&&clock>38){triggered=true;spawnGuest()}
+  if(!guest){nextGuestIn-=dt;if(nextGuestIn<=0)spawnGuest();}
   if(!guest)return;const g=guest,p=g.mesh.position;g.age+=dt;g.damageClock=Math.max(0,g.damageClock-dt);
   const floor=height(p.x,p.z),distance=Math.hypot(p.x-player.pos.x,p.z-player.pos.z);
   if(!g.landed){g.fall+=dt*9;p.y-=g.fall*dt;if(p.y<=floor+1.6){p.y=floor+1.6;g.landed=true;onTransition(.1)}}
   else{
    const attack=attacking();if(attack&&distance<3&&g.damageClock===0){g.brain.hp-=12;g.brain.relation='hostile';g.damageClock=.7;toast(line(g,'hostile'),2600)}
-   if(g.brain.hp<=0){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;return}
+   if(g.brain.hp<=0){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;nextGuestIn=50+((Math.sin((++guestCycle+seed)*12.9898)*43758.5453)%1+1)%1*20;return}
    if(g.brain.relation==='neutral'&&distance<2.6&&!attack){g.help+=dt;if(g.help>2){g.brain.relation='friend';toast(line(g,'friend'),2800)}}
    if(g.brain.relation==='neutral'&&g.age>25&&distance>13)g.brain.relation='hostile';
    stepBrain(g.brain,p,dt,{player:player.pos,height:(x,z)=>height(x,z)+1.6,sea:3.8});
