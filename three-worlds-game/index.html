@@ -484,6 +484,7 @@ body.v5-show-original-hud .hud-row{display:flex!important}
 //  Three.js r160 · HD-2D billboards · procedural world · cinematic post
 // =============================================================================
 import * as THREE from 'three';
+import {createRiftStory} from './rift-story.mjs';
 import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
@@ -1844,7 +1845,7 @@ function boxSolid(x0f, y0f, z0f, x1f, y1f, z1f) {
   return false;
 }
 const PL = { halfW: 0.27, height: 1.35, speed: 4.7, accG: 16, accA: 5, grav: 30, jumpV: 11.6 };
-let ashWorld = null;
+let ashWorld = null, riftStory = null;
 const hits = (px, py, pz) => (ashWorld?.blocks(px,py,pz)||false) || boxSolid(px - PL.halfW, py, pz - PL.halfW, px + PL.halfW, py + PL.height, pz + PL.halfW);
 function groundBelow(px, py, pz) {
   const x = Math.floor(px), z = Math.floor(pz);
@@ -2780,6 +2781,11 @@ function buildWorld(seed) {
   ashWorld?.dispose();
   ashWorld=createAshWorld({THREE,scene,player,terrainHeight:terrainTop,skyU,seed});
   buildChunks();
+  riftStory?.dispose();
+  riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
+    prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
+    attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
+    reward:()=>takeLoot({id:'pistol',x:player.pos.x,y:player.pos.y,z:player.pos.z,alive:true})});
   if (heightTex) heightTex.dispose();
   heightTex = makeHeightTexture(world);
   waterU.uHeight.value = heightTex;
@@ -4868,6 +4874,7 @@ function frame(now) {
   chunks=[...terrainWindow.items.values()];
   UW.update(raw);
   ashWorld?.update(raw);
+  if(play)riftStory?.update(raw);
   updateWisp(raw);
   updateLeaves(raw);
   sprites.begin(); ribbons.begin();
@@ -4914,7 +4921,7 @@ setTimeout(() => start({}), 2500);
 window.__isle = {
   // V5 direct access to original 3D runtime for Claude and the historical editor.
   scene, camera, THREE, renderer, canvas, atlasTex, heroTex, heroGeo, SEA, SFX,
-  worlds, terrainWindow:()=>terrainWindow, terrainTop, get terrainMeshes(){return chunks},
+  get rifts(){return riftStory}, worlds, terrainWindow:()=>terrainWindow, terrainTop, get terrainMeshes(){return chunks},
   spawnFoe(type,x,z){return spawnFoe(type,x,terrainTop(x,z)+1.1,z,true)},
   pause:setPaused, toggleMute, toggleFullscreen,
   hurtBy:(amount,x,z)=>hurt(amount,x,z),
