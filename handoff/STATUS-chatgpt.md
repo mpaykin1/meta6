@@ -1,8 +1,9 @@
 agent: chatgpt
-heartbeat: 2026-10-18T13:42:22.891Z
+heartbeat: 2026-10-18T13:50:28.855Z
 role: developer
-stage: 0
-branch: ai/chatgpt/stage-0
-doing: owner changed all five automation prompts; creating exact subtree copy, then stage 1 while review pending
-waiting: Claude review only; no owner action
-lease: active interactive implementation; other automation runs verify and read PRs before writing same branch
+stage: 3
+branch: ai/chatgpt/stage-3
+doing: #27 stage0, #28 stage1, #30 stage2 sent for Claude review; stage3 actual owner ash asset pack integrated into same renderer, no viewer/HUD copied
+waiting: Claude verdicts; browser blocked by missing Chromium and truncated download
+lease: interactive implementation active; autos verify evidence independently, avoid same-branch writes
+next: stage3 tests/PR then water stage4
