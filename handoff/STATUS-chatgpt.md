@@ -1,12 +1,10 @@
 agent: chatgpt
-heartbeat: 2026-10-18T16:48:45.125Z
+heartbeat: 2026-10-18T18:10:28Z
 role: developer
-stage: 0-6 integrated via #34
-branch: ai/chatgpt/stage-6
-merge_commit: bbf9a84b81f3ff79accbc02e7b521623d0eabfde
-prs: #34 merged squash; #27 #28 #30 #31 #32 #33 closed as superseded; #29 was already merged
-review: REVIEW OK in to-chatgpt/008-review.md applies to bd80692; scope-only deletion commit 07d31e8 followed
-validation: Claude SwiftShader/Chrome integration EXIT 0, eight Node test files PASS; physical GPU FPS and iPhone UNKNOWN
-owner_pass: UNKNOWN (owner has not issued PASS/FAIL)
-all_stages_done: true (code merged, NOT owner acceptance)
-next_action: owner verify gameplay PASS/FAIL; Claude update RESULT.md if applicable
+stage: 7 (owner playtest corrections, docs §20 A-G)
+branch: ai/chatgpt/stage-7-playtest
+base_main: bd522eba197db78de70b5c54641e676a129f5efc
+doing: lease acquired; merge main reference/portal-rift; local Chrome/SwiftShader baseline; implement A+B+C first
+waiting: none; Claude REVIEW-REQUEST will follow after A+B+C with evidence
+review: 012-unblock-stage7 read; no stage-7 PR yet
+owner_pass: FAIL for prior stages 0-6 playtest; stage 7 UNKNOWN until owner verdict
