@@ -484,6 +484,7 @@ body.v5-show-original-hud .hud-row{display:flex!important}
 //  Three.js r160 · HD-2D billboards · procedural world · cinematic post
 // =============================================================================
 import * as THREE from 'three';
+import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
 import { createUnderwaterWorld } from './underwater-runtime.js';
@@ -948,7 +949,8 @@ function buildTerrainGeometry(world, x0 = 0, z0 = 0, x1 = W, z1 = D) {
         // blocks under the sea get a cool, darker cast so depth reads through the water
         const wet = y + c[1] < SEA ? 0.78 : 1;
         const s = AO[ao[k]] * tint;
-        col.push(s * wet * (wet < 1 ? 0.86 : 1), s * wet * (wet < 1 ? 0.95 : 1), s * wet);
+        const aw=ashWeight(x);
+        col.push(s*wet*(1-aw*.16), s*wet*(1-aw*.48), s*wet*(1-aw*.44));
       }
       if (ao[0] + ao[2] > ao[1] + ao[3]) idx.push(vc + 1, vc + 2, vc + 3, vc + 1, vc + 3, vc);
       else idx.push(vc, vc + 1, vc + 2, vc, vc + 2, vc + 3);
@@ -1842,7 +1844,8 @@ function boxSolid(x0f, y0f, z0f, x1f, y1f, z1f) {
   return false;
 }
 const PL = { halfW: 0.27, height: 1.35, speed: 4.7, accG: 16, accA: 5, grav: 30, jumpV: 11.6 };
-const hits = (px, py, pz) => boxSolid(px - PL.halfW, py, pz - PL.halfW, px + PL.halfW, py + PL.height, pz + PL.halfW);
+let ashWorld = null;
+const hits = (px, py, pz) => (ashWorld?.blocks(px,py,pz)||false) || boxSolid(px - PL.halfW, py, pz - PL.halfW, px + PL.halfW, py + PL.height, pz + PL.halfW);
 function groundBelow(px, py, pz) {
   const x = Math.floor(px), z = Math.floor(pz);
   for (let y = Math.min(H - 1, Math.floor(py)); y >= 0; y--) if (solidAt(x, y, z)) return y + 1;
@@ -2765,6 +2768,8 @@ function buildWorld(seed) {
   G.seed = seed;
   world = generateWorld(seed);
   heightSource = createHeightSource(seed,(x,z)=>world.hgt[x+z*W]);
+  ashWorld?.dispose();
+  ashWorld=createAshWorld({THREE,scene,player,terrainHeight:terrainTop,skyU,seed});
   buildChunks();
   if (heightTex) heightTex.dispose();
   heightTex = makeHeightTexture(world);
@@ -4841,6 +4846,7 @@ function frame(now) {
   worlds.update(raw,player.pos);
   chunks=[...terrainWindow.items.values()];
   UW.update(raw);
+  ashWorld?.update(raw);
   updateWisp(raw);
   updateLeaves(raw);
   sprites.begin(); ribbons.begin();

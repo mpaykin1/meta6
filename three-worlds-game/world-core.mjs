@@ -18,7 +18,8 @@ export function createHeightSource(seed,core){
   if(x>=0&&z>=0&&x<64&&z<64)return core(Math.floor(x),Math.floor(z));
   const bx=clamp(x,0,64),bz=clamp(z,0,64),distance=Math.hypot(x-bx,z-bz);
   const edge=core(Math.min(63,Math.floor(bx)),Math.min(63,Math.floor(bz))),t=smooth(distance/20);
-  return edge*(1-t)+islandHeight(x,z,seed)*t;
+  const volcanic=clamp((-x-24)/40,0,1);
+  return edge*(1-t)+(islandHeight(x,z,seed)+volcanic*4)*t;
  };
 }
 export class ChunkWindow {
