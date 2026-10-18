@@ -31,6 +31,18 @@ export function createUnderwaterWorld(o) {
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
  const floor=(x,z)=>usesSurfaceTerrain(x,z) ? (o.surfaceHeight ? o.surfaceHeight(x,z) : o.terrainTop(x,z)) : seabedHeight(x,z,seed);
  let bathy=false,repair=new Set(),lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
+ let immersion=0,bubbleBudget=0,bubbleActive=0,bubbleCursor=0;
+ const DEEP=new THREE.Color('#0c4258'),bubbleCapacity=96;
+ const bubblePos=new Float32Array(bubbleCapacity*3),bubbleLife=new Float32Array(bubbleCapacity),bubbleVy=new Float32Array(bubbleCapacity);
+ bubblePos.fill(-10000);
+ const bubbleGeometry=new THREE.BufferGeometry();
+ bubbleGeometry.setAttribute('position',new THREE.BufferAttribute(bubblePos,3).setUsage(THREE.DynamicDrawUsage));
+ const bubbleMaterial=new THREE.PointsMaterial({color:0xa4efff,size:.17,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending});
+ const bubblePoints=new THREE.Points(bubbleGeometry,bubbleMaterial);
+ bubblePoints.frustumCulled=false;scene.add(bubblePoints);
+ function emitBubble(x,y,z){const i=bubbleCursor++%bubbleCapacity;const j=i*3;bubblePos[j]=x;bubblePos[j+1]=y;bubblePos[j+2]=z;bubbleVy[i]=.6+hash(i,bubbleCursor,seed)*.5;bubbleLife[i]=1.2+hash(bubbleCursor,i,seed)*1.2;}
+ function updateBubbles(dt){let count=0;for(let i=0;i<bubbleCapacity;i++){if(bubbleLife[i]<=0)continue;bubbleLife[i]-=dt;if(bubbleLife[i]<=0){bubblePos[i*3+1]=-10000;continue;}bubblePos[i*3+1]+=bubbleVy[i]*dt;count++;}bubbleGeometry.attributes.position.needsUpdate=true;return count;}
+
  try{const s=JSON.parse(localStorage.getItem('sunken-quests-v2')||'null');if(s){qi=clamp(s.i|0,0,QUESTS.length);seen=new Set(s.visited||[]);}}catch{}
  const mat=new THREE.MeshLambertMaterial({map:atlas,vertexColors:true,side:THREE.DoubleSide,fog:true});
  const ghost=new THREE.Group(),sub=new THREE.Group();
@@ -222,7 +234,7 @@ export function createUnderwaterWorld(o) {
   if(wet){
    const q=QUESTS[qi],hint=bathy?(canFire()?'Батискаф: оружие готово':'Батискаф: найди стрелковое оружие'):'Удерживай прыжок: вверх. Отпусти: вниз.';
    hud.textContent='◈ ГЛУБИНА '+(SEA-player.pos.y).toFixed(1)+'м\n'+(q?'Задание: '+q[1]:'Все задания выполнены')+'\n'+hint;
-   scene.fog.color.lerp(new THREE.Color('#0c4258'),immersion);
+   scene.fog.color.lerp(DEEP,Math.min(.2,immersion*.12));
    o.skyU.uTop.value.set('#092c44');
    o.skyU.uHorizon.value.set('#1a6076');
    o.skyU.uBottom.value.set('#123044');
