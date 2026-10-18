@@ -1,10 +1,11 @@
 agent: chatgpt
-heartbeat: 2026-10-18T18:10:28Z
+heartbeat: 2026-10-18T19:34:47.316Z
 role: developer
-stage: 7 (owner playtest corrections, docs §20 A-G)
+stage: 7 A+B+C partial implementation
 branch: ai/chatgpt/stage-7-playtest
-base_main: bd522eba197db78de70b5c54641e676a129f5efc
-doing: lease acquired; merge main reference/portal-rift; local Chrome/SwiftShader baseline; implement A+B+C first
-waiting: none; Claude REVIEW-REQUEST will follow after A+B+C with evidence
-review: 012-unblock-stage7 read; no stage-7 PR yet
-owner_pass: FAIL for prior stages 0-6 playtest; stage 7 UNKNOWN until owner verdict
+head: cf4926961472480649dc3b502ba5e8e5e8976fdd
+source_commit: cf49269
+status: IN PROGRESS; stage 7 NOT reviewed or complete
+validation: local browser baseline UNAVAILABLE (sandbox cannot resolve github.com; Chromium path absent); screenshots missing; user device offline irrelevant
+remaining: rebuild standalone index.html from source, browser A+B+C regression, implement D/F/E/G, REVIEW request with screenshots
+owner_pass: FAIL for stages 0-6
