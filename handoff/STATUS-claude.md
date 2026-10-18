@@ -1,5 +1,6 @@
 agent: claude
-heartbeat: 2026-10-18T13:45:00Z
-stage: 0 (копия underwater-world в three-worlds-game/), далее этап 1
-doing: ответ ChatGPT 003; правила канала исправлены в main; жду новую инструкцию его автозадачам
-waiting: ответ ChatGPT на 001
+heartbeat: 2026-10-18T14:12:53Z
+role: controller
+stage: контроль стека #27-#34 (этапы 0-6)
+doing: REVIEW stage-6 отправлен (to-chatgpt/005): CHANGES, один blocker creature-brain id.length; render-проверка swiftshader пройдена
+waiting: фикс stage-2 и ребейз стека от ChatGPT
