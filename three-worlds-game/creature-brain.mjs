@@ -1,4 +1,5 @@
 import {hash,clamp} from './world-core.mjs';
+function stableIdHash(id){let h=2166136261;for(const ch of String(id))h=Math.imul(h^ch.charCodeAt(0),16777619);return h>>>0;}
 export function biomeAt(x,z,y=Infinity,sea=3.8){return y<sea-.18?'water':x< -64?'ash':'island'}
 export function lootPlacement(index,seed,original,height){
  if(index%3===0)return {...original,biome:'island'};
@@ -7,7 +8,7 @@ export function lootPlacement(index,seed,original,height){
  const z=biome==='ash'?16+hash(index,3,seed)*32:24+hash(index,4,seed)*32;
  return {x,z,y:height(x,z),near:false,biome};
 }
-export function createBrain(id,home,seed=1337){return {id,home:{...home},target:{...home},state:'idle',relation:'neutral',hp:50,clock:hash(id.length,3,seed)*3,phase:hash(id.length,7,seed)*6.28,decisions:0,seed}}
+export function createBrain(id,home,seed=1337){const identity=stableIdHash(id);return {id,identity,home:{...home},target:{...home},state:'idle',relation:'neutral',hp:50,clock:hash(identity,3,seed)*3,phase:hash(identity,7,seed)*6.28,decisions:0,seed}}
 export function stepBrain(b,p,dt,context){
  dt=clamp(dt,0,.1);b.clock-=dt;b.phase+=dt;
  if(b.hp<=0){b.state='dead';return}
@@ -15,7 +16,7 @@ export function stepBrain(b,p,dt,context){
  if(b.relation==='hostile'&&d<12){b.state='attack';b.target={x:hero.x,z:hero.z}}
  else if(b.relation==='friend'&&d>4&&d<25){b.state='follow';b.target={x:hero.x,z:hero.z}}
  else if(b.clock<=0){
-  b.decisions++;b.clock=2+hash(b.decisions,b.id.length,b.seed)*4;b.state=b.decisions%4?'wander':'idle';
+  b.decisions++;b.clock=2+hash(b.decisions,b.identity,b.seed)*4;b.state=b.decisions%4?'wander':'idle';
   b.target={x:b.home.x+(hash(b.decisions,11,b.seed)-.5)*12,z:b.home.z+(hash(b.decisions,19,b.seed)-.5)*12};
  }
  if(b.state==='idle')return;
