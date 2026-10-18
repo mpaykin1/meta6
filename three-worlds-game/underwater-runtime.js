@@ -1,7 +1,6 @@
 import {usesSurfaceTerrain} from './world-core.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import {isOriginalIslandCell} from './world-core.mjs';
 const CHUNK=24;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
@@ -29,7 +28,7 @@ const within=(p,x,z,r=4)=>Math.hypot(p.x-x,p.z-z)<r;
 export function createUnderwaterWorld(o) {
  const {THREE,scene,player,atlas,hero,SEA,seed,toast,getWeapon,getArsenal,getAmmo,getAim}=o;
  const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[],mixers=new Set();
- const inside=isOriginalIslandCell;
+ const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
  const floor=(x,z)=>usesSurfaceTerrain(x,z) ? (o.surfaceHeight ? o.surfaceHeight(x,z) : o.terrainTop(x,z)) : seabedHeight(x,z,seed);
  let bathy=false,repair=new Set(),lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
  try{const s=JSON.parse(localStorage.getItem('sunken-quests-v2')||'null');if(s){qi=clamp(s.i|0,0,QUESTS.length);seen=new Set(s.visited||[]);}}catch{}
