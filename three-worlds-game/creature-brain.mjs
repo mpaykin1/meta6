@@ -1,4 +1,5 @@
 import {hash,clamp} from './world-core.mjs';
+function stableIdHash(id){let h=2166136261;for(const ch of String(id))h=Math.imul(h^ch.charCodeAt(0),16777619);return h>>>0;}
 export function biomeAt(x,z,y=Infinity,sea=3.8){return y<sea-.18?'water':x< -64?'ash':'island'}
 export function lootPlacement(index,seed,original,height){
  if(index%3===0)return {...original,biome:'island'};
