@@ -5,7 +5,7 @@ from PIL import Image, ImageChops
 import json
 import numpy as np
 
-base = Path("underwater-world/evidence")
+base = Path("three-worlds-game/evidence")
 land = Image.open(base / "mobile.png").convert("RGB")
 water = Image.open(base / "diving-mobile.png").convert("RGB")
 if land.size != water.size:

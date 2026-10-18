@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
+import {createRequire} from 'node:module';
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
 import { mkdir } from 'node:fs/promises';
-const base = process.env.TEST_BASE || 'http://127.0.0.1:8765/underwater-world/';
-await mkdir('underwater-world/evidence',{recursive:true});
-const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-certificate-errors']});
+const base = process.env.TEST_BASE || 'http://127.0.0.1:8765/three-worlds-game/';
+await mkdir('three-worlds-game/evidence',{recursive:true});
+const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-certificate-errors']});
 async function boot(context,path,extra=''){
  const page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push('PAGEERROR '+e.message));
@@ -24,7 +25,7 @@ async function boot(context,path,extra=''){
  assert(baseline.uw,'Underwater runtime should exist');
  await page.evaluate(()=>{window.__isle.G.fade=1;window.__isle.G.todT=window.__isle.G.tod=.1;});
  await page.waitForTimeout(750);
- await page.screenshot({path:'underwater-world/evidence/'+path+'.png'});
+ await page.screenshot({path:'three-worlds-game/evidence/'+path+'.png'});
  return {page,baseline,errors};
 }
 const pc=await browser.newContext({viewport:{width:1440,height:900}});
@@ -67,6 +68,7 @@ const y2=await d.page.evaluate(()=>{
 });
 assert(y1>y0+.12,'Hold Space should rise: '+[y0,y1,y2]);
 assert(y2<y1-.08,'Release Space should descend: '+[y0,y1,y2]);
+await d.page.evaluate(()=>{const i=window.__isle;for(const [x,z]of [[75,34],[89,27],[101,31]]){i.player.pos.set(x,i.terrainTop(x,z)+.1,z);i.underwater.update(.016)}i.player.pos.set(70,2.1,31);i.player.vel.set(0,0,0)});
 await d.page.keyboard.press('KeyB');
 const bathy=await d.page.evaluate(()=>({
  entered:window.__isle.underwater.inBathyscaphe,
@@ -92,11 +94,11 @@ const chunkEvidence=await d.page.evaluate(()=>{
 });
 assert(chunkEvidence.report.every(c=>c.chunks>=1&&c.chunks<=9),'Ocean chunks must stream with bounded memory');
 assert(chunkEvidence.surfaced,'Land must restore surface mode');
-assert(!chunkEvidence.bathyAfterSurface,'Bathyscaphe should exit on land');
+assert(chunkEvidence.bathyAfterSurface,'Repaired bathyscaphe must remain active above water for flight');
 console.log('CHUNKS_PASS',JSON.stringify(chunkEvidence));
 await d.page.evaluate(()=>{const i=window.__isle;i.player.pos.set(70,2.1,31);i.player.vel.set(0,0,0);});
 await d.page.waitForTimeout(850);
-await d.page.screenshot({path:'underwater-world/evidence/diving-desktop.png'});
+await d.page.screenshot({path:'three-worlds-game/evidence/diving-desktop.png'});
 console.log('DESKTOP_PASS',JSON.stringify({baseline:d.baseline,y0,y1,y2,bathy,armed:true}));
 await pc.close();
 const phone=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
@@ -111,6 +113,7 @@ assert(data.hudButtons,'All phone controls must be present');
 assert.equal(data.overflow,'hidden','Viewport should be fixed');
 await m.page.evaluate(()=>{const i=window.__isle;i.player.pos.set(70,2.1,31);i.player.vel.set(0,0,0)});
 await m.page.waitForTimeout(550);
+await m.page.evaluate(()=>{const i=window.__isle;for(const [x,z]of [[75,34],[89,27],[101,31]]){i.player.pos.set(x,i.terrainTop(x,z)+.1,z);i.underwater.update(.016)}i.player.pos.set(70,2.1,31);i.player.vel.set(0,0,0)});
 await m.page.locator('#v7Swap').dispatchEvent('pointerdown',{pointerId:501,buttons:1,clientX:336,clientY:650,pointerType:'touch'});
 assert(await m.page.evaluate(()=>window.__isle.underwater.inBathyscaphe),'Phone weapon button should enter bathyscaphe underwater');
 await m.page.evaluate(()=>{const i=window.__isle;i.giveAll();i.equip('pistol');i.combat.ammo.pistol=7;});
@@ -154,7 +157,7 @@ assert.deepEqual([scrollCheck.x,scrollCheck.y],[0,0],'Joystick must not scroll p
 await m.page.locator('#v7Stick').dispatchEvent('pointerup',{pointerId:603,buttons:0,pointerType:'touch'});
 await m.page.waitForTimeout(450);
 console.log('MOBILE_INPUT_PASS',JSON.stringify({ascend,scrollCheck}));
-await m.page.screenshot({path:'underwater-world/evidence/diving-mobile.png'});
+await m.page.screenshot({path:'three-worlds-game/evidence/diving-mobile.png'});
 console.log('MOBILE_PASS',JSON.stringify({baseline:m.baseline,...data}));
 assert.equal(m.errors.length,0,'Phone browser errors: '+m.errors.join('\n'));
 await phone.close();await browser.close();

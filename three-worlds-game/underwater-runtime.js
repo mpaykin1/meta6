@@ -236,7 +236,7 @@ export function createUnderwaterWorld(o) {
    c.phase=c.brain.phase;
   }
  }
- return {groundHeight:(x,z)=>seabedHeight(x,z,seed),isSubmerged,physicsStep,
+ return {groundHeight:floor,isSubmerged,physicsStep,
   update,toggleBathyscaphe,canFire,onShot,interact,
   get repairParts(){return repair.size;},get inBathyscaphe(){return bathy;},get chunks(){return chunks.size;},
   get creatures(){return creatures.length;},get questIndex(){return qi;}};
