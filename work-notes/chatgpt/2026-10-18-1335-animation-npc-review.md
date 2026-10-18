@@ -1,12 +1,14 @@
-# THREE-WORLDS — FPS/graphics external review handoff
+# THREE-WORLDS — independent stage 1–2 audit
 
-ROLE: external FPS/graphics reviewer and coordinator; no stage code under current automation instruction
-UTC: 2026-10-18T13:39:41Z
-DOC_SHA: main `d460af5641ec01c1f6b8632a278c4d01b36c6dc1`; `three-worlds.md` `bf2d7f4cfc1c30988a1a2f2fd8656e0438022e78`; design `4b9d30938d1899faac523b561bdf1de1d86dfa00`; `graf.md` `26952fd351373100d9456b6d571cb7af3868b58e`
-PREV_NOTE: previous revision at commit `1d31658f0fa5ad7429018454fdbf8c7fa7a9ff76`; its role-conflict blocker was resolved by main commit `d460af5641ec01c1f6b8632a278c4d01b36c6dc1`.
-STAGE: 0; Claude may create only the safe `three-worlds-game/` copy until this automation instruction is updated. No stage PR or REVIEW-REQUEST exists yet.
-EVIDENCE: handoff message `003-answer-roles.md` read and acknowledged; current open PRs contain no stage-0/1 implementation candidate; accepted `underwater-world/` and V5–V7 remain untouched.
-FPS/GRAPHICS GATES: require exact PR/HEAD_SHA, CI jobs/steps or local commands, first-frame visual evidence, file:// without CDN/network, zero critical JS/WebGL errors, FPS p50/p95 with seed/resolution/device/GPU, unchanged original HUD, follow-camera/dual-touch, and GRAF §27 HARD FAIL checks. Until evidence exists all runtime gates are UNKNOWN.
-BLOCKER: candidate code and measurements are absent, therefore REVIEW: OK/CHANGES cannot be issued.
-NEXT_ROLE: Claude stage-0 implementer/controller
-NEXT_ACTION: send a formatted REVIEW-REQUEST with PR, HEAD_SHA, diff scope, CI/local results and reproducible visual/performance evidence.
+ROLE: developer-side independent verification while interactive lease owns stage 3
+UTC: 2026-10-18T13:49:45Z
+DOC_SHA: main `76cb38e92b2ea620e43a1c22a8e7860bd63a9242`; `three-worlds.md` `bf2d7f4cfc1c30988a1a2f2fd8656e0438022e78`; design read from current main; `graf.md` `26952fd351373100d9456b6d571cb7af3868b58e`
+PREV_NOTE: previous revision commit `669fb586423cee863ff88a1236c2ea6132215acd`
+STAGE: independent verification of stage 1 PR #28 and stage 2 PR #30; active stage-3 branch deliberately not touched
+BRANCH/PR: #28 HEAD `dafa1e27f98e54b839e56f6d225755f2a7aecc5b`; #30 HEAD `2048cd3dc02bf4f0b58871ea247c57413b4afb50`
+FILES: `three-worlds-game/underwater-runtime.js`, `creature-brain.mjs`, tests
+TESTS/EVIDENCE: isolated Node reproduction: `seabedCellsGenerated=0`; two equal-length stable IDs with the same seed produced identical clock `1.4732740041799843` and phase `5.418322250843048`. GitHub Actions/statuses for all three stage heads are empty, so CI=UNKNOWN.
+REVIEW_STATUS: BLOCKED. PR #28 removes seabed geometry/collision because function `o.surfaceHeight` is used as an always-truthy predicate and overrides `seabedHeight`. PR #30 does not guarantee independent NPC phase because only `id.length` is hashed. Both findings were posted on the PRs and in `handoff/to-claude/007-alert-stage1-stage2-hard-fail.md`.
+BLOCKERS: no browser runtime/FPS/device evidence; Chromium unavailable in the active implementation environment. OWNER PASS/FAIL remains unset.
+NEXT_ACTION: active developer fixes #28 and #30 in their existing branches, adds regression tests, reruns local suite, sends new HEAD_SHA review requests.
+NEXT_ROLE: active ChatGPT implementation lease, then Claude independent review
