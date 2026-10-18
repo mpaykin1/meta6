@@ -80,7 +80,8 @@ export function createUnderwaterWorld(o) {
   ['submarine_wreck',101,31,2],['arch',73,43,2.6],
   ['angler',78,44,1.2]
  ];
- landmarks.forEach(([id,x,z,size])=>addModel(scene,id,size,x,floor(x,z)+.4,z,hash(x,z,seed)*6.28));
+ const fixtures=[];
+ landmarks.forEach(([id,x,z,size])=>{const holder=new THREE.Group();holder.position.set(x,0,z);scene.add(holder);addModel(holder,id,size,0,0,0,hash(x,z,seed)*6.28);fixtures.push({holder,x,z})});
  function chunk(cx,cz){
   const group=new THREE.Group(),pos=[],col=[],uv=[],faces=[],tickets=[];
   const corners=[[0,0],[1,0],[1,1],[0,1]];
@@ -200,6 +201,7 @@ export function createUnderwaterWorld(o) {
  }
  function update(dt){
   time+=dt;const wet=isSubmerged();
+  for(const f of fixtures)f.holder.position.y=floor(f.x,f.z)+.4;
   if(wet)for(const [id,x,z]of [['bell',75,34],['ruins',89,27],['wreck',101,31]])if(!repair.has(id)&&within(player.pos,x,z,4)){repair.add(id);toast('Деталь батискафа '+repair.size+'/3',2200)}
   if(wet||player.pos.x<3||player.pos.z<3||player.pos.x>60||player.pos.z>60)ensure();
   o.water.position.set(player.pos.x,SEA,player.pos.z);

@@ -1,18 +1,18 @@
-✔ western ash route is traversable with non-flat terrain and exact source factory excludes viewer (7.231833ms)
-✔ independent creatures decide without orbiting the player and cannot cross onto land (16.116749ms)
-✔ original weapon positions and deterministic biome placements (0.555203ms)
-✔ 200 encounters contain no duplicate whole phrases, including save/restore (2.723453ms)
-✔ standalone export has no external script/style/importmap and every inline script parses (82.121652ms)
-✔ all 19 embedded binary models have valid glTF magic and declared byte length (18.978677ms)
-✔ guest dialogue reflects source world, predicament and relationship (1.268051ms)
-✔ bathyscaphe rises from seabed through surface into air and descends without losing inventory (12.403868ms)
-✔ ship rejects scenery collisions and altitude remains bounded (0.317811ms)
-✔ separate world heights, seamless seeded deep water and dry ash (24.151466ms)
-✔ underwater integration uses shared floor, safe shore clamp and no extra visible panels (0.822835ms)
-✔ terrain deterministic, negative coordinates and every sampled 16m patch has relief (55.648765ms)
-✔ core preserved and extension continuous at all four boundaries (1.144377ms)
-✔ chunk cache traverses four directions with <=25 live allocations including teleports (1.986973ms)
-✔ world lifecycle, positions and fade are bounded through repeated transitions (0.506616ms)
+✔ western ash route is traversable with non-flat terrain and exact source factory excludes viewer (8.153951ms)
+✔ independent creatures decide without orbiting the player and cannot cross onto land (13.21938ms)
+✔ original weapon positions and deterministic biome placements (0.392257ms)
+✔ 200 encounters contain no duplicate whole phrases, including save/restore (2.227626ms)
+✔ standalone export has no external script/style/importmap and every inline script parses (78.422358ms)
+✔ all 19 embedded binary models have valid glTF magic and declared byte length (11.418331ms)
+✔ guest dialogue reflects source world, predicament and relationship (0.887403ms)
+✔ bathyscaphe rises from seabed through surface into air and descends without losing inventory (16.866359ms)
+✔ ship rejects scenery collisions and altitude remains bounded (0.646464ms)
+✔ separate world heights, seamless seeded deep water and dry ash (14.282079ms)
+✔ underwater integration uses shared floor, safe shore clamp and no extra visible panels (0.873605ms)
+✔ terrain deterministic, negative coordinates and every sampled 16m patch has relief (53.08543ms)
+✔ core preserved and extension continuous at all four boundaries (0.865415ms)
+✔ chunk cache traverses four directions with <=25 live allocations including teleports (2.066608ms)
+✔ world lifecycle, positions and fade are bounded through repeated transitions (0.805893ms)
 ℹ tests 15
 ℹ suites 0
 ℹ pass 15
@@ -20,4 +20,4 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 338.998986
+ℹ duration_ms 351.451243
