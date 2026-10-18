@@ -14,3 +14,5 @@ test('same-seed equal-length creature identities remain independent',()=>{
  }
  assert.notDeepEqual(a.target,b.target);
 });
+
+test('equal-length ids remain independent with the same seed',()=>{const a=createBrain('fish:1',{x:0,z:0},77),b=createBrain('manta2',{x:0,z:0},77);assert.equal(a.id.length,b.id.length);assert.notEqual(a.identity,b.identity);assert.notEqual(a.phase,b.phase);assert.notEqual(a.clock,b.clock);a.clock=b.clock=0;const p={x:0,y:-2,z:0},q={...p},ctx={player:{x:100,z:100},height:()=>-3,aquatic:true,sea:3.8};stepBrain(a,p,.05,ctx);stepBrain(b,q,.05,ctx);assert.notDeepEqual(a.target,b.target)});
