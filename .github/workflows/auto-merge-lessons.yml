@@ -1,0 +1,28 @@
+# Автослияние docs-only PR с уроками контролёра.
+# Условия: ветка ai/claude/lesson-*, PR в main, ВСЕ изменённые файлы лежат в docs/lessons/*.md.
+# pull_request_target: запускается версия из main, код PR не выполняется и не чекаутится.
+name: auto-merge-lessons
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  merge:
+    if: startsWith(github.event.pull_request.head.ref, 'ai/claude/lesson-') && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Проверить, что diff только в docs/lessons, и слить
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | .filename, (.previous_filename // empty)')
+          [ -n "$files" ] || { echo "пустой diff"; exit 1; }
+          bad=$(echo "$files" | grep -Ev '^docs/lessons/[^/]+\.md$' || true)
+          if [ -n "$bad" ]; then echo "Не слито: файлы вне docs/lessons:"; echo "$bad"; exit 1; fi
+          gh pr merge "$PR" --repo "$REPO" --squash
