@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {islandHeight,createHeightSource,isOriginalIslandCell,ChunkWindow,WorldManager} from '../world-core.mjs';
+import {islandHeight,createHeightSource,isOriginalIslandCell,usesSurfaceTerrain,ChunkWindow,WorldManager} from '../world-core.mjs';
 test('terrain deterministic, negative coordinates and every sampled 16m patch has relief',()=>{
  for(const seed of [1,1337,90210])for(let z=-160;z<=160;z+=16)for(let x=-160;x<=160;x+=16){let lo=Infinity,hi=-Infinity;
   for(let j=0;j<=16;j+=2)for(let i=0;i<=16;i+=2){const y=islandHeight(x+i,z+j,seed);assert.equal(y,islandHeight(x+i,z+j,seed));lo=Math.min(lo,y);hi=Math.max(hi,y)}
@@ -12,3 +12,5 @@ test('chunk cache traverses four directions with <=25 live allocations including
 test('world lifecycle, positions and fade are bounded through repeated transitions',async()=>{let count=0;const m=new WorldManager();for(const id of ['island','water'])m.register(id,{init:()=>count++,dispose:()=>count--});await m.enter('island');for(let n=0;n<10;n++){await m.enter(n%2?'island':'water');m.update(.1,{x:n,y:0,z:0});assert.equal(count,1)}assert.equal(m.positions.size,2);assert(m.fade<1);m.dispose();assert.equal(count,0)});
 
 test('seabed cells remain streamable when a surface callback exists',()=>{let cells=0;const surfaceHeight=()=>-4;assert.equal(typeof surfaceHeight,'function');for(let z=24;z<48;z++)for(let x=72;x<96;x++)if(!isOriginalIslandCell(x,z))cells++;assert.equal(cells,24*24);assert.equal(isOriginalIslandCell(32,32),true);assert.equal(isOriginalIslandCell(72,32),false)});
+
+test('surface domain keeps western ash dry and eastern seabed streamable',()=>{assert.equal(usesSurfaceTerrain(-100,20),true);assert.equal(usesSurfaceTerrain(20,20),true);assert.equal(usesSurfaceTerrain(64,20),false);let wet=0;for(let x=64;x<88;x++)for(let z=0;z<24;z++)if(!usesSurfaceTerrain(x,z))wet++;assert.equal(wet,576)});
