@@ -1,3 +1,4 @@
+import {DialogueGenerator} from './dialogue.mjs';
 import {createAshFactory} from './ash-assets.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
@@ -6,6 +7,9 @@ export function guestLine(home,current,state){
  return state==='friend'?'Ты не бросил меня. Я прикрою тебя.':state==='hostile'?'Ты видел, что мне нужна помощь. Теперь я защищаюсь.':state==='home'?'Дорога открыта. Это оружие теперь твоё.':need;
 }
 export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,toast,prepare,onTransition,attacking,onAttack,reward}){
+ let snapshot={};try{snapshot=JSON.parse(localStorage.getItem('three-worlds-dialogue')||'{}')}catch{}
+ const dialogue=new DialogueGenerator(snapshot);
+ function line(g,state){const text=dialogue.next({home:g.home,world:player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island',state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
  const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
  let clock=0,cooldown=0,guest=null,factory=null,sheet=null,triggered=false;
  const geometry=new THREE.PlaneGeometry(3.5,5);
@@ -25,7 +29,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:true,side:THREE.DoubleSide,uniforms:{map:{value:sheet.texture},frame:{value:0},dir:{value:0}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform sampler2D map;uniform float frame,dir;varying vec2 vUv;void main(){vec4 c=texture2D(map,(vUv+vec2(dir,frame))/8.);if(c.a<.4)discard;gl_FragColor=c;}'});
   const m=new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.2),mat);m.position.set(x,height(x,z)+5,z);scene.add(m);
   guest={mesh:m,brain:createBrain('original-scavenger',{x,z},seed),home:'ash',landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false};
-  toast(guestLine('ash','island','neutral'),4200);
+  toast(line(guest,'neutral'),4200);
  }
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
@@ -35,13 +39,14 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   const floor=height(p.x,p.z),distance=Math.hypot(p.x-player.pos.x,p.z-player.pos.z);
   if(!g.landed){g.fall+=dt*9;p.y-=g.fall*dt;if(p.y<=floor+1.6){p.y=floor+1.6;g.landed=true;onTransition(.1)}}
   else{
-   const attack=attacking();if(attack&&distance<3&&g.damageClock===0){g.brain.hp-=12;g.brain.relation='hostile';g.damageClock=.7;toast(guestLine(g.home,'island','hostile'),2600)}
+   const attack=attacking();if(attack&&distance<3&&g.damageClock===0){g.brain.hp-=12;g.brain.relation='hostile';g.damageClock=.7;toast(line(g,'hostile'),2600)}
    if(g.brain.hp<=0){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;return}
-   if(g.brain.relation==='neutral'&&distance<2.6&&!attack){g.help+=dt;if(g.help>2){g.brain.relation='friend';toast(guestLine(g.home,'island','friend'),2800)}}
+   if(g.brain.relation==='neutral'&&distance<2.6&&!attack){g.help+=dt;if(g.help>2){g.brain.relation='friend';toast(line(g,'friend'),2800)}}
    if(g.brain.relation==='neutral'&&g.age>25&&distance>13)g.brain.relation='hostile';
    stepBrain(g.brain,p,dt,{player:player.pos,height:(x,z)=>height(x,z)+1.6,sea:3.8});
    if(g.brain.relation==='hostile'&&distance<2&&g.damageClock===0){onAttack();g.damageClock=2}
    if(g.brain.relation==='friend'&&player.pos.x<-64&&!g.rewarded){g.rewarded=true;reward();toast(guestLine('ash','ash','home'),3200)}
+   if(g.rewarded){g.brain.relation='neutral';g.brain.state='wander';g.brain.target={x:-126,z:32};g.brain.clock=5;if(Math.hypot(p.x+126,p.z-32)<2){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;return}}
   }
   g.mesh.rotation.y=Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
   g.mesh.material.uniforms.frame.value=Math.floor(g.brain.phase*8)%8;
