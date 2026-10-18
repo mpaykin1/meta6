@@ -29,7 +29,7 @@ export function createUnderwaterWorld(o) {
  const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[],mixers=new Set();
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
  const floor=(x,z)=>o.surfaceHeight ? o.surfaceHeight(x,z) : inside(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed);
- let bathy=false,lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
+ let bathy=false,repair=new Set(),lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
  try{const s=JSON.parse(localStorage.getItem('sunken-quests-v2')||'null');if(s){qi=clamp(s.i|0,0,QUESTS.length);seen=new Set(s.visited||[]);}}catch{}
  const mat=new THREE.MeshLambertMaterial({map:atlas,vertexColors:true,side:THREE.DoubleSide,fog:true});
  const ghost=new THREE.Group(),sub=new THREE.Group();
@@ -48,11 +48,14 @@ export function createUnderwaterWorld(o) {
  document.head.append(style);
  function model(name){
   if(!models.has(name))models.set(name,new Promise(resolve=>{
-   loader.load('./models/'+name+'.glb',g=>{
+   const loaded=g=>{
     const object=g.scene,bb=new THREE.Box3().setFromObject(object),dims=new THREE.Vector3();
     bb.getSize(dims);object.scale.multiplyScalar(2/Math.max(.1,dims.x,dims.y,dims.z));
     resolve({object,clips:g.animations||[]});
-   },undefined,()=>resolve(null));
+   };
+   const embedded=globalThis.__threeWorldsModels?.[name];
+   if(embedded){const bytes=Uint8Array.from(atob(embedded),c=>c.charCodeAt(0));loader.parse(bytes.buffer,'',loaded,()=>resolve(null));}
+   else loader.load('./models/'+name+'.glb',loaded,undefined,()=>resolve(null));
   }));
   return models.get(name);
  }
@@ -143,6 +146,7 @@ export function createUnderwaterWorld(o) {
  }
  function toggleBathyscaphe(){
   if(!isSubmerged()&&!bathy){toast('Батискаф доступен под водой',2300);return false;}
+  if(!bathy&&repair.size<3){toast('Для ремонта найди детали у колокола, руин и затонувшего корабля ('+repair.size+'/3)',3300);return false;}
   bathy=!bathy;toast(bathy?'Батискаф: используй найденное стрелковое оружие':'Вы вышли из батискафа',2600);
   return bathy;
  }
@@ -196,9 +200,10 @@ export function createUnderwaterWorld(o) {
  }
  function update(dt){
   time+=dt;const wet=isSubmerged();
+  if(wet)for(const [id,x,z]of [['bell',75,34],['ruins',89,27],['wreck',101,31]])if(!repair.has(id)&&within(player.pos,x,z,4)){repair.add(id);toast('Деталь батискафа '+repair.size+'/3',2200)}
   if(wet||player.pos.x<3||player.pos.z<3||player.pos.x>60||player.pos.z>60)ensure();
   o.water.position.set(player.pos.x,SEA,player.pos.z);
-  if(!wet)bathy=false;
+  // Repaired bathyscaphe remains active when it surfaces and flies.
   sub.visible=bathy;sub.position.copy(player.pos);sub.position.y+=Math.sin(time*2.2)*.07;
   sub.rotation.y=Math.atan2(player.look.x,player.look.z);
   if(bathy)hero.visible=false;
@@ -233,6 +238,6 @@ export function createUnderwaterWorld(o) {
  }
  return {groundHeight:(x,z)=>seabedHeight(x,z,seed),isSubmerged,physicsStep,
   update,toggleBathyscaphe,canFire,onShot,interact,
-  get inBathyscaphe(){return bathy;},get chunks(){return chunks.size;},
+  get repairParts(){return repair.size;},get inBathyscaphe(){return bathy;},get chunks(){return chunks.size;},
   get creatures(){return creatures.length;},get questIndex(){return qi;}};
 }

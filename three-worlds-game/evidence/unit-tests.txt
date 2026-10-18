@@ -1,0 +1,23 @@
+✔ western ash route is traversable with non-flat terrain and exact source factory excludes viewer (13.840618ms)
+✔ independent creatures decide without orbiting the player and cannot cross onto land (11.667693ms)
+✔ original weapon positions and deterministic biome placements (0.552017ms)
+✔ 200 encounters contain no duplicate whole phrases, including save/restore (3.097271ms)
+✔ standalone export has no external script/style/importmap and every inline script parses (150.670111ms)
+✔ all 19 embedded binary models have valid glTF magic and declared byte length (20.070159ms)
+✔ guest dialogue reflects source world, predicament and relationship (0.883417ms)
+✔ bathyscaphe rises from seabed through surface into air and descends without losing inventory (11.986239ms)
+✔ ship rejects scenery collisions and altitude remains bounded (0.548377ms)
+✔ separate world heights, seamless seeded deep water and dry ash (15.534029ms)
+✔ underwater integration uses shared floor, safe shore clamp and no extra visible panels (0.561034ms)
+✔ terrain deterministic, negative coordinates and every sampled 16m patch has relief (57.27197ms)
+✔ core preserved and extension continuous at all four boundaries (1.305362ms)
+✔ chunk cache traverses four directions with <=25 live allocations including teleports (1.306614ms)
+✔ world lifecycle, positions and fade are bounded through repeated transitions (0.648295ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 569.207311
