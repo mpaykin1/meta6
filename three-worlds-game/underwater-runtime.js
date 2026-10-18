@@ -27,7 +27,7 @@ export function createUnderwaterWorld(o) {
  const {THREE,scene,player,atlas,hero,SEA,seed,toast,getWeapon,getArsenal,getAmmo,getAim}=o;
  const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[],mixers=new Set();
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
- const floor=(x,z)=>inside(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed);
+ const floor=(x,z)=>o.surfaceHeight ? o.surfaceHeight(x,z) : inside(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed);
  let bathy=false,lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
  try{const s=JSON.parse(localStorage.getItem('sunken-quests-v2')||'null');if(s){qi=clamp(s.i|0,0,QUESTS.length);seen=new Set(s.visited||[]);}}catch{}
  const mat=new THREE.MeshLambertMaterial({map:atlas,vertexColors:true,side:THREE.DoubleSide,fog:true});
@@ -81,7 +81,7 @@ export function createUnderwaterWorld(o) {
   const group=new THREE.Group(),pos=[],col=[],uv=[],faces=[],tickets=[];
   const corners=[[0,0],[1,0],[1,1],[0,1]];
   for(let z=cz*CHUNK;z<(cz+1)*CHUNK;z++)for(let x=cx*CHUNK;x<(cx+1)*CHUNK;x++){
-   if(inside(x,z))continue;
+   if(inside(x,z)||o.surfaceHeight)continue;
    const h=seabedHeight(x+.5,z+.5,seed),n=fbm(x*.18,z*.18,seed+29);
    const k=h>4?0:h>-1?4:h>-5?(n>.67?2:4):(n>.4?11:2);
    const u0=(k%4)*.25+.002,u1=u0+.246,v0=1-(Math.floor(k/4)+1)/3+.002,v1=v0+.328;

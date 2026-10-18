@@ -484,6 +484,7 @@ body.v5-show-original-hud .hud-row{display:flex!important}
 //  Three.js r160 · HD-2D billboards · procedural world · cinematic post
 // =============================================================================
 import * as THREE from 'three';
+import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
 import { createUnderwaterWorld } from './underwater-runtime.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -912,13 +913,13 @@ const FACES = [
 function buildTerrainGeometry(world, x0 = 0, z0 = 0, x1 = W, z1 = D) {
   const { vox } = world;
   const at = (x, y, z) => x + W * (z + D * y);
-  const solid = (x, y, z) => (y < 0 ? true : (x < 0 || z < 0 || x >= W || z >= D || y >= H) ? false : vox[at(x, y, z)] !== 0);
+  const solid = (x,y,z) => y < 0 || (y < H && blockAt(x,y,z)!==0);
   const pos = [], nrm = [], uvs = [], col = [], idx = [], cut = [];
   const AO = [0.36, 0.58, 0.8, 1.0];
   const TU = 0.25, TV = 1 / 3, E = 0.0006;
   let vc = 0;
   for (let y = 0; y < H; y++) for (let z = z0; z < z1; z++) for (let x = x0; x < x1; x++) {
-    const b = vox[at(x, y, z)];
+    const b = blockAt(x,y,z);
     if (!b) continue;
     const tiles = FACE_TILES[b];
     const tint = (b === B.LEAVES ? 0.86 : 0.94) + (b === B.LEAVES ? 0.22 : 0.1) * hash3(x, y, z);
@@ -1828,7 +1829,7 @@ const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.V
    11 · Voxel queries
 ----------------------------------------------------------------------------- */
 function blockAt(x, y, z) {
-  if (x < 0 || z < 0 || x >= W || z >= D) return y < Math.floor(UW.groundHeight(x, z)) ? B.STONE : 0;
+  if (x < 0 || z < 0 || x >= W || z >= D) return y < Math.floor(terrainTop(x, z)) ? (y===Math.floor(terrainTop(x,z))-1 ? B.GRASS : B.STONE) : 0;
   if (y < 0) return B.STONE;
   if (y >= H) return 0;
   return world.vox[x + W * (z + D * y)];
@@ -1846,9 +1847,10 @@ function groundBelow(px, py, pz) {
   for (let y = Math.min(H - 1, Math.floor(py)); y >= 0; y--) if (solidAt(x, y, z)) return y + 1;
   return 0;
 }
+let heightSource = null;
 function terrainTop(px, pz) {
   const x = Math.floor(px), z = Math.floor(pz);
-  if (x < 0 || z < 0 || x >= W || z >= D) return UW.groundHeight(px, pz);
+  if (x < 0 || z < 0 || x >= W || z >= D) return heightSource ? heightSource(px,pz) : 1;
   return world.hgt[x + z * W];
 }
 function rayFree(o, d, maxT) {
@@ -2262,7 +2264,7 @@ const rig = {
 };
 const UW = createUnderwaterWorld({
   THREE, scene, player, atlas: atlasTex, hero, water, skyU, SEA, seed: DEFAULT_SEED,
-  terrainTop, toast, getWeapon: () => curWeapon(), getArsenal: () => combat.arsenal,
+  terrainTop, surfaceHeight: (x,z)=>terrainTop(x,z), toast, getWeapon: () => curWeapon(), getArsenal: () => combat.arsenal,
   getAmmo: () => combat.ammo, getAim: () => aim,
   onCreatureAttack: (amount,x,z) => hurt(amount,x,z)
 });
@@ -2761,6 +2763,7 @@ function readBest() { try { const v = parseFloat(localStorage.getItem(bestKey())
 function buildWorld(seed) {
   G.seed = seed;
   world = generateWorld(seed);
+  heightSource = createHeightSource(seed,(x,z)=>world.hgt[x+z*W]);
   buildChunks();
   if (heightTex) heightTex.dispose();
   heightTex = makeHeightTexture(world);
@@ -4262,19 +4265,26 @@ function renderFoes() {
 const CH = 16, NCH = (W / CH) * (D / CH);
 let chunks = [];
 const dirtyChunks = new Set();
+let terrainWindow = null;
+const worlds = new WorldManager();
+worlds.register('island', {init(){}, update(dt,p){terrainWindow?.update(p.x,p.z)}, dispose(){terrainWindow?.clear()}});
 function buildChunks() {
-  for (const m of chunks) if (m) { scene.remove(m); m.geometry.dispose(); }
-  chunks = [];
-  for (let i = 0; i < NCH; i++) chunks.push(null);
-  for (let i = 0; i < NCH; i++) rebuildChunk(i);
-  dirtyChunks.clear();
+  terrainWindow?.clear();
+  terrainWindow = new ChunkWindow({radius:2,
+    create(cx,cz){const mesh=new THREE.Mesh(buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH),terrainMat);scene.add(mesh);return mesh},
+    dispose(mesh){scene.remove(mesh);mesh.geometry.dispose()}
+  });
+  terrainWindow.update(world.spawn.x,world.spawn.z);
+  chunks=[...terrainWindow.items.values()];dirtyChunks.clear();
+  if(!worlds.active)void worlds.enter('island');
 }
 function rebuildChunk(i) {
-  const cx = (i % (W / CH)) * CH, cz = Math.floor(i / (W / CH)) * CH;
-  if (chunks[i]) { scene.remove(chunks[i]); chunks[i].geometry.dispose(); }
-  const m = new THREE.Mesh(buildTerrainGeometry(world, cx, cz, cx + CH, cz + CH), terrainMat);
-  scene.add(m);
-  chunks[i] = m;
+  if(!terrainWindow)return;
+  const cx=i%(W/CH),cz=Math.floor(i/(W/CH)),key=cx+','+cz;
+  const old=terrainWindow.items.get(key);if(!old)return;
+  scene.remove(old);old.geometry.dispose();
+  const mesh=new THREE.Mesh(buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH),terrainMat);
+  scene.add(mesh);terrainWindow.items.set(key,mesh);chunks=[...terrainWindow.items.values()];
 }
 function markDirty(x0, z0, x1, z1) {
   for (let cz = Math.max(0, Math.floor((z0 - 1) / CH)); cz <= Math.min(D / CH - 1, Math.floor((z1 + 1) / CH)); cz++)
@@ -4827,6 +4837,8 @@ function frame(now) {
   updateBeacon(raw);
   updateCamera(raw);
   updateHeroMesh(raw);
+  worlds.update(raw,player.pos);
+  chunks=[...terrainWindow.items.values()];
   UW.update(raw);
   updateWisp(raw);
   updateLeaves(raw);
@@ -4874,7 +4886,7 @@ setTimeout(() => start({}), 2500);
 window.__isle = {
   // V5 direct access to original 3D runtime for Claude and the historical editor.
   scene, camera, THREE, renderer, canvas, atlasTex, heroTex, heroGeo, SEA, SFX,
-  terrainTop, get terrainMeshes(){return chunks},
+  worlds, terrainWindow:()=>terrainWindow, terrainTop, get terrainMeshes(){return chunks},
   spawnFoe(type,x,z){return spawnFoe(type,x,terrainTop(x,z)+1.1,z,true)},
   pause:setPaused, toggleMute, toggleFullscreen,
   hurtBy:(amount,x,z)=>hurt(amount,x,z),
