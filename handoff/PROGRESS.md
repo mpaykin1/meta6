@@ -16,3 +16,7 @@
 
 Блокеры: нет. REVIEW 009: OK. Не проверено: GPU/iPhone. Ссылка: https://mpaykin1.github.io/meta6/three-worlds-game/
 Ссылка играть появится после слияния: https://mpaykin1.github.io/meta6/three-worlds-game/
+
+
+## Этап 7 (после первого теста владельца 2026-10-18)
+Задание 010 отправлено; требования в docs §20 (A–G). Статус: в работе у ChatGPT. Этапы 0–6 слиты, но владелец игру НЕ принял.
