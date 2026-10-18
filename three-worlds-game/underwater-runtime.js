@@ -136,9 +136,10 @@ export function createUnderwaterWorld(o) {
   }
   for(let i=creatures.length-1;i>=0;i--)if(!keep.has(creatures[i].chunk))creatures.splice(i,1);
  }
- function isSubmerged(p=player.pos){return p.y<SEA-.18&&floor(p.x,p.z)<SEA-.45;}
+ function immersionAt(p=player.pos){return clamp((SEA+1.25-p.y)/2.7,0,1)*clamp((SEA-floor(p.x,p.z))/.8,0,1);}
+ function isSubmerged(p=player.pos){return immersionAt(p)>.01;}
  function physicsStep(h){
-  const p=player.pos,v=player.vel,vy=player.jumpHeld?3.0:-1.0;
+  const p=player.pos,v=player.vel,vy=player.jumpHeld?2.0:-.72;
   v.y+=(vy-v.y)*clamp(h*3.6,0,1);p.x+=v.x*h;p.z+=v.z*h;
   const gy=floor(p.x,p.z);p.y=clamp(p.y+v.y*h,gy+.08,Math.max(gy+.08,SEA+.55));
   player.onGround=p.y<=gy+.09;
@@ -201,7 +202,10 @@ export function createUnderwaterWorld(o) {
   mini.strokeStyle='#081c23';mini.strokeRect(61,61,6,6);
  }
  function update(dt){
-  time+=dt;const wet=isSubmerged();
+  time+=dt;const wet=isSubmerged();immersion+=(immersionAt()-immersion)*clamp(dt*3.5,0,1);
+  bubbleBudget+=dt*(immersion>0.04?(8+Math.abs(player.vel.y)*29)*immersion:0);
+  for(let i=0,n=Math.min(24,Math.floor(bubbleBudget));i<n;i++){const jitter=hash(i,Math.floor(time*80),seed);emitBubble(player.pos.x+(jitter-.5)*.85,player.pos.y-.3,player.pos.z+(hash(i,Math.floor(time*90),seed)-.5)*.85);bubbleBudget-=1;}
+  bubbleActive=updateBubbles(dt);
   for(const f of fixtures)f.holder.position.y=floor(f.x,f.z)+.4;
   if(wet)for(const [id,x,z]of [['bell',75,34],['ruins',89,27],['wreck',101,31]])if(!repair.has(id)&&within(player.pos,x,z,4)){repair.add(id);toast('Деталь батискафа '+repair.size+'/3',2200)}
   if(wet||player.pos.x<3||player.pos.z<3||player.pos.x>60||player.pos.z>60)ensure();
@@ -218,12 +222,12 @@ export function createUnderwaterWorld(o) {
   if(wet){
    const q=QUESTS[qi],hint=bathy?(canFire()?'Батискаф: оружие готово':'Батискаф: найди стрелковое оружие'):'Удерживай прыжок: вверх. Отпусти: вниз.';
    hud.textContent='◈ ГЛУБИНА '+(SEA-player.pos.y).toFixed(1)+'м\n'+(q?'Задание: '+q[1]:'Все задания выполнены')+'\n'+hint;
-   scene.fog.color.set('#0c4258');
+   scene.fog.color.lerp(new THREE.Color('#0c4258'),immersion);
    o.skyU.uTop.value.set('#092c44');
    o.skyU.uHorizon.value.set('#1a6076');
    o.skyU.uBottom.value.set('#123044');
    o.skyU.uSunVis.value=.02;
-   scene.fog.density=.025+Math.max(0,SEA-player.pos.y)*.004;
+   scene.fog.density=.009+immersion*(.016+Math.max(0,SEA-player.pos.y)*.004);
    if(within(player.pos,69,31,7)&&time-lastHint>18){lastHint=time;interact();}
   }
   for(const mixer of mixers)mixer.update(Math.min(dt,.05));
@@ -239,7 +243,8 @@ export function createUnderwaterWorld(o) {
    c.phase=c.brain.phase;
   }
  }
- return {groundHeight:floor,isSubmerged,physicsStep,
+ return {groundHeight:floor,isSubmerged,immersionAt,physicsStep,
+  get bubbleCount(){return bubbleActive;},
   update,toggleBathyscaphe,canFire,onShot,interact,
   get repairParts(){return repair.size;},get inBathyscaphe(){return bathy;},get chunks(){return chunks.size;},
   get creatures(){return creatures.length;},get questIndex(){return qi;}};
