@@ -17,7 +17,7 @@ export function stepBrain(b,p,dt,context){
  else if(b.relation==='friend'&&d>4&&d<25){b.state='follow';b.target={x:hero.x,z:hero.z}}
  else if(b.clock<=0){
   b.decisions++;b.clock=2+hash(b.decisions,b.identity,b.seed)*4;b.state=b.decisions%4?'wander':'idle';
-  b.target={x:b.home.x+(hash(b.decisions,11,b.seed)-.5)*12,z:b.home.z+(hash(b.decisions,19,b.seed)-.5)*12};
+  b.target={x:b.home.x+(hash(b.decisions,11,b.seed^b.identity)-.5)*12,z:b.home.z+(hash(b.decisions,19,b.seed^b.identity)-.5)*12};
  }
  if(b.state==='idle')return;
  const dx=b.target.x-p.x,dz=b.target.z-p.z,len=Math.hypot(dx,dz);
