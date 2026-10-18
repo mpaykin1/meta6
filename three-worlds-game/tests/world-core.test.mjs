@@ -20,3 +20,5 @@ test('surface domain does not suppress seabed outside eastern shore',()=>{
  for(let x=64;x<88;x++)for(let z=0;z<24;z++)if(!usesSurfaceTerrain(x,z))wetCells++;
  assert.equal(wetCells,576);
 });
+
+test('seabed cells remain streamable when a surface callback exists',()=>{let cells=0;const surfaceHeight=()=>-4;assert.equal(typeof surfaceHeight,'function');for(let z=24;z<48;z++)for(let x=72;x<96;x++)if(!isOriginalIslandCell(x,z))cells++;assert.equal(cells,24*24);assert.equal(isOriginalIslandCell(32,32),true);assert.equal(isOriginalIslandCell(72,32),false)});
