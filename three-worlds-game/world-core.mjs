@@ -1,5 +1,7 @@
 // Shared deterministic terrain and lifecycle. No renderer, DOM or network dependencies.
 export const CHUNK_SIZE = 16;
+// The accepted island and western ash extension own the surface; east of x=64 is seabed.
+export const usesSurfaceTerrain = (x,z) => x < 64;
 export const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
 const smooth = x => {x=clamp(x,0,1);return x*x*(3-2*x)};
 export function hash(x,z,s=0){let n=Math.imul(x|0,374761393)^Math.imul(z|0,668265263)^Math.imul(s|0,362437);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
