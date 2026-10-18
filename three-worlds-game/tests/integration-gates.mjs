@@ -22,6 +22,16 @@ const result=await page.evaluate(async()=>{
  return {paths,inventory,hp,after:{inventory:[...i.combat.arsenal],hp:i.player.hp},gl:!!i.renderer.getContext(),dimensions:[i.renderer.domElement.width,i.renderer.domElement.height]};
 });
 assert(result.gl);assert(result.paths.every(x=>x.chunks<=25));assert.deepEqual(result.inventory,result.after.inventory);assert.equal(result.hp,result.after.hp);assert(Math.max(...result.dimensions)<=1080);
+// Reset the fixture after chunk teleports/rift traversal. Keep the hero at the known
+// traversable spawn area; (46,32) is blocked by the lighthouse collision plinth.
+await page.evaluate(()=>{
+ const i=window.__isle,x=44.5,z=49.5;
+ i.player.pos.set(x,i.terrainTop(x,z)+.2,z);
+ i.player.vel.set(0,0,0);
+ i.clearInput?.();
+ i.terrainWindow().update(x,z);
+});
+await page.waitForTimeout(500);
 const before=await page.evaluate(()=>({canvas:document.querySelector('#c').getBoundingClientRect().toJSON(),pos:__isle.player.pos.toArray(),camera:__isle.camera.position.toArray()}));
 const stick=await page.locator('#v7Stick').boundingBox();assert(stick);
 const cdp=await context.newCDPSession(page),x=stick.x+stick.width/2,y=stick.y+stick.height/2;
@@ -30,7 +40,9 @@ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x
 await page.waitForTimeout(10000);
 await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
 const after=await page.evaluate(()=>({canvas:document.querySelector('#c').getBoundingClientRect().toJSON(),pos:__isle.player.pos.toArray(),camera:__isle.camera.position.toArray(),scroll:[scrollX,scrollY]}));
-assert.deepEqual(before.canvas,after.canvas);assert.deepEqual(after.scroll,[0,0]);assert.notDeepEqual(before.pos,after.pos);assert.notDeepEqual(before.camera,after.camera);
+assert.deepEqual(before.canvas,after.canvas);assert.deepEqual(after.scroll,[0,0]);
+assert(Math.hypot(after.pos[0]-before.pos[0],after.pos[2]-before.pos[2])>0.3,'hero did not move: '+JSON.stringify([before.pos,after.pos]));
+assert.notDeepStrictEqual(before.camera,after.camera);
 const frameTimes=await page.evaluate(()=>new Promise(resolve=>{const a=[];let last=performance.now();const frame=t=>{a.push(t-last);last=t;if(a.length<120)requestAnimationFrame(frame);else resolve(a.slice(10))};requestAnimationFrame(frame)}));
 frameTimes.sort((a,b)=>a-b);const p50=frameTimes[Math.floor(frameTimes.length*.5)],p95=frameTimes[Math.floor(frameTimes.length*.95)];
 assert.equal(errors.length,0,errors.join('\n'));assert.equal(network.length,0,'standalone must make no network requests');
