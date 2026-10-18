@@ -24,6 +24,7 @@
 | Claude-контролёр | запланированная задача Claude, id `trig_01D1hx6RUzyniQeBSLHsCEVm` | каждый час (:07 UTC) | [prompts/claude-controller.md](prompts/claude-controller.md) |
 | Claude-сторож | запланированная задача на компьютере, id `trig_016tJNvfcaGA55pvSs2hugVZ` | каждые 2 часа (:23 UTC) | [prompts/claude-computer-watchdog.md](prompts/claude-computer-watchdog.md) |
 | ChatGPT-разработчик | 5 автозадач ChatGPT + чат «Продолжение этапов проекта» | по его расписанию, каждый час | [prompts/chatgpt-developer.md](prompts/chatgpt-developer.md) |
+| Независимый аудитор | новый чат ChatGPT раз в ~6 часов, запускает сторож | по условиям в watchdog | [prompts/chatgpt-auditor.md](prompts/chatgpt-auditor.md) |
 | Канал связи | ветка `handoff` | постоянно | раздел 18.3 документа |
 | Ассеты референса | `reference/graf-offline/` | только чтение | [NOTES](../reference/graf-offline/NOTES.md) |
 
