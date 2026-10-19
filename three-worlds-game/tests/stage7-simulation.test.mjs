@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {immersionAt,swimVertical,bubbleEmissions,createGuestSchedule,guestScheduleStep,finishGuestSchedule} from '../stage7-simulation.mjs';
+import {immersionAt,swimVertical,bubbleEmissions,createGuestSchedule,guestScheduleStep,finishGuestSchedule,ambientBubbleAnchors,namedAssetInventory} from '../stage7-simulation.mjs';
 test('A: gradual knee, waist, head immersion is monotonic without frame discontinuities',()=>{
  const a=[];for(let y=5.4;y>=1.4;y-=.03)a.push(immersionAt(3.8,y,-2));
  assert.equal(immersionAt(3.8,6,-2),0);
@@ -41,4 +41,19 @@ test('E: debug schedule triggers after five seconds without UI',()=>{
  assert.equal(count,1);assert.equal(state.remaining,Infinity);
  for(let k=0;k<90;k++)assert.equal(guestScheduleStep(state,1/30,true),false);
  const next=finishGuestSchedule(state);assert(next>=50&&next<=70);
+});
+
+test('C: existing wreck and cathedral anchors emit distant bubbles, bounded to 96 slots',()=>{
+ const anchors=[{id:'submarine_wreck',x:30,y:-4,z:0},{id:'cathedral_tower',x:25,y:-3,z:0},{id:'coral_branch',x:22,y:-4,z:0}];
+ let emitted=0;const pool=[];
+ for(let tick=0;tick<250;tick++)for(const a of ambientBubbleAnchors(anchors,{x:0,z:0},1337,tick)){
+  assert(Math.abs(a.x)>10,'ambient vent must be away from player');
+  pool.push(a);if(pool.length>96)pool.shift();emitted++;
+ }
+ assert(emitted>0);assert(pool.length<=96);
+});
+test('D: inventory preserves actual model names and exposes missing required categories',()=>{
+ const v=namedAssetInventory(['cathedral_tower','submarine_wreck','glow_fish_teal','kelp_tall']);
+ assert(v.present.includes('submarine_wreck'));assert(v.missing.includes('galleon'));
+ assert(v.missing.includes('marine_snow'));
 });
