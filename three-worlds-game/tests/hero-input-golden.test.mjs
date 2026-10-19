@@ -24,7 +24,7 @@ function setup(){
  const signals={step:0,jump:0,frames:0};
  const deps={G,player,rig,keys,touch,pad,drag,combat,hero,heroShadow,heroMat,shadowU,
  PL:{speed:4.7,accG:16,accA:5,jumpV:11.6},STATS:{speed:1,jump:1,swim:1},aim:{screen:0},
- clamp,damp,lerp,SEA:3.8,curWeapon:()=>({slow:.6}),groundGrip:()=>1,getSimDir:()=>null,
+ clamp,damp,lerp,simDir:null,SEA:3.8,curWeapon:()=>({slow:.6}),groundGrip:()=>1,getSimDir:()=>null,
  physicsStep(dt){player.pos.x+=player.vel.x*dt;player.pos.z+=player.vel.z*dt;
   player.vel.y=Math.max(0,player.vel.y-30*dt);player.pos.y=8;player.onGround=true;return 0},
  respawnAtSafe(){player.pos.copy(player.safe)},SFX:{jump(){signals.jump++}},
