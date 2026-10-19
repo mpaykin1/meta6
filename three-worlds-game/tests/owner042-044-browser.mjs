@@ -94,8 +94,19 @@ try{
  // Real original animated scavenger, procedural warning and modal choice, <=1800 frames.
  await page.evaluate(()=>{const i=__isle;i.killFoes();i.player.pos.set(20,i.terrainTop(20,32)+.3,32);
    i.player.vis.copy(i.player.pos);i.player.vel.set(0,0,0);});
- // Allow original Island camera inertia to settle after the earlier biome teleport.
- await page.waitForTimeout(1400);
+ // Simulate, do not wall-clock-wait: the original Island camera must fully
+ // catch up after a 112m test teleport before asserting a rift in its frustum.
+ const focus=await page.evaluate(()=>{
+   const i=__isle;let ndc={x:Infinity,y:Infinity,z:Infinity},steps=0;
+   for(;steps<600;steps++){
+     i.sim(1/60,0,0,false,true);
+     const p=i.player.vis.clone().add(new i.THREE.Vector3(0,.9,0)).project(i.camera);
+     ndc={x:p.x,y:p.y,z:p.z};
+     if(Math.abs(p.x)<.3&&Math.abs(p.y)<.4&&p.z>-1&&p.z<1)break;
+   }
+   return {steps,ndc};
+ });
+ assert(focus.steps<600,'original Island camera never settled after teleport: '+JSON.stringify(focus));
  const event=await page.evaluate(()=>{
   const i=__isle;for(let j=0;j<1800&&i.rifts.event.phase!=='dialogue';j++)i.rifts.update(1/30);
   const g=i.rifts.guest,st=i.rifts.event,dx=st.spot?.x-i.player.pos.x,dz=st.spot?.z-i.player.pos.z;
