@@ -10,10 +10,10 @@ page.on('pageerror',e=>errors.push(e.message));
 page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
 await mkdir('three-worlds-game/evidence',{recursive:true});
 const shot=async(name,x,z,y)=>{
- await page.evaluate(({x,z,y})=>{const i=window.__isle;i.player.pos.set(x,y??i.terrainTop(x,z)+.2,z);i.player.vis.copy(i.player.pos);i.player.vel.set(0,0,0);i.terrainWindow().update(x,z);i.underwater.update(.016);
+ await page.evaluate(({x,z,y,shore})=>{const i=window.__isle;i.player.pos.set(x,y??i.terrainTop(x,z)+.2,z);i.player.vis.copy(i.player.pos);i.player.vel.set(0,0,0);i.terrainWindow().update(x,z);i.underwater.update(.016);
  // Recenter only the test camera after a debug teleport; otherwise inertial lag photographs the old island.
- i.rig.pos.set(x+11,i.player.pos.y+8,z+13);i.rig.look.set(x,i.player.pos.y+1,z);
- i.camera.position.copy(i.rig.pos);i.camera.lookAt(i.rig.look);}, {x,z,y});
+ i.rig.pos.set(x+(shore?8:11),i.player.pos.y+(shore?22:8),z+(shore?20:13));i.rig.look.set(x,i.player.pos.y+1,z);
+ i.camera.position.copy(i.rig.pos);i.camera.lookAt(i.rig.look);}, {x,z,y,shore:name==='stage7-shore'});
  await page.waitForTimeout(200);
  await page.screenshot({path:'three-worlds-game/evidence/'+name+'.png'});
 };
