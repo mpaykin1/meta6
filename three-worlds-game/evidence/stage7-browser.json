@@ -2,71 +2,71 @@
   "base": "http://127.0.0.1:8765/three-worlds-game/",
   "environment": "Chromium emulated WebGL; GPU/iPhone unverified",
   "frameLuma": {
-    "stage7-shore": 9.037249722506944,
-    "stage7-wade-knee": 28.709161652955704,
-    "stage7-wade-waist": 36.06470438572626,
-    "stage7-wade-head": 94.70729290284443,
-    "play/00": 104.5113687510612,
-    "play/01": 64.66873487237154,
-    "play/02": 70.89720863979275,
-    "play/03": 98.57314432224057,
-    "play/04": 112.96241090028238,
-    "play/05": 112.26895254953565,
-    "play/06": 114.89285107769581,
-    "play/07": 98.05539194377688,
-    "play/08": 98.8771934127497,
-    "play/09": 98.37960970260197,
-    "play/10": 99.02598037387763,
-    "play/11": 97.87639281195032,
-    "play/12": 95.9611508274929,
-    "play/13": 98.51089132778455,
-    "play/14": 102.19104471702332,
-    "play/15": 103.59274793743525,
-    "play/16": 118.54988930457583,
-    "play/17": 99.15600424260418,
-    "play/18": 99.42151566638103,
-    "play/19": 14.123096099369208,
-    "play/20": 100.3674925034646,
-    "play/21": 100.13379091805409,
-    "play/22": 100.70882257827441,
-    "play/23": 112.95728597342767,
-    "play/24": 33.92456276616095,
-    "play/25": 36.46651384305313,
-    "play/26": 36.37037688954878,
-    "play/27": 111.38103813932688,
-    "play/28": 111.50908908442617,
-    "play/29": 110.84584688955599,
-    "play/30": 113.81974017283345,
-    "stage7-depth": 107.8310792464976,
-    "stage7-emergent-island": 106.56467279415288
+    "stage7-shore": 8.486747445540235,
+    "stage7-wade-knee": 27.669887113873607,
+    "stage7-wade-waist": 35.28768108910804,
+    "stage7-wade-head": 92.1005314332732,
+    "play/00": 102.06661483016805,
+    "play/01": 64.73114705788505,
+    "play/02": 69.99301859112124,
+    "play/03": 96.43523368372848,
+    "play/04": 112.88029693388002,
+    "play/05": 114.916762770916,
+    "play/06": 94.83210930740945,
+    "play/07": 96.74439995920814,
+    "play/08": 97.62443236054511,
+    "play/09": 96.97308657618913,
+    "play/10": 98.64065733713386,
+    "play/11": 97.10134159571196,
+    "play/12": 94.86094835886855,
+    "play/13": 95.6681857381254,
+    "play/14": 96.70411460291116,
+    "play/15": 96.0439774868996,
+    "play/16": 96.70187732752191,
+    "play/17": 97.292929942943,
+    "play/18": 98.24298018295131,
+    "play/19": 98.40568586223914,
+    "play/20": 98.25748195031287,
+    "play/21": 99.59680632801833,
+    "play/22": 99.15655341588158,
+    "play/23": 112.09340298694264,
+    "play/24": 37.90067120343352,
+    "play/25": 40.46852844044931,
+    "play/26": 40.55774704475044,
+    "play/27": 111.3084422526114,
+    "play/28": 111.59150647018205,
+    "play/29": 111.68017580595281,
+    "play/30": 111.9173057573145,
+    "stage7-depth": 102.50804575281724,
+    "stage7-emergent-island": 97.44034966086816
   },
-  "shoreNaturalLuma": 9.037249722506944,
+  "shoreNaturalLuma": 8.486747445540235,
   "wade": [
     {
       "name": "stage7-wade-knee",
       "x": 60,
-      "luma": 28.709161652955704,
+      "luma": 27.669887113873607,
       "depth": 1,
-      "y": 2.621200156806715
+      "y": 2.6288334000968323
     },
     {
       "name": "stage7-wade-waist",
       "x": 66,
-      "luma": 36.06470438572626,
+      "luma": 35.28768108910804,
       "depth": 1,
-      "y": 2.5803481880345895
+      "y": 2.5385656185523597
     },
     {
       "name": "stage7-wade-head",
       "x": 72,
-      "luma": 94.70729290284443,
+      "luma": 92.1005314332732,
       "depth": 1,
-      "y": 2.3877336450746807
+      "y": 2.070971364545491
     }
   ],
   "shore": {
     "ground": 1,
-    "edge": 1,
+    "edge": 0.9906249947010786,
     "depth": 1
   },
   "play": [
@@ -80,7 +80,7 @@
         "fish": 22,
         "plants": 15
       },
-      "bubbles": 20,
+      "bubbles": 30,
       "guest": false
     },
     {
@@ -93,7 +93,7 @@
         "fish": 23,
         "plants": 18
       },
-      "bubbles": 11,
+      "bubbles": 24,
       "guest": false
     },
     {
@@ -106,7 +106,7 @@
         "fish": 24,
         "plants": 18
       },
-      "bubbles": 15,
+      "bubbles": 25,
       "guest": false
     },
     {
@@ -119,7 +119,7 @@
         "fish": 24,
         "plants": 18
       },
-      "bubbles": 12,
+      "bubbles": 28,
       "guest": false
     },
     {
@@ -127,12 +127,12 @@
       "name": "play/04",
       "depth": 1,
       "population": {
-        "ruins": 12,
-        "wrecks": 1,
+        "ruins": 11,
+        "wrecks": 2,
         "fish": 34,
         "plants": 22
       },
-      "bubbles": 15,
+      "bubbles": 27,
       "guest": true
     },
     {
@@ -140,12 +140,12 @@
       "name": "play/05",
       "depth": 1,
       "population": {
-        "ruins": 12,
-        "wrecks": 1,
+        "ruins": 11,
+        "wrecks": 2,
         "fish": 33,
         "plants": 27
       },
-      "bubbles": 14,
+      "bubbles": 30,
       "guest": true
     },
     {
@@ -153,12 +153,12 @@
       "name": "play/06",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 39,
         "plants": 28
       },
-      "bubbles": 17,
+      "bubbles": 32,
       "guest": true
     },
     {
@@ -166,12 +166,12 @@
       "name": "play/07",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 38,
         "plants": 28
       },
-      "bubbles": 19,
+      "bubbles": 28,
       "guest": true
     },
     {
@@ -179,12 +179,12 @@
       "name": "play/08",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 38,
         "plants": 28
       },
-      "bubbles": 19,
+      "bubbles": 30,
       "guest": true
     },
     {
@@ -192,12 +192,12 @@
       "name": "play/09",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 40,
         "plants": 28
       },
-      "bubbles": 18,
+      "bubbles": 33,
       "guest": true
     },
     {
@@ -205,12 +205,12 @@
       "name": "play/10",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 40,
         "plants": 28
       },
-      "bubbles": 20,
+      "bubbles": 34,
       "guest": true
     },
     {
@@ -218,12 +218,12 @@
       "name": "play/11",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 41,
         "plants": 28
       },
-      "bubbles": 22,
+      "bubbles": 32,
       "guest": true
     },
     {
@@ -231,12 +231,12 @@
       "name": "play/12",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 39,
         "plants": 28
       },
-      "bubbles": 18,
+      "bubbles": 31,
       "guest": true
     },
     {
@@ -244,12 +244,12 @@
       "name": "play/13",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 38,
         "plants": 28
       },
-      "bubbles": 21,
+      "bubbles": 30,
       "guest": true
     },
     {
@@ -257,12 +257,12 @@
       "name": "play/14",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 39,
         "plants": 28
       },
-      "bubbles": 21,
+      "bubbles": 33,
       "guest": true
     },
     {
@@ -270,12 +270,12 @@
       "name": "play/15",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 37,
         "plants": 28
       },
-      "bubbles": 18,
+      "bubbles": 30,
       "guest": true
     },
     {
@@ -283,12 +283,12 @@
       "name": "play/16",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 38,
         "plants": 28
       },
-      "bubbles": 18,
+      "bubbles": 30,
       "guest": true
     },
     {
@@ -296,12 +296,12 @@
       "name": "play/17",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 39,
         "plants": 28
       },
-      "bubbles": 20,
+      "bubbles": 31,
       "guest": true
     },
     {
@@ -309,12 +309,12 @@
       "name": "play/18",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 40,
         "plants": 28
       },
-      "bubbles": 20,
+      "bubbles": 34,
       "guest": true
     },
     {
@@ -322,12 +322,12 @@
       "name": "play/19",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 41,
         "plants": 28
       },
-      "bubbles": 20,
+      "bubbles": 35,
       "guest": true
     },
     {
@@ -335,12 +335,12 @@
       "name": "play/20",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 40,
         "plants": 28
       },
-      "bubbles": 19,
+      "bubbles": 34,
       "guest": true
     },
     {
@@ -348,12 +348,12 @@
       "name": "play/21",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 39,
         "plants": 28
       },
-      "bubbles": 19,
+      "bubbles": 31,
       "guest": true
     },
     {
@@ -361,12 +361,12 @@
       "name": "play/22",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 38,
         "plants": 28
       },
-      "bubbles": 20,
+      "bubbles": 28,
       "guest": true
     },
     {
@@ -374,8 +374,8 @@
       "name": "play/23",
       "depth": 1,
       "population": {
-        "ruins": 14,
-        "wrecks": 1,
+        "ruins": 13,
+        "wrecks": 2,
         "fish": 40,
         "plants": 28
       },
@@ -387,12 +387,12 @@
       "name": "play/24",
       "depth": 1,
       "population": {
-        "ruins": 16,
-        "wrecks": 1,
+        "ruins": 15,
+        "wrecks": 2,
         "fish": 43,
         "plants": 28
       },
-      "bubbles": 20,
+      "bubbles": 31,
       "guest": true
     },
     {
@@ -400,12 +400,12 @@
       "name": "play/25",
       "depth": 1,
       "population": {
-        "ruins": 16,
-        "wrecks": 1,
+        "ruins": 15,
+        "wrecks": 2,
         "fish": 45,
         "plants": 28
       },
-      "bubbles": 17,
+      "bubbles": 33,
       "guest": true
     },
     {
@@ -413,12 +413,12 @@
       "name": "play/26",
       "depth": 1,
       "population": {
-        "ruins": 16,
-        "wrecks": 1,
+        "ruins": 15,
+        "wrecks": 2,
         "fish": 43,
         "plants": 28
       },
-      "bubbles": 18,
+      "bubbles": 29,
       "guest": true
     },
     {
@@ -476,40 +476,40 @@
   ],
   "populationBySeed": [
     {
-      "ruins": 19,
-      "wrecks": 1,
+      "ruins": 18,
+      "wrecks": 2,
       "fish": 44,
       "plants": 26,
       "seed": 1,
-      "relief": 4.754027298915105
+      "relief": 5.823666756931679
     },
     {
-      "ruins": 14,
-      "wrecks": 1,
+      "ruins": 13,
+      "wrecks": 2,
       "fish": 40,
       "plants": 28,
       "seed": 1337,
-      "relief": 4.921152144571577
+      "relief": 6.033168388341398
     },
     {
-      "ruins": 15,
+      "ruins": 16,
       "wrecks": 1,
       "fish": 44,
       "plants": 23,
       "seed": 90210,
-      "relief": 4.716904258421646
+      "relief": 5.805395263171907
     }
   ],
-  "bubbles": 84,
+  "bubbles": 86,
   "dualTouch": {
-    "yaw": -0.8854429837504791,
+    "yaw": -0.8888177567740797,
     "stickId": 2,
     "camId": 3,
     "vx": 0.8928571428571429
   },
   "camera": {
     "before": {
-      "yaw": 1.2776967164873516,
+      "yaw": 1.2681885415079976,
       "rect": {
         "x": 0,
         "y": 0,
@@ -524,7 +524,7 @@
       "scrollY": 0
     },
     "after": {
-      "yaw": 0.3776967164873516,
+      "yaw": 0.3681885415079976,
       "rect": {
         "x": 0,
         "y": 0,
@@ -553,23 +553,23 @@
   },
   "path": {
     "steps": 514,
-    "x": 142.05491631937153,
+    "x": 142.0549185145599,
     "z": 32,
-    "y": 14.255227267385397,
+    "y": 14.25522797674746,
     "sea": 3.8,
     "health": 6,
     "trace": [
       [
         90.37,
-        -2.57
+        -3.59
       ],
       [
         99.11,
-        -1.35
+        -1.65
       ],
       [
         107.85,
-        1.15
+        1.16
       ],
       [
         117.93,
@@ -580,7 +580,7 @@
         10.72
       ]
     ],
-    "ground": 14.255227267385397
+    "ground": 14.25522797674746
   },
   "errors": [],
   "result": "BROWSER_GATES_OK (NOT OWNER PASS)"
