@@ -2309,7 +2309,7 @@ const rig = {
   yaw: 0, pitch: 0.62, dist: 11, yawT: 0, pitchT: 0.62, distT: 11, spin: 0, pspin: 0, eff: 11,
   pos: new THREE.Vector3(30, 22, 70), look: new THREE.Vector3(32, 8, 32), trauma: 0, blend: 1, vicA: 0, lift: 0, pitchEff: 0.62,
 };
-const phoneCamera={anchor:new THREE.Vector3(),locked:false,sectorChanges:0};
+const phoneCamera={anchor:new THREE.Vector3(),locked:false,occlusionSet:false,sectorChanges:0,seenChanges:0};
 const mobilePerson=()=>G.state==='play'&&!UW.inBathyscaphe&&(IS_TOUCH||window.ObserverMobileControls?.isMobile?.());
 const UW = createUnderwaterWorld({
   THREE, scene, camera, player, atlas: atlasTex, hero, water, skyU, SEA, seed: DEFAULT_SEED, getSeed:()=>G.seed,
@@ -2686,7 +2686,7 @@ function updateCamera(dt) {
   rig.dist += (rig.distT - rig.dist) * damp(6, dt);
   let kPos, kLook;
   const phoneLocked=mobilePerson();
-  if(!phoneLocked)phoneCamera.locked=false;
+  if(!phoneLocked){phoneCamera.locked=false;phoneCamera.occlusionSet=false;}
   const b = world.beacon;
   if (G.state === 'title' || G.state === 'loading') {
     const a = t * 0.045 + G.sunAz + 1.0;
@@ -2719,11 +2719,13 @@ function updateCamera(dt) {
         if (rayFree(tmpA, dirAt(Math.min(1.4, rig.pitch + add)), rig.dist) >= rig.dist * 0.9) { lift = add; break; }
       }
     }
-    rig.lift += (lift - rig.lift) * damp(lift > rig.lift ? 5 : 1.2, dt);
+    if(phoneLocked){if(!phoneCamera.occlusionSet)rig.lift=lift;}else rig.lift+=(lift-rig.lift)*damp(lift>rig.lift?5:1.2,dt);
     rig.pitchEff = Math.min(1.4, rig.pitch + rig.lift);
     dirAt(rig.pitchEff);
     const free = rayFree(tmpA, tmpD, rig.dist);
-    rig.eff += (free - rig.eff) * damp(free < rig.eff ? 12 : 2.5, dt);
+    if(phoneLocked){
+      if(!phoneCamera.occlusionSet||phoneCamera.seenChanges!==phoneCamera.sectorChanges){rig.eff=free;phoneCamera.occlusionSet=true;phoneCamera.seenChanges=phoneCamera.sectorChanges;}
+    }else rig.eff+=(free-rig.eff)*damp(free<rig.eff?12:2.5,dt);
     const d = rig.eff + (G.state === 'dead' ? G.endT * 1.6 : 0);
     tmpB.copy(tmpA).addScaledVector(tmpD, d);
     kPos = 5.5; kLook = 8;
