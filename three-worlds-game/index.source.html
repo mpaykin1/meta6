@@ -486,6 +486,8 @@ body.v5-show-original-hud .hud-row{display:flex!important}
 import * as THREE from 'three';
 import {flightStep,createAirRoutes} from './transport.mjs';
 import {createRiftStory} from './rift-story.mjs';
+import {landBiomeAt} from './living-land.mjs';
+import {createLivingIsland} from './living-island-runtime.mjs';
 import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
@@ -1847,7 +1849,7 @@ function boxSolid(x0f, y0f, z0f, x1f, y1f, z1f) {
   return false;
 }
 const PL = { halfW: 0.27, height: 1.35, speed: 4.7, accG: 16, accA: 5, grav: 30, jumpV: 11.6 };
-let ashWorld = null, riftStory = null, airRoutes=null;
+let ashWorld = null, riftStory = null, airRoutes=null, livingIsland=null;
 const hits = (px, py, pz) => (ashWorld?.blocks(px,py,pz)||false) || boxSolid(px - PL.halfW, py, pz - PL.halfW, px + PL.halfW, py + PL.height, pz + PL.halfW);
 function groundBelow(px, py, pz) {
   const x = Math.floor(px), z = Math.floor(pz);
@@ -2806,13 +2808,16 @@ function buildWorld(seed) {
   world = generateWorld(seed);
   heightSource = createHeightSource(seed,(x,z)=>world.hgt[x+z*W]);
   ashWorld?.dispose();
-  ashWorld=createAshWorld({THREE,scene,player,terrainHeight:terrainTop,skyU,seed});
+  ashWorld=createAshWorld({THREE,scene,player,terrainHeight:terrainTop,skyU,seed,getBiome:(x,z)=>landBiomeAt(x,z,seed),sea:SEA});
+  livingIsland?.dispose();
+  livingIsland=createLivingIsland({THREE,scene,world,material:terrainMat,height:terrainTop,sea:SEA,seed,faces:FACES,faceTiles:FACE_TILES,blocks:B,W,D,H});
   buildChunks();
   rebuildBeachPatch();
   riftStory?.dispose();
   riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
+     getWorldId:()=>UW.isSubmerged()?'water':landBiomeAt(player.pos.x,player.pos.z,G.seed),
     reward:()=>takeLoot({id:'pistol',x:player.pos.x,y:player.pos.y,z:player.pos.z,alive:true}),
      getHostiles:()=>foes.filter(foeAlive).map(f=>({foe:f,x:f.segs[0].x,z:f.segs[0].z})),
      damageHostile:(target,amount)=>damageFoe(target.foe,amount,0,0)});
@@ -4930,12 +4935,28 @@ function frame(now) {
   updateBeacon(raw);
   updateCamera(raw);
   updateHeroMesh(raw);
-  const worldId=UW.isSubmerged()?'water':player.pos.x<-64?'ash':'island';
+  const worldId=UW.isSubmerged()?'water':landBiomeAt(player.pos.x,player.pos.z,G.seed);
   if(worlds.active!==worldId&&!worlds.transition)void worlds.enter(worldId);
   worlds.update(raw,player.pos);
   chunks=[...terrainWindow.items.values()];
   UW.update(raw);
   ashWorld?.update(raw);
+  livingIsland?.update(player.pos);
+  // Preserve the accepted Island's original hostile NPCs on new land.
+  // Never introduce procedural replacement characters or extra HUD.
+  if(play&&!UW.isSubmerged()&&worldId==='island'&&
+     !(player.pos.x>=0&&player.pos.x<64&&player.pos.z>=0&&player.pos.z<64)){
+    G.offshoreEnemyTick=(G.offshoreEnemyTick||0)+raw;
+    if(G.offshoreEnemyTick>7){
+      G.offshoreEnemyTick=0;
+      if(!foes.some(f=>foeAlive(f)&&Math.hypot(f.segs[0].x-player.pos.x,f.segs[0].z-player.pos.z)<24)){
+        for(const [dx,dz] of [[6,5],[-5,7],[7,-5]]){
+          const x=player.pos.x+dx,z=player.pos.z+dz,y=terrainTop(x,z);
+          if(y>SEA+.15){spawnFoe('imp',x,y+1.2,z,false);break;}
+        }
+      }
+    }
+  }else G.offshoreEnemyTick=0;
   if(play){riftStory?.update(raw);airRoutes?.update(raw)}
   updateWisp(raw);
   updateLeaves(raw);
@@ -4984,6 +5005,7 @@ window.__isle = {
   // V5 direct access to original 3D runtime for Claude and the historical editor.
   scene, camera, THREE, renderer, canvas, atlasTex, heroTex, heroGeo, SEA, SFX,
   get rifts(){return riftStory}, worlds, terrainWindow:()=>terrainWindow, terrainTop, get terrainMeshes(){return chunks},
+  get livingLand(){return {islandChunks:livingIsland?.chunks||0,ashChunks:ashWorld?.chunks||0,ashPopulation:ashWorld?.population||0,plan:(x,z)=>livingIsland?.density(x,z),biome:(x,z)=>landBiomeAt(x,z,G.seed)}},
   get inputPointers(){return {stickId:touch.stickId,camId:touch.camId,vx:touch.vx,vy:touch.vy}},
   spawnFoe(type,x,z){return spawnFoe(type,x,terrainTop(x,z)+1.1,z,true)},
   pause:setPaused, toggleMute, toggleFullscreen,

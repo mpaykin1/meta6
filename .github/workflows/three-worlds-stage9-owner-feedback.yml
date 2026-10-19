@@ -1,0 +1,51 @@
+name: Three Worlds owner 041 living-land gate
+on:
+  push:
+    branches: [ai/chatgpt/stage9-living-land-guest]
+permissions:
+  contents: write
+jobs:
+  stage9:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage9-living-land-guest
+          persist-credentials: true
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned bundle tools
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Build real standalone HTML
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Fast code-first virtual-time assertions
+        run: |
+          set -euo pipefail
+          mkdir -p three-worlds-game/evidence
+          node --test three-worlds-game/tests/*.test.mjs | tee three-worlds-game/evidence/unit-tests-stage9.txt
+      - name: Install headless Chromium
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Short real game gate — landed content and guest
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node three-worlds-game/tests/stage9-browser.mjs
+      - name: Preserve checked game/evidence in PR
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html three-worlds-game/evidence/stage9-owner041.json three-worlds-game/evidence/unit-tests-stage9.txt
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'build(stage9): verified landed worlds, original guest and standalone export'
+          git fetch origin ai/chatgpt/stage9-living-land-guest
+          git rebase origin/ai/chatgpt/stage9-living-land-guest
+          git push origin HEAD:ai/chatgpt/stage9-living-land-guest

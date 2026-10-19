@@ -8,10 +8,10 @@ export function guestLine(home,current,state){
  const need=home==='water'&&current!=='water'?'Мне нужна вода. Проводи меня к берегу.':home==='ash'&&current==='water'?'Я замерзаю. Выведи меня к огню.':'Пепел закрыл дорогу домой. Помоги добраться до разлома.';
  return state==='friend'?'Ты не бросил меня. Я прикрою тебя.':state==='hostile'?'Ты видел, что мне нужна помощь. Теперь я защищаюсь.':state==='home'?'Дорога открыта. Это оружие теперь твоё.':need;
 }
-export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,toast,prepare,onTransition,attacking,onAttack,reward,getHostiles=()=>[],damageHostile=()=>{}}){
+export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,toast,prepare,onTransition,attacking,onAttack,reward,getHostiles=()=>[],damageHostile=()=>{},getWorldId=()=>player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island'}){
  let snapshot={};try{snapshot=JSON.parse(localStorage.getItem('three-worlds-dialogue')||'{}')}catch{}
  const dialogue=new DialogueGenerator(snapshot);
- function line(g,state){const text=dialogue.next({home:g.home,world:player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island',state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
+ function line(g,state){const text=dialogue.next({home:g.home,world:getWorldId(),state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
  const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
  let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99;
  const guestTimer=createGuestSchedule(seed,{interval:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
@@ -43,14 +43,26 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   }finally{renderer.setRenderTarget(prev);renderer.setClearColor(color,alpha);renderer.setViewport(viewport);renderer.setScissor(scissor);renderer.setScissorTest(test);renderer.autoClear=auto;inst.mat.dispose()}
   sheet=rt;
  }
- function spawnGuest(){if(guest)return;if(!sheet)bake();const x=player.pos.x+5,z=player.pos.z+2;
-  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:true,side:THREE.DoubleSide,uniforms:{map:{value:sheet.texture},frame:{value:0},dir:{value:0}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform sampler2D map;uniform float frame,dir;varying vec2 vUv;void main(){vec4 c=texture2D(map,(vUv+vec2(dir,frame))/8.);if(c.a<.4)discard;gl_FragColor=c;}'});
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.2),mat);m.position.set(x,height(x,z)+5,z);scene.add(m);
-  guestRift.position.set(x,height(x,z)+2.3,z);guestRift.visible=true;riftLight.position.copy(guestRift.position);riftAge=0;
-  guest={mesh:m,brain:createBrain('original-scavenger',{x,z},seed),home:guestHomeFor(player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island'),landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false};
+ function spawnGuest(){
+  if(guest)return false;
+  // Directly animate the owner's original scavenger asset. This removes the
+  // first-appearance WebGL readback/render-target dependency which could prevent
+  // the timed guest from materializing for an idle player.
+  factory ||= createAshFactory(THREE);
+  const def=factory.models.find(d=>d.id==='scavenger');
+  if(!def)throw new Error('Original Ash scavenger model missing');
+  const inst=factory.instance(def);
+  const x=player.pos.x+3,z=player.pos.z-3;
+  const m=inst.root;m.position.set(x,height(x,z)+4,z);m.scale.setScalar(1.6);scene.add(m);
+  guestRift.position.set(x,height(x,z)+2.3,z);guestRift.visible=true;
+  riftLight.position.copy(guestRift.position);riftAge=0;
+  guest={mesh:m,inst,brain:createBrain('original-scavenger',{x,z},seed),home:guestHomeFor(getWorldId()),landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false};
   toast(line(guest,'neutral'),4200);
+  return true;
  }
- function finishGuest(g){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;finishGuestSchedule(guestTimer);}
+ function finishGuest(g){
+  scene.remove(g.mesh);g.inst.mat.dispose();guest=null;finishGuestSchedule(guestTimer);
+ }
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
   for(let i=0;i<portals.length;i++){const p=portals[i],m=meshes[i];m.lookAt(camera.position.x,m.position.y,camera.position.z);if(cooldown===0&&Math.hypot(player.pos.x-p.x,player.pos.z-p.z)<1.5&&Math.abs(player.pos.y-height(p.x,p.z))<3)travel(p)}
@@ -74,10 +86,10 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
    if(g.brain.relation==='friend'&&player.pos.x<-64&&Math.hypot(p.x-player.pos.x,p.z-player.pos.z)<=12&&!g.rewarded){g.rewarded=true;reward();toast(guestLine('ash','ash','home'),3200)}
    if(g.rewarded){g.brain.relation='neutral';g.brain.state='wander';g.brain.target={x:-126,z:32};g.brain.clock=5;if(Math.hypot(p.x+126,p.z-32)<2){finishGuest(g);return}}
   }
-  g.mesh.rotation.y=Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
-  g.mesh.material.uniforms.frame.value=Math.floor(g.brain.phase*8)%8;
-  g.mesh.material.uniforms.dir.value=((Math.round(((g.brain.heading||0)-g.mesh.rotation.y)/(Math.PI/4))%8)+8)%8;
+  g.mesh.rotation.y=Number.isFinite(g.brain.heading)?g.brain.heading:Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
+  factory.uniforms.uTime.value=clock;
+  factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
  }
- function dispose(){for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.mesh.geometry.dispose();guest.mesh.material.dispose()}sheet?.dispose();factory?.dispose()}
+ function dispose(){for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
  return {update,dispose,travel,portals,spawnGuest,get guest(){return guest},get guestTimer(){return {...guestTimer}}};
 }
