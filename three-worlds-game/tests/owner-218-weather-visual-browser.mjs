@@ -23,7 +23,8 @@ const report={kind:'REAL_CHROMIUM_WEBGL_PIXEL_PROOF',ownerPass:'UNKNOWN',
  screenshots:[],profiles:[]};
 try {
  for(const profile of profiles){
-  const context=await browser.newContext(profile);
+  const {name:profileName,...browserOptions}=profile;
+  const context=await browser.newContext(browserOptions);
   try {
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push('PAGE '+e.message));
