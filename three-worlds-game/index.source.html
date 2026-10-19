@@ -2446,7 +2446,7 @@ function getIslandHeroControls(){
  if(!islandHeroControls)islandHeroControls=createIslandHero({
   G,player,rig,keys,touch,pad,combat,curWeapon,PL,
   STATS:{speed:1,jump:1,swim:1},
-  groundGrip:createIslandGroundGrip({player,blockAt,BLK:{}}),
+  groundGrip:createIslandGroundGrip({player,blockAt,BLK:new Proxy({}, {get:()=>({slip:0})})}),
   damp,lerp,clamp,physicsStep,respawnAtSafe,SFX,ripple,onLand,footstep,
   engaged,screenAngleOf,aim,drown,SEA,getSimDir:()=>simDir,
   hero,setHeroFrame,camera,heroMat,groundBelow,heroShadow,shadowU
