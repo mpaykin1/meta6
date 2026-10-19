@@ -3,6 +3,7 @@ import {createAshFactory} from './ash-assets.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
 import {createGuestSchedule,guestScheduleStep,finishGuestSchedule} from './stage7-simulation.mjs';
+export function guestHomeFor(world){return world==='ash'?'island':world==='water'?'ash':'water';}
 export function guestLine(home,current,state){
  const need=home==='water'&&current!=='water'?'Мне нужна вода. Проводи меня к берегу.':home==='ash'&&current==='water'?'Я замерзаю. Выведи меня к огню.':'Пепел закрыл дорогу домой. Помоги добраться до разлома.';
  return state==='friend'?'Ты не бросил меня. Я прикрою тебя.':state==='hostile'?'Ты видел, что мне нужна помощь. Теперь я защищаюсь.':state==='home'?'Дорога открыта. Это оружие теперь твоё.':need;
@@ -46,7 +47,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:true,side:THREE.DoubleSide,uniforms:{map:{value:sheet.texture},frame:{value:0},dir:{value:0}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform sampler2D map;uniform float frame,dir;varying vec2 vUv;void main(){vec4 c=texture2D(map,(vUv+vec2(dir,frame))/8.);if(c.a<.4)discard;gl_FragColor=c;}'});
   const m=new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.2),mat);m.position.set(x,height(x,z)+5,z);scene.add(m);
   guestRift.position.set(x,height(x,z)+2.3,z);guestRift.visible=true;riftLight.position.copy(guestRift.position);riftAge=0;
-  guest={mesh:m,brain:createBrain('original-scavenger',{x,z},seed),home:'ash',landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false};
+  guest={mesh:m,brain:createBrain('original-scavenger',{x,z},seed),home:guestHomeFor(player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island'),landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false};
   toast(line(guest,'neutral'),4200);
  }
  function finishGuest(g){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;finishGuestSchedule(guestTimer);}
