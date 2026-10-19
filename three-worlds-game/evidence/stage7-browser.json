@@ -2,35 +2,35 @@
   "base": "http://127.0.0.1:8765/three-worlds-game/",
   "environment": "Chromium emulated WebGL; GPU/iPhone unverified",
   "frameLuma": {
-    "stage7-shore": 11.3293424687286,
-    "stage7-wade-knee": 31.570919029282862,
-    "stage7-wade-waist": 32.10584566946587,
-    "stage7-wade-head": 96.60411738590051,
-    "stage7-depth": 109.7710011922171,
-    "stage7-emergent-island": 17.120490944401745
+    "stage7-shore": 10.630207033576816,
+    "stage7-wade-knee": 28.93312638476317,
+    "stage7-wade-waist": 39.399739130180706,
+    "stage7-wade-head": 93.12098090032828,
+    "stage7-depth": 106.71447645406431,
+    "stage7-emergent-island": 76.0996110060915
   },
-  "shoreNaturalLuma": 11.3293424687286,
+  "shoreNaturalLuma": 10.630207033576816,
   "wade": [
     {
       "name": "stage7-wade-knee",
       "x": 60,
-      "luma": 31.570919029282862,
-      "depth": 0.12370643876811636,
-      "y": 11.517100274988643
+      "luma": 28.93312638476317,
+      "depth": 0.12463295176868679,
+      "y": 11.453538854988729
     },
     {
       "name": "stage7-wade-waist",
       "x": 66,
-      "luma": 32.10584566946587,
-      "depth": 0.9461085966950905,
-      "y": 3.370512349395751
+      "luma": 39.399739130180706,
+      "depth": 0.9455884574839246,
+      "y": 3.3765699067491886
     },
     {
       "name": "stage7-wade-head",
       "x": 72,
-      "luma": 96.60411738590051,
+      "luma": 93.12098090032828,
       "depth": 1,
-      "y": 2.8024978314600695
+      "y": 2.8035778314600694
     }
   ],
   "shore": {
@@ -229,7 +229,7 @@
     {
       "second": 0,
       "name": "play/00",
-      "depth": 0.11425125743026963,
+      "depth": 0.11458057290054137,
       "population": {
         "present": [
           "angel_statue",
@@ -260,7 +260,7 @@
         ],
         "ruins": 7,
         "wrecks": 0,
-        "fish": 21,
+        "fish": 20,
         "plants": 15
       },
       "bubbles": 11,
@@ -342,7 +342,7 @@
         ],
         "ruins": 8,
         "wrecks": 1,
-        "fish": 23,
+        "fish": 22,
         "plants": 18
       },
       "bubbles": 19,
@@ -351,7 +351,7 @@
     {
       "second": 30,
       "name": "play/03",
-      "depth": 0.6494802107245281,
+      "depth": 0.6481481481481481,
       "population": {
         "present": [
           "angel_statue",
@@ -383,10 +383,10 @@
         ],
         "ruins": 8,
         "wrecks": 1,
-        "fish": 23,
+        "fish": 22,
         "plants": 18
       },
-      "bubbles": 20,
+      "bubbles": 19,
       "guest": false
     },
     {
@@ -424,16 +424,16 @@
         ],
         "ruins": 11,
         "wrecks": 2,
-        "fish": 32,
+        "fish": 31,
         "plants": 22
       },
-      "bubbles": 23,
+      "bubbles": 25,
       "guest": true
     },
     {
       "second": 50,
       "name": "play/05",
-      "depth": 0.9378600823045266,
+      "depth": 0.938036199230422,
       "population": {
         "present": [
           "angel_statue",
@@ -465,10 +465,10 @@
         ],
         "ruins": 11,
         "wrecks": 2,
-        "fish": 34,
+        "fish": 33,
         "plants": 27
       },
-      "bubbles": 28,
+      "bubbles": 27,
       "guest": true
     },
     {
@@ -506,10 +506,10 @@
         ],
         "ruins": 13,
         "wrecks": 2,
-        "fish": 39,
+        "fish": 38,
         "plants": 28
       },
-      "bubbles": 27,
+      "bubbles": 26,
       "guest": true
     }
   ],
@@ -617,15 +617,15 @@
       ],
       "ruins": 16,
       "wrecks": 1,
-      "fish": 40,
+      "fish": 39,
       "plants": 23,
       "seed": 90210,
       "relief": 5.411453292575743
     }
   ],
-  "bubbles": 91,
+  "bubbles": 89,
   "dualTouch": {
-    "yaw": -1.842335367617458,
+    "yaw": -1.83833746811895,
     "stickId": 2,
     "camId": 3,
     "vx": 0.8928571428571429
