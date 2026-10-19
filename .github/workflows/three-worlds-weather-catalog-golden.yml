@@ -1,7 +1,7 @@
 name: Three Worlds Original Weather Catalog Golden
 on:
   push:
-    branches: [ai/chatgpt/stage14-island-weather-catalog-canon, ai/chatgpt/stage16-island-weather-renderer]
+    branches: [ai/chatgpt/stage14-island-weather-catalog-canon, ai/chatgpt/stage16-island-weather-renderer, ai/chatgpt/stage17-weather-visual-proof]
 permissions:
   contents: read
 jobs:
@@ -38,7 +38,16 @@ jobs:
           sleep 2
           node three-worlds-game/tests/owner042-044-browser.mjs
           node three-worlds-game/tests/owner-218-weather-browser.mjs
+          node three-worlds-game/tests/owner-218-weather-visual-browser.mjs
           mkdir -p three-worlds-game/evidence
           node three-worlds-game/tests/owner-2111-touch-mutation-browser.mjs | tee three-worlds-game/evidence/owner-2111-mutation-proof.txt
       - name: Verify last bot-built standalone matches current source without write permissions
         run: git diff --exit-code -- three-worlds-game/index.html
+      - name: Upload real gameplay weather screenshots and GPU pixel-causality manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: three-worlds-weather-visual-${{ github.sha }}
+          path: three-worlds-game/evidence/weather-visual/
+          if-no-files-found: warn
+          retention-days: 14
