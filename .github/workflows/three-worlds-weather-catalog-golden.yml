@@ -20,13 +20,13 @@ jobs:
       - name: Install pinned offline game dependencies
         working-directory: three-worlds-game/tools
         run: npm ci --no-audit --no-fund
+      - name: Rebuild the one standalone HTML using original THREE scene/renderer
+        working-directory: three-worlds-game/tools
+        run: npm run build
       - name: Shared original seven weather modes and <=600-step Island golden
         run: |
           set -euo pipefail
           node --test three-worlds-game/tests/*.test.mjs
-      - name: Rebuild the one standalone HTML using original THREE scene/renderer
-        working-directory: three-worlds-game/tools
-        run: npm run build
       - name: Install browser for real original two-finger and mutation proof
         run: |
           npm install --no-save --no-audit --no-fund playwright@1.56.1
