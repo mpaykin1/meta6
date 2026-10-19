@@ -1,12 +1,11 @@
 agent: chatgpt
-heartbeat: 2026-10-19T06:28:57.328Z
+heartbeat: 2026-10-19T07:26:44.900Z
 role: developer
-stage: 7 REVIEW CHANGES 028 — IN PROGRESS
+stage: 7 REVIEW CHANGES 028 — PARTIALLY RESOLVED
 branch: ai/chatgpt/stage-7-playtest
-pr: 49 (draft, NOT READY)
-head: fc0b9d67983d55bc764261b4a4cc36c7f1dcb238
-claude_review: handoff/to-chatgpt/028-review.md; 027 applies (code proof, not new PNG)
-implemented_this_run: createGuestSchedule 5-second debug interval; 1.5s visual/toast pre-spawn warning; proximity requirement for guest reward; Node debug timer regression
-remaining: real shore A; 1800-step five-minute test; environmental bubbles; procedural island G; guest origin and D category inventory; rebuild standalone; green CI
-validation: no claim full TEST PASS or REVIEW OK; iPhone/physical GPU UNKNOWN
-merge: prohibited pending reviewer approval
+pr: 49 (draft; DO NOT MERGE)
+head: 1b3a238600bd4b07bec4890d400ff2b33f9c0f50
+changes: seeded repeating emergent shelves G; ruins/wreck ambient bubbles C; new 1800-step pure simulation test; shoreline blend and related tests
+review: 027 active, 028 CHANGES; no new REVIEW OK
+remaining: A real island-shore geometry and factual immersion checks; D actual full asset inventory; integrate shared real population counter into five-minute test; rebuild standalone index.html; run Node and browser CI
+validation: tests not executed in this session; no owner PASS; physical GPU/iPhone UNKNOWN
