@@ -2,18 +2,22 @@ name: Twilight underwater desktop and phone smoke
 on:
   pull_request:
     paths:
+      - 'three-worlds-game/**'
       - 'underwater-world/**'
       - '.github/workflows/twilight-browser-smoke.yml'
   push:
     branches:
       - ai/chatgpt/twilight-underwater-20261016
+      - ai/chatgpt/stage-7-playtest
     paths:
+      - 'three-worlds-game/**'
       - 'underwater-world/**'
       - '.github/workflows/twilight-browser-smoke.yml'
 permissions:
   contents: read
 jobs:
   smoke:
+    if: github.ref != 'refs/heads/ai/chatgpt/stage-7-playtest' && github.head_ref != 'ai/chatgpt/stage-7-playtest'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -46,3 +50,72 @@ jobs:
           name: twilight-underwater-desktop-mobile-evidence
           path: underwater-world/evidence/
           retention-days: 7
+
+  three-worlds-stage7:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/ai/chatgpt/stage-7-playtest'
+    concurrency:
+      group: three-worlds-stage7-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage-7-playtest
+          persist-credentials: true
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned build dependencies
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Assemble standalone offline game
+        id: build
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Run real project unit tests (explicit test glob, never helper scripts)
+        id: unit
+        continue-on-error: true
+        run: |
+          mkdir -p three-worlds-game/evidence
+          node --test three-worlds-game/tests/*.test.mjs | tee three-worlds-game/evidence/unit-tests.txt
+      - name: Install Playwright Chromium and SwiftShader
+        id: browser_setup
+        continue-on-error: true
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run short stage 7 playtest and take screenshots
+        id: browser
+        if: steps.browser_setup.outcome == 'success'
+        continue-on-error: true
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          node three-worlds-game/tests/stage7-playwright.mjs
+      - name: Publish rebuilt standalone HTML, lockfile and genuine evidence
+        if: steps.build.outcome == 'success'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add three-worlds-game/index.html three-worlds-game/tools/package-lock.json
+          if test -d three-worlds-game/evidence; then git add three-worlds-game/evidence/; fi
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "build(stage7): standalone HTML and measured browser evidence"
+          git fetch origin ai/chatgpt/stage-7-playtest
+          git rebase origin/ai/chatgpt/stage-7-playtest
+          git push origin HEAD:ai/chatgpt/stage-7-playtest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: three-worlds-stage7-evidence
+          path: |
+            three-worlds-game/evidence/
+            three-worlds-game/index.html
+          retention-days: 7
+      - name: Fail if unit or browser gates are red
+        if: steps.unit.outcome != 'success' || steps.browser.outcome != 'success'
+        run: exit 1
