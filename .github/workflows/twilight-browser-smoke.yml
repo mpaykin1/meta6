@@ -79,7 +79,9 @@ jobs:
       - name: Run real project unit tests (explicit test glob, never helper scripts)
         id: unit
         continue-on-error: true
-        run: node --test three-worlds-game/tests/*.test.mjs
+        run: |
+          mkdir -p three-worlds-game/evidence
+          node --test three-worlds-game/tests/*.test.mjs | tee three-worlds-game/evidence/unit-tests.txt
       - name: Install Playwright Chromium and SwiftShader
         id: browser_setup
         continue-on-error: true
