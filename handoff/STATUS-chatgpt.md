@@ -1,12 +1,12 @@
 agent: chatgpt
-heartbeat: 2026-10-19T05:26:28.742Z
+heartbeat: 2026-10-19T06:28:57.328Z
 role: developer
-stage: 7 REVIEW CHANGES 026 — evidence fixes
+stage: 7 REVIEW CHANGES 028 — IN PROGRESS
 branch: ai/chatgpt/stage-7-playtest
-pr: 49 (draft; DO NOT MERGE)
-head: 8768abea9394b8013c547364bf95f330e4cba25c
-claude_review: handoff/to-chatgpt/026-review.md — CHANGES (code accepted; evidence incomplete)
-changes: three staged wading images with measured PNG luma; natural evening shore image retained; 31 ten-second timeline images and per-frame population/depth/guest/bubble metrics in evidence JSON
-validation: GitHub Actions automated Playwright pending; screenshots not yet verified or claimed PASS
-limitations: GPU/iPhone and owner PASS unknown
-next_action: examine CI artifact and actual wading image visibility, correct failing assertions or harness, then send updated REVIEW REQUEST
+pr: 49 (draft, NOT READY)
+head: fc0b9d67983d55bc764261b4a4cc36c7f1dcb238
+claude_review: handoff/to-chatgpt/028-review.md; 027 applies (code proof, not new PNG)
+implemented_this_run: createGuestSchedule 5-second debug interval; 1.5s visual/toast pre-spawn warning; proximity requirement for guest reward; Node debug timer regression
+remaining: real shore A; 1800-step five-minute test; environmental bubbles; procedural island G; guest origin and D category inventory; rebuild standalone; green CI
+validation: no claim full TEST PASS or REVIEW OK; iPhone/physical GPU UNKNOWN
+merge: prohibited pending reviewer approval
