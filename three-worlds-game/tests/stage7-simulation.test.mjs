@@ -24,13 +24,13 @@ test('C: bubble emissions exist while wet, remain pooled within 96 and stop dry'
  const old=seen;for(let i=0;i<180;i++)seen+=bubbleEmissions(s,1/60,0,0);
  assert.equal(seen,old);
 });
-for(const ending of ['kill','rewarded departure'])test('E: guest interval 50–70 virtual seconds re-arms after '+ending,()=>{
+test('E: pure scheduler re-arms after guest completion (game outcomes checked in stage7-playwright.mjs)',()=>{
  const s=createGuestSchedule(1337);let count=0;
  for(let i=0;i<50*60;i++)if(guestScheduleStep(s,1/60,false))count++;
  assert.equal(count,1);
  for(let i=0;i<90*60;i++)assert.equal(guestScheduleStep(s,1/60,true),false);
- const delay=finishGuestSchedule(s);assert(delay>=50&&delay<=70,ending);
+ const delay=finishGuestSchedule(s);assert(delay>=50&&delay<=70);
  for(let i=0;i<49*60;i++)assert.equal(guestScheduleStep(s,1/60,false),false);
  let second=false;for(let i=0;i<22*60;i++)second ||=guestScheduleStep(s,1/60,false);
- assert(second,ending);assert.equal(s.cycle,1);assert.equal(count,1);
+ assert(second);assert.equal(s.cycle,1);assert.equal(count,1);
 });
