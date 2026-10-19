@@ -1,0 +1,36 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {immersionAt,swimVertical,bubbleEmissions,createGuestSchedule,guestScheduleStep,finishGuestSchedule} from '../stage7-simulation.mjs';
+test('A: gradual knee, waist, head immersion is monotonic without frame discontinuities',()=>{
+ const a=[];for(let y=5.4;y>=1.4;y-=.03)a.push(immersionAt(3.8,y,-2));
+ assert.equal(immersionAt(3.8,6,-2),0);
+ assert(a.some(x=>x>.1&&x<.4)&&a.some(x=>x>.55&&x<.9));
+ for(let i=1;i<a.length;i++){assert(a[i]>=a[i-1]);assert(a[i]-a[i-1]<.02)}
+});
+test('B: virtual 3-second ascent, smooth inertia, descent after release and bottom clamp',()=>{
+ const p={pos:{y:1.5},vel:{y:0},jumpHeld:true,onGround:false},ys=[],vs=[];
+ for(let i=0;i<180;i++){swimVertical(p,1/60,-7,3.8);ys.push(p.pos.y);vs.push(p.vel.y)}
+ assert(ys.at(-1)>ys[0]+1.5);
+ for(let i=1;i<vs.length;i++)assert(Math.abs(vs[i]-vs[i-1])<.16);
+ for(let i=1;i<ys.length;i++)assert(ys[i]-ys[i-1]<.15);
+ p.jumpHeld=false;const top=p.pos.y;
+ for(let i=0;i<240;i++){swimVertical(p,1/60,-7,3.8);}
+ assert(p.pos.y<top-.4);assert(p.pos.y>=-6.92);
+});
+test('C: bubble emissions exist while wet, remain pooled within 96 and stop dry',()=>{
+ const s={budget:0};let live=0,seen=0;
+ for(let i=0;i<300;i++){const n=bubbleEmissions(s,1/60,.9,1.5);seen+=n;live=Math.min(96,Math.max(0,live-1)+n);assert(live<=96)}
+ assert(seen>25);
+ const old=seen;for(let i=0;i<180;i++)seen+=bubbleEmissions(s,1/60,0,0);
+ assert.equal(seen,old);
+});
+for(const ending of ['kill','rewarded departure'])test('E: guest interval 50–70 virtual seconds re-arms after '+ending,()=>{
+ const s=createGuestSchedule(1337);let count=0;
+ for(let i=0;i<50*60;i++)if(guestScheduleStep(s,1/60,false))count++;
+ assert.equal(count,1);
+ for(let i=0;i<90*60;i++)assert.equal(guestScheduleStep(s,1/60,true),false);
+ const delay=finishGuestSchedule(s);assert(delay>=50&&delay<=70,ending);
+ for(let i=0;i<49*60;i++)assert.equal(guestScheduleStep(s,1/60,false),false);
+ let second=false;for(let i=0;i<22*60;i++)second ||=guestScheduleStep(s,1/60,false);
+ assert(second,ending);assert.equal(s.cycle,1);assert.equal(count,1);
+});
