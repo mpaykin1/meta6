@@ -41,7 +41,9 @@ export function ambientBubbleAnchors(anchors,player,seed,tick,radius=40){
   if(h(i,tick,seed)<.7)out.push({x:a.x+(h(tick,i,seed)-.5),y:a.y,z:a.z});
  }return out;
 }
-export const STAGE7_REQUIRED_ASSETS=['galleon','whale_skeleton','anchor','cannon','kraken_tentacle','sun_rays','marine_snow','plankton'];
+// Atmospheric effects are GPU shaders, not GLBs. They are verified by atmosphere.counts.
+export const STAGE7_REQUIRED_ASSETS=['galleon','whale_skeleton','anchor','cannon','kraken_tentacle'];
+export const STAGE7_REQUIRED_EFFECTS=['sun_rays','marine_snow','plankton'];
 export function namedAssetInventory(names){const loaded=new Set(names);return {present:[...loaded].sort(),missing:STAGE7_REQUIRED_ASSETS.filter(n=>!loaded.has(n))};}
 
 // Identical bounded ring slot selection in Node and live particle renderer.
