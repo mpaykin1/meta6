@@ -53,6 +53,9 @@ jobs:
 
   three-worlds-stage7:
     if: github.event_name == 'push' && github.ref == 'refs/heads/ai/chatgpt/stage-7-playtest'
+    concurrency:
+      group: three-worlds-stage7-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 16
     permissions:
