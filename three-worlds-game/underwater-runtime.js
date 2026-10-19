@@ -215,6 +215,12 @@ export function createUnderwaterWorld(o) {
   time+=dt;const wet=isSubmerged();immersion+=(immersionAtPlayer()-immersion)*clamp(dt*3.5,0,1);
   const newBubbles=bubbleEmissions(bubbleState,dt,immersion,player.vel.y,bubbleCapacity);
   for(let i=0,n=newBubbles;i<n;i++){const jitter=hash(i,Math.floor(time*80),seed);emitBubble(player.pos.x+(jitter-.5)*.85,player.pos.y-.3,player.pos.z+(hash(i,Math.floor(time*90),seed)-.5)*.85);}
+  // Ambient vents from existing wrecks and stone ruins use the same fixed-size pool.
+  const ventTick=Math.floor(time/.4);
+  if(ventTick!==Math.floor((time-dt)/.4))for(let j=0;j<fixtures.length;j++){
+   const a=fixtures[j];if(!/wreck|cathedral|arch/.test(a.id)||Math.hypot(a.x-player.pos.x,a.z-player.pos.z)>40)continue;
+   if(hash(j,ventTick,seed)<.7)emitBubble(a.x+(hash(ventTick,j,seed)-.5),floor(a.x,a.z)+.4,a.z);
+  }
   bubbleActive=updateBubbles(dt);
   waterFill.intensity=1.25*immersion;
   waterScatter.intensity=1.8*immersion;
