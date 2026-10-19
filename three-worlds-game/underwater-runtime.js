@@ -2,6 +2,7 @@ import {usesSurfaceTerrain} from './world-core.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {immersionAt,swimVertical,bubbleEmissions,ambientBubbleAnchors,namedAssetInventory,nextBubbleSlot} from './stage7-simulation.mjs';
 import {seabedHeight} from './seabed.mjs';
+import {voxelSample,buildGreedyVoxelChunk} from './voxel-terrain.mjs';
 import {LANDMARKS,oceanPlacements,plannedOceanPopulation} from './ocean-placements.mjs';
 import {createSunkenAtmosphere} from './sunken-atmosphere.mjs';
 export {seabedHeight} from './seabed.mjs';
@@ -26,7 +27,7 @@ export function createUnderwaterWorld(o) {
  let seed=o.getSeed?.()??o.seed;
  const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[],mixers=new Set();
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
- const floor=(x,z)=>o.surfaceHeight?o.surfaceHeight(x,z):(usesSurfaceTerrain(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed));
+ const floor=(x,z)=>voxelSample((a,b)=>o.surfaceHeight?o.surfaceHeight(a,b):(usesSurfaceTerrain(a,b)?o.terrainTop(a,b):seabedHeight(a,b,seed)),x,z);
  let bathy=false,repair=new Set(),lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
  let immersion=0,bubbleActive=0;const bubbleState={budget:0,cursor:0};
  const DEEP=new THREE.Color('#124c66'),bubbleCapacity=96;
@@ -92,26 +93,20 @@ export function createUnderwaterWorld(o) {
  const fixtures=[];
  landmarks.forEach(([id,x,z,size])=>{const holder=new THREE.Group();holder.position.set(x,0,z);scene.add(holder);addModel(holder,id,size,0,0,0,hash(x,z,seed)*6.28);fixtures.push({holder,x,z,id})});
  function chunk(cx,cz){
-  const group=new THREE.Group(),pos=[],col=[],uv=[],faces=[],tickets=[];
-  const corners=[[0,0],[1,0],[1,1],[0,1]];
-  for(let z=cz*CHUNK;z<(cz+1)*CHUNK;z++)for(let x=cx*CHUNK;x<(cx+1)*CHUNK;x++){
-   if(usesSurfaceTerrain(x,z))continue;
-   const h=floor(x+.5,z+.5),n=fbm(x*.18,z*.18,seed+29);
-   const k=h>4?0:h>-1?4:h>-5?(n>.67?2:4):(n>.4?11:2);
-   const u0=(k%4)*.25+.002,u1=u0+.246,v0=1-(Math.floor(k/4)+1)/3+.002,v1=v0+.328;
-   const coords=[[u0,v1],[u1,v1],[u1,v0],[u0,v0]],b=pos.length/3,light=clamp(.62+(h+10)*.016+n*.32,.48,.98);
-   for(let i=0;i<4;i++){
-    const px=x+corners[i][0],pz=z+corners[i][1];
-    pos.push(px,floor(px,pz),pz);uv.push(...coords[i]);col.push(light*.85,light*.99,light);
-   }
-   faces.push(b,b+2,b+1,b,b+3,b+2);
+  const group=new THREE.Group(),tickets=[];
+  if(cx*CHUNK>=64){
+    const mesh=buildGreedyVoxelChunk(cx,cz,floor,{size:CHUNK,sea:SEA,
+      topTile:y=>y>SEA?0:y>-5?4:2,
+      sideTile:y=>y>SEA?8:y>-5?4:11});
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(mesh.pos,3));
+    geo.setAttribute('normal',new THREE.Float32BufferAttribute(mesh.normals,3));
+    geo.setAttribute('uv',new THREE.Float32BufferAttribute(mesh.uv,2));
+    geo.setAttribute('color',new THREE.Float32BufferAttribute(mesh.colors,3));
+    geo.setIndex(mesh.indices);geo.computeBoundingSphere();
+    geo.userData={voxel:true,visibleQuads:mesh.quads};
+    group.add(new THREE.Mesh(geo,mat));
   }
-  const geo=new THREE.BufferGeometry();
-  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-  geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
-  geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
-  geo.setIndex(faces);geo.computeVertexNormals();
-  group.add(new THREE.Mesh(geo,mat));
   for(const p of oceanPlacements(cx,cz,seed,floor,(x,z)=>!usesSurfaceTerrain(x,z),SEA)){
    if(p.type==='structure'){
     tickets.push(addModel(group,p.name,p.scale,p.x,p.y,p.z,p.heading));
