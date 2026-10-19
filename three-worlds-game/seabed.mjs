@@ -8,7 +8,7 @@ export function seabedHeight(x,z,seed=1337){
  const off=Math.max(0,-x,x-64,-z,z-64),gx=Math.round((x-128)/220),gz=Math.round((z-128)/220);
  let y=1+(fbm(x*.10,z*.10,seed)-.5)*.7-smooth(0,30,off)*6.5;
  const deep=smooth(10,25,off);
- y+=deep*(2.6*Math.sin(x*.025+z*.12)+2.2*Math.cos(z*.19-x*.04));
+ y+=deep*(3.3*(fbm(x*.04,z*.09,seed+40)-.5)+2.7*(fbm(z*.10,x*.035,seed+42)-.5));
  for(let iz=gz-1;iz<=gz+1;iz++)for(let ix=gx-1;ix<=gx+1;ix++){
   const cx=128+ix*220+(hash(ix,iz,seed)-.5)*60,cz=128+iz*220+(hash(ix,iz,seed+1)-.5)*60;
   y+=smooth(1.5,.05,Math.hypot((x-cx)/25,(z-cz)/25))*12*deep;

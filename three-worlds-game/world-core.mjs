@@ -12,17 +12,17 @@ export function islandHeight(x,z,seed=1337){
  const hills=(noise(wx*.035,wz*.035,seed+2)-.5)*9;
  const ridge=(1-Math.abs(noise(wx*.075,wz*.075,seed+3)*2-1))*2.5;
  // A nonzero periodic component prevents cancellation of all terrain octaves.
- return 4+hills+ridge+1.1*Math.sin(x*.24+seed*.01)+.9*Math.cos(z*.21-seed*.02);
+ return 4+hills+ridge+3.2*(noise(wx*.18,wz*.18,seed+17)-.5);
 }
 export function ashHeight(x,z,seed=1337){
- const dunes=2*Math.sin(x*.13+noise(x*.03,z*.03,seed)*3)+1.1*Math.cos(z*.18);
+ const dunes=4.6*(noise(x*.14,z*.12,seed+7)-.5)+2.2*(noise(x*.07,z*.17,seed+9)-.5);
  const ridge=3*(1-Math.abs(noise(x*.05,z*.05,seed+20)*2-1));
  const crater=Math.exp(-((x+118)**2+(z-34)**2)/140)*3;
  return 8+dunes+ridge-crater;
 }
 export function waterHeight(x,z,seed=1337){
- const depth=clamp((x-64)/28,0,1),ridge=2.5*Math.sin(x*.10+noise(x*.02,z*.02,seed)*4);
- return 1-depth*(8+3*noise(x*.06,z*.06,seed+31))+depth*ridge+.28*Math.sin(z*.31+x*.21);
+ const depth=clamp((x-64)/28,0,1),ridge=5*(noise(x*.10,z*.12,seed+38)-.5);
+ return 1-depth*(8+3*noise(x*.06,z*.06,seed+31))+depth*ridge+1.1*(noise(x*.25,z*.23,seed+42)-.5);
 }
 export function createHeightSource(seed,core){
  // Preserve the accepted core, including its constructed plaza and shoreline.

@@ -49,3 +49,8 @@ body.v7-touch #hud .wpanel,html.v7-test-mobile #hud .wpanel{
  bottom:auto!important;max-width:220px!important;transform:scale(.78);transform-origin:top left}
 body.v7-touch #hud .hotbar,html.v7-test-mobile #hud .hotbar{display:none!important}
 body.v7-touch #hud .toast,html.v7-test-mobile #hud .toast{display:none}
+
+/* §21.11: owner's original Island floating TOUCH LOGIC stays native on #c,
+   but no left joystick artwork may appear or intercept canvas touches. */
+body.v7-touch #v7Stick, html.v7-test-mobile #v7Stick {display:none!important;pointer-events:none!important;visibility:hidden!important}
+body.v7-touch #stick, html.v7-test-mobile #stick {display:none!important;pointer-events:none!important;visibility:hidden!important}

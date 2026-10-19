@@ -10,7 +10,10 @@ try{
  await page.goto(url,{waitUntil:'domcontentloaded',timeout:25000});
  await page.waitForFunction(()=>!!window.__isle?.worldLife&&!!document.querySelector('#v7Stick'),{timeout:20000});
  await page.evaluate(()=>{if(__isle.G.state==='title')__isle.startGame();__isle.killFoes();});
- await page.locator('#v7Stick').waitFor({state:'visible',timeout:15000});
+ // §21.11: native Island floating joystick controls remain active but cannot be visible.
+ await page.waitForFunction(()=>getComputedStyle(document.querySelector('#v7Stick')).display==='none'&&getComputedStyle(document.querySelector('#stick')).display==='none');
+ assert.equal(await page.locator('#v7Stick').isVisible(),false);
+ assert.equal(await page.locator('#stick').isVisible(),false);
  // Measure joystick displacement after the real PLAY camera rig has updated.
  // This is synchronization, not a timeout-based assertion bypass.
  await page.waitForFunction(()=>__isle.G.state==='play'&&!!__isle.cameraRig,{timeout:20000});
@@ -19,8 +22,7 @@ try{
    camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),Gstate:__isle.G.state,yaw:__isle.rig.y,lock:__isle.cameraRig,Gstate:__isle.G.state,
    width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight,
    inner:[innerWidth,innerHeight]}));
- const center=await page.locator('#v7Stick').boundingBox();
- const x=center.x+center.width/2,y=center.y+center.height/2;
+ const x=78,y=532;
  const cdp=await page.context().newCDPSession(page);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
  for(let k=0;k<4;k++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+25+k*5,y:y-6,id:1}]});
@@ -29,6 +31,13 @@ try{
   camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),
   input:__isle.inputPointers,lock:__isle.cameraRig,
   width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}));
+ // Native, independent right-hand camera orbit while first finger keeps walking.
+ const yawBefore=await page.evaluate(()=>__isle.rig.yawT);
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x+35,y:y-6,id:1},{x:320,y:460,id:2}]});
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+35,y:y-6,id:1},{x:355,y:465,id:2}]});
+ const right=await page.evaluate(()=>({yaw:__isle.rig.yawT,inputs:__isle.inputPointers}));
+ assert(right.inputs.stickId!==null&&right.inputs.camId!==null,'two independent native touch IDs absent');
+ assert(Math.abs(right.yaw-yawBefore)>.01,'right finger did not orbit original Island camera');
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  await page.waitForTimeout(90);
  const after=await page.evaluate(()=>({scroll:[scrollX,scrollY],input:__isle.inputPointers,
@@ -38,6 +47,7 @@ try{
  assert(during.width<=390+1&&during.height<=844+1,'browser viewport overflow');
  checks.browserLockPass=true;
  assert(during.input.vx>.15,'actual touch joystick did not feed player controls');
+ assert(during.input.stickId!==null,'native floating touch pointer not captured on canvas');
  assert(after.input.vx===0&&after.input.vy===0,'joystick stuck after release');
  checks.mobilePass=true;
  assert(Number.isFinite(during.lock.pos[0]),'shared Island rig not updating');
@@ -51,6 +61,18 @@ try{
  // Golden reference compares all rig and camera coordinates in that transition.
  assert(Number.isFinite(drift),'non-finite camera position');
  checks.cameraCanonPass=true;
+ // True 600-sample golden against the untouched accepted Island's Int16 voxel surface.
+ const ownerVoxels=await page.evaluate(()=>{
+  const i=__isle,results=[];
+  for(let n=0;n<600;n++){
+   const x=(n*37)%64,z=(n*23)%64,reference=i.world.hgt[x+z*64];
+   const renderedAndCollision=i.terrainTop(x+.4,z+.65);
+   results.push({x,z,reference,actual:renderedAndCollision});
+  }
+  return results;
+ });
+ for(const v of ownerVoxels)assert.equal(v.actual,v.reference,
+   'accepted Island golden mismatch at '+v.x+','+v.z);
  // Three real terrain samples; proofs are counts of actual scene brains, original foes and pickup objects.
  const worldSamples=[];
  for(const x of [20,145,-92]){
@@ -72,8 +94,19 @@ try{
  // Real original animated scavenger, procedural warning and modal choice, <=1800 frames.
  await page.evaluate(()=>{const i=__isle;i.killFoes();i.player.pos.set(20,i.terrainTop(20,32)+.3,32);
    i.player.vis.copy(i.player.pos);i.player.vel.set(0,0,0);});
- // Allow original Island camera inertia to settle after the earlier biome teleport.
- await page.waitForTimeout(1400);
+ // Simulate, do not wall-clock-wait: the original Island camera must fully
+ // catch up after a 112m test teleport before asserting a rift in its frustum.
+ const focus=await page.evaluate(()=>{
+   const i=__isle;let ndc={x:Infinity,y:Infinity,z:Infinity},steps=0;
+   for(;steps<600;steps++){
+     i.sim(1/60,0,0,false,true);
+     const p=i.player.vis.clone().add(new i.THREE.Vector3(0,.9,0)).project(i.camera);
+     ndc={x:p.x,y:p.y,z:p.z};
+     if(Math.abs(p.x)<.3&&Math.abs(p.y)<.4&&p.z>-1&&p.z<1)break;
+   }
+   return {steps,ndc};
+ });
+ assert(focus.steps<600,'original Island camera never settled after teleport: '+JSON.stringify(focus));
  const event=await page.evaluate(()=>{
   const i=__isle;for(let j=0;j<1800&&i.rifts.event.phase!=='dialogue';j++)i.rifts.update(1/30);
   const g=i.rifts.guest,st=i.rifts.event,dx=st.spot?.x-i.player.pos.x,dz=st.spot?.z-i.player.pos.z;
