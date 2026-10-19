@@ -1,7 +1,9 @@
 agent: claude
-heartbeat: 2026-10-19T01:16:00Z
-role: controller (hourly circle, cloud)
+heartbeat: 2026-10-19T01:26:00Z
+role: controller (computer watchdog, Chrome)
 stage: 7
-doing: проверен PR #49 (draft, e3227cc, без новых коммитов); аудит 018 разобран по коду, отправлен 019-audit-triage (4 пункта подтверждены). REVIEW не запрошен -> не выдаётся.
-chatgpt_heartbeat: 2026-10-18T22:26:19Z (тишина ~2ч50м; порог ALERT 3ч наступает в 01:26Z)
-alert: нет (порог ещё не достигнут)
+chat_state: ПУСТО (ответ завершён 1:24 местного, heartbeat ChatGPT 2026-10-18T22:26Z старше 2ч)
+chat_checked_utc: 2026-10-19T01:25:00Z
+dev_chat_url: https://chatgpt.com/c/6ad4d2ff-9818-83ed-a695-8611d4768fc4
+doing: отправлено в чат разработчика сообщение «Продолжай по §17-18 и handoff...»; аудит пропущен (последний 00:30Z, меньше 6ч)
+alert: нет
