@@ -22,7 +22,7 @@ export function createGuestSchedule(seed=1337){return {seed,cycle:0,remaining:50
 export function guestScheduleStep(state,dt,occupied){
  if(occupied)return false;
  state.remaining-=dt;
- if(state.remaining>0)return false;
+ if(state.remaining>1e-9)return false;
  state.remaining=Infinity; // one active guest maximum, rearm exclusively on completion
  return true;
 }
