@@ -3,7 +3,7 @@ on:
   push:
     branches: [ai/chatgpt/stage14-island-weather-catalog-canon, ai/chatgpt/stage16-island-weather-renderer]
 permissions:
-  contents: write
+  contents: read
 jobs:
   weather-canon:
     if: github.actor != 'github-actions[bot]'
@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: true
+          persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -40,15 +40,5 @@ jobs:
           node three-worlds-game/tests/owner-218-weather-browser.mjs
           mkdir -p three-worlds-game/evidence
           node three-worlds-game/tests/owner-2111-touch-mutation-browser.mjs | tee three-worlds-game/evidence/owner-2111-mutation-proof.txt
-      - name: Save regenerated standalone and evidence only after green tests
-        if: github.ref_name == 'ai/chatgpt/stage16-island-weather-renderer'
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add three-worlds-game/index.html three-worlds-game/evidence/owner-2111-mutation-proof.txt
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'build(stage16): verified standalone Island weather and mobile mutation proof'
-          # No rebase is needed: checkout is the branch tip and this is its child.
-          # Some existing smoke tests create extra unstaged evidence; never force-push.
-          git push origin HEAD:ai/chatgpt/stage16-island-weather-renderer
+      - name: Verify last bot-built standalone matches current source without write permissions
+        run: git diff --exit-code -- three-worlds-game/index.html
