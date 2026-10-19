@@ -1,20 +1,26 @@
 agent: chatgpt
-heartbeat: 2026-10-19T14:29:20.866Z
+heartbeat: 2026-10-19T15:46:15.391Z
 role: developer
-priority: OWNER 048 camera canon + OWNER 049 all universal mechanics canon
-stage: 11 CAMERA COMPLETE, universal-mechanics migration remains in explicit order
-pr: 78 SQUASH MERGED per §20.13
-main_sha: 63f09457a2bb187c9ae32220440b07bc4df609f9
-camera_module: three-worlds-game/camera-rig.mjs
-reference: reference/island-camera/47_camera.js (verbatim function)
-obsolete_logic: camera-sector.mjs deleted; phone dead-zone canceled
-scope: ONE rig across Island, Ash, coast, submerged; fixed HTML/canvas/HUD independent of world camera
-golden: three-worlds-game/tests/camera-golden.test.mjs independently executes reference source in VM; 600 frames dt=1/60; max absolute error <=1e-6 across camera position/target, rig, inertia, occlusion, trauma and cutaway
-ci: https://github.com/mpaykin1/meta6/actions/runs/39268939311 SUCCESS
-tests: 52/52 PASS; browser emulated mobile joystick + canvas lock + real characters/rift PASS
-standalone: three-worlds-game/index.html rebuilt, hash-test PASS
-owner_pass: UNKNOWN (not claimed)
-physical_iPhone_WebKit: NOT VERIFIED
-review_request: handoff/to-claude/040-camera-canon-postmerge-review.md
-next_per_049_and_21_8: sequentially port original Island 37_input + 40_hero (shared hero-controls with golden), then 20_scene/50_env/22_post + GLSL (shared lighting-sky-fog with golden), then packs__base__weather.js/Weather Lab (shared weather-fx with golden). No custom alternatives; each requires independent <=600-step reference test and PR.
-game: https://mpaykin1.github.io/meta6/three-worlds-game/
+priority: OWNER 049 Island canon — sequential universal mechanics §21.8
+last_camera: PR #78 merged, Island camera golden previously 52/52 PASS
+latest_claude_review_read: handoff/to-chatgpt/047-review.md (REVIEW: CHANGES, older than superseding owner 048 camera canon)
+camera_review_resolution: 047 request to restore 40% deadzone is superseded by owner's explicit §21.7 / 048 no-deadzone; PR #78 verbatim camera unchanged
+review047_portal_resolution: PR #82 fixes hero-to-rift alignment using actual generated portal coordinates and normalized nonunit facing
+review047_npc_resolution: PR #82 adds original Island companion NPC role alongside owner Ash scavenger via npc-catalog.js, no new art; Node check asserts two original roles
+phase1_hero: PR #82 DRAFT, branch ai/chatgpt/stage12-island-hero-input-canon, head e47ccf7fe4125f19bc09eff6a5d74dabd1dd58ec
+phase1_source: reference/island-canon/engine__37_input.js and engine__40_hero.js -> three-worlds-game/hero-controls.mjs
+phase1_scope: original input held attacks/jump/orbit + canonical dry-terrain inertial movement and hero animation; only §20 underwater/ship and §21.5 rift freeze use previously accepted special-case adapter
+phase1_golden: three-worlds-game/tests/hero-input-golden.test.mjs (600-frame independent VM, tolerance 1e-6) — SOURCE COMMITTED, CI NOT COMPLETED
+phase1_ci: GitHub Actions run 39280391176 currently QUEUED — no green claim; do not merge PR82 yet
+phase2_light: PR #83 DRAFT, branch ai/chatgpt/stage13-island-environment-canon, dependent on PR82
+phase2_source: reference/island-canon/engine__50_env.js -> three-worlds-game/island-environment.mjs with exact updateEnvironment and updatePost, existing owner sky/fog/palette uniforms and one renderer, existing rift glitch layered after reference post
+phase2_golden: tests/island-environment-golden.test.mjs independent 600-frame reference sky/fog/post numerical comparison <=1e-6 — CI QUEUED, not verified
+phase3_weather: PR #84 DRAFT, branch ai/chatgpt/stage14-island-weather-catalog-canon, dependent on PR83
+phase3_source: original reference/island-canon/packs__base__weather.js registered as 7 owner modes with independent 600-step catalog golden; NOT YET visually integrated
+phase3_blocker: reference engine/86_events.js original GPU particle implementation absent; Weather Lab accepted Compact V3 has separate canvas/loop conflicting with §21.8.4 — Claude decision requested at handoff/to-claude/041-island-weather-renderer-gap.md
+review_handoff: handoff/to-claude/042-review047-resolution-and-canon-queue.md
+ci_status: runners QUEUED, no tests claimed successful on these new PRs
+merge_status: none of PR82/83/84 merged; preserve main and frozen original worlds
+owner_pass: UNKNOWN
+next: resolve queued GitHub Actions and run golden + browser; merge sequentially only on green; acquire authorized exact weather renderer integration after Claude/owner gap decision
+game_current_main: https://mpaykin1.github.io/meta6/three-worlds-game/
