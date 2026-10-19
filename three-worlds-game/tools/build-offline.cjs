@@ -18,7 +18,7 @@ const threeRoot=process.env.THREE_WORLDS_THREE||path.dirname(require.resolve('th
  html=html.replace(/<script type="importmap">[\s\S]*?<\/script>/,'');
  const embedded='globalThis.__threeWorldsModels='+JSON.stringify(models)+';\n'+result.outputFiles[0].text;
  html=html.replace(/<script type="module">[\s\S]*?<\/script>/,()=>'<script>'+embedded.replace(/<\/script/gi,'<\\/script')+'</script>');
- fs.writeFileSync(path.join(dir,'index.html'),html);
+ fs.writeFileSync(process.env.THREE_WORLDS_OUTPUT||path.join(dir,'index.html'),html);
  const external=/<script[^>]+src=|<link[^>]+href=["']https?:/.test(html);if(external)throw Error('Export contains external script/link');
  console.log(JSON.stringify({output:'three-worlds-game/index.html',bytes:Buffer.byteLength(html),embeddedModels:Object.keys(models).length,externalScriptsOrLinks:external}));
 })().catch(e=>{console.error(e);process.exitCode=1});
