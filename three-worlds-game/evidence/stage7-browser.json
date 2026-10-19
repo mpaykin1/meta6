@@ -1,0 +1,119 @@
+{
+  "base": "http://127.0.0.1:8765/three-worlds-game/",
+  "environment": "Chromium emulated WebGL; GPU/iPhone unverified",
+  "shore": {
+    "ground": 1,
+    "edge": 1,
+    "depth": 1
+  },
+  "populationBySeed": [
+    {
+      "ruins": 19,
+      "wrecks": 1,
+      "fish": 44,
+      "plants": 26,
+      "seed": 1,
+      "relief": 4.754027298915105
+    },
+    {
+      "ruins": 14,
+      "wrecks": 1,
+      "fish": 40,
+      "plants": 28,
+      "seed": 1337,
+      "relief": 4.921152144571577
+    },
+    {
+      "ruins": 15,
+      "wrecks": 1,
+      "fish": 44,
+      "plants": 23,
+      "seed": 90210,
+      "relief": 4.716904258421646
+    }
+  ],
+  "bubbles": 86,
+  "dualTouch": {
+    "yaw": -1.8006689099856772,
+    "stickId": 2,
+    "camId": 3,
+    "vx": 0.8928571428571429
+  },
+  "camera": {
+    "before": {
+      "yaw": 0.3392926144540447,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 800,
+        "top": 0,
+        "right": 1280,
+        "bottom": 800,
+        "left": 0
+      },
+      "scrollX": 0,
+      "scrollY": 0
+    },
+    "after": {
+      "yaw": -0.5607073855459553,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 800,
+        "top": 0,
+        "right": 1280,
+        "bottom": 800,
+        "left": 0
+      },
+      "scrollX": 0,
+      "scrollY": 0
+    }
+  },
+  "kill": {
+    "ended": true,
+    "seed": 90210,
+    "cycle": 1,
+    "remaining": 65.84348108255654
+  },
+  "reward": {
+    "ended": true,
+    "seed": 90210,
+    "cycle": 2,
+    "remaining": 63.78999750952062
+  },
+  "path": {
+    "steps": 514,
+    "x": 142.05491631937153,
+    "z": 32,
+    "y": 14.255227267385397,
+    "sea": 3.8,
+    "health": 6,
+    "trace": [
+      [
+        90.37,
+        -2.57
+      ],
+      [
+        99.11,
+        -1.35
+      ],
+      [
+        107.85,
+        1.15
+      ],
+      [
+        117.93,
+        5.17
+      ],
+      [
+        132.03,
+        10.72
+      ]
+    ],
+    "ground": 14.255227267385397
+  },
+  "errors": [],
+  "result": "BROWSER_GATES_OK (NOT OWNER PASS)"
+}
