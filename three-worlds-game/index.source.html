@@ -2385,6 +2385,7 @@ function updatePlayer(dt) {
     if (player.respawn <= 0 && G.state === 'play') respawnAtSafe();
     return;
   }
+  if(G.riftFrozen){v.x*=Math.exp(-12*dt);v.z*=Math.exp(-12*dt);physicsStep(dt);player.vis.lerp(p,damp(18,dt));return;}
   let ix = 0, iz = 0;
   if (G.state === 'play') {
     if (keys.has('KeyD') || keys.has('ArrowRight')) ix += 1;
@@ -2761,7 +2762,8 @@ function updatePost(dt) {
   const red = REDUCED ? 0.35 : 1;
   FX.uTime.value = G.time;
   FX.uAberr.value = (0.0016 + G.danger * 0.0035 + G.hurt * 0.012 + beacon.flare * 0.003) * red;
-  FX.uGlitch.value = (G.blip + G.danger * 0.14 * (Math.sin(G.time * 17) > 0.7 ? 1 : 0) + G.hurt * 0.9) * red;
+  FX.uGlitch.value = (G.blip + G.danger * 0.14 * (Math.sin(G.time * 17) > 0.7 ? 1 : 0) + G.hurt * 0.9 + (G.riftFX||0)*.85) * red;
+  FX.uAberr.value += (G.riftFX||0)*.015;
   FX.uDanger.value = G.danger;
   FX.uVignette.value = pal.vig + G.danger * 0.12;
   FX.uFlash.value = Math.max(G.hurt * 0.26, G.flash);
@@ -2834,6 +2836,10 @@ function buildWorld(seed) {
   riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
+    canStart:()=>G.state==='play'&&!UW.isSubmerged()&&!UW.inBathyscaphe&&foes.filter(foeAlive).every(f=>Math.hypot(f.segs[0].x-player.pos.x,f.segs[0].z-player.pos.z)>9),
+    onFreeze:(lock)=>{G.riftFrozen=lock;if(lock){touch.vx=touch.vy=0;pad.mx=pad.my=0;releaseAll()}},
+    onEventFX:(phase)=>{G.riftFX=['warning','opening','emerging'].includes(phase)?1:0;
+      if(phase==='warning'){SFX.init();SFX.tone(82,.9,'sawtooth',.13,42);SFX.tone(110,1.6,'triangle',.08,63,.11);SFX.tone(55,2.2,'sine',.09,44,.1)}},
      getWorldId:()=>UW.isSubmerged()?'water':landBiomeAt(player.pos.x,player.pos.z,G.seed),
     reward:()=>takeLoot({id:'pistol',x:player.pos.x,y:player.pos.y,z:player.pos.z,alive:true}),
      getHostiles:()=>foes.filter(foeAlive).map(f=>({foe:f,x:f.segs[0].x,z:f.segs[0].z})),
@@ -4940,7 +4946,7 @@ function frame(now) {
   const play = G.state === 'play';
   if (play) updateAim(raw);
   if (play || G.state === 'dead' || G.state === 'victory') updatePlayer(dt);
-  if (play) {
+  if (play && !G.riftFrozen) {
     if (UW.inBathyscaphe && !UW.canFire()) { input.pressed=input.released=false; releaseAll(); }
     else updateCombat(dt);
     updatePickups(dt); updateLoot();
@@ -4985,7 +4991,7 @@ function frame(now) {
       }
     }
   }else G.offshoreEnemyTick=0;
-  if(play){riftStory?.update(raw);airRoutes?.update(raw)}
+  if(play){riftStory?.update(raw);if(!G.riftFrozen)airRoutes?.update(raw)}
   updateWisp(raw);
   updateLeaves(raw);
   sprites.begin(); ribbons.begin();
