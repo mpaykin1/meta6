@@ -1,0 +1,42 @@
+name: Three Worlds Island Sky Fog Golden
+on:
+  push:
+    branches: [ai/chatgpt/stage13-island-environment-canon]
+permissions:
+  contents: write
+jobs:
+  environment:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage13-island-environment-canon
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install offline dependencies
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Build true standalone HTML
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Fast hero, camera and sky fog source-golden tests
+        run: |
+          set -euo pipefail
+          mkdir -p three-worlds-game/evidence
+          node --test three-worlds-game/tests/*.test.mjs | tee three-worlds-game/evidence/island-environment-golden.txt
+      - name: Save rebuilt output and test evidence only on success
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html three-worlds-game/evidence/island-environment-golden.txt
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'build(light): reference-equal Island environment standalone'
+          git fetch origin ai/chatgpt/stage13-island-environment-canon
+          git rebase origin/ai/chatgpt/stage13-island-environment-canon
+          git push origin HEAD:ai/chatgpt/stage13-island-environment-canon
