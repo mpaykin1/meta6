@@ -23,7 +23,7 @@ export function lifePlan(x,z,seed,height,sea=3.8){
   if(Number.isFinite(y)&&y>sea+.2)sites.push({x:px,z:pz,y});
  }
  // The player itself is always a valid inland location.
- const fy=height(x,z);if(Number.isFinite(fy)&&fy>sea+.12)sites.unshift({x,z,y:fy});
+ const fy=height(x,z);if(!sites.length&&Number.isFinite(fy)&&fy>sea+.12)sites.push({x,z,y:fy});
  const pick=(i)=>sites.length?sites[Math.floor(hash(i+3,seed^551,Math.floor(x)*11+Math.floor(z)*17)*sites.length)]:null;
  const place=(id,i)=>{const p=pick(i);return p?{...p,id,region}:null};
  return {region,
