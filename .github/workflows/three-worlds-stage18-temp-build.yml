@@ -1,0 +1,50 @@
+name: TEMP Stage18 Island Ocean Shore Build
+on:
+  push:
+    branches: [ai/chatgpt/stage18-ocean-shore-seam-proof]
+permissions:
+  contents: write
+jobs:
+  build-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned standalone builder
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Rebuild actual offline standalone from updated runtime
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Run all original Node tests and shore seam checks
+        run: node --test three-worlds-game/tests/*.test.mjs
+      - name: Install real Chromium
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real scene raycast and original phone/guest regression
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node three-worlds-game/tests/owner-2111-shore-raycast-browser.mjs
+          node three-worlds-game/tests/owner042-044-browser.mjs
+      - name: Commit rebuilt standalone ONLY on the isolated stage18 branch
+        run: |
+          set -euo pipefail
+          test "${{ github.ref }}" = "refs/heads/ai/chatgpt/stage18-ocean-shore-seam-proof"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "build(stage18): rebuild playable ocean shore boundary"
+          git fetch origin ai/chatgpt/stage18-ocean-shore-seam-proof
+          git rebase origin/ai/chatgpt/stage18-ocean-shore-seam-proof
+          git push origin HEAD:ai/chatgpt/stage18-ocean-shore-seam-proof
