@@ -2669,7 +2669,7 @@ function updateBeacon(dt) {
 ----------------------------------------------------------------------------- */
 const updateCamera = createCameraRig({
  G,keys,pad,rig,nearestGoal,player,drag,touch,
- get world(){return world},
+ world:{get beacon(){return world.beacon}},
  tmpA,tmpB,tmpD,camera,U,sky,cutU,rayFree,clamp,damp,lerp,smooth,angDiff,REDUCED
 });
 
