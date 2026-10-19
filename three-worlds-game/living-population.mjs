@@ -5,7 +5,7 @@ import {createAshFactory} from './ash-assets.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {hash} from './world-core.mjs';
 import {landBiomeAt} from './living-land.mjs';
-export const LAND_ARMORY_IDS=Object.freeze(['stick','dagger','sword','katana','axe','hammer','spear','scythe','flamesword','flail','sling','bow','xbow','pistol','shotgun','smg','saw','bomb','tesla','laser']);
+export const LAND_ARMORY_IDS=Object.freeze(['fists','dagger','sword','katana','axe','hammer','spear','scythe','flamesword','flail','sling','bow','xbow','pistol','shotgun','smg','saw','bomb','tesla','laser']);
 export const REQUIRED_LIFE=Object.freeze({npcs:2,enemies:2,weapons:20});
 export function lifeRegion(x,z,sea=3.8,height=()=>10,seed=1337){
  const gy=height(x,z);if(!Number.isFinite(gy)||gy<=sea+.12)return 'water';
