@@ -2,6 +2,7 @@
 // then verify the same real mobile assertion from owner042-044-browser.mjs goes red.
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import {assertNativeMobileMovement} from './owner-touch-gate.mjs';
 import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const candidates=[...html.matchAll(/\.stickId\s*=\s*([A-Za-z_$][\w$]*)\.pointerId/g)];
@@ -23,12 +24,8 @@ try{
  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:119,y:526,id:1}]});
  await page.waitForTimeout(420);
  const observed=await page.evaluate(()=>({input:__isle.inputPointers,drawn:getComputedStyle(document.querySelector('#v7Stick')).display}));
- // The exact real-world acceptance predicate: this MUST reject the mutation.
- function mobileMovementGate(sample){
-  assert(sample.input.vx>.15,'actual touch joystick did not feed player controls');
-  assert(sample.input.stickId!==null,'native floating touch pointer not captured');
- }
- assert.throws(()=>mobileMovementGate(observed),/joystick|pointer/);
+ // The same predicate is used by the positive owner042-044 real-device-emulation gate.
+ assert.throws(()=>assertNativeMobileMovement(observed),/joystick|pointer/);
  assert.equal(observed.input.stickId,null,'injected mutation was not exercised');
  assert.equal(observed.drawn,'none','invisible touch overlay must stay invisible');
  console.log('LIVE_TOUCH_MUTATION_KILLED '+JSON.stringify(observed));
