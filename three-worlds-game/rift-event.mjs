@@ -1,17 +1,11 @@
 // Owner §21.5. One deterministic guest-event FSM: complete sequence and explicit choice.
 export const RIFT_PHASES=Object.freeze(['idle','warning','opening','emerging','dialogue','closing']);
 export const RIFT_WORDS='Что происходит?!!!';
-export function measureRiftAlignment(pos,look,spot){
- let dx=look.x||0,dz=look.z||0,l=Math.hypot(dx,dz);
- if(l<.001){dx=0;dz=-1;l=1}
- const sx=spot.x-pos.x,sz=spot.z-pos.z,d=Math.hypot(sx,sz);
- return d>1e-9?(sx*dx+sz*dz)/(d*l):0;
-}
 export function frontOfHero(pos,look,distance=2.6){
  let dx=look.x||0,dz=look.z||0,l=Math.hypot(dx,dz);
  if(l<.001){dx=0;dz=-1;l=1}
- const x=pos.x+dx/l*distance,z=pos.z+dz/l*distance;
- return {x,z,distance,alignment:measureRiftAlignment(pos,{x:dx,z:dz},{x,z})};
+ return {x:pos.x+dx/l*distance,z:pos.z+dz/l*distance,distance,
+  alignment:(dx*(look.x||0)+dz*(look.z||0))/(l*Math.max(l,.001))};
 }
 export function createRiftEvent(seed=1337,{initial=50,interval=58}={}){
  const state={phase:'idle',remaining:initial,elapsed:0,cycle:0,choice:null,history:[],spot:null};

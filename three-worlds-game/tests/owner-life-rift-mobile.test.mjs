@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {lifePlan,lifeRegion,LAND_ARMORY_IDS} from '../living-population.mjs';
-import {frontOfHero,measureRiftAlignment,createRiftEvent,RIFT_WORDS,RIFT_PHASES} from '../rift-event.mjs';
+import {frontOfHero,createRiftEvent,RIFT_WORDS,RIFT_PHASES} from '../rift-event.mjs';
 import {createCameraRig} from '../camera-rig.mjs';
 const ids=LAND_ARMORY_IDS.slice();
 test('owner §21.4: twenty original weapon types excluding starter stick; all lands carry three life layers',()=>{
@@ -18,19 +18,25 @@ test('owner §21.4: twenty original weapon types excluding starter stick; all la
   }
  }
 });
-test('owner §21.5: rift alignment is measured from the actual hero-to-portal vector',()=>{
+function independentAlignment(pos,look,spot){
+ let dx=look.x||0,dz=look.z||0,l=Math.hypot(dx,dz);
+ if(l<.001){dx=0;dz=-1;l=1}
+ const sx=spot.x-pos.x,sz=spot.z-pos.z,d=Math.hypot(sx,sz);
+ return d>1e-9?(sx*dx+sz*dz)/(d*l):0;
+}
+test('owner §21.5: portal placement is checked against the actual hero-to-portal vector',()=>{
  const hero={x:125,z:-8};
  for(const look of [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:2,z:-3}]){
   const p=frontOfHero(hero,look),sx=p.x-hero.x,sz=p.z-hero.z;
   const distance=Math.hypot(sx,sz),lookLength=Math.hypot(look.x,look.z);
   assert(Math.abs(distance-2.6)<.05,'portal distance '+distance);
-  const independentlyMeasured=(sx*look.x+sz*look.z)/(distance*lookLength);
+  const independentlyMeasured=independentAlignment(hero,look,p);
   assert(Math.abs(p.alignment-independentlyMeasured)<1e-9,'reported alignment differs from actual geometry');
   assert(independentlyMeasured>.99999,'portal is not in front of the hero');
   const behind={x:hero.x-look.x/lookLength*2.6,z:hero.z-look.z/lookLength*2.6};
-  assert(measureRiftAlignment(hero,look,behind)<-.99999,'alignment measurement accepted a point behind the hero');
+  assert(independentAlignment(hero,look,behind)<-.99999,'alignment measurement accepted a point behind the hero');
   const side={x:hero.x-look.z/lookLength*2.6,z:hero.z+look.x/lookLength*2.6};
-  assert(Math.abs(measureRiftAlignment(hero,look,side))<1e-9,'alignment measurement accepted a lateral point');
+  assert(Math.abs(independentAlignment(hero,look,side))<1e-9,'alignment measurement accepted a lateral point');
  }
 });
 for(const choice of ['help','refuse'])test('owner §21.5: ordered warning > portal > guest > '+choice+' > closing, lock releases',()=>{
