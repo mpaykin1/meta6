@@ -27,7 +27,8 @@ export function createUnderwaterWorld(o) {
  let seed=o.getSeed?.()??o.seed;
  const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[],mixers=new Set();
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
- const floor=(x,z)=>voxelSample((a,b)=>o.surfaceHeight?o.surfaceHeight(a,b):(usesSurfaceTerrain(a,b)?o.terrainTop(a,b):seabedHeight(a,b,seed)),x,z);
+ const rawFloor=(x,z)=>o.surfaceHeight?o.surfaceHeight(x,z):(usesSurfaceTerrain(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed));
+ const floor=(x,z)=>voxelSample(rawFloor,x,z);
  let bathy=false,repair=new Set(),lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
  let immersion=0,bubbleActive=0;const bubbleState={budget:0,cursor:0};
  const DEEP=new THREE.Color('#124c66'),bubbleCapacity=96;
