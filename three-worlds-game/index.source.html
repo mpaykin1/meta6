@@ -490,6 +490,7 @@ import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
 import { createUnderwaterWorld } from './underwater-runtime.js';
+import {shoreSeabedHeight,seabedHeight} from './seabed.mjs';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -1856,6 +1857,11 @@ function groundBelow(px, py, pz) {
 let heightSource = null;
 function terrainTop(px, pz) {
   const x = Math.floor(px), z = Math.floor(pz);
+  if(px>=64){
+    if(!world)return seabedHeight(px,pz,G.seed);
+    const bz=Math.max(0,Math.min(63,Math.floor(pz)));
+    return shoreSeabedHeight(px,pz,G.seed,world.hgt[63+bz*W]);
+  }
   if (x < 0 || z < 0 || x >= W || z >= D) if(!heightSource)return 1;
   const a=Math.floor(px),b=Math.floor(pz),u=px-a,v=pz-b;
   const h00=heightSource(a,b),h10=heightSource(a+1,b),h01=heightSource(a,b+1),h11=heightSource(a+1,b+1);
@@ -2149,7 +2155,7 @@ addEventListener('keyup', (e) => {
   if (e.code === 'Space') onJumpRelease();
   if (isAtkKey(e.code)) setAttack('key', keys.has('KeyJ') || keys.has('KeyK'));
 });
-addEventListener('blur', () => { keys.clear(); onJumpRelease(); releaseAll(); mouseMask = 0; drag.active = false; });
+addEventListener('blur', () => { keys.clear(); onJumpRelease(); releaseAll(); mouseMask = 0; drag.active = false;leftPointer=null;clearTimeout(leftTimer); });
 
 function orbitBy(dx, dy, sens, now) {
   const yv = -dx * sens, pv = dy * sens * 0.7;
@@ -2160,10 +2166,10 @@ function orbitBy(dx, dy, sens, now) {
   drag.t = now;
 }
 // mouse: left button attacks, right / middle drag orbits the camera, the cursor aims (twin-stick style)
-let mouseMask = 0;
+let mouseMask = 0, leftPointer=null, leftTimer=null;
 function mouseButtons(e) {
   const m = e.buttons | 0, cam = (m & 6) !== 0, wasCam = (mouseMask & 6) !== 0;
-  setAttack('mouse', (m & 1) !== 0 && G.state === 'play');
+  // Defer mouse attack until click/hold; dragging orbits without attacking.
   if (cam && !wasCam) { drag.active = true; drag.id = e.pointerId; drag.x = e.clientX; drag.y = e.clientY; drag.t = e.timeStamp; drag.vy = drag.vp = 0; }
   else if (!cam && wasCam && drag.active) { drag.active = false; rig.spin = clamp(drag.vy, -3, 3); rig.pspin = clamp(drag.vp, -1.5, 1.5); }
   mouseMask = m;
@@ -2184,6 +2190,8 @@ canvas.addEventListener('pointerdown', (e) => {
   }
   if (e.pointerType !== 'touch') {
     cursorAim(e);
+    if(e.button===0){leftPointer={id:e.pointerId,x:e.clientX,y:e.clientY,dragged:false};
+      clearTimeout(leftTimer);leftTimer=setTimeout(()=>{if(leftPointer&&!leftPointer.dragged&&G.state==='play')setAttack('mouse',true)},180);}
     mouseButtons(e);
     canvas.setPointerCapture(e.pointerId);
     canvas.focus();
@@ -2201,6 +2209,12 @@ canvas.addEventListener('pointermove', (e) => {
     touch.cx = e.clientX; touch.cy = e.clientY;
   } else if (e.pointerType !== 'touch') {
     if ((e.buttons | 0) !== mouseMask) mouseButtons(e);      // chorded buttons arrive as moves
+    if(leftPointer&&e.pointerId===leftPointer.id&&(e.buttons&1)){
+      if(!leftPointer.dragged&&Math.hypot(e.clientX-leftPointer.x,e.clientY-leftPointer.y)>6){
+        leftPointer.dragged=true;clearTimeout(leftTimer);setAttack('mouse',false);
+        drag.active=true;drag.id=e.pointerId;drag.x=leftPointer.x;drag.y=leftPointer.y;drag.t=e.timeStamp;drag.vy=drag.vp=0;
+      }
+    }
     if (drag.active && e.pointerId === drag.id) {
       orbitBy(e.clientX - drag.x, e.clientY - drag.y, 0.006, e.timeStamp);
       drag.x = e.clientX; drag.y = e.clientY;
@@ -2210,7 +2224,17 @@ canvas.addEventListener('pointermove', (e) => {
 function endPointer(e) {
   if (e.pointerId === touch.stickId) { touch.stickId = null; touch.vx = touch.vy = 0; $('stick').classList.remove('on'); }
   else if (e.pointerId === touch.camId) { touch.camId = null; rig.spin = clamp(drag.vy, -3, 3); rig.pspin = clamp(drag.vp, -1.5, 1.5); }
-  else if (e.pointerType !== 'touch') mouseButtons(e.type === 'pointercancel' ? { buttons: 0, pointerId: e.pointerId } : e);
+  else if(e.pointerType!=='touch'){
+    if(leftPointer&&e.pointerId===leftPointer.id){
+      clearTimeout(leftTimer);
+      if(!leftPointer.dragged&&e.type==='pointerup'&&G.state==='play'){
+        setAttack('mouse',true);requestAnimationFrame(()=>setAttack('mouse',false));
+      }else setAttack('mouse',false);
+      if(leftPointer.dragged&&drag.active){rig.spin=clamp(drag.vy,-3,3);rig.pspin=clamp(drag.vp,-1.5,1.5);drag.active=false;}
+      leftPointer=null;
+    }
+    mouseButtons(e.type==='pointercancel'?{buttons:0,pointerId:e.pointerId}:e);
+  }
 }
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
@@ -2272,7 +2296,7 @@ const rig = {
   pos: new THREE.Vector3(30, 22, 70), look: new THREE.Vector3(32, 8, 32), trauma: 0, blend: 1, vicA: 0, lift: 0, pitchEff: 0.62,
 };
 const UW = createUnderwaterWorld({
-  THREE, scene, player, atlas: atlasTex, hero, water, skyU, SEA, seed: DEFAULT_SEED,
+  THREE, scene, player, atlas: atlasTex, hero, water, skyU, SEA, seed: DEFAULT_SEED, getSeed:()=>G.seed,
   terrainTop, surfaceHeight: (x,z)=>terrainTop(x,z), toast, getWeapon: () => curWeapon(), getArsenal: () => combat.arsenal,
   getAmmo: () => combat.ammo, getAim: () => aim,
   onCreatureAttack: (amount,x,z) => hurt(amount,x,z)
@@ -2787,11 +2811,13 @@ function buildWorld(seed) {
   riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
-    reward:()=>takeLoot({id:'pistol',x:player.pos.x,y:player.pos.y,z:player.pos.z,alive:true})});
+    reward:()=>takeLoot({id:'pistol',x:player.pos.x,y:player.pos.y,z:player.pos.z,alive:true}),
+     getHostiles:()=>foes.filter(foeAlive).map(f=>({foe:f,x:f.segs[0].x,z:f.segs[0].z})),
+     damageHostile:(target,amount)=>damageFoe(target.foe,amount,0,0)});
   airRoutes?.dispose();
   airRoutes=createAirRoutes({THREE,scene,player,height:terrainTop,prepare:(x,z)=>terrainWindow.update(x,z),
     travel:(x,z,y)=>{player.pos.set(x,y,z);player.vel.set(0,0,0);G.fade=0;G.blip=.4},
-    inShip:()=>UW.inBathyscaphe,spawnInvasion:()=>{riftStory.spawnGuest();const x=player.pos.x+10,z=player.pos.z+4;spawnFoe('shade',x,terrainTop(x,z)+1.2,z,true)},getTargets:()=>[world.beacon,...foes.filter(foeAlive).map(f=>f.segs[0]),{x:75,z:34},{x:101,z:31}],toast});
+    inShip:()=>UW.inBathyscaphe,spawnInvasion:()=>{const x=player.pos.x+10,z=player.pos.z+4;spawnFoe('shade',x,terrainTop(x,z)+1.2,z,true)},getTargets:()=>[world.beacon,...foes.filter(foeAlive).map(f=>f.segs[0]),{x:75,z:34},{x:101,z:31}],toast});
   if (heightTex) heightTex.dispose();
   heightTex = makeHeightTexture(world);
   waterU.uHeight.value = heightTex;
@@ -4315,8 +4341,8 @@ function buildExtensionGeometry(cx,cz){
 function buildChunks() {
   terrainWindow?.clear();
   terrainWindow = new ChunkWindow({radius:2,
-    create(cx,cz){const mesh=new THREE.Mesh((cx>=0&&cz>=0&&cx<4&&cz<4?buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH):buildExtensionGeometry(cx,cz)),terrainMat);scene.add(mesh);return mesh},
-    dispose(mesh){scene.remove(mesh);mesh.geometry.dispose()}
+    create(cx,cz){const mesh=cx>=4?new THREE.Group():new THREE.Mesh((cx>=0&&cz>=0&&cx<4&&cz<4?buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH):buildExtensionGeometry(cx,cz)),terrainMat);scene.add(mesh);return mesh},
+    dispose(mesh){scene.remove(mesh);mesh.geometry?.dispose()}
   });
   terrainWindow.update(world.spawn.x,world.spawn.z);
   chunks=[...terrainWindow.items.values()];dirtyChunks.clear();
@@ -4326,8 +4352,8 @@ function rebuildChunk(i) {
   if(!terrainWindow)return;
   const cx=i%(W/CH),cz=Math.floor(i/(W/CH)),key=cx+','+cz;
   const old=terrainWindow.items.get(key);if(!old)return;
-  scene.remove(old);old.geometry.dispose();
-  const mesh=new THREE.Mesh((cx>=0&&cz>=0&&cx<4&&cz<4?buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH):buildExtensionGeometry(cx,cz)),terrainMat);
+  scene.remove(old);old.geometry?.dispose();
+  const mesh=cx>=4?new THREE.Group():new THREE.Mesh((cx>=0&&cz>=0&&cx<4&&cz<4?buildTerrainGeometry(world,cx*CH,cz*CH,(cx+1)*CH,(cz+1)*CH):buildExtensionGeometry(cx,cz)),terrainMat);
   scene.add(mesh);terrainWindow.items.set(key,mesh);chunks=[...terrainWindow.items.values()];
 }
 function markDirty(x0, z0, x1, z1) {
