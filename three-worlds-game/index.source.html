@@ -2708,7 +2708,7 @@ function updateCamera(dt) {
         const q=cameraSectorDelta(projected.x,projected.y,rig.yaw,rig.eff,camera.aspect,camera.fov,dt);
         if(q.transition){phoneCamera.anchor.x+=q.dx;phoneCamera.anchor.z+=q.dz;phoneCamera.sectorChanges++;}
       }
-      if(UW.isSubmerged())phoneCamera.anchor.y=Math.min(phoneCamera.anchor.y,SEA-1.6);
+      if(UW.isSubmerged()&&player.pos.y<SEA-.75)phoneCamera.anchor.y=Math.min(phoneCamera.anchor.y,SEA-1.6);
       tmpA.copy(phoneCamera.anchor);
     }else tmpA.set(player.vis.x+v.x*.22,player.vis.y+.95,player.vis.z+v.z*.22);
     if (G.bossCam > 0 && G.warden) { G.bossCam -= dt; tmpA.lerp(G.warden.segs[0], 0.42 * smooth(0, 0.6, G.bossCam)); }
@@ -2741,7 +2741,7 @@ function updateCamera(dt) {
   const dy=phoneLocked?0:Math.sin(t*.71)*.05+(Math.sin(t*41.7)+Math.sin(t*29.9))*.1*sh;
   camera.position.set(rig.pos.x + dx, rig.pos.y + dy, rig.pos.z);
   // Cross the water line with the hero; otherwise the transparent surface still obscures the seabed.
-  if (UW.isSubmerged()) {
+  if (UW.isSubmerged()&&(!phoneLocked||player.pos.y<SEA-.75)) {
     const tDive = smooth(SEA - 0.08, SEA - 1.45, player.pos.y);
     const underwaterCamera = Math.min(SEA-0.65,phoneLocked?phoneCamera.anchor.y+1.5:player.vis.y+1.5);
     camera.position.y = lerp(camera.position.y, underwaterCamera, tDive);
