@@ -3,9 +3,12 @@
 // the same integer columns. The identical sample drives rendering and collisions.
 // Greedy top rectangles + side runs; internal faces never exist.
 export const CELL=1;
+// Shared EAST-coast ocean chunk inclusion predicate; runtime and tests use the same boundary.
+export const EAST_OCEAN_CLIP_X=64;
+export const oceanEastChunkHasTerrain=(cx,size=24,clipX=EAST_OCEAN_CLIP_X)=>(cx+1)*size>clipX;
 export const voxelHeight=(n)=>Number.isFinite(n)?Math.round(n):0;
 export const voxelSample=(height,x,z)=>voxelHeight(height(Math.floor(x)+.5,Math.floor(z)+.5));
-export function buildGreedyVoxelChunk(cx,cz,height,{size=16,sea=3.8,topTile,sideTile}={}){
+export function buildGreedyVoxelChunk(cx,cz,height,{size=16,sea=3.8,topTile,sideTile,clipX=-Infinity}={}){
  const px=cx*size,pz=cz*size,grid=new Int16Array(size*size);
  const h=(x,z)=>voxelSample(height,px+x,pz+z);
  for(let z=0;z<size;z++)for(let x=0;x<size;x++)grid[x+z*size]=h(x,z);
@@ -24,6 +27,8 @@ export function buildGreedyVoxelChunk(cx,cz,height,{size=16,sea=3.8,topTile,side
  }
  // 2D greedy top rectangles, grouped only when voxel height and atlas tile match.
  const used=new Uint8Array(size*size);
+ // The 48..72 ocean chunk overlaps the owner's 48..64 Island core. Never draw its cells.
+ for(let z=0;z<size;z++)for(let x=0;x<size;x++)if(px+x<clipX)used[x+size*z]=1;
  for(let z=0;z<size;z++)for(let x=0;x<size;x++){
   const k=x+size*z;if(used[k])continue;
   const y=grid[k],tile=tileTop(y),match=(i,j)=>!used[i+size*j]&&grid[i+size*j]===y&&tileTop(y)===tile;
@@ -39,11 +44,14 @@ export function buildGreedyVoxelChunk(cx,cz,height,{size=16,sea=3.8,topTile,side
   for(let line=0;line<size;line++){
    let offset=0;
    while(offset<size){
-    const x=alongX?offset:line,z=alongX?line:offset,top=floor(x,z),bottom=floor(x+dir.dx,z+dir.dz);
+    const x=alongX?offset:line,z=alongX?line:offset;
+    if(px+x<clipX){offset++;continue}
+    const top=floor(x,z),bottom=floor(x+dir.dx,z+dir.dz);
     if(top<=bottom){offset++;continue}
     const tile=tileSide(top);let len=1;
     while(offset+len<size){
      const xx=alongX?offset+len:line,zz=alongX?line:offset+len;
+     if(px+xx<clipX)break;
      if(floor(xx,zz)!==top||floor(xx+dir.dx,zz+dir.dz)!==bottom||tileSide(top)!==tile)break;len++;
     }
     const X=px+x,Z=pz+z,hi=top,lo=bottom;
