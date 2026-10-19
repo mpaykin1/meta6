@@ -11,7 +11,10 @@ try{
  await page.waitForFunction(()=>!!window.__isle?.worldLife&&!!document.querySelector('#v7Stick'),{timeout:20000});
  await page.evaluate(()=>{if(__isle.G.state==='title')__isle.startGame();__isle.killFoes();});
  await page.locator('#v7Stick').waitFor({state:'visible',timeout:15000});
- await page.waitForTimeout(260);
+ // Measure joystick displacement ONLY after a real PLAY frame has initialized the locked camera.
+ // This is synchronization, not a timeout-based assertion bypass.
+ await page.waitForFunction(()=>__isle.G.state==='play'&&__isle.cameraLock.active,{timeout:20000});
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  const before=await page.evaluate(()=>({scroll:[scrollX,scrollY],r:document.querySelector('#c').getBoundingClientRect().toJSON(),
    camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),Gstate:__isle.G.state,yaw:__isle.rig.y,lock:__isle.cameraLock,Gstate:__isle.G.state,
    width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight,
