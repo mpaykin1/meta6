@@ -1,0 +1,42 @@
+name: Three Worlds owner 042-044 — real input and living world
+on:
+  push:
+    branches: [ai/chatgpt/stage10-phone-frame-lock]
+permissions:
+  contents: read
+jobs:
+  owner-042-044:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage10-phone-frame-lock
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned standalone dependencies
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Build offline single HTML
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Confirm checked-in single-file build matches current source
+        run: git diff --exit-code -- three-worlds-game/index.html
+      - name: Short deterministic original source tests
+        run: |
+          set -euo pipefail
+          mkdir -p three-worlds-game/evidence
+          node --test three-worlds-game/tests/*.test.mjs | tee three-worlds-game/evidence/unit-tests-stage10.txt
+      - name: Install headless Chromium with genuine CDP touch
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Full code assertions, one mobile joystick and live dialog
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node three-worlds-game/tests/owner042-044-browser.mjs

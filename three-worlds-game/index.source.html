@@ -282,7 +282,7 @@ kbd { font-family: var(--font-ui); font-size: 13px; color: var(--paper); padding
 }
 
 /* OBSERVER V5 EDITOR: exact original island Three.js, deliberately no second canvas. */
-html,body{position:fixed!important;inset:0!important;width:100%;height:100%;height:100dvh!important;overflow:hidden!important;overscroll-behavior:none}
+html,body{position:fixed!important;inset:0!important;width:100%;height:100%;height:100svh!important;overflow:hidden!important;overscroll-behavior:none;touch-action:none;-webkit-overflow-scrolling:auto}
 body{touch-action:none}#c{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #hud,.hud,.tools,.touch,#scrTitle,#scrPause,#scrEnd{display:none!important}
 #v5Menu{position:fixed;right:max(11px,env(safe-area-inset-right));top:max(9px,env(safe-area-inset-top));z-index:30;
@@ -488,6 +488,8 @@ import {flightStep,createAirRoutes} from './transport.mjs';
 import {createRiftStory} from './rift-story.mjs';
 import {landBiomeAt} from './living-land.mjs';
 import {createLivingIsland} from './living-island-runtime.mjs';
+import {createLivingPopulation,LAND_ARMORY_IDS} from './living-population.mjs';
+import {cameraSectorDelta} from './camera-sector.mjs';
 import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
@@ -1831,7 +1833,7 @@ const C = {
   spray: new THREE.Color(0.82, 0.93, 1.0), sand: new THREE.Color('#d9bf86'), dirt: new THREE.Color('#7a5236'),
   heart: new THREE.Color(1, 0.3, 0.35).multiplyScalar(2.6), violet: new THREE.Color(0.75, 0.25, 1).multiplyScalar(2.6),
 };
-const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.Vector3(), tmpD = new THREE.Vector3(), tmpE = new THREE.Vector3();
+const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.Vector3(), tmpD = new THREE.Vector3(), tmpE = new THREE.Vector3(),tmpF=new THREE.Vector3();
 
 /* -----------------------------------------------------------------------------
    11 · Voxel queries
@@ -1849,7 +1851,7 @@ function boxSolid(x0f, y0f, z0f, x1f, y1f, z1f) {
   return false;
 }
 const PL = { halfW: 0.27, height: 1.35, speed: 4.7, accG: 16, accA: 5, grav: 30, jumpV: 11.6 };
-let ashWorld = null, riftStory = null, airRoutes=null, livingIsland=null;
+let ashWorld = null, riftStory = null, airRoutes=null, livingIsland=null, livingPopulation=null;
 const hits = (px, py, pz) => (ashWorld?.blocks(px,py,pz)||false) || boxSolid(px - PL.halfW, py, pz - PL.halfW, px + PL.halfW, py + PL.height, pz + PL.halfW);
 function groundBelow(px, py, pz) {
   const x = Math.floor(px), z = Math.floor(pz);
@@ -2141,6 +2143,7 @@ addEventListener('keydown', (e) => {
   else if (c === 'KeyF') toggleFullscreen();
   if (G.state === 'title' && (c === 'Enter' || c === 'Space' || c === 'NumpadEnter')) { startGame(); return; }
   if (G.state === 'play') {
+    if (G.riftFrozen) return;
     if (c === 'Space') onJumpPress();
     else if (c === 'Escape' || c === 'KeyP') setPaused(true);
     else if (c === 'KeyB') UW.toggleBathyscaphe();
@@ -2241,6 +2244,14 @@ function endPointer(e) {
 }
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('lostpointercapture', endPointer);
+function releaseTouchPointers(){
+  touch.stickId=null;touch.camId=null;touch.vx=touch.vy=0;
+  $('stick').classList.remove('on');rig.spin=rig.pspin=0;
+}
+addEventListener('blur',releaseTouchPointers);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseTouchPointers()});
+document.addEventListener('touchcancel',releaseTouchPointers,{passive:true});
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
   rig.distT = clamp(rig.distT * (1 + Math.sign(e.deltaY) * 0.09), 5.5, 20);
@@ -2298,6 +2309,8 @@ const rig = {
   yaw: 0, pitch: 0.62, dist: 11, yawT: 0, pitchT: 0.62, distT: 11, spin: 0, pspin: 0, eff: 11,
   pos: new THREE.Vector3(30, 22, 70), look: new THREE.Vector3(32, 8, 32), trauma: 0, blend: 1, vicA: 0, lift: 0, pitchEff: 0.62,
 };
+const phoneCamera={anchor:new THREE.Vector3(),locked:false,occlusionSet:false,sectorChanges:0,seenChanges:0};
+const mobilePerson=()=>G.state==='play'&&!UW.inBathyscaphe&&(IS_TOUCH||window.ObserverMobileControls?.isMobile?.());
 const UW = createUnderwaterWorld({
   THREE, scene, camera, player, atlas: atlasTex, hero, water, skyU, SEA, seed: DEFAULT_SEED, getSeed:()=>G.seed,
   terrainTop, surfaceHeight: (x,z)=>terrainTop(x,z), toast, getWeapon: () => curWeapon(), getArsenal: () => combat.arsenal,
@@ -2381,6 +2394,7 @@ function updatePlayer(dt) {
     if (player.respawn <= 0 && G.state === 'play') respawnAtSafe();
     return;
   }
+  if(G.riftFrozen){v.x*=Math.exp(-12*dt);v.z*=Math.exp(-12*dt);physicsStep(dt);player.vis.lerp(p,damp(18,dt));return;}
   let ix = 0, iz = 0;
   if (G.state === 'play') {
     if (keys.has('KeyD') || keys.has('ArrowRight')) ix += 1;
@@ -2661,9 +2675,9 @@ function updateCamera(dt) {
     const qe = (keys.has('KeyC') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0);
     rig.yawT += qe * 1.8 * dt - pad.cx * 2.6 * dt;
     rig.pitchT = clamp(rig.pitchT + pad.cy * 1.4 * dt, 0.3, 1.15);
-    if (G.idle > 7) { const c = nearestGoal(); if (c) rig.yawT += angDiff(rig.yawT, Math.atan2(player.pos.x - c.x, player.pos.z - c.z)) * damp(0.25, dt); }
+    if(!mobilePerson()&&G.idle>7){const c=nearestGoal();if(c)rig.yawT+=angDiff(rig.yawT,Math.atan2(player.pos.x-c.x,player.pos.z-c.z))*damp(.25,dt)}
   }
-  if (!drag.active && touch.camId === null) {
+  if (!drag.active && touch.camId === null && !mobilePerson()) {
     rig.yawT += rig.spin * dt; rig.spin *= Math.exp(-3.2 * dt);
     rig.pitchT = clamp(rig.pitchT + rig.pspin * dt, 0.3, 1.15); rig.pspin *= Math.exp(-3.2 * dt);
   }
@@ -2671,6 +2685,8 @@ function updateCamera(dt) {
   rig.pitch += (rig.pitchT - rig.pitch) * damp(9, dt);
   rig.dist += (rig.distT - rig.dist) * damp(6, dt);
   let kPos, kLook;
+  const phoneLocked=mobilePerson();
+  if(!phoneLocked){phoneCamera.locked=false;phoneCamera.occlusionSet=false;}
   const b = world.beacon;
   if (G.state === 'title' || G.state === 'loading') {
     const a = t * 0.045 + G.sunAz + 1.0;
@@ -2684,7 +2700,17 @@ function updateCamera(dt) {
     kPos = 0.9; kLook = 1.2;
   } else {
     const v = player.vel;
-    tmpA.set(player.vis.x + v.x * 0.22, player.vis.y + 0.95, player.vis.z + v.z * 0.22);
+    if(phoneLocked){
+      if(!phoneCamera.locked){phoneCamera.anchor.set(player.vis.x,player.vis.y+.95,player.vis.z);phoneCamera.locked=true;}
+      else{
+        // Pointer axes affect only velocity. Camera anchor moves ONLY at visible dead-zone edge.
+        const projected=tmpE.copy(player.vis).add(tmpF.set(0,.8,0)).project(camera);
+        const q=cameraSectorDelta(projected.x,projected.y,rig.yaw,rig.eff,camera.aspect,camera.fov,dt);
+        if(q.transition){phoneCamera.anchor.x+=q.dx;phoneCamera.anchor.z+=q.dz;phoneCamera.sectorChanges++;}
+      }
+      if(UW.isSubmerged()&&player.pos.y<SEA-.75)phoneCamera.anchor.y=Math.min(phoneCamera.anchor.y,SEA-1.6);
+      tmpA.copy(phoneCamera.anchor);
+    }else tmpA.set(player.vis.x+v.x*.22,player.vis.y+.95,player.vis.z+v.z*.22);
     if (G.bossCam > 0 && G.warden) { G.bossCam -= dt; tmpA.lerp(G.warden.segs[0], 0.42 * smooth(0, 0.6, G.bossCam)); }
     const dirAt = (p) => tmpD.set(Math.sin(rig.yaw) * Math.cos(p), Math.sin(p), Math.cos(rig.yaw) * Math.cos(p));
     let lift = 0;
@@ -2693,33 +2719,35 @@ function updateCamera(dt) {
         if (rayFree(tmpA, dirAt(Math.min(1.4, rig.pitch + add)), rig.dist) >= rig.dist * 0.9) { lift = add; break; }
       }
     }
-    rig.lift += (lift - rig.lift) * damp(lift > rig.lift ? 5 : 1.2, dt);
+    if(phoneLocked){if(!phoneCamera.occlusionSet)rig.lift=lift;}else rig.lift+=(lift-rig.lift)*damp(lift>rig.lift?5:1.2,dt);
     rig.pitchEff = Math.min(1.4, rig.pitch + rig.lift);
     dirAt(rig.pitchEff);
     const free = rayFree(tmpA, tmpD, rig.dist);
-    rig.eff += (free - rig.eff) * damp(free < rig.eff ? 12 : 2.5, dt);
+    if(phoneLocked){
+      if(!phoneCamera.occlusionSet||phoneCamera.seenChanges!==phoneCamera.sectorChanges){rig.eff=free;phoneCamera.occlusionSet=true;phoneCamera.seenChanges=phoneCamera.sectorChanges;}
+    }else rig.eff+=(free-rig.eff)*damp(free<rig.eff?12:2.5,dt);
     const d = rig.eff + (G.state === 'dead' ? G.endT * 1.6 : 0);
     tmpB.copy(tmpA).addScaledVector(tmpD, d);
     kPos = 5.5; kLook = 8;
   }
   rig.blend = Math.min(1, rig.blend + dt * 0.4);
   const e = rig.blend * rig.blend * (3 - 2 * rig.blend);
-  rig.pos.lerp(tmpB, damp(lerp(0.9, kPos, e), dt));
-  rig.look.lerp(tmpA, damp(lerp(1.1, kLook, e), dt));
+  if(phoneLocked){rig.pos.copy(tmpB);rig.look.copy(tmpA);}
+  else{rig.pos.lerp(tmpB,damp(lerp(.9,kPos,e),dt));rig.look.lerp(tmpA,damp(lerp(1.1,kLook,e),dt));}
   if (G.danger > 0.55 && G.state === 'play') rig.trauma = Math.max(rig.trauma, (G.danger - 0.55) * 0.4);
   rig.trauma = Math.max(0, rig.trauma - dt * 1.5);
   const sh = (REDUCED ? 0.25 : 1) * rig.trauma * rig.trauma;
-  const dx = Math.sin(t * 0.53) * 0.06 + (Math.sin(t * 37.1) + Math.sin(t * 23.3)) * 0.12 * sh;
-  const dy = Math.sin(t * 0.71) * 0.05 + (Math.sin(t * 41.7) + Math.sin(t * 29.9)) * 0.1 * sh;
+  const dx=phoneLocked?0:Math.sin(t*.53)*.06+(Math.sin(t*37.1)+Math.sin(t*23.3))*.12*sh;
+  const dy=phoneLocked?0:Math.sin(t*.71)*.05+(Math.sin(t*41.7)+Math.sin(t*29.9))*.1*sh;
   camera.position.set(rig.pos.x + dx, rig.pos.y + dy, rig.pos.z);
   // Cross the water line with the hero; otherwise the transparent surface still obscures the seabed.
-  if (UW.isSubmerged()) {
+  if (UW.isSubmerged()&&(!phoneLocked||player.pos.y<SEA-.75)) {
     const tDive = smooth(SEA - 0.08, SEA - 1.45, player.pos.y);
-    const underwaterCamera = Math.min(SEA - 0.65, player.vis.y + 1.5);
+    const underwaterCamera = Math.min(SEA-0.65,phoneLocked?phoneCamera.anchor.y+1.5:player.vis.y+1.5);
     camera.position.y = lerp(camera.position.y, underwaterCamera, tDive);
   }
   camera.lookAt(rig.look);
-  camera.rotateZ(Math.sin(t * 0.37) * 0.004 + Math.sin(t * 31.0) * 0.012 * sh);
+  if(!phoneLocked)camera.rotateZ(Math.sin(t*.37)*.004+Math.sin(t*31)*.012*sh);
   camera.updateMatrixWorld();
   const m = camera.matrixWorld.elements;
   U.camRight.value.set(m[0], m[1], m[2]);
@@ -2745,7 +2773,8 @@ function updatePost(dt) {
   const red = REDUCED ? 0.35 : 1;
   FX.uTime.value = G.time;
   FX.uAberr.value = (0.0016 + G.danger * 0.0035 + G.hurt * 0.012 + beacon.flare * 0.003) * red;
-  FX.uGlitch.value = (G.blip + G.danger * 0.14 * (Math.sin(G.time * 17) > 0.7 ? 1 : 0) + G.hurt * 0.9) * red;
+  FX.uGlitch.value = (G.blip + G.danger * 0.14 * (Math.sin(G.time * 17) > 0.7 ? 1 : 0) + G.hurt * 0.9 + (G.riftFX||0)*.85) * red;
+  FX.uAberr.value += (G.riftFX||0)*.015;
   FX.uDanger.value = G.danger;
   FX.uVignette.value = pal.vig + G.danger * 0.12;
   FX.uFlash.value = Math.max(G.hurt * 0.26, G.flash);
@@ -2810,6 +2839,7 @@ function buildWorld(seed) {
   ashWorld?.dispose();
   ashWorld=createAshWorld({THREE,scene,player,terrainHeight:terrainTop,skyU,seed,getBiome:(x,z)=>landBiomeAt(x,z,seed),sea:SEA});
   livingIsland?.dispose();
+  livingPopulation?.dispose();livingPopulation=null;
   livingIsland=createLivingIsland({THREE,scene,world,material:terrainMat,height:terrainTop,sea:SEA,seed,faces:FACES,faceTiles:FACE_TILES,blocks:B,W,D,H});
   buildChunks();
   rebuildBeachPatch();
@@ -2817,6 +2847,10 @@ function buildWorld(seed) {
   riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
+    canStart:()=>G.state==='play'&&!UW.isSubmerged()&&!UW.inBathyscaphe&&!combat.atk,
+    onFreeze:(lock)=>{G.riftFrozen=lock;if(lock){touch.vx=touch.vy=0;pad.mx=pad.my=0;releaseAll()}},
+    onEventFX:(phase)=>{G.riftFX=['warning','opening','emerging'].includes(phase)?1:0;
+      if(phase==='warning'){SFX.init();SFX.tone(82,.9,'sawtooth',.13,42);SFX.tone(110,1.6,'triangle',.08,63,.11);SFX.tone(55,2.2,'sine',.09,44,.1)}},
      getWorldId:()=>UW.isSubmerged()?'water':landBiomeAt(player.pos.x,player.pos.z,G.seed),
     reward:()=>takeLoot({id:'pistol',x:player.pos.x,y:player.pos.y,z:player.pos.z,alive:true}),
      getHostiles:()=>foes.filter(foeAlive).map(f=>({foe:f,x:f.segs[0].x,z:f.segs[0].z})),
@@ -2871,7 +2905,7 @@ function startGame() {
   G.state = 'play';
   rig.blend = 0;
   rig.yawT = rig.yaw = Math.atan2(world.spawn.x - world.beacon.x, world.spawn.z - world.beacon.z);
-  rig.pitchT = rig.pitch = 0.62; rig.distT = rig.dist = rig.eff = 11; rig.spin = rig.pspin = 0;
+  rig.pitchT = rig.pitch = 0.62; rig.distT = rig.dist = rig.eff = 11; rig.spin = rig.pspin = 0;phoneCamera.locked=false;
   toast(`Собери ${G.total} монет и зажги маяк`, 3600, false, 2);
   canvas.focus();
 }
@@ -4111,8 +4145,10 @@ function updateFoes(dt) {
     } else if (f.state === 'wander') {
       f.timer -= dt;
       if (f.timer <= 0 || Math.hypot(f.target.x - head.x, f.target.z - head.z) < 1.5) {
-        const c = world.landCells[Math.floor(Math.random() * world.landCells.length)];
-        f.target.set(lerp(c[0] + 0.5, px, 0.35), 0, lerp(c[1] + 0.5, pz, 0.35));
+        if(head.x>=0&&head.x<64&&head.z>=0&&head.z<64){
+          const c = world.landCells[Math.floor(Math.random() * world.landCells.length)];
+          if(c)f.target.set(lerp(c[0] + 0.5, px, 0.35), 0, lerp(c[1] + 0.5, pz, 0.35));
+        }else f.target.set(head.x+rr(-8,8),0,head.z+rr(-8,8));
         f.timer = rr(4, 8);
       }
       if (canChase && dist < chaseR && player.invuln < 0.2 && !f.hold) f.state = 'chase';
@@ -4143,8 +4179,8 @@ function updateFoes(dt) {
       if (L > 0.01) { tx *= sp / Math.max(L, bm === 'orbit' ? 1.2 : 0.01); tz *= sp / Math.max(L, bm === 'orbit' ? 1.2 : 0.01); }
       const k = damp(f.stun > 0 ? 6 : bm === 'dive' ? 9 : f.state === 'chase' ? 2.4 : 1.3, dt);
       f.vel.x += (tx - f.vel.x) * k; f.vel.z += (tz - f.vel.z) * k;
-      head.x = clamp(head.x + (f.vel.x + f.kb.x) * dt, -8, W + 8);
-      head.z = clamp(head.z + (f.vel.z + f.kb.z) * dt, -8, D + 8);
+      head.x = clamp(head.x + (f.vel.x + f.kb.x) * dt, -200000, 200000);
+      head.z = clamp(head.z + (f.vel.z + f.kb.z) * dt, -200000, 200000);
       f.kb.multiplyScalar(Math.exp(-5 * dt));
       if (f.stun > 0) { head.x += rr(-0.04, 0.04); head.z += rr(-0.04, 0.04); }
       let ty;
@@ -4452,6 +4488,7 @@ function updateLoot() {
 }
 function takeLoot(L) {
   L.alive = false;
+  livingPopulation?.pickup(L);
   const w = WEAPONS[L.id];
   if (!combat.arsenal.includes(L.id)) combat.arsenal.push(L.id);
   if (w.mag) combat.ammo[L.id] = w.mag;
@@ -4920,7 +4957,7 @@ function frame(now) {
   const play = G.state === 'play';
   if (play) updateAim(raw);
   if (play || G.state === 'dead' || G.state === 'victory') updatePlayer(dt);
-  if (play) {
+  if (play && !G.riftFrozen) {
     if (UW.inBathyscaphe && !UW.canFire()) { input.pressed=input.released=false; releaseAll(); }
     else updateCombat(dt);
     updatePickups(dt); updateLoot();
@@ -4942,6 +4979,14 @@ function frame(now) {
   UW.update(raw);
   ashWorld?.update(raw);
   livingIsland?.update(player.pos);
+  if(play&&!UW.isSubmerged()&&!UW.inBathyscaphe){
+    if(!livingPopulation)livingPopulation=createLivingPopulation({
+      THREE,scene,player,height:terrainTop,sea:SEA,seed:G.seed,
+      spawnEnemy:(type,x,y,z)=>spawnFoe(type,x,y,z,false),
+      getEnemies:()=>foes.filter(foeAlive),loot,weaponIds:ARSENAL_ORDER
+    });
+    livingPopulation.update(raw);
+  }
   // Preserve the accepted Island's original hostile NPCs on new land.
   // Never introduce procedural replacement characters or extra HUD.
   if(play&&!UW.isSubmerged()&&worldId==='island'&&
@@ -4957,7 +5002,7 @@ function frame(now) {
       }
     }
   }else G.offshoreEnemyTick=0;
-  if(play){riftStory?.update(raw);airRoutes?.update(raw)}
+  if(play){riftStory?.update(raw);if(!G.riftFrozen)airRoutes?.update(raw)}
   updateWisp(raw);
   updateLeaves(raw);
   sprites.begin(); ribbons.begin();
@@ -5006,7 +5051,9 @@ window.__isle = {
   scene, camera, THREE, renderer, canvas, atlasTex, heroTex, heroGeo, SEA, SFX,
   get rifts(){return riftStory}, worlds, terrainWindow:()=>terrainWindow, terrainTop, get terrainMeshes(){return chunks},
   get livingLand(){return {islandChunks:livingIsland?.chunks||0,ashChunks:ashWorld?.chunks||0,ashPopulation:ashWorld?.population||0,plan:(x,z)=>livingIsland?.density(x,z),biome:(x,z)=>landBiomeAt(x,z,G.seed)}},
+  get worldLife(){return {npcs:livingPopulation?.npcs||0,weapons:livingPopulation?.nearbyWeapons||0,sector:livingPopulation?.sector||null,plan:livingPopulation?.plan||null}},
   get inputPointers(){return {stickId:touch.stickId,camId:touch.camId,vx:touch.vx,vy:touch.vy}},
+  get cameraLock(){return {active:phoneCamera.locked,anchor:phoneCamera.anchor.toArray(),sectorChanges:phoneCamera.sectorChanges}},
   spawnFoe(type,x,z){return spawnFoe(type,x,terrainTop(x,z)+1.1,z,true)},
   pause:setPaused, toggleMute, toggleFullscreen,
   hurtBy:(amount,x,z)=>hurt(amount,x,z),
