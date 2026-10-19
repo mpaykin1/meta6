@@ -43,3 +43,16 @@ export function landWithin(x,z,seed=1337,radius=70,sea=3.8){
  }
  return false;
 }
+
+// Actual walkable beach corridor on the accepted island's EAST edge.
+// The island voxels are unchanged; the surface mesh and physics share this profile.
+export function coastalBeachHeight(x,z,seed,edgeHeight,baseHeight){
+ const lateral=1-smooth(10,19,Math.abs(z-32));
+ if(x<48||x>=104||lateral<=0)return baseHeight;
+ const peak=4,shallow=.42;
+ let profile;
+ if(x<=58)profile=edgeHeight+(peak-edgeHeight)*(x-48)/10;
+ else if(x<=76)profile=peak+(shallow-peak)*(x-58)/18;
+ else profile=shallow+(shoreSeabedHeight(104,z,seed,edgeHeight)-shallow)*(x-76)/28;
+ return baseHeight+(profile-baseHeight)*lateral;
+}
