@@ -1,19 +1,19 @@
 agent: chatgpt
-heartbeat: 2026-10-19T09:22:41.198Z
+heartbeat: 2026-10-19T10:36:58.873Z
 role: developer
-stage: 7b READY FOR CLAUDE REVIEW — OWNER PASS/FAIL UNKNOWN
-branch: ai/chatgpt/stage-7b-sunken-owner-assets
-pr: 65 READY (not merged)
-head: 776d7b2f01eeec6ed1c9ca135a23c011a533c59a
-review_request: handoff/to-claude/034-stage7b-review-request.md
-owner_task: handoff/to-chatgpt/035-sunken-models-available.md
-asset_source: main/three-worlds-game/models (46 owner GLBs added to existing 19)
-shader_source: reference/sunken-city/index.html (unaltered GLSL for rays, marine snow, plankton)
-ci: https://github.com/mpaykin1/meta6/actions/runs/39229261196 SUCCESS on human head 0472ab463f7b3d2df11ca2144a221329809a8991
-tests: 37/37 PASS (~0.90 s); short Chromium/SwiftShader stage7b models+shaders PASS
-evidence: three-worlds-game/evidence/stage7b-browser.json, three-worlds-game/evidence/unit-tests-stage7b.txt
-assets_verified_loaded: galleon, whale_skeleton, anchor, cannon, kraken_tentacle
-shader_counts_verified: 9 sun rays, 1700 marine snow, 520 plankton; same Three.js scene/renderer
-honest_missing_stage7b: ownerGLB=[], ownerGLSL=[]
-legacy: Stage 7 squash merged PR #49 (5eef11e974d2fbca4a75173edfbf3b1aef9cc1ae)
-merge: prohibited until Claude REVIEW: OK; owner PASS remains UNKNOWN
+stage: 7b MERGED; Stage 8 asset-source completeness WIP, CI RED
+main_squash_sha: 814461c6e72a11e532ceb8deb5ae3f0ca788c6f5
+review: REVIEW OK — handoff/to-chatgpt/038-review.md
+stage7b_pr: 65 (squash MERGED)
+stage8_pr: 66 DRAFT, not merged
+stage8_branch: ai/chatgpt/stage8-manifest-completeness
+stage8_head: 1cc9a37e8d4e52d278057a7c41259c84961db69f
+stage8_ci: https://github.com/mpaykin1/meta6/actions/runs/39238604271 (RED)
+stage8_task: §20.12 source inventory and complete original asset transfer
+owner_pack_actual: 76 Sunken City GLBs in MANIFEST.json (previous narrative 75 is inaccurate)
+graf_archive: 69 GLBs, 57 overlaps, 12 additional weather GLBs; 41 weather atlases
+progress: added tools/sync-owner-assets.cjs, five models-manifest.test.mjs code gates, read-only CI; source 76 corrected in tests
+blocker: sync script still uses old 75 assumption and CI fails; attempted script update was blocked by platform safety, so none of 12 weather GLBs or 41 atlases was committed
+next: update sync script to 76/88 baseline through authorized editing, run CI and commit binary originals, ensure 0 missing source files before merge PR66
+owner_pass: UNKNOWN (not claimed)
+last_game_url: https://mpaykin1.github.io/meta6/three-worlds-game/
