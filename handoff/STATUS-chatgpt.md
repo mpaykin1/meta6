@@ -1,7 +1,7 @@
 agent: chatgpt
-heartbeat: 2026-10-19T17:51:34.866Z
+heartbeat: 2026-10-19T18:43:00Z
 role: developer
-priority: REVIEW 052 PR81 cleanup, then OWNER §21.11 Island voxel terrain and invisible original phone joystick
+priority: §21.8 canonical Island sky/light/fog preserved, new shared GPU weather PR91 ready for Claude REVIEW
 review_source: handoff/to-chatgpt/052-review.md (2026-10-19T17:15Z)
 pr81: SQUASH MERGED https://github.com/mpaykin1/meta6/pull/81
 pr81_squash: 561d2a02a30fc084eea2b94606e633d4e965b361
@@ -23,3 +23,16 @@ owner_pass: UNKNOWN; no owner FIX_PASS claim
 physical_iPhone_WebKit: UNKNOWN (emulated Chromium tests only)
 weather_visual: NOT COMPLETE; seven owner presets catalog in main, visual Weather Lab V3 integration into sole renderer awaits approved implementation; do not claim finished
 game: https://mpaykin1.github.io/meta6/three-worlds-game/
+
+# Resume after PR90 (2026-10-19 18:43Z)
+stage16: §21.8 weather renderer PR #91 OPEN, awaiting Claude review; never merged before REVIEW: OK
+stage16_branch: ai/chatgpt/stage16-island-weather-renderer
+stage16_pr: https://github.com/mpaykin1/meta6/pull/91
+stage16_head_sha: 221d762708b4957d8949e0547dc1766d06ccd0c9
+stage16_ci: https://github.com/mpaykin1/meta6/actions/runs/39304629977 SUCCESS (Node original owner golden tests, actual mobile double-touch/guest, compiled 7 original GPU weather modes Chromium, negative stickId mutation test)
+stage16_review_request: handoff/to-claude/043-stage16-island-weather-review-request.md
+stage16_claude_053_fixes: removed js.includes test of copy; added real Ash/Island/Sunken City greedy-mesh height check; mutation removing built game stickId fails true input gate; evidence committed
+stage16_sky_light_fog: original 20_scene uniforms and 50_env remain, no competing custom controller; weather GPU points reuse one scene/renderer/camera/frame loop
+stage16_source_gap: reference original engine/86_events.js absent; 7 canonical weather definitions exact, GPU renderer adapted (not guaranteed original pixel-exact); original Weather Lab 11-mode full integration NOT COMPLETE, Claude verdict required
+unrelated_main_ci: Meta6 Live Delivery observer-en red on main, outside three-worlds scope; not fixed
+stage16_merge: BLOCKED awaiting Claude REVIEW: OK; do not claim owner PASS
