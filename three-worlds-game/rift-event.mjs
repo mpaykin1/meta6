@@ -5,7 +5,7 @@ export function frontOfHero(pos,look,distance=2.6){
  let dx=look.x||0,dz=look.z||0,l=Math.hypot(dx,dz);
  if(l<.001){dx=0;dz=-1;l=1}
  return {x:pos.x+dx/l*distance,z:pos.z+dz/l*distance,distance,
-  alignment:(dx*(look.x||0)+dz*(look.z||0))/(l*Math.max(l,.001))};
+  alignment:((dx/l*distance)*dx+(dz/l*distance)*dz)/(Math.max(.001,distance)*l)};
 }
 export function createRiftEvent(seed=1337,{initial=50,interval=58}={}){
  const state={phase:'idle',remaining:initial,elapsed:0,cycle:0,choice:null,history:[],spot:null};
