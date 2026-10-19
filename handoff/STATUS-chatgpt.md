@@ -1,22 +1,27 @@
 agent: chatgpt
-heartbeat: 2026-10-19T16:39:37.377Z
+heartbeat: 2026-10-19T16:51:01.073Z
 role: developer
-priority: OWNER 049 / Claude REVIEW 051, sequential PR82 then PR83 then PR84
-review_source: handoff/to-chatgpt/051-review.md (not to-claude/051-review.md; file in to-chatgpt)
-review_82: REVIEW OK only on green CI; previously Node goldens pass, smoke pass; head 188b95a0 gold CI failed ONLY real portal-frustum test (x=1.6)
-pr82: https://github.com/mpaykin1/meta6/pull/82
-pr82_current_head: 9765c2115838742ba1189ba0106bb2ba8ae4132f
-pr82_fix: event-specific 32-candidate real camera projection chooses visible portal 2.6m in front of hero; camera-rig.mjs completely unchanged
-pr82_ci: https://github.com/mpaykin1/meta6/actions/runs/39287058788 — QUEUED; NO GREEN CLAIM
-review_83_84: REVIEW CHANGES outdated simDir/ancestor history
-pr83: https://github.com/mpaykin1/meta6/pull/83; branch ai/chatgpt/stage13-island-environment-canon; merge commit ba60e1ef274b327a71f23851e447647def37766a
-pr83_fix: merge commit has old branch head and latest known PR82 head as parents; base tree from PR82, preserved only sky/fog module + golden + workflow + merged index.source; no rebase or force
-pr83_ci: https://github.com/mpaykin1/meta6/actions/runs/39286799842 — queued (ancestor 188b95a0); needs final main merge after #82 green
-pr84: https://github.com/mpaykin1/meta6/pull/84; branch ai/chatgpt/stage14-island-weather-catalog-canon; merge commit 6e0c6334b926d10bb723c5e4ea359a71a2ac5111
-pr84_fix: merge commit includes updated PR83 & PR82 source plus original seven weather presets; workflow added for independent weather+hero+sky golden
-pr84_ci: https://github.com/mpaykin1/meta6/actions/runs/39286899210 — queued
-merge_status: NO PR MERGED (required head-specific CI pending); no risky bypass, no force push
-owner_pass: UNKNOWN; physical iPhone UNKNOWN
-weather_visual: NOT COMPLETE; approved Weather Lab V3 integration decision still in handoff/to-claude/041-island-weather-renderer-gap.md
-next: when GitHub run #82 green and smoke green, squash merge PR82; sequentially merge actual new main to PR83 and #84 with merge commits and rerun CI; merge #83 and #84 only on green in order
+priority: OWNER 049 / docs/THREE_WORLDS_MERGE_RU.md §21.8 / Claude REVIEW 051
+review_source: handoff/to-chatgpt/051-review.md (actual location; handoff/to-claude/051-review.md not found)
+review_82: REVIEW OK conditional green; completed as green CI + squash
+review_83_84: REVIEW CHANGES resolved by non-force two-parent merge commits and source/evidence synchronisation; inherited hero simDir corrected
+stage12_hero: PR #82 MERGED, main squash 245effe6c18f1c7945dca9cbfc1d43e0ef32ad34
+hero_source: three-worlds-game/hero-controls.mjs — original Island engine__37_input.js and engine__40_hero.js input and land movement/animation
+hero_golden: CI https://github.com/mpaykin1/meta6/actions/runs/39287058788 — every golden, browser and standalone build step SUCCESS, head 9765c211; bot built standalone/evidence head 981c353
+hero_smoke: https://github.com/mpaykin1/meta6/actions/runs/39287068906 SUCCESS on source head 9765c211
+review_047_rift: event-specific visible 2.6m front-of-hero portal chosen from 32 actual camera projected candidates; owner Island camera module unchanged; passed browser assertions
+stage13_light: PR #83 MERGED, main squash c4b1dbba9323e9f83e846e6d8148a6874317387d
+light_source: three-worlds-game/island-environment.mjs — verbatim Island updateEnvironment and updatePost with shared palette, sky/fog and post controls
+light_golden: https://github.com/mpaykin1/meta6/actions/runs/39287994431 SUCCESS
+light_smoke: https://github.com/mpaykin1/meta6/actions/runs/39288008429 SUCCESS
+stage14_weather: PR #84 MERGED, main squash 8777c2f442fafb8cb5488716e85d2013a44033af
+weather_source: three-worlds-game/island-weather.mjs — exact seven original Island precipitation mode declarations, independent golden; ORIGINAL PARAMETERS ONLY, not visual renderer
+weather_golden: https://github.com/mpaykin1/meta6/actions/runs/39288511487 SUCCESS
+weather_smoke: https://github.com/mpaykin1/meta6/actions/runs/39288519023 SUCCESS; unrelated earlier temporary underwater desktop coverage flake at 84.93% in 39288180063 was not weakened
+weather_visual: NOT YET INTEGRATED; owner-approved Weather Lab Compact V3 must be ported into sole game render/loop without second canvas, owner guidance pending per handoff/to-claude/041-island-weather-renderer-gap.md and 051
+main_sha: 8777c2f442fafb8cb5488716e85d2013a44033af
+merge_order: #82 -> #83 -> #84; all squash into main, no force push
+owner_pass_game: UNKNOWN (not claimed)
+physical_iPhone_11: UNKNOWN
+next: owner §21.11 voxel terrain/phone canon after these PRs and authorized Weather Lab integration, no standalone second loop
 game_current_main: https://mpaykin1.github.io/meta6/three-worlds-game/
