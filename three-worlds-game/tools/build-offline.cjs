@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const dir=path.resolve(__dirname,'..');
 const esbuild=require(process.env.THREE_WORLDS_ESBUILD||'esbuild');
-const threeRoot=process.env.THREE_WORLDS_THREE||path.dirname(require.resolve('three/package.json'));
+const threeRoot=process.env.THREE_WORLDS_THREE||path.dirname(path.dirname(require.resolve('three')));
 (async()=>{
  const sourcePath=path.join(dir,'index.source.html');
  if(!fs.existsSync(sourcePath))throw Error('index.source.html is required; never bundle generated output recursively');
