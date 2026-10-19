@@ -2,7 +2,7 @@ import {usesSurfaceTerrain} from './world-core.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {immersionAt,swimVertical,bubbleEmissions,ambientBubbleAnchors,namedAssetInventory,nextBubbleSlot} from './stage7-simulation.mjs';
 import {seabedHeight} from './seabed.mjs';
-import {voxelSample,buildGreedyVoxelChunk} from './voxel-terrain.mjs';
+import {voxelSample,buildGreedyVoxelChunk,oceanEastChunkHasTerrain,EAST_OCEAN_CLIP_X} from './voxel-terrain.mjs';
 import {LANDMARKS,oceanPlacements,plannedOceanPopulation} from './ocean-placements.mjs';
 import {createSunkenAtmosphere} from './sunken-atmosphere.mjs';
 export {seabedHeight} from './seabed.mjs';
@@ -95,8 +95,8 @@ export function createUnderwaterWorld(o) {
  landmarks.forEach(([id,x,z,size])=>{const holder=new THREE.Group();holder.position.set(x,0,z);scene.add(holder);addModel(holder,id,size,0,0,0,hash(x,z,seed)*6.28);fixtures.push({holder,x,z,id})});
  function chunk(cx,cz){
   const group=new THREE.Group(),tickets=[];
-  if(cx*CHUNK>=64){
-    const mesh=buildGreedyVoxelChunk(cx,cz,floor,{size:CHUNK,sea:SEA,
+  if(oceanEastChunkHasTerrain(cx,CHUNK,EAST_OCEAN_CLIP_X)){
+    const mesh=buildGreedyVoxelChunk(cx,cz,floor,{size:CHUNK,sea:SEA,clipX:EAST_OCEAN_CLIP_X,
       topTile:y=>y>SEA?0:y>-5?4:2,
       sideTile:y=>y>SEA?8:y>-5?4:11});
     const geo=new THREE.BufferGeometry();
