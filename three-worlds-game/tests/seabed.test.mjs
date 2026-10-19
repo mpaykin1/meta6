@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {seabedHeight,shoreSeabedHeight,landWithin} from '../seabed.mjs';
+import {seabedHeight,shoreSeabedHeight,landWithin,coastalBeachHeight} from '../seabed.mjs';
+import {immersionAt} from '../stage7-simulation.mjs';
 test('D: ocean bed is seeded and has >3m relief within 40m view',()=>{
  for(const seed of [1,1337,90210]){
   const values=[];
@@ -28,4 +29,26 @@ test('G: emergent island has a walkable surface and underwater approach',()=>{
 
 test('G: distant seeded ocean cells have reachable emergent land',()=>{
  for(const seed of [1,1337,90210])for(const [x,z] of [[500,500],[-400,300],[1200,-900],[145,32]])assert(landWithin(x,z,seed,160),'no reachable land near '+x+','+z);
+});
+
+test('A: actual shared east-coast profile enters water gradually x58..76 in 0.5m steps',()=>{
+ for(const seed of [1,1337,90210]){
+  const edge=1; // Accepted voxel beach rim is one block; browser gate also samples actual generated world.hgt.
+  let previous=null,values=[];
+  for(let x=58;x<=76;x+=.5){
+   const original=x<64?edge:shoreSeabedHeight(x,32,seed,edge);
+   const y=coastalBeachHeight(x,32,seed,edge,original);
+   const d=immersionAt(3.8,y+1.7,y);
+   assert(d>=0&&d<=1);
+   if(previous){
+    assert(d+1e-9>=previous.d,'depth reversed at x='+x+' seed='+seed);
+    assert(Math.abs(d-previous.d)<.15,'depth jump at x='+x);
+    assert(Math.abs(y-previous.y)/.5<=Math.tan(Math.PI/9)+.002,'shore steeper than 20 degrees at x='+x);
+   }
+   values.push(d);previous={y,d};
+  }
+  assert.equal(values[0],0);assert.equal(values.at(-1),1);
+  assert(values.some(v=>v>.1&&v<.4),'no knee transition');
+  assert(values.some(v=>v>.55&&v<.9),'no waist transition');
+ }
 });
