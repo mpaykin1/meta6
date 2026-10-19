@@ -490,6 +490,7 @@ import {landBiomeAt} from './living-land.mjs';
 import {createLivingIsland} from './living-island-runtime.mjs';
 import {createLivingPopulation,LAND_ARMORY_IDS} from './living-population.mjs';
 import {createCameraRig} from './camera-rig.mjs';
+import {createIslandInput,createIslandHero,createIslandGroundGrip} from './hero-controls.mjs';
 import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
@@ -2115,22 +2116,9 @@ const pad = { mx: 0, my: 0, cx: 0, cy: 0, a: false, start: false, lb: false, rb:
 const touch = { stickId: null, sx: 0, sy: 0, vx: 0, vy: 0, camId: null, cx: 0, cy: 0, ct: 0 };
 const drag = { active: false, id: null, x: 0, y: 0, t: 0, vy: 0, vp: 0 };
 // attack is one held button fed by four sources; pressed / released are edges the combat update consumes
-const input = { atk: false, pressed: false, released: false, src: { mouse: false, key: false, touch: false, pad: false } };
-function setAttack(src, on) {
-  if (input.src[src] === on) return;
-  input.src[src] = on;
-  const any = input.src.mouse || input.src.key || input.src.touch || input.src.pad;
-  if (any && !input.atk) input.pressed = true;
-  if (!any && input.atk) input.released = true;
-  input.atk = any;
-}
-function releaseAll() {
-  for (const k in input.src) input.src[k] = false;
-  if (input.atk) input.released = true;
-  input.atk = false;
-}
-function onJumpPress() { if (G.state === 'play') { player.jumpBuf = 0.13; player.jumpHeld = true; } }
-function onJumpRelease() { player.jumpHeld = false; }
+const {input,setAttack,releaseAll,onJumpPress,onJumpRelease,orbitBy}=createIslandInput({
+ getG:()=>G,getPlayer:()=>player,getRig:()=>rig,getDrag:()=>drag,clamp,lerp
+});
 const SLOT_KEYS = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0'];
 const isAtkKey = (c) => c === 'KeyJ' || c === 'KeyK';
 addEventListener('keydown', (e) => {
@@ -2163,14 +2151,6 @@ addEventListener('keyup', (e) => {
 });
 addEventListener('blur', () => { keys.clear(); onJumpRelease(); releaseAll(); mouseMask = 0; drag.active = false;leftPointer=null;clearTimeout(leftTimer); });
 
-function orbitBy(dx, dy, sens, now) {
-  const yv = -dx * sens, pv = dy * sens * 0.7;
-  rig.yawT += yv;
-  rig.pitchT = clamp(rig.pitchT + pv, 0.3, 1.15);
-  const dt = Math.max(0.008, (now - drag.t) / 1000);
-  drag.vy = lerp(drag.vy, yv / dt, 0.5); drag.vp = lerp(drag.vp, pv / dt, 0.5);
-  drag.t = now;
-}
 // mouse: left button attacks, right / middle drag orbits the camera, the cursor aims (twin-stick style)
 let mouseMask = 0, leftPointer=null, leftTimer=null;
 function mouseButtons(e) {
@@ -2384,7 +2364,7 @@ function respawnAtSafe() {
   player.pos.copy(player.safe); player.vel.set(0, 0, 0); player.step = 0; player.invuln = 0;
   hurt(1);
 }
-function updatePlayer(dt) {
+function updatePlayerSpecial(dt) {
   const p = player.pos, v = player.vel;
   player.invuln = Math.max(0, player.invuln - dt);
   if (player.respawn > 0) {
@@ -2461,29 +2441,26 @@ function updatePlayer(dt) {
   if (combat.recoil > 0) leanT += Math.cos(aim.screen) * 0.06 * combat.recoil;
   player.lean += (leanT - player.lean) * damp(combat.atk ? 14 : 8, dt);
 }
-function updateHeroMesh(dt) {
-  player.sqV += (-player.sq * 170 - player.sqV * 13) * dt;
-  player.sq = clamp(player.sq + player.sqV * dt, -0.35, 0.35);
-  player.step *= Math.exp(-14 * dt);
-  player.vis.set(player.pos.x, player.pos.y + player.step, player.pos.z);
-  setHeroFrame(player.frame, player.facing);
-  hero.position.copy(player.vis);
-  hero.rotation.y = Math.atan2(camera.position.x - hero.position.x, camera.position.z - hero.position.z);
-  hero.rotation.x = -rig.pitchEff * 0.45;
-  hero.rotation.z = player.lean;
-  const breathe = player.frame === 4 ? Math.sin(G.time * 2.2) * 0.018 : 0;
-  hero.scale.set(1 - player.sq * 0.5, 1 + player.sq + breathe, 1);
-  const blinkOff = player.invuln > 0 && Math.floor(G.time * 18) % 2 === 0;
-  hero.visible = player.respawn <= 0 && !blinkOff && G.state !== 'loading';
-  heroMat.emissiveIntensity = 0.1 + G.tod * 0.16 + G.hurt * 0.9;
-  const gy = groundBelow(player.pos.x, player.pos.y + 0.2, player.pos.z);
-  const above = player.pos.y - gy;
-  heroShadow.visible = hero.visible;
-  heroShadow.position.set(player.vis.x, gy + 0.02, player.vis.z);
-  const sc = clamp(1 - above * 0.16, 0.45, 1) * 0.95;
-  heroShadow.scale.set(sc, 1, sc * 0.8);
-  shadowU.uA.value = 0.5 * clamp(1 - above * 0.2, 0.25, 1);
+let islandHeroControls=null;
+function getIslandHeroControls(){
+ if(!islandHeroControls)islandHeroControls=createIslandHero({
+  G,player,rig,keys,touch,pad,combat,curWeapon,PL,
+  STATS:{speed:1,jump:1,swim:1},
+  groundGrip:createIslandGroundGrip({player,blockAt,BLK:{}}),
+  damp,lerp,clamp,physicsStep,respawnAtSafe,SFX,ripple,onLand,footstep,
+  engaged,screenAngleOf,aim,drown,SEA,getSimDir:()=>simDir,
+  hero,setHeroFrame,camera,heroMat,groundBelow,heroShadow,shadowU
+ });
+ return islandHeroControls;
 }
+function updatePlayer(dt){
+ // Original Island canon for all dry biomes; only §20 underwater/ship and
+ // the §21.5 frozen-dialogue state require the existing specialized adapter.
+ if(G.riftFrozen||UW.inBathyscaphe||UW.isSubmerged(player.pos)||player.pos.y<SEA-1.25)
+  return updatePlayerSpecial(dt);
+ return getIslandHeroControls().updatePlayer(dt);
+}
+function updateHeroMesh(dt){return getIslandHeroControls().updateHeroMesh(dt)}
 function hurt(n, fx, fz) {
   if (player.invuln > 0 || G.state !== 'play') return false;
   player.hp = Math.max(0, player.hp - n); G.hits++;
