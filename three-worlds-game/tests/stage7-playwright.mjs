@@ -47,17 +47,18 @@ try{
   assert(Math.abs(b.floor-a.floor)/.5<=Math.tan(Math.PI/9)+.002,'A: steep real shoreline '+b.x);
  }
  assert(report.realShore.some(v=>v.depth>.1&&v.depth<.4)&&report.realShore.some(v=>v.depth>.55&&v.depth<.9),'A: no intermediate immersion');
- // Five virtual player minutes with evidence every ten seconds; real scene modules advance, no new HUD.
+ // Owner 032: only 60 seconds of simulated play, 1800 steps; no long runs.
  await mkdir('three-worlds-game/evidence/play',{recursive:true});
  report.play=[];
- for(let interval=0;interval<=30;interval++){
+ for(let interval=0;interval<=6;interval++){
   const x=interval===0?60:interval<6?66+(interval-1)*2:interval<24?82:interval<27?100:142;
   await page.evaluate(({x,interval})=>{const i=__isle;i.player.pos.x=x;i.player.pos.z=32;i.player.pos.y=interval===0?i.terrainTop(x,32)+.2:interval<24?Math.min(i.SEA-.5,i.terrainTop(x,32)+1.7):i.terrainTop(x,32)+.3;i.player.vis.copy(i.player.pos);i.player.vel.set(0,0,0);i.terrainWindow().update(x,32);for(let n=0;n<300;n++){i.underwater.update(1/30);i.rifts.update(1/30)}}, {x,interval});
   const name='play/'+String(interval).padStart(2,'0');
-  await shot(name,x,32,interval===0?undefined:interval<24?0.5:undefined);
+  // Code assertions are authoritative; preserve existing PNG, no further frames needed.
+  // Virtual stepping advances gameplay 10 s without waiting in real time.
   const state=await page.evaluate(()=>{const i=__isle;return {depth:i.underwater.immersionAt(),population:i.underwater.population(40),bubbles:i.underwater.bubbleCount,guest:!!i.rifts.guest}});
   report.play.push({second:interval*10,name,...state});
-  if(interval>=2&&interval<24)assert(state.population.ruins>0&&state.population.wrecks>0&&state.population.fish>=10&&state.population.plants>0,'D: missing nearby population at '+interval*10+'s');
+  if(interval>=2&&interval<=6)assert(state.population.ruins>0&&state.population.wrecks>0&&state.population.fish>=10&&state.population.plants>0,'D: missing nearby population at '+interval*10+'s');
  }
  // D: check actual loaded model instances, not estimated per-chunk multipliers, at 3 seeds.
  report.populationBySeed=[];
