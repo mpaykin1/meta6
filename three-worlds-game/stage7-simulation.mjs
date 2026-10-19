@@ -4,12 +4,12 @@ export function immersionAt(surfaceY,heroY,floorY){
  return bounded((surfaceY+1.25-heroY)/2.7,0,1)*bounded((surfaceY-floorY)/.8,0,1);
 }
 export function swimVertical(player,dt,floorY,seaY){
- const pos=player.pos,vel=player.vel,goal=player.jumpHeld?2:-.72;
+ const pos=player.pos,vel=player.vel,
+  goal=player.jumpHeld?2*bounded((seaY+.55-pos.y)/.8,0,1):-.72;
  vel.y+=(goal-vel.y)*bounded(dt*3.6,0,1);
  pos.y=bounded(pos.y+vel.y*dt,floorY+.08,Math.max(floorY+.08,seaY+.55));
  player.onGround=pos.y<=floorY+.09;
  if(player.onGround)vel.y=Math.max(0,vel.y);
- if(pos.y>=seaY+.5)vel.y=Math.min(0,vel.y);
  return pos.y;
 }
 export function bubbleEmissions(state,dt,immersion,verticalVelocity,capacity=96){
