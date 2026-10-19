@@ -13,5 +13,9 @@ export function seabedHeight(x,z,seed=1337){
   const cx=128+ix*220+(hash(ix,iz,seed)-.5)*60,cz=128+iz*220+(hash(ix,iz,seed+1)-.5)*60;
   y+=smooth(1.5,.05,Math.hypot((x-cx)/25,(z-cz)/25))*12*deep;
  }
+ // A reachable emergent island across the water, not scenery. Gradient .26 = 14.6 degrees.
+ const islandDistance=Math.hypot(x-145,z-32);
+ const islandShelf=Math.max(0,62-islandDistance)*.26;
+ y+=islandShelf;
  return Math.max(-12,y);
 }
