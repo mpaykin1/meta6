@@ -282,7 +282,7 @@ kbd { font-family: var(--font-ui); font-size: 13px; color: var(--paper); padding
 }
 
 /* OBSERVER V5 EDITOR: exact original island Three.js, deliberately no second canvas. */
-html,body{position:fixed!important;inset:0!important;width:100%;height:100%;height:100dvh!important;overflow:hidden!important;overscroll-behavior:none}
+html,body{position:fixed!important;inset:0!important;width:100%;height:100%;height:100svh!important;overflow:hidden!important;overscroll-behavior:none;touch-action:none;-webkit-overflow-scrolling:auto}
 body{touch-action:none}#c{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #hud,.hud,.tools,.touch,#scrTitle,#scrPause,#scrEnd{display:none!important}
 #v5Menu{position:fixed;right:max(11px,env(safe-area-inset-right));top:max(9px,env(safe-area-inset-top));z-index:30;
@@ -1833,7 +1833,7 @@ const C = {
   spray: new THREE.Color(0.82, 0.93, 1.0), sand: new THREE.Color('#d9bf86'), dirt: new THREE.Color('#7a5236'),
   heart: new THREE.Color(1, 0.3, 0.35).multiplyScalar(2.6), violet: new THREE.Color(0.75, 0.25, 1).multiplyScalar(2.6),
 };
-const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.Vector3(), tmpD = new THREE.Vector3(), tmpE = new THREE.Vector3();
+const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.Vector3(), tmpD = new THREE.Vector3(), tmpE = new THREE.Vector3(),tmpF=new THREE.Vector3();
 
 /* -----------------------------------------------------------------------------
    11 · Voxel queries
@@ -2143,6 +2143,7 @@ addEventListener('keydown', (e) => {
   else if (c === 'KeyF') toggleFullscreen();
   if (G.state === 'title' && (c === 'Enter' || c === 'Space' || c === 'NumpadEnter')) { startGame(); return; }
   if (G.state === 'play') {
+    if (G.riftFrozen) return;
     if (c === 'Space') onJumpPress();
     else if (c === 'Escape' || c === 'KeyP') setPaused(true);
     else if (c === 'KeyB') UW.toggleBathyscaphe();
@@ -2243,6 +2244,14 @@ function endPointer(e) {
 }
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('lostpointercapture', endPointer);
+function releaseTouchPointers(){
+  touch.stickId=null;touch.camId=null;touch.vx=touch.vy=0;
+  $('stick').classList.remove('on');rig.spin=rig.pspin=0;
+}
+addEventListener('blur',releaseTouchPointers);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseTouchPointers()});
+document.addEventListener('touchcancel',releaseTouchPointers,{passive:true});
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
   rig.distT = clamp(rig.distT * (1 + Math.sign(e.deltaY) * 0.09), 5.5, 20);
@@ -2699,7 +2708,7 @@ function updateCamera(dt) {
         const q=cameraSectorDelta(projected.x,projected.y,rig.yaw,rig.eff,camera.aspect,camera.fov,dt);
         if(q.transition){phoneCamera.anchor.x+=q.dx;phoneCamera.anchor.z+=q.dz;phoneCamera.sectorChanges++;}
       }
-      if(UW.isSubmerged())phoneCamera.anchor.y=player.vis.y+.95;
+      if(UW.isSubmerged())phoneCamera.anchor.y=Math.min(phoneCamera.anchor.y,SEA-1.6);
       tmpA.copy(phoneCamera.anchor);
     }else tmpA.set(player.vis.x+v.x*.22,player.vis.y+.95,player.vis.z+v.z*.22);
     if (G.bossCam > 0 && G.warden) { G.bossCam -= dt; tmpA.lerp(G.warden.segs[0], 0.42 * smooth(0, 0.6, G.bossCam)); }
@@ -2732,7 +2741,7 @@ function updateCamera(dt) {
   // Cross the water line with the hero; otherwise the transparent surface still obscures the seabed.
   if (UW.isSubmerged()) {
     const tDive = smooth(SEA - 0.08, SEA - 1.45, player.pos.y);
-    const underwaterCamera = Math.min(SEA - 0.65, player.vis.y + 1.5);
+    const underwaterCamera = Math.min(SEA-0.65,phoneLocked?phoneCamera.anchor.y+1.5:player.vis.y+1.5);
     camera.position.y = lerp(camera.position.y, underwaterCamera, tDive);
   }
   camera.lookAt(rig.look);
@@ -2836,7 +2845,7 @@ function buildWorld(seed) {
   riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
-    canStart:()=>G.state==='play'&&!UW.isSubmerged()&&!UW.inBathyscaphe&&foes.filter(foeAlive).every(f=>Math.hypot(f.segs[0].x-player.pos.x,f.segs[0].z-player.pos.z)>9),
+    canStart:()=>G.state==='play'&&!UW.isSubmerged()&&!UW.inBathyscaphe&&!combat.atk,
     onFreeze:(lock)=>{G.riftFrozen=lock;if(lock){touch.vx=touch.vy=0;pad.mx=pad.my=0;releaseAll()}},
     onEventFX:(phase)=>{G.riftFX=['warning','opening','emerging'].includes(phase)?1:0;
       if(phase==='warning'){SFX.init();SFX.tone(82,.9,'sawtooth',.13,42);SFX.tone(110,1.6,'triangle',.08,63,.11);SFX.tone(55,2.2,'sine',.09,44,.1)}},
