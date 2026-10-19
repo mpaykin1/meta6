@@ -93,7 +93,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   if(phase!==previousPhase){
    previousPhase=phase;
    onEventFX(phase);
-   if(phase==='warning'){onFreeze(true);toast(RIFT_WORDS,2400,true);}
+   if(phase==='warning'){if(guest)finishGuest(guest);onFreeze(true);toast(RIFT_WORDS,2400,true);}
    if(phase==='opening'){
     const p=event.state.spot;
     guestRift.position.set(p.x,height(p.x,p.z)+2.3,p.z);
