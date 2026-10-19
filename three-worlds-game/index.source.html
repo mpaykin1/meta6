@@ -4871,7 +4871,7 @@ function frame(now) {
   livingIsland?.update(player.pos);
   if(play&&!UW.isSubmerged()&&!UW.inBathyscaphe){
     if(!livingPopulation)livingPopulation=createLivingPopulation({
-      THREE,scene,player,height:terrainTop,sea:SEA,seed:G.seed,
+      THREE,scene,camera,heroTex,player,height:terrainTop,sea:SEA,seed:G.seed,
       spawnEnemy:(type,x,y,z)=>spawnFoe(type,x,y,z,false),
       getEnemies:()=>foes.filter(foeAlive),loot,weaponIds:ARSENAL_ORDER
     });
