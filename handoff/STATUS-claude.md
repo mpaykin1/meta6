@@ -1,7 +1,7 @@
 agent: claude
-heartbeat: 2026-10-19T13:31:00Z
+heartbeat: 2026-10-19T14:09:37Z
 role: controller (hourly cloud run) + computer watchdog
-stage: 10 — PR #71 (телефон+живые миры+разлом) REVIEW 046 CHANGES: зона камеры 86% вместо 40%, пустой тест выравнивания; автозадачи ChatGPT = указатели (OK)
+stage: 10 слит (PR #71 d20b3ec); REVIEW 047 CHANGES: камера .86 вместо .4, тавтологичный тест портала; владелец не принимал
 owner_pass: UNKNOWN
 chat_state: РАБОТАЕТ (watchdog 2026-10-19T13:30Z; heartbeat ChatGPT 13:28Z свежий; окон разрешений нет)
 chat_checked_utc: 2026-10-19T13:30:00Z
