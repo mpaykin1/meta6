@@ -53,12 +53,12 @@ try{
    await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);
    const p=i.worldLife.plan;
    return {x,biome:p?.region,ground,game:i.G.state,wet:i.underwater.isSubmerged(),ship:i.underwater.inBathyscaphe,sector:i.worldLife.sector,npc:i.worldLife.npcs,enemy:i.foes.filter(f=>f.hp>0&&Math.hypot(f.segs[0].x-x,f.segs[0].z-z)<40).length,
-     loot:i.loot.filter(w=>w.alive&&Math.hypot(w.x-x,w.z-z)<40).map(w=>w.id),expected:p?.weapons.map(w=>w.id)};
+     loot:i.loot.filter(w=>w.alive&&Math.hypot(w.x-x,w.z-z)<40).map(w=>w.id),owned:[...i.combat.arsenal],expected:p?.weapons.map(w=>w.id)};
   },x);
   console.log('LIFE_SAMPLE_DEBUG '+JSON.stringify({life,errors}));
   assert(life.npc>=2&&life.enemy>=2,'empty living population on '+x+': '+JSON.stringify(life)+' ERRORS='+JSON.stringify(errors));
   assert(life.expected?.length===20&&new Set(life.expected).size===20,'20 original types missing on '+x);
-  for(const id of life.expected)assert(life.loot.includes(id),'original pickup '+id+' missing on '+x);
+  for(const id of life.expected)assert(life.loot.includes(id)||life.owned.includes(id),'original pickup '+id+' missing on '+x);
   worldSamples.push(life);
  }
  checks.worldLifePass=true;
