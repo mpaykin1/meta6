@@ -19,3 +19,10 @@ export function seabedHeight(x,z,seed=1337){
  y+=islandShelf;
  return Math.max(-12,y);
 }
+
+export function shoreSeabedHeight(x,z,seed,edgeHeight){
+ const deep=seabedHeight(x,z,seed);
+ if(x<64||x>=112)return deep;
+ const t=clamp((x-64)/48,0,1);
+ return edgeHeight*(1-t)+deep*t;
+}
