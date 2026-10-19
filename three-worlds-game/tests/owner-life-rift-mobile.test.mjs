@@ -51,7 +51,7 @@ test('owner §21.3: joystick inside sector cannot move camera',()=>{
   const p=cameraSectorDelta(x,y,.7,11,.5,60,1/60);
   assert.equal(p.dx,0);assert.equal(p.dz,0);assert.equal(p.transition,false);
  }
- const edge=cameraSectorDelta(.85,0,.7,11,.5,60,1/60);
+ const edge=cameraSectorDelta(.96,0,.7,11,.5,60,1/60);
  assert(edge.transition&&Math.hypot(edge.dx,edge.dz)>0);
- assert.equal(DEAD_NDC,.4);
+ assert.equal(DEAD_NDC,.86);
 });
