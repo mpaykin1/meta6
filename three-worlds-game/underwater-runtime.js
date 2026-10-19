@@ -24,9 +24,9 @@ export function createUnderwaterWorld(o) {
  let seed=o.getSeed?.()??o.seed;
  const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[],mixers=new Set();
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
- const floor=(x,z)=>usesSurfaceTerrain(x,z) ? (o.surfaceHeight ? o.surfaceHeight(x,z) : o.terrainTop(x,z)) : seabedHeight(x,z,seed);
+ const floor=(x,z)=>o.surfaceHeight?o.surfaceHeight(x,z):(usesSurfaceTerrain(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed));
  let bathy=false,repair=new Set(),lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
- let immersion=0,bubbleBudget=0,bubbleActive=0,bubbleCursor=0;
+ let immersion=0,bubbleActive=0,bubbleCursor=0;const bubbleState={budget:0};
  const DEEP=new THREE.Color('#0c4258'),bubbleCapacity=96;
  const bubblePos=new Float32Array(bubbleCapacity*3),bubbleLife=new Float32Array(bubbleCapacity),bubbleVy=new Float32Array(bubbleCapacity);
  bubblePos.fill(-10000);
@@ -95,13 +95,13 @@ export function createUnderwaterWorld(o) {
   const corners=[[0,0],[1,0],[1,1],[0,1]];
   for(let z=cz*CHUNK;z<(cz+1)*CHUNK;z++)for(let x=cx*CHUNK;x<(cx+1)*CHUNK;x++){
    if(usesSurfaceTerrain(x,z))continue;
-   const h=seabedHeight(x+.5,z+.5,seed),n=fbm(x*.18,z*.18,seed+29);
+   const h=floor(x+.5,z+.5),n=fbm(x*.18,z*.18,seed+29);
    const k=h>4?0:h>-1?4:h>-5?(n>.67?2:4):(n>.4?11:2);
    const u0=(k%4)*.25+.002,u1=u0+.246,v0=1-(Math.floor(k/4)+1)/3+.002,v1=v0+.328;
    const coords=[[u0,v1],[u1,v1],[u1,v0],[u0,v0]],b=pos.length/3,light=clamp(.62+(h+10)*.016+n*.32,.48,.98);
    for(let i=0;i<4;i++){
     const px=x+corners[i][0],pz=z+corners[i][1];
-    pos.push(px,seabedHeight(px,pz,seed),pz);uv.push(...coords[i]);col.push(light*.85,light*.99,light);
+    pos.push(px,floor(px,pz),pz);uv.push(...coords[i]);col.push(light*.85,light*.99,light);
    }
    faces.push(b,b+2,b+1,b,b+3,b+2);
   }
@@ -209,7 +209,7 @@ export function createUnderwaterWorld(o) {
   const newSeed=o.getSeed?.()??seed;
   if(newSeed!==seed){seed=newSeed;lastChunk='';for(const [key,g] of chunks){g.userData.tickets.forEach(x=>{x.live=false;if(x.mixer)mixers.delete(x.mixer)});g.children.forEach(x=>x.geometry?.dispose());scene.remove(g)}chunks.clear();creatures.length=0;}
   time+=dt;const wet=isSubmerged();immersion+=(immersionAtPlayer()-immersion)*clamp(dt*3.5,0,1);
-  const bubbles={budget:bubbleBudget};const newBubbles=bubbleEmissions(bubbles,dt,immersion,player.vel.y,bubbleCapacity);bubbleBudget=bubbles.budget;
+  const newBubbles=bubbleEmissions(bubbleState,dt,immersion,player.vel.y,bubbleCapacity);
   for(let i=0,n=newBubbles;i<n;i++){const jitter=hash(i,Math.floor(time*80),seed);emitBubble(player.pos.x+(jitter-.5)*.85,player.pos.y-.3,player.pos.z+(hash(i,Math.floor(time*90),seed)-.5)*.85);}
   bubbleActive=updateBubbles(dt);
   for(const f of fixtures)f.holder.position.y=floor(f.x,f.z)+.4;
