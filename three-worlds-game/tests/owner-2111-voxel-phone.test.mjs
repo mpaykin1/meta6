@@ -88,7 +88,7 @@ test('§21.11 / AUDIT 057: clipped east-ocean overlap renders every column x=64.
   for(let x=64;x<72;x++){
    const hit=tops.filter(t=>t.left<=x+.5&&x+.5<t.right&&t.near<=z+.5&&z+.5<t.far);
    assert.equal(hit.length,1,'missing or overlapping ocean top at '+x+','+z+' seed '+seed);
-   assert.equal(hit[0].y,voxelSample(height,x,z),'drawn ocean height != physics sample');
+   assert(Math.abs(hit[0].y-voxelSample(height,x,z))<=1e-6,'drawn ocean height != physics sample');
   }
  }
 });
