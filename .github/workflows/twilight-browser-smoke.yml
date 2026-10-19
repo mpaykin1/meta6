@@ -9,6 +9,7 @@ on:
     branches:
       - ai/chatgpt/twilight-underwater-20261016
       - ai/chatgpt/stage-7-playtest
+      - ai/chatgpt/stage-7b-sunken-owner-assets
     paths:
       - 'three-worlds-game/**'
       - 'underwater-world/**'
@@ -17,7 +18,7 @@ permissions:
   contents: read
 jobs:
   smoke:
-    if: github.ref != 'refs/heads/ai/chatgpt/stage-7-playtest' && github.head_ref != 'ai/chatgpt/stage-7-playtest'
+    if: github.ref != 'refs/heads/ai/chatgpt/stage-7-playtest' && github.head_ref != 'ai/chatgpt/stage-7-playtest' && github.ref != 'refs/heads/ai/chatgpt/stage-7b-sunken-owner-assets' && github.head_ref != 'ai/chatgpt/stage-7b-sunken-owner-assets'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -119,3 +120,62 @@ jobs:
       - name: Fail if unit or browser gates are red
         if: steps.unit.outcome != 'success' || steps.browser.outcome != 'success'
         run: exit 1
+
+  three-worlds-stage7b:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/ai/chatgpt/stage-7b-sunken-owner-assets'
+    concurrency:
+      group: three-worlds-stage7b-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage-7b-sunken-owner-assets
+          persist-credentials: true
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned offline dependencies
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Assemble single-file offline game with full owner GLB pack
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Fast real Node test suite
+        run: |
+          set -euo pipefail
+          mkdir -p three-worlds-game/evidence
+          node --test three-worlds-game/tests/*.test.mjs | tee three-worlds-game/evidence/unit-tests-stage7b.txt
+      - name: Install free headless Chromium
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Live 7b models and shader gate — no long run
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node three-worlds-game/tests/stage7b-browser.mjs
+      - name: Commit actual rebuilt game and evidence to feature branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html three-worlds-game/evidence/stage7b-browser.json three-worlds-game/evidence/unit-tests-stage7b.txt
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'build(stage7b): standalone owner GLB pack and live browser assertions'
+          git fetch origin ai/chatgpt/stage-7b-sunken-owner-assets
+          git rebase origin/ai/chatgpt/stage-7b-sunken-owner-assets
+          git push origin HEAD:ai/chatgpt/stage-7b-sunken-owner-assets
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: three-worlds-stage7b-code-evidence
+          path: |
+            three-worlds-game/index.html
+            three-worlds-game/evidence/stage7b-browser.json
+            three-worlds-game/evidence/unit-tests-stage7b.txt
+          retention-days: 7
