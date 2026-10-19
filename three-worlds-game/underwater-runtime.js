@@ -27,7 +27,11 @@ export function createUnderwaterWorld(o) {
  const floor=(x,z)=>o.surfaceHeight?o.surfaceHeight(x,z):(usesSurfaceTerrain(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed));
  let bathy=false,repair=new Set(),lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
  let immersion=0,bubbleActive=0,bubbleCursor=0;const bubbleState={budget:0};
- const DEEP=new THREE.Color('#0c4258'),bubbleCapacity=96;
+ const DEEP=new THREE.Color('#124c66'),bubbleCapacity=96;
+ // Water-only volumetric fill: keep the approved dusk surface lighting untouched.
+ const waterFill=new THREE.HemisphereLight(0x81ceea,0x10354a,0);
+ const waterScatter=new THREE.PointLight(0x4fcaff,0,32,2);
+ scene.add(waterFill,waterScatter);
  const bubblePos=new Float32Array(bubbleCapacity*3),bubbleLife=new Float32Array(bubbleCapacity),bubbleVy=new Float32Array(bubbleCapacity);
  bubblePos.fill(-10000);
  const bubbleGeometry=new THREE.BufferGeometry();
@@ -212,6 +216,9 @@ export function createUnderwaterWorld(o) {
   const newBubbles=bubbleEmissions(bubbleState,dt,immersion,player.vel.y,bubbleCapacity);
   for(let i=0,n=newBubbles;i<n;i++){const jitter=hash(i,Math.floor(time*80),seed);emitBubble(player.pos.x+(jitter-.5)*.85,player.pos.y-.3,player.pos.z+(hash(i,Math.floor(time*90),seed)-.5)*.85);}
   bubbleActive=updateBubbles(dt);
+  waterFill.intensity=1.25*immersion;
+  waterScatter.intensity=1.8*immersion;
+  waterScatter.position.set(player.pos.x,player.pos.y+5,player.pos.z+3);
   for(const f of fixtures)f.holder.position.y=floor(f.x,f.z)+.4;
   if(wet)for(const [id,x,z]of [['bell',75,34],['ruins',89,27],['wreck',101,31]])if(!repair.has(id)&&within(player.pos,x,z,4)){repair.add(id);toast('Деталь батискафа '+repair.size+'/3',2200)}
   if(wet||player.pos.x<3||player.pos.z<3||player.pos.x>60||player.pos.z>60)ensure();
