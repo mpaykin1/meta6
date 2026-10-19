@@ -2,6 +2,7 @@ import {usesSurfaceTerrain} from './world-core.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {immersionAt,swimVertical,bubbleEmissions,ambientBubbleAnchors,namedAssetInventory} from './stage7-simulation.mjs';
 import {seabedHeight} from './seabed.mjs';
+import {LANDMARKS,oceanPlacements,plannedOceanPopulation} from './ocean-placements.mjs';
 export {seabedHeight} from './seabed.mjs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const CHUNK=24;
@@ -84,14 +85,7 @@ export function createUnderwaterWorld(o) {
  }
  addModel(sub,'bathyscaphe',1.65);addModel(ghost,'diving_helmet',.55);
  // Fixed narrative landmarks: these are the real generated animated GLB models.
- const landmarks=[
-  ['cathedral_bell',75,34,1.7],['cathedral_tower',77,38,3.1],
-  ['treasure_chest',81,34,1],['treasure_chest',89,27,1],['treasure_chest',96,42,1],
-  ['street_lamp',80,37,1.5],['street_lamp',87,37,1.5],['street_lamp',94,37,1.5],
-  ['coral_branch_violet',80,42,1.5],['coral_branch_orange',93,46,1.5],
-  ['submarine_wreck',101,31,2],['arch',73,43,2.6],
-  ['angler',78,44,1.2]
- ];
+ const landmarks=LANDMARKS;
  const fixtures=[];
  landmarks.forEach(([id,x,z,size])=>{const holder=new THREE.Group();holder.position.set(x,0,z);scene.add(holder);addModel(holder,id,size,0,0,0,hash(x,z,seed)*6.28);fixtures.push({holder,x,z,id})});
  function chunk(cx,cz){
@@ -115,23 +109,15 @@ export function createUnderwaterWorld(o) {
   geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
   geo.setIndex(faces);geo.computeVertexNormals();
   group.add(new THREE.Mesh(geo,mat));
-  for(let i=0;i<7;i++){
-   const x=cx*CHUNK+2+Math.floor(hash(cx*97+i,cz*43+i,seed)*19);
-   const z=cz*CHUNK+2+Math.floor(hash(cx*41+i,cz*79-i,seed)*19);
-   if(usesSurfaceTerrain(x,z))continue;
-   const y=floor(x,z);if(y>=SEA-.4)continue;
-   const choices=y<-4?['kelp_tall','coral_branch_violet','arch','cathedral_tower','submarine_wreck']:['seagrass','kelp_tall','coral_branch_orange','street_lamp','arch','angel_statue'];
-   const name=choices[Math.floor(hash(x,z,seed+5)*choices.length)];
-   tickets.push(addModel(group,name,name==='cathedral_tower'?2.8:name==='arch'?1.8:1.1,x+.5,y,z+.5,hash(z,x,seed)*6.28));
-  }
-  for(let i=0;i<7;i++){
-   const x=cx*CHUNK+3+hash(cx*13+i,cz*17-i,seed)*18,z=cz*CHUNK+3+hash(cx*29-i,cz*31+i,seed)*18;
-   if(inside(x,z))continue;
-   const fy=floor(x,z);if(fy>=SEA-1.7)continue;
-   const kind=['glow_fish_teal','glow_fish_violet','manta','seahorse','angler'][Math.floor(hash(x,z,seed+11)*5)];
-   const holder=new THREE.Group();holder.position.set(x,Math.min(SEA-1,fy+2),z);group.add(holder);
-   tickets.push(addModel(holder,kind,kind==='angler'?1:.65));
-   creatures.push({holder,chunk:cx+','+cz,x,z,y:holder.position.y,kind,phase:hash(z,x,seed)*6.28,health:50,brain:createBrain(kind+':'+cx+':'+cz+':'+i,{x,z},seed+i)});
+  for(const p of oceanPlacements(cx,cz,seed,floor,(x,z)=>!usesSurfaceTerrain(x,z),SEA)){
+   if(p.type==='structure'){
+    tickets.push(addModel(group,p.name,p.scale,p.x,p.y,p.z,p.heading));
+   }else{
+    const holder=new THREE.Group();holder.position.set(p.x,p.y,p.z);group.add(holder);
+    tickets.push(addModel(holder,p.name,p.scale));
+    creatures.push({holder,chunk:cx+','+cz,x:p.x,z:p.z,y:p.y,kind:p.name,phase:p.phase,
+      health:50,brain:createBrain(p.name+':'+cx+':'+cz+':'+p.i,{x:p.x,z:p.z},seed+p.i)});
+   }
   }
   group.userData.tickets=tickets;scene.add(group);chunks.set(cx+','+cz,group);
  }
@@ -271,6 +257,7 @@ export function createUnderwaterWorld(o) {
     fish:creatures.filter(c=>c.holder.visible&&c.holder.children.length>0&&near(c.holder.position.x,c.holder.position.z)).length,
     plants:visible.filter(id=>/coral|kelp|seagrass/.test(id)).length};
   },
+  populationPlan(radius=40){return plannedOceanPopulation(player.pos,seed,floor,(x,z)=>!usesSurfaceTerrain(x,z),radius);},
   update,toggleBathyscaphe,canFire,onShot,interact,
   get repairParts(){return repair.size;},get inBathyscaphe(){return bathy;},get chunks(){return chunks.size;},
   get creatures(){return creatures.length;},get questIndex(){return qi;}};
