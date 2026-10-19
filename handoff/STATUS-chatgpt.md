@@ -1,22 +1,20 @@
 agent: chatgpt
-heartbeat: 2026-10-19T13:28:06.055Z
+heartbeat: 2026-10-19T14:29:20.866Z
 role: developer
-priority: OWNER 042, 043, 044 — stage 10 + living worlds + minute-rift
-stage: 10 INTEGRATED (technical gates green, owner PASS/FAIL unknown)
-pr: 71 SQUASH MERGED into main via §20.13; no review wait
-main_sha: d20b3ec9c62eec5568f7ac891c0733972085dc10
-ci: https://github.com/mpaykin1/meta6/actions/runs/39259917324 SUCCESS on exact human head abc3387b
-node_tests: 51/51 PASS, approx 1 second
-browser_evidence: three-worlds-game/evidence/owner042-044-code.json (actual mobile Chromium CDP touch; no screenshots)
-browserLockPass: true (390x844 emulator only; browser scroll 0, canvas bounding box unchanged)
-cameraLockPass: true (camera drift 0 on 1-2m stick walk within current sector; deadzone ±0.86, bounded sector transitions)
-mobilePass: true (real touch pointer capture/release and keyboard preserved in code; other devices unknown)
-worldLifePass: true (island x20, offshore Ash x145, Ash x-92: 2 original scavenger NPCs, 2 original enemies, 20 original armory IDs each; original Fists counted, starter Stick not counted)
-riftPass: true (first event at ~50-53s virtual, guest 2.6m ahead, exact hero line, warning audio + glitch, shader rift, animated original scavenger, modal Help/Refuse, friend/hostile branches, input unlocked after choice, second event triggered)
-desktopPass: UNKNOWN (standalone browser desktop regression not separately run in this gate)
-underwaterPass: UNKNOWN (phone real-water screenshot/frustum test not run; code retains existing UW)
-realPagesPass: UNKNOWN (live GitHub Pages iPhone unverified)
-ownerPass: UNKNOWN (earlier owner FAIL remains; no FIX_PASS claimed)
-frozen_source: underwater-world and V5-V7 untouched
-review: handoff/to-claude/039-stage10-postmerge-review.md requested postmerge
-game_url: https://mpaykin1.github.io/meta6/three-worlds-game/
+priority: OWNER 048 camera canon + OWNER 049 all universal mechanics canon
+stage: 11 CAMERA COMPLETE, universal-mechanics migration remains in explicit order
+pr: 78 SQUASH MERGED per §20.13
+main_sha: 63f09457a2bb187c9ae32220440b07bc4df609f9
+camera_module: three-worlds-game/camera-rig.mjs
+reference: reference/island-camera/47_camera.js (verbatim function)
+obsolete_logic: camera-sector.mjs deleted; phone dead-zone canceled
+scope: ONE rig across Island, Ash, coast, submerged; fixed HTML/canvas/HUD independent of world camera
+golden: three-worlds-game/tests/camera-golden.test.mjs independently executes reference source in VM; 600 frames dt=1/60; max absolute error <=1e-6 across camera position/target, rig, inertia, occlusion, trauma and cutaway
+ci: https://github.com/mpaykin1/meta6/actions/runs/39268939311 SUCCESS
+tests: 52/52 PASS; browser emulated mobile joystick + canvas lock + real characters/rift PASS
+standalone: three-worlds-game/index.html rebuilt, hash-test PASS
+owner_pass: UNKNOWN (not claimed)
+physical_iPhone_WebKit: NOT VERIFIED
+review_request: handoff/to-claude/040-camera-canon-postmerge-review.md
+next_per_049_and_21_8: sequentially port original Island 37_input + 40_hero (shared hero-controls with golden), then 20_scene/50_env/22_post + GLSL (shared lighting-sky-fog with golden), then packs__base__weather.js/Weather Lab (shared weather-fx with golden). No custom alternatives; each requires independent <=600-step reference test and PR.
+game: https://mpaykin1.github.io/meta6/three-worlds-game/
