@@ -14,15 +14,32 @@ export function seabedHeight(x,z,seed=1337){
   y+=smooth(1.5,.05,Math.hypot((x-cx)/25,(z-cz)/25))*12*deep;
  }
  // A reachable emergent island across the water, not scenery. Gradient .26 = 14.6 degrees.
- const islandDistance=Math.hypot(x-145,z-32);
- const islandShelf=Math.max(0,62-islandDistance)*.26;
+ const islandShelf=islandShelfHeight(x,z,seed);
  y+=islandShelf;
  return Math.max(-12,y);
 }
 
 export function shoreSeabedHeight(x,z,seed,edgeHeight){
  const deep=seabedHeight(x,z,seed);
- if(x<64||x>=112)return deep;
- const t=clamp((x-64)/48,0,1);
+ if(x<40||x>=112)return deep;
+ const t=clamp((x-40)/72,0,1);
  return edgeHeight*(1-t)+deep*t;
+}
+
+// Reachable seeded shelves repeat across the open ocean, sharing height with collision.
+export function islandShelfHeight(x,z,seed=1337){
+ const gx=Math.round((x-145)/220),gz=Math.round((z-32)/220);
+ let y=0;
+ for(let ix=gx-1;ix<=gx+1;ix++)for(let iz=gz-1;iz<=gz+1;iz++){
+  const cx=145+ix*220+(ix===0&&iz===0?0:(hash(ix,iz,seed)-.5)*20);
+  const cz=32+iz*220+(ix===0&&iz===0?0:(hash(ix,iz,seed+1)-.5)*20);
+  y=Math.max(y,Math.max(0,62-Math.hypot(x-cx,z-cz))*.26);
+ }
+ return y;
+}
+export function landWithin(x,z,seed=1337,radius=70,sea=3.8){
+ for(let dz=-radius;dz<=radius;dz+=5)for(let dx=-radius;dx<=radius;dx+=5){
+  if(dx*dx+dz*dz<=radius*radius&&seabedHeight(x+dx,z+dz,seed)>sea)return true;
+ }
+ return false;
 }
