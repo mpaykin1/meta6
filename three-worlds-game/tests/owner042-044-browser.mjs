@@ -10,7 +10,10 @@ try{
  await page.goto(url,{waitUntil:'domcontentloaded',timeout:25000});
  await page.waitForFunction(()=>!!window.__isle?.worldLife&&!!document.querySelector('#v7Stick'),{timeout:20000});
  await page.evaluate(()=>{if(__isle.G.state==='title')__isle.startGame();__isle.killFoes();});
- await page.locator('#v7Stick').waitFor({state:'visible',timeout:15000});
+ // §21.11: native Island floating joystick controls remain active but cannot be visible.
+ await page.waitForFunction(()=>getComputedStyle(document.querySelector('#v7Stick')).display==='none'&&getComputedStyle(document.querySelector('#stick')).display==='none');
+ assert.equal(await page.locator('#v7Stick').isVisible(),false);
+ assert.equal(await page.locator('#stick').isVisible(),false);
  // Measure joystick displacement after the real PLAY camera rig has updated.
  // This is synchronization, not a timeout-based assertion bypass.
  await page.waitForFunction(()=>__isle.G.state==='play'&&!!__isle.cameraRig,{timeout:20000});
@@ -19,8 +22,7 @@ try{
    camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),Gstate:__isle.G.state,yaw:__isle.rig.y,lock:__isle.cameraRig,Gstate:__isle.G.state,
    width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight,
    inner:[innerWidth,innerHeight]}));
- const center=await page.locator('#v7Stick').boundingBox();
- const x=center.x+center.width/2,y=center.y+center.height/2;
+ const x=78,y=532;
  const cdp=await page.context().newCDPSession(page);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
  for(let k=0;k<4;k++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+25+k*5,y:y-6,id:1}]});
@@ -38,6 +40,7 @@ try{
  assert(during.width<=390+1&&during.height<=844+1,'browser viewport overflow');
  checks.browserLockPass=true;
  assert(during.input.vx>.15,'actual touch joystick did not feed player controls');
+ assert(during.input.stickId===1,'native floating touch pointer not captured on canvas');
  assert(after.input.vx===0&&after.input.vy===0,'joystick stuck after release');
  checks.mobilePass=true;
  assert(Number.isFinite(during.lock.pos[0]),'shared Island rig not updating');
