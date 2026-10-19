@@ -88,6 +88,14 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   // A single scriptable event: sound + glitch -> spoken line -> rift -> guest -> dialog -> close.
   const ground=height(player.pos.x,player.pos.z);
   const land=getWorldId()!=='water'&&Number.isFinite(ground)&&ground>3.92;
+  // Cinematic framing without touching the approved Island camera rig:
+  // on the trigger frame the hero turns TOWARD the viewing hemisphere,
+  // so a genuine front-of-hero rift is still in the visible scene.
+  if(land&&event.state.phase==='idle'&&event.state.remaining<=dt&&canStart()){
+    const vx=camera.position.x-player.pos.x,vz=camera.position.z-player.pos.z;
+    const length=Math.hypot(vx,vz);
+    if(length>.01)player.look.set(vx/length,0,vz/length);
+  }
   event.step(dt,{land,battle:!canStart(),pos:player.pos,look:player.look});
   const phase=event.state.phase;
   if(phase!==previousPhase){
