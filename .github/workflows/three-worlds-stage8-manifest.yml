@@ -1,0 +1,23 @@
+name: Verify owner asset completeness
+on:
+  push:
+    branches: [ai/chatgpt/stage8-manifest-completeness]
+permissions:
+  contents: read
+jobs:
+  check-owner-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Synchronize and verify original assets in a temporary CI checkout
+        run: node three-worlds-game/tools/sync-owner-assets.cjs
+      - name: Install pinned local build tools
+        run: npm ci --no-audit --no-fund --prefix three-worlds-game/tools
+      - name: Build standalone game
+        run: npm run build --prefix three-worlds-game/tools
+      - name: Run fast behavioral and manifest tests
+        run: node --test three-worlds-game/tests/*.test.mjs
