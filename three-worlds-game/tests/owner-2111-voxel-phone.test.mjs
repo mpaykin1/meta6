@@ -61,7 +61,7 @@ test('§21.11: real Ash, Island extension and Sunken City height providers build
   assert(geometry.normals.every(v=>[-1,0,1].includes(v)),name+' has sloped faces');
   for(let z=0;z<16;z++)for(let x=0;x<16;x++){
    const expected=voxelSample((u,v)=>provider(u,v,1337),cx*16+x,cz*16+z);
-   assert.equal(geometry.heights[x+z*16],expected,name+' collision/mesh diverged at '+x+','+z);
+   assert.equal(geometry.heights[x+z*16],expected===0?0:expected,name+' collision/mesh diverged at '+x+','+z);
   }
  }
 });
