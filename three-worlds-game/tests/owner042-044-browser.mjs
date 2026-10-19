@@ -61,6 +61,18 @@ try{
  // Golden reference compares all rig and camera coordinates in that transition.
  assert(Number.isFinite(drift),'non-finite camera position');
  checks.cameraCanonPass=true;
+ // True 600-sample golden against the untouched accepted Island's Int16 voxel surface.
+ const ownerVoxels=await page.evaluate(()=>{
+  const i=__isle,results=[];
+  for(let n=0;n<600;n++){
+   const x=(n*37)%64,z=(n*23)%64,reference=i.world.hgt[x+z*64];
+   const renderedAndCollision=i.terrainTop(x+.4,z+.65);
+   results.push({x,z,reference,actual:renderedAndCollision});
+  }
+  return results;
+ });
+ for(const v of ownerVoxels)assert.equal(v.actual,v.reference,
+   'accepted Island golden mismatch at '+v.x+','+v.z);
  // Three real terrain samples; proofs are counts of actual scene brains, original foes and pickup objects.
  const worldSamples=[];
  for(const x of [20,145,-92]){
