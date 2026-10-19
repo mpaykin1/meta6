@@ -27,17 +27,19 @@ export function lifePlan(x,z,seed,height,sea=3.8){
  const pick=(i)=>sites.length?sites[Math.floor(hash(i+3,seed^551,Math.floor(x)*11+Math.floor(z)*17)*sites.length)]:null;
  const place=(id,i)=>{const p=pick(i);return p?{...p,id,region}:null};
  return {region,
-  npcs:[place('scavenger',410),place('scavenger',411)].filter(Boolean),
+  npcs:[place('scavenger',410),place('companion',411)].filter(Boolean),
   enemies:[place(region==='ash'?'shade':'imp',510),place(region==='ash'?'shade':'imp',511)].filter(Boolean),
   weapons:LAND_ARMORY_IDS.map((id,i)=>place(id,i+700)).filter(Boolean)};
 }
-export function createLivingPopulation({THREE,scene,player,height,sea,seed,spawnEnemy,getEnemies,loot,weaponIds}){
+export function createLivingPopulation({THREE,scene,camera,heroTex,player,height,sea,seed,spawnEnemy,getEnemies,loot,weaponIds}){
+ const catalog=typeof window!=='undefined'?window.ObserverNpcCatalog:null;
+ if(!catalog?.ROLES?.companion)throw Error('Original Island companion role in npc-catalog.js is required');
  const factory=createAshFactory(THREE),def=factory.models.find(v=>v.id==='scavenger');
  if(!def)throw Error('Original scavenger absent');
  if(LAND_ARMORY_IDS.some(id=>!weaponIds.includes(id)))throw Error('Original 20 weapons missing');
  let active=[],current='',elapsed=0,plan=null,sectorEnemies=[];
  const harvested=new Set(),enemiesBySector=new Map();
- function clear(){for(const n of active){scene.remove(n.inst.root);n.inst.mat?.dispose()}active=[];}
+ function clear(){for(const n of active){if(n.originalRole){catalog.dispose(n.entity,scene)}else{scene.remove(n.inst.root);n.inst.mat?.dispose()}}active=[];}
  function sector(p){return [Math.floor(p.x/42),Math.floor(p.z/42),lifeRegion(p.x,p.z,sea,height,seed)].join(':')}
  function enter(p){
   const key=sector(p);if(key===current)return;clear();
@@ -53,9 +55,19 @@ export function createLivingPopulation({THREE,scene,player,height,sea,seed,spawn
    loot.push({id:w.id,x:w.x,y:w.y+1,z:w.z,gy:w.y,alive:true,phase:hash(w.id.length,w.x|0,w.z|0)*6.28,lifeTag:tag});
   }
   for(let i=0;i<plan.npcs.length;i++){
-   const q=plan.npcs[i],inst=factory.instance(def);
-   inst.root.position.set(q.x,q.y,q.z);scene.add(inst.root);
-   active.push({inst,brain:createBrain('scavenger-'+key+'-'+i,{x:q.x,z:q.z},seed+i),pos:inst.root.position});
+   const q=plan.npcs[i],brain=createBrain(q.id+'-'+key+'-'+i,{x:q.x,z:q.z},seed+i);
+   if(q.id==='companion'){
+    // The second role is directly the owner's original Island NPC catalog,
+    // with the already accepted 6-frame hero sprite, not a new character.
+    const visual=catalog.createMesh({THREE,heroTex},'companion',new THREE.Vector3(q.x,q.y,q.z));
+    scene.add(visual.mesh,visual.ring);
+    const entity={visual,role:'companion',relation:'neutral',motion:0,seed:seed+i,dead:false,
+     state:'idle',facing:1,x:q.x,y:q.y,z:q.z};
+    active.push({originalRole:true,entity,brain,pos:visual.mesh.position});
+   }else{
+    const inst=factory.instance(def);inst.root.position.set(q.x,q.y,q.z);scene.add(inst.root);
+    active.push({inst,brain,pos:inst.root.position});
+   }
   }
   // Existing original foes are spawned by native combat path, never stand-ins.
   for(const w of plan.enemies){const f=spawnEnemy(w.id,w.x,w.y+1.2,w.z);if(f)sectorEnemies.push(f)}
@@ -66,7 +78,10 @@ export function createLivingPopulation({THREE,scene,player,height,sea,seed,spawn
   enter(player.pos);
   for(const n of active){
    stepBrain(n.brain,n.pos,dt,{player:player.pos,height,sea});
-   factory.animate(n.inst,elapsed,{mode:n.brain.state==='idle'?'idle':'walk',sp:.7});
+   if(n.originalRole){const e=n.entity;e.x=n.pos.x;e.y=n.pos.y;e.z=n.pos.z;
+    e.motion=Math.hypot(n.brain.vx||0,n.brain.vz||0);e.state=n.brain.state||'idle';
+    catalog.animate(e,elapsed,camera);
+   }else factory.animate(n.inst,elapsed,{mode:n.brain.state==='idle'?'idle':'walk',sp:.7});
   }
   factory.uniforms.uTime.value=elapsed;
   // Actual original enemies move and attack via updateFoes().
