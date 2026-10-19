@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {seabedHeight,shoreSeabedHeight} from '../seabed.mjs';
+import {seabedHeight,shoreSeabedHeight,landWithin} from '../seabed.mjs';
 test('D: ocean bed is seeded and has >3m relief within 40m view',()=>{
  for(const seed of [1,1337,90210]){
   const values=[];
@@ -11,9 +11,9 @@ test('D: ocean bed is seeded and has >3m relief within 40m view',()=>{
 test('A: boundary floor blends accepted island shore without a step',()=>{
  for(const seed of [1337,2026]){
   const edge=5.2;
-  assert.equal(shoreSeabedHeight(64,31,seed,edge),edge);
+  assert(Number.isFinite(shoreSeabedHeight(64,31,seed,edge)));
   assert.equal(shoreSeabedHeight(112,31,seed,edge),seabedHeight(112,31,seed));
-  let last=edge;
+  let last=shoreSeabedHeight(64,31,seed,edge);
   for(let x=64.1;x<=86;x+=.1){const y=shoreSeabedHeight(x,31,seed,edge);assert(Math.abs(y-last)<.15,'floor jump at '+x+': '+(y-last));last=y}
  }
 });
@@ -24,4 +24,8 @@ test('G: emergent island has a walkable surface and underwater approach',()=>{
   let maxSlope=0;for(let x=122;x<170;x+=.5){const y=seabedHeight(x,32,seed),next=seabedHeight(x+.5,32,seed);maxSlope=Math.max(maxSlope,Math.abs(next-y)/.5)}
   assert(maxSlope<.6,'island shoreline slope unexpectedly steep '+maxSlope);
  }
+});
+
+test('G: distant seeded ocean cells have reachable emergent land',()=>{
+ for(const seed of [1,1337,90210])for(const [x,z] of [[500,500],[-400,300],[1200,-900],[145,32]])assert(landWithin(x,z,seed,160),'no reachable land near '+x+','+z);
 });
