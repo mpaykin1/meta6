@@ -492,6 +492,7 @@ import {createLivingPopulation,LAND_ARMORY_IDS} from './living-population.mjs';
 import {createCameraRig} from './camera-rig.mjs';
 import {createIslandInput,createIslandHero,createIslandGroundGrip} from './hero-controls.mjs';
 import {createIslandEnvironment} from './island-environment.mjs';
+import {voxelSample,buildGreedyVoxelChunk} from './voxel-terrain.mjs';
 import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
@@ -1861,7 +1862,7 @@ function groundBelow(px, py, pz) {
   return 0;
 }
 let heightSource = null;
-function terrainTop(px,pz){
+function terrainHeightRaw(px,pz){
  const x=Math.floor(px),z=Math.floor(pz),bz=Math.max(0,Math.min(63,z));
  const seed=G.seed,edge48=world?world.hgt[48+bz*W]:1;
  if(px>=64){
@@ -1875,6 +1876,8 @@ function terrainTop(px,pz){
  const base=u+v<=1?h00+(h10-h00)*u+(h01-h00)*v:h11+(h01-h11)*(1-u)+(h10-h11)*(1-v);
  return coastalBeachHeight(px,pz,seed,edge48,base);
 }
+// The same integer-cell sample is consumed by collision, geometry, AI and camera.
+function terrainTop(px,pz){return voxelSample(terrainHeightRaw,px,pz)}
 function rayFree(o, d, maxT) {
   for (let t = 0.9; t < maxT; t += 0.2) {
     const b = blockAt(Math.floor(o.x + d.x * t), Math.floor(o.y + d.y * t), Math.floor(o.z + d.z * t));
@@ -4240,35 +4243,22 @@ let terrainWindow = null,beachPatch=null;
 const worlds = new WorldManager();
 for(const id of ['island','ash','water'])worlds.register(id,{init(){},update(dt,p){terrainWindow?.update(p.x,p.z)},dispose(){}});
 function buildExtensionGeometry(cx,cz){
- const pos=[],uv=[],colors=[],indices=[];
- for(let z=0;z<=16;z++)for(let x=0;x<=16;x++){
-  const wx=cx*16+x,wz=cz*16+z,y=terrainTop(wx,wz),aw=ashWeight(wx);
-  pos.push(wx,y,wz);uv.push(x/16*.246+.002,1/3+z/16*.328+.002);
-  const wet=y<SEA?.72:1;colors.push(wet*(1-aw*.16),wet*(1-aw*.48),wet*(1-aw*.44));
- }
- for(let z=0;z<16;z++)for(let x=0;x<16;x++){const i=x+z*17;indices.push(i,i+17,i+1,i+1,i+17,i+18)}
- const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setAttribute('aCut',new THREE.Float32BufferAttribute(new Float32Array(pos.length/3),1));g.setIndex(indices);g.computeVertexNormals();return g;
+ const mesh=buildGreedyVoxelChunk(cx,cz,terrainTop,{size:16,sea:SEA,
+  topTile:y=>y>SEA?TL.grass:TL.sand,sideTile:y=>y>SEA?TL.grassSide:TL.sand});
+ const g=new THREE.BufferGeometry();
+ g.setAttribute('position',new THREE.Float32BufferAttribute(mesh.pos,3));
+ g.setAttribute('normal',new THREE.Float32BufferAttribute(mesh.normals,3));
+ g.setAttribute('uv',new THREE.Float32BufferAttribute(mesh.uv,2));
+ g.setAttribute('color',new THREE.Float32BufferAttribute(mesh.colors,3));
+ g.setAttribute('aCut',new THREE.Float32BufferAttribute(mesh.aCut,1));
+ g.setIndex(mesh.indices);g.computeBoundingSphere();
+ g.userData={voxel:true,visibleQuads:mesh.quads};return g;
 }
 // The existing core voxel chunk remains untouched; this narrow sand apron makes the
 // real collision surface visible on the 48..64 side of the accepted island.
 function rebuildBeachPatch(){
- if(beachPatch){scene.remove(beachPatch);beachPatch.geometry.dispose();beachPatch=null;}
- const x0=48,z0=13,w=16,d=38,pos=[],uv=[],col=[],idx=[];
- for(let z=0;z<=d;z++)for(let x=0;x<=w;x++){
-  const wx=x0+x,wz=z0+z,y=terrainTop(wx,wz);
-  pos.push(wx,y+.035,wz);uv.push(x*.02,z*.02);
-  col.push(.86,.81,.67);
- }
- for(let z=0;z<d;z++)for(let x=0;x<w;x++){
-  const i=x+z*(w+1);idx.push(i,i+w+1,i+1,i+1,i+w+1,i+w+2);
- }
- const geo=new THREE.BufferGeometry();
- geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
- geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
- geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
- geo.setAttribute('aCut',new THREE.Float32BufferAttribute(new Float32Array(pos.length/3),1));
- geo.setIndex(idx);geo.computeVertexNormals();
- beachPatch=new THREE.Mesh(geo,terrainMat);scene.add(beachPatch);
+ // §21.11: no floating smooth triangle beach patch; the shoreline is voxel terrain.
+ if(beachPatch){scene.remove(beachPatch);beachPatch.geometry.dispose();beachPatch=null}
 }
 function buildChunks() {
   terrainWindow?.clear();
