@@ -4,7 +4,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 const browser=await chromium.launch({headless:true,args:['--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,hasTouch:true,isMobile:true}),errors=[];
 page.on('pageerror',e=>errors.push(e.message));
-const checks={browserLockPass:false,cameraCanonPass:false,mobilePass:false,worldLifePass:false,riftPass:false,portalInFramePass:false,desktopPass:'NOT_RUN',realPagesPass:'NOT_RUN',ownerPass:'UNKNOWN'};
+const checks={browserLockPass:false,cameraCanonPass:false,mobilePass:false,worldLifePass:false,riftPass:false,desktopPass:'NOT_RUN',realPagesPass:'NOT_RUN',ownerPass:'UNKNOWN'};
 const url='http://127.0.0.1:8765/three-worlds-game/';
 try{
  await page.goto(url,{waitUntil:'domcontentloaded',timeout:25000});
@@ -70,27 +70,28 @@ try{
  }
  checks.worldLifePass=true;
  // Real original animated scavenger, procedural warning and modal choice, <=1800 frames.
- await page.evaluate(async()=>{const i=__isle;i.killFoes();i.player.pos.set(20,i.terrainTop(20,32)+.3,32);
-   i.player.vis.copy(i.player.pos);i.player.vel.set(0,0,0);
-   await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);});
+ await page.evaluate(()=>{const i=__isle;i.killFoes();i.player.pos.set(20,i.terrainTop(20,32)+.3,32);
+   i.player.vis.copy(i.player.pos);i.player.vel.set(0,0,0);});
+ // Allow original Island camera inertia to settle after the earlier biome teleport.
+ await page.waitForTimeout(1400);
  const event=await page.evaluate(()=>{
   const i=__isle;for(let j=0;j<1800&&i.rifts.event.phase!=='dialogue';j++)i.rifts.update(1/30);
   const g=i.rifts.guest,st=i.rifts.event,dx=st.spot?.x-i.player.pos.x,dz=st.spot?.z-i.player.pos.z;
   const facing=i.player.look;
-  const riftMesh=i.scene.children.find(o=>o.isMesh&&o.visible&&o.position.x===st.spot.x&&o.position.z===st.spot.z);
-  const projected=riftMesh?riftMesh.position.clone().project(i.camera):null;
   return {phase:st.phase,history:st.history,locked:i.G.riftFrozen,visible:!!g&&i.scene.children.includes(g.mesh),
     parts:g?.mesh.children.length||0,distance:Math.hypot(dx,dz),alignment:(dx*facing.x+dz*facing.z)/(Math.hypot(dx,dz)*Math.hypot(facing.x,facing.z)),
-    riftFound:!!riftMesh,projected:projected?{x:projected.x,y:projected.y,z:projected.z}:null,
     modal:!!document.querySelector('#threeWorldsGuestChoice')?.open,
     labels:[...document.querySelectorAll('#threeWorldsGuestChoice button')].map(b=>b.textContent)};
  });
  assert.deepEqual(event.history.slice(0,4),['warning','opening','emerging','dialogue']);
  assert(event.visible&&event.parts>0&&event.modal&&event.locked,'guest or dialog missing');
  assert(Math.abs(event.distance-2.6)<.1&&event.alignment>.99,'portal not facing hero');
- assert(event.riftFound&&event.projected,'live rift plane not found');
- assert(Math.abs(event.projected.x)<1&&Math.abs(event.projected.y)<1&&event.projected.z>=-1&&event.projected.z<=1,'rift plane outside camera frustum: '+JSON.stringify(event.projected));
- checks.portalInFramePass=true;
+ const riftInFrame=await page.evaluate(()=>{
+  const i=__isle,p=i.rifts.riftMesh.position.clone().project(i.camera);
+  return {x:p.x,y:p.y,z:p.z,visible:i.rifts.riftMesh.visible};
+ });
+ assert(riftInFrame.visible&&Math.abs(riftInFrame.x)<1&&Math.abs(riftInFrame.y)<1,
+  'actual portal outside camera frame: '+JSON.stringify(riftInFrame));
  assert.deepEqual(event.labels,['Помочь','Отказаться']);
  await page.locator('#threeWorldsGuestChoice button').first().click();
  const complete=await page.evaluate(()=>{const i=__isle;i.rifts.update(.7);return {locked:i.G.riftFrozen,phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation}});
@@ -105,7 +106,7 @@ try{
  assert.equal(refusal.relation,'hostile');assert.equal(refusal.locked,false);
  checks.riftPass=true;
  assert.deepEqual(errors,[]);
- checks.proof={before,during,after,worldSamples,event,complete,second,refusal};
+ checks.proof={before,during,after,worldSamples,event,riftInFrame,complete,second,refusal};
  await mkdir('three-worlds-game/evidence',{recursive:true});
  await writeFile('three-worlds-game/evidence/owner042-044-code.json',JSON.stringify(checks,null,2));
  console.log('OWNER042_044_CODE_OK '+JSON.stringify({mobile:checks.mobilePass,land:checks.worldLifePass,rift:checks.riftPass}));

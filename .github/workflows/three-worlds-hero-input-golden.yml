@@ -1,0 +1,51 @@
+name: Three Worlds Island Input Hero Golden
+on:
+  push:
+    branches: [ai/chatgpt/stage12-island-hero-input-canon]
+permissions:
+  contents: write
+jobs:
+  owner-input-hero:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage12-island-hero-input-canon
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned offline builder
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Regenerate standalone with shared hero module
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Run independent owner input and hero golden and short regressions
+        run: |
+          set -euo pipefail
+          mkdir -p three-worlds-game/evidence
+          node --test three-worlds-game/tests/*.test.mjs | tee three-worlds-game/evidence/hero-input-golden.txt
+      - name: Install emulated Chromium
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Live mobile original-world NPC, camera and dialog assertions
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node three-worlds-game/tests/owner042-044-browser.mjs
+      - name: Commit only after complete independent golden and browser pass
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html three-worlds-game/evidence/hero-input-golden.txt three-worlds-game/evidence/owner042-044-code.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'build(hero): reference-equal Island input and hero standalone'
+          git fetch origin ai/chatgpt/stage12-island-hero-input-canon
+          git rebase origin/ai/chatgpt/stage12-island-hero-input-canon
+          git push origin HEAD:ai/chatgpt/stage12-island-hero-input-canon

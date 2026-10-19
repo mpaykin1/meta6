@@ -12,6 +12,7 @@ test('owner §21.4: twenty original weapon types excluding starter stick; all la
    const p=lifePlan(x,z,seed,floor);
    assert(p.region!=='water',name);
    assert(p.npcs.length>=2&&p.enemies.length>=2&&p.weapons.length>=20,name+' empty');
+   assert.deepEqual(new Set(p.npcs.map(n=>n.id)),new Set(['scavenger','companion']),'only approved original roles permitted');
    assert.deepEqual(new Set(p.weapons.map(x=>x.id)),new Set(ids),name+' original armory incomplete');
    assert(p.weapons.every(v=>v.y===floor(v.x,v.z)),'floating pickup');
    assert(p.enemies.every(v=>['imp','shade'].includes(v.id)),'nonoriginal enemy');
