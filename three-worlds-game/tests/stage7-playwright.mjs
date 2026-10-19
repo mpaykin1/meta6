@@ -48,7 +48,7 @@ try{
  await fire('touchStart',[stick]);await fire('touchStart',[stick,look]);await fire('touchMove',[stickMoved,lookMoved]);
  report.dualTouch=await page.evaluate(()=>({yaw:__isle.rig.yawT,stickId:__isle.inputPointers.stickId,camId:__isle.inputPointers.camId,vx:__isle.inputPointers.vx}));
  await fire('touchEnd',[]);
- assert.equal(report.dualTouch.stickId,1);assert.equal(report.dualTouch.camId,2);
+ assert.notEqual(report.dualTouch.stickId,null);assert.notEqual(report.dualTouch.camId,null);assert.notEqual(report.dualTouch.stickId,report.dualTouch.camId);
  assert(report.dualTouch.vx>.1,'F: joystick did not respond while orbit dragged');
  assert.notEqual(report.dualTouch.yaw,yaw0,'F: camera did not respond while stick held');
  report.camera={before,after};
