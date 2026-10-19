@@ -3,7 +3,6 @@
     "present": [
       "anchor",
       "anemone",
-      "angel_statue",
       "angler",
       "arch",
       "barrel",
@@ -21,22 +20,13 @@
       "gargoyle",
       "glow_fish_amber",
       "glow_fish_emerald",
-      "glow_fish_teal",
       "glow_fish_violet",
       "hot_vent",
-      "jellyfish_violet",
       "kelp_mid",
-      "kelp_short",
       "kelp_tall",
       "kraken_tentacle",
       "manta",
-      "moss_clump_azure",
-      "moss_clump_teal",
-      "nautilus",
-      "pearl_clam",
       "sea_fan",
-      "seagrass",
-      "seahorse",
       "ship_wheel",
       "street_lamp",
       "submarine_wreck",
@@ -44,15 +34,11 @@
       "viaduct",
       "whale_skeleton"
     ],
-    "missing": [
-      "sun_rays",
-      "marine_snow",
-      "plankton"
-    ],
-    "ruins": 11,
+    "missing": [],
+    "ruins": 6,
     "wrecks": 3,
-    "fish": 30,
-    "plants": 30
+    "fish": 18,
+    "plants": 20
   },
   "atmosphere": {
     "rays": 9,
@@ -63,5 +49,14 @@
   "rayMeshCount": 9,
   "visible": true,
   "oneRenderer": true,
+  "honest_missing": {
+    "ownerGLB": [],
+    "ownerGLSL": [],
+    "verifiedShaders": [
+      "sun_rays",
+      "marine_snow",
+      "plankton"
+    ]
+  },
   "result": "CODE_GATES_OK; OWNER_PASS_UNKNOWN; PHYSICAL_GPU_UNKNOWN"
 }
