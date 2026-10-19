@@ -4983,7 +4983,7 @@ function frame(now) {
     if(!livingPopulation)livingPopulation=createLivingPopulation({
       THREE,scene,player,height:terrainTop,sea:SEA,seed:G.seed,
       spawnEnemy:(type,x,y,z)=>spawnFoe(type,x,y,z,false),
-      getEnemies:()=>foes.filter(foeAlive),loot,weaponIds:ARSENAL_ORDER.slice(1)
+      getEnemies:()=>foes.filter(foeAlive),loot,weaponIds:ARSENAL_ORDER
     });
     livingPopulation.update(raw);
   }
