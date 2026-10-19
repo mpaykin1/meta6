@@ -88,13 +88,22 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   // A single scriptable event: sound + glitch -> spoken line -> rift -> guest -> dialog -> close.
   const ground=height(player.pos.x,player.pos.z);
   const land=getWorldId()!=='water'&&Number.isFinite(ground)&&ground>3.92;
-  // Cinematic framing without touching the approved Island camera rig:
-  // on the trigger frame the hero turns TOWARD the viewing hemisphere,
-  // so a genuine front-of-hero rift is still in the visible scene.
+  // Cinematic director rotates only the HERO at the event instant.
+  // Evaluate real projected candidates on a 2.6m circle (not the camera rig).
+  // The original Island camera, timing, inertia and frustum remain untouched.
   if(land&&event.state.phase==='idle'&&event.state.remaining<=dt&&canStart()){
-    const vx=camera.position.x-player.pos.x,vz=camera.position.z-player.pos.z;
-    const length=Math.hypot(vx,vz);
-    if(length>.01)player.look.set(vx/length,0,vz/length);
+    const pos=player.pos,probe=new THREE.Vector3(),steps=32;
+    camera.updateMatrixWorld();
+    let best=null;
+    for(let i=0;i<steps;i++){
+      const theta=i*Math.PI*2/steps,dx=Math.cos(theta),dz=Math.sin(theta);
+      const x=pos.x+2.6*dx,z=pos.z+2.6*dz;
+      probe.set(x,height(x,z)+2.3,z).project(camera);
+      if(!Number.isFinite(probe.x)||!Number.isFinite(probe.y)||probe.z<=-1||probe.z>=1)continue;
+      const score=probe.x*probe.x+probe.y*probe.y;
+      if(!best||score<best.score)best={dx,dz,score};
+    }
+    if(best)player.look.set(best.dx,0,best.dz);
   }
   event.step(dt,{land,battle:!canStart(),pos:player.pos,look:player.look});
   const phase=event.state.phase;
