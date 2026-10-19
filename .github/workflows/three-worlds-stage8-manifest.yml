@@ -3,21 +3,45 @@ on:
   push:
     branches: [ai/chatgpt/stage8-manifest-completeness]
 permissions:
-  contents: read
+  contents: write
 jobs:
   check-owner-sources:
+    if: github.actor != 'github-actions[bot]'
+    concurrency:
+      group: complete-owner-assets-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage8-manifest-completeness
+          fetch-depth: 0
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Synchronize and verify original assets in a temporary CI checkout
+      - name: Synchronize original owner binaries without alterations
         run: node three-worlds-game/tools/sync-owner-assets.cjs
+      - name: Verify full source/destination parity without writing
+        run: node three-worlds-game/tools/sync-owner-assets.cjs --check
       - name: Install pinned local build tools
         run: npm ci --no-audit --no-fund --prefix three-worlds-game/tools
       - name: Build standalone game
         run: npm run build --prefix three-worlds-game/tools
       - name: Run fast behavioral and manifest tests
         run: node --test three-worlds-game/tests/*.test.mjs
+      - name: Commit verified originals and rebuilt standalone to PR branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/models/ three-worlds-game/assets/weather/ three-worlds-game/index.html
+          if git diff --cached --quiet; then
+            echo 'Originals already committed'
+            exit 0
+          fi
+          git commit -m 'assets(stage8): commit complete owner binaries and standalone after checks'
+          git fetch origin ai/chatgpt/stage8-manifest-completeness
+          git rebase origin/ai/chatgpt/stage8-manifest-completeness
+          git push origin HEAD:ai/chatgpt/stage8-manifest-completeness
