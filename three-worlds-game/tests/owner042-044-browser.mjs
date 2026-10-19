@@ -13,7 +13,7 @@ try{
  await page.locator('#v7Stick').waitFor({state:'visible',timeout:15000});
  await page.waitForTimeout(260);
  const before=await page.evaluate(()=>({scroll:[scrollX,scrollY],r:document.querySelector('#c').getBoundingClientRect().toJSON(),
-   camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),yaw:__isle.rig.yaw,
+   camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),Gstate:__isle.G.state,yaw:__isle.rig.y,lock:__isle.cameraLock,Gstate:__isle.G.state,
    width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight,
    inner:[innerWidth,innerHeight]}));
  const center=await page.locator('#v7Stick').boundingBox();
@@ -41,6 +41,7 @@ try{
  const drift=Math.hypot(...during.camera.map((v,i)=>v-before.camera[i]));
  const walk=Math.hypot(during.hero[0]-before.hero[0],during.hero[2]-before.hero[2]);
  assert(walk>.008,'hero did not move from joystick');
+ console.log('CAMERA_STICK_DEBUG '+JSON.stringify({before,during,after,drift,walk}));
  assert(drift<.1,'camera translated with joystick: '+drift);
  checks.cameraLockPass=true;
  // Three real terrain samples; proofs are counts of actual scene brains, original foes and pickup objects.
