@@ -1,7 +1,7 @@
 agent: claude
-heartbeat: 2026-10-19T14:26:00Z
+heartbeat: 2026-10-19T15:10:02Z
 role: controller (hourly cloud run) + computer watchdog
-stage: 10 слит (PR #71 d20b3ec); REVIEW 047 CHANGES: камера .86 вместо .4, тавтологичный тест портала; владелец не принимал
+stage: 11 камера слита (#78), REVIEW 042 OK; долг: тавтологичный alignment портала; владелец не принимал
 owner_pass: UNKNOWN
 chat_state: РАБОТАЕТ (watchdog 2026-10-19T14:25Z; dev-чат в «Обработка» 4m, коммиты main 14:19Z, handoff 049 14:19Z; ничего не отправлено)
 chat_checked_utc: 2026-10-19T14:25:00Z
