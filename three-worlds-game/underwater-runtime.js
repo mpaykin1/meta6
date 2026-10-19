@@ -1,6 +1,6 @@
 import {usesSurfaceTerrain} from './world-core.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
-import {immersionAt,swimVertical,bubbleEmissions,ambientBubbleAnchors,namedAssetInventory} from './stage7-simulation.mjs';
+import {immersionAt,swimVertical,bubbleEmissions,ambientBubbleAnchors,namedAssetInventory,nextBubbleSlot} from './stage7-simulation.mjs';
 import {seabedHeight} from './seabed.mjs';
 import {LANDMARKS,oceanPlacements,plannedOceanPopulation} from './ocean-placements.mjs';
 export {seabedHeight} from './seabed.mjs';
@@ -27,7 +27,7 @@ export function createUnderwaterWorld(o) {
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
  const floor=(x,z)=>o.surfaceHeight?o.surfaceHeight(x,z):(usesSurfaceTerrain(x,z)?o.terrainTop(x,z):seabedHeight(x,z,seed));
  let bathy=false,repair=new Set(),lastChunk='',time=0,qi=0,seen=new Set(),lastHint=-99;
- let immersion=0,bubbleActive=0,bubbleCursor=0;const bubbleState={budget:0};
+ let immersion=0,bubbleActive=0;const bubbleState={budget:0,cursor:0};
  const DEEP=new THREE.Color('#124c66'),bubbleCapacity=96;
  // Water-only volumetric fill: keep the approved dusk surface lighting untouched.
  const waterFill=new THREE.HemisphereLight(0x81ceea,0x10354a,0);
@@ -40,7 +40,7 @@ export function createUnderwaterWorld(o) {
  const bubbleMaterial=new THREE.PointsMaterial({color:0xa4efff,size:.17,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending});
  const bubblePoints=new THREE.Points(bubbleGeometry,bubbleMaterial);
  bubblePoints.frustumCulled=false;scene.add(bubblePoints);
- function emitBubble(x,y,z){const i=bubbleCursor++%bubbleCapacity;const j=i*3;bubblePos[j]=x;bubblePos[j+1]=y;bubblePos[j+2]=z;bubbleVy[i]=.6+hash(i,bubbleCursor,seed)*.5;bubbleLife[i]=1.2+hash(bubbleCursor,i,seed)*1.2;}
+ function emitBubble(x,y,z){const i=nextBubbleSlot(bubbleState,bubbleCapacity);const j=i*3;bubblePos[j]=x;bubblePos[j+1]=y;bubblePos[j+2]=z;bubbleVy[i]=.6+hash(i,bubbleState.cursor,seed)*.5;bubbleLife[i]=1.2+hash(bubbleState.cursor,i,seed)*1.2;}
  function updateBubbles(dt){let count=0;for(let i=0;i<bubbleCapacity;i++){if(bubbleLife[i]<=0)continue;bubbleLife[i]-=dt;if(bubbleLife[i]<=0){bubblePos[i*3+1]=-10000;continue;}bubblePos[i*3+1]+=bubbleVy[i]*dt;count++;}bubbleGeometry.attributes.position.needsUpdate=true;return count;}
 
  try{const s=JSON.parse(localStorage.getItem('sunken-quests-v2')||'null');if(s){qi=clamp(s.i|0,0,QUESTS.length);seen=new Set(s.visited||[]);}}catch{}
