@@ -15,7 +15,10 @@ const shot=async(name,x,z,y)=>{
  i.rig.pos.set(x+(shore?8:11),i.player.pos.y+(shore?22:8),z+(shore?20:13));i.rig.look.set(x,i.player.pos.y+1,z);
  i.camera.position.copy(i.rig.pos);i.camera.lookAt(i.rig.look);}, {x,z,y,shore:name==='stage7-shore'});
  await page.waitForTimeout(200);
- await page.screenshot({path:'three-worlds-game/evidence/'+name+'.png'});
+ const png=await page.screenshot({path:'three-worlds-game/evidence/'+name+'.png'});
+ const luma=await page.evaluate(async encoded=>{const img=new Image();img.src='data:image/png;base64,'+encoded;await img.decode();const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);const data=ctx.getImageData(0,0,c.width,c.height).data;let sum=0;for(let i=0;i<data.length;i+=4)sum+=(.2126*data[i]+.7152*data[i+1]+.0722*data[i+2]);return sum/(data.length/4);},png.toString('base64'));
+ (report.frameLuma ||= {})[name]=luma;
+ return luma;
 };
 try{
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:16000});
@@ -23,9 +26,31 @@ try{
  await page.evaluate(()=>{if(__isle.G.state==='title')__isle.startGame()});
  await page.waitForFunction(()=>window.__isle.G.state==='play',{timeout:6000});
  await page.waitForFunction(()=>!document.querySelector('#loading'),null,{timeout:6000});
- await shot('stage7-shore',63,32);
+ const naturalShoreLuma=await shot('stage7-shore',63,32);
+ report.shoreNaturalLuma=naturalShoreLuma;
+ // Daylight test condition: raise exposure only for evidence; never alter shipping game configuration.
+ await page.evaluate(()=>{const i=__isle;const lights=[];i.camera.traverse(()=>{});for(const obj of i.camera.parent?.children||[]){if(obj.isLight)lights.push(obj)};window.__stage7DaylightLights=lights.map(l=>[l,l.intensity]);for(const [l] of window.__stage7DaylightLights)l.intensity=Math.max(l.intensity,3)});
+ report.wade=[];for(const [name,x] of [['stage7-wade-knee',60],['stage7-wade-waist',66],['stage7-wade-head',72]]){
+  const luma=await shot(name,x,32);
+  const m=await page.evaluate(()=>({depth:__isle.underwater.immersionAt(),y:__isle.camera.position.y}));
+  report.wade.push({name,x,luma,...m});
+ }
+ assert(report.wade[0].depth<=report.wade[1].depth&&report.wade[1].depth<=report.wade[2].depth,'A: immersion must increase entering ocean');
+ assert(report.wade.some(v=>v.luma>40),'A: all three daytime shoreline frames too dark');
  report.shore=await page.evaluate(()=>{const i=__isle;return {ground:i.terrainTop(63,32),edge:i.terrainTop(64,32),depth:i.underwater.immersionAt()}});
  assert(Math.abs(report.shore.ground-report.shore.edge)<1,'A: shore vertical seam');
+ // Five virtual player minutes with evidence every ten seconds; real scene modules advance, no new HUD.
+ await mkdir('three-worlds-game/evidence/play',{recursive:true});
+ report.play=[];
+ for(let interval=0;interval<=30;interval++){
+  const x=interval===0?60:interval<6?66+(interval-1)*2:interval<24?82:interval<27?100:142;
+  await page.evaluate(({x,interval})=>{const i=__isle;i.player.pos.x=x;i.player.pos.z=32;i.player.pos.y=interval===0?i.terrainTop(x,32)+.2:interval<24?Math.min(i.SEA-.5,i.terrainTop(x,32)+1.7):i.terrainTop(x,32)+.3;i.player.vis.copy(i.player.pos);i.player.vel.set(0,0,0);i.terrainWindow().update(x,32);for(let n=0;n<300;n++){i.underwater.update(1/30);i.rifts.update(1/30)}}, {x,interval});
+  const name='play/'+String(interval).padStart(2,'0');
+  await shot(name,x,32,interval===0?undefined:interval<24?0.5:undefined);
+  const state=await page.evaluate(()=>{const i=__isle;return {depth:i.underwater.immersionAt(),population:i.underwater.population(40),bubbles:i.underwater.bubbleCount,guest:!!i.rifts.guest}});
+  report.play.push({second:interval*10,name,...state});
+  if(interval>=2&&interval<24)assert(state.population.ruins>0&&state.population.wrecks>0&&state.population.fish>=10&&state.population.plants>0,'D: missing nearby population at '+interval*10+'s');
+ }
  // D: check actual loaded model instances, not estimated per-chunk multipliers, at 3 seeds.
  report.populationBySeed=[];
  for(const seed of [1,1337,90210]){
