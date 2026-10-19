@@ -21,8 +21,8 @@ test('D: renderer and Node use identical chunk object placement across 3 seeds',
   const placements=oceanPlacements(3,1,seed,floor,water);
   assert.deepEqual(placements,oceanPlacements(3,1,seed,floor,water));
   const category=namedAssetInventory(p.named);
-  assert(category.missing.includes('galleon'),'unavailable asset should not be silently treated as loaded');
-  assert(category.missing.includes('whale_skeleton'));
+  for(const id of ['galleon','whale_skeleton','anchor','cannon','kraken_tentacle'])assert(category.present.includes(id),'owner GLB absent from planned nearby population: '+id);
+  assert(!category.missing.some(id=>['galleon','whale_skeleton','anchor','cannon','kraken_tentacle'].includes(id)),'7b owner models must no longer be marked missing');
  }
 });
 test('C: actual underwater cathedral/wreck anchors vent away from hero in bounded production pool',()=>{
