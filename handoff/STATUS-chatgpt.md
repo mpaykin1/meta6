@@ -1,20 +1,22 @@
 agent: chatgpt
-heartbeat: 2026-10-19T12:39:42.278Z
+heartbeat: 2026-10-19T13:28:06.055Z
 role: developer
-priority: OWNER 041 (EMPTY LAND / NO GUEST) — FIXED IN CODE, OWNER RE-PLAY PENDING
-stage: 9
-pr: 67 SQUASH MERGED into main (per §20.13, Claude post-review requested)
-main_sha: 29284dcc240b0b461ae7a9d4caa8196ed21a8b19
-review_request: handoff/to-claude/037-stage9-postmerge-review.md
-owner_source: handoff/to-chatgpt/041-owner-feedback-empty-island.md
-owner_verdict: FAIL on earlier version; new game acceptance UNKNOWN, never claim PASS
-ci: https://github.com/mpaykin1/meta6/actions/runs/39253401701 SUCCESS (human head 0ec94ad4)
-node_tests: 45/45 PASS (0.97 seconds)
-browser_evidence: three-worlds-game/evidence/stage9-owner041.json
-live_worlds: (145,32) ASH 21 approved ruins/trees; (365,32) ISLAND 69 authentic original tree instances; (-92,32) ASH 63 approved objects
-guest_idle: 50.8 simulated seconds; live original scavenger rendered (sourceParts=1), no new synthetic model
-density: >=4 approved biome props per every sampled dry exterior chunk, deterministic on 3 seeds; no 9000-step test
-frozen_baselines: underwater-world and V5–V7 untouched
-files: only three-worlds-game and workflow
+priority: OWNER 042, 043, 044 — stage 10 + living worlds + minute-rift
+stage: 10 INTEGRATED (technical gates green, owner PASS/FAIL unknown)
+pr: 71 SQUASH MERGED into main via §20.13; no review wait
+main_sha: d20b3ec9c62eec5568f7ac891c0733972085dc10
+ci: https://github.com/mpaykin1/meta6/actions/runs/39259917324 SUCCESS on exact human head abc3387b
+node_tests: 51/51 PASS, approx 1 second
+browser_evidence: three-worlds-game/evidence/owner042-044-code.json (actual mobile Chromium CDP touch; no screenshots)
+browserLockPass: true (390x844 emulator only; browser scroll 0, canvas bounding box unchanged)
+cameraLockPass: true (camera drift 0 on 1-2m stick walk within current sector; deadzone ±0.86, bounded sector transitions)
+mobilePass: true (real touch pointer capture/release and keyboard preserved in code; other devices unknown)
+worldLifePass: true (island x20, offshore Ash x145, Ash x-92: 2 original scavenger NPCs, 2 original enemies, 20 original armory IDs each; original Fists counted, starter Stick not counted)
+riftPass: true (first event at ~50-53s virtual, guest 2.6m ahead, exact hero line, warning audio + glitch, shader rift, animated original scavenger, modal Help/Refuse, friend/hostile branches, input unlocked after choice, second event triggered)
+desktopPass: UNKNOWN (standalone browser desktop regression not separately run in this gate)
+underwaterPass: UNKNOWN (phone real-water screenshot/frustum test not run; code retains existing UW)
+realPagesPass: UNKNOWN (live GitHub Pages iPhone unverified)
+ownerPass: UNKNOWN (earlier owner FAIL remains; no FIX_PASS claimed)
+frozen_source: underwater-world and V5-V7 untouched
+review: handoff/to-claude/039-stage10-postmerge-review.md requested postmerge
 game_url: https://mpaykin1.github.io/meta6/three-worlds-game/
-pending: Claude post-merge independent review, owner re-play PASS/FAIL
