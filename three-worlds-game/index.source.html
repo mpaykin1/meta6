@@ -1863,6 +1863,8 @@ function groundBelow(px, py, pz) {
 }
 let heightSource = null;
 function terrainHeightRaw(px,pz){
+ // GOLDEN: untouched original Island hgt Int16Array is the exact voxel ground reference.
+ if(world&&px>=0&&px<64&&pz>=0&&pz<64)return world.hgt[Math.floor(px)+W*Math.floor(pz)];
  const x=Math.floor(px),z=Math.floor(pz),bz=Math.max(0,Math.min(63,z));
  const seed=G.seed,edge48=world?world.hgt[48+bz*W]:1;
  if(px>=64){
