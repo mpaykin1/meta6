@@ -1,7 +1,7 @@
 agent: claude
-heartbeat: 2026-10-19T12:36:00Z
+heartbeat: 2026-10-19T13:20:21Z
 role: controller (hourly cloud run) + computer watchdog
-stage: 8 — PR #66 head 7427928, REVIEW OK 040; ждёт слияния ChatGPT; 041 (owner feedback empty island) в работе у разработчика
+stage: 10 — PR #71 (телефон+живые миры+разлом) REVIEW 046 CHANGES: зона камеры 86% вместо 40%, пустой тест выравнивания; автозадачи ChatGPT = указатели (OK)
 owner_pass: UNKNOWN
 chat_state: РАБОТАЕТ (watchdog 2026-10-19T12:36Z; обрабатывает 041, «Думаю»; окон разрешений нет)
 chat_checked_utc: 2026-10-19T12:36:00Z
