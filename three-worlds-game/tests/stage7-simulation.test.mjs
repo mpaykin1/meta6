@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {immersionAt,swimVertical,bubbleEmissions,createGuestSchedule,guestScheduleStep,finishGuestSchedule,ambientBubbleAnchors,namedAssetInventory} from '../stage7-simulation.mjs';
+import {immersionAt,swimVertical,bubbleEmissions,createGuestSchedule,guestScheduleStep,finishGuestSchedule,ambientBubbleAnchors,namedAssetInventory,STAGE7_REQUIRED_EFFECTS} from '../stage7-simulation.mjs';
 test('A: gradual knee, waist, head immersion is monotonic without frame discontinuities',()=>{
  const a=[];for(let y=5.4;y>=1.4;y-=.03)a.push(immersionAt(3.8,y,-2));
  assert.equal(immersionAt(3.8,6,-2),0);
@@ -55,5 +55,5 @@ test('C: existing wreck and cathedral anchors emit distant bubbles, bounded to 9
 test('D: inventory preserves actual model names and exposes missing required categories',()=>{
  const v=namedAssetInventory(['cathedral_tower','submarine_wreck','glow_fish_teal','kelp_tall']);
  assert(v.present.includes('submarine_wreck'));assert(v.missing.includes('galleon'));
- assert(v.missing.includes('marine_snow'));
+ assert(STAGE7_REQUIRED_EFFECTS.includes('marine_snow'));assert(!v.missing.includes('marine_snow'));
 });
