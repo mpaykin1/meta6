@@ -4942,6 +4942,21 @@ function frame(now) {
   UW.update(raw);
   ashWorld?.update(raw);
   livingIsland?.update(player.pos);
+  // Preserve the accepted Island's original hostile NPCs on new land.
+  // Never introduce procedural replacement characters or extra HUD.
+  if(play&&!UW.isSubmerged()&&worldId==='island'&&
+     !(player.pos.x>=0&&player.pos.x<64&&player.pos.z>=0&&player.pos.z<64)){
+    G.offshoreEnemyTick=(G.offshoreEnemyTick||0)+raw;
+    if(G.offshoreEnemyTick>7){
+      G.offshoreEnemyTick=0;
+      if(!foes.some(f=>foeAlive(f)&&Math.hypot(f.segs[0].x-player.pos.x,f.segs[0].z-player.pos.z)<24)){
+        for(const [dx,dz] of [[6,5],[-5,7],[7,-5]]){
+          const x=player.pos.x+dx,z=player.pos.z+dz,y=terrainTop(x,z);
+          if(y>SEA+.15){spawnFoe('imp',x,y+1.2,z,false);break;}
+        }
+      }
+    }
+  }else G.offshoreEnemyTick=0;
   if(play){riftStory?.update(raw);airRoutes?.update(raw)}
   updateWisp(raw);
   updateLeaves(raw);
