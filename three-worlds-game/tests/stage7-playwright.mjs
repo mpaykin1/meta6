@@ -19,10 +19,10 @@ try{
  await page.waitForFunction(()=>window.__isle?.underwater,{timeout:16000});
  await page.evaluate(()=>{if(__isle.G.state==='title')__isle.startGame()});
  await page.waitForFunction(()=>window.__isle.G.state==='play',{timeout:6000});
+ await page.waitForFunction(()=>!document.querySelector('#loading'),null,{timeout:6000});
  await shot('stage7-shore',63,32);
  report.shore=await page.evaluate(()=>{const i=__isle;return {ground:i.terrainTop(63,32),edge:i.terrainTop(64,32),depth:i.underwater.immersionAt()}});
  assert(Math.abs(report.shore.ground-report.shore.edge)<1,'A: shore vertical seam');
- await shot('stage7-depth',82,35,0.5);
  // D: check actual loaded model instances, not estimated per-chunk multipliers, at 3 seeds.
  report.populationBySeed=[];
  for(const seed of [1,1337,90210]){
@@ -32,6 +32,7 @@ try{
   assert.equal(p.seed,seed);assert(p.relief>3,'D: flat ocean for seed '+seed);
   report.populationBySeed.push(p);
  }
+ await shot('stage7-depth',82,35,0.5);
  // C: actual runtime pooled bubbles, emitted from the live underwater module.
  report.bubbles=await page.evaluate(()=>{const i=__isle;i.player.pos.set(82,.5,35);i.player.vel.y=1.4;for(let k=0;k<120;k++)i.underwater.update(1/60);return i.underwater.bubbleCount});
  assert(report.bubbles>0&&report.bubbles<=96,'C: live bubble pool empty/unbounded');
