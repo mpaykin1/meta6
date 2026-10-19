@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {lifePlan,lifeRegion,LAND_ARMORY_IDS} from '../living-population.mjs';
 import {frontOfHero,createRiftEvent,RIFT_WORDS,RIFT_PHASES} from '../rift-event.mjs';
-import {cameraSectorDelta,DEAD_NDC} from '../camera-sector.mjs';
+import {createCameraRig} from '../camera-rig.mjs';
 const ids=LAND_ARMORY_IDS.slice();
 test('owner §21.4: twenty original weapon types excluding starter stick; all lands carry three life layers',()=>{
  assert.equal(ids.length,20);assert.equal(new Set(ids).size,20);assert(!ids.includes('stick'));
@@ -46,12 +46,6 @@ test('owner §21.5: event suspends countdown underwater/in battle',()=>{
  e.step(50,args);assert.equal(e.state.phase,'warning');
  assert.equal(RIFT_PHASES.length,6);
 });
-test('owner §21.3: joystick inside sector cannot move camera',()=>{
- for(const [x,y]of [[0,0],[.2,.2],[-.39,.35],[.4,0]]){
-  const p=cameraSectorDelta(x,y,.7,11,.5,60,1/60);
-  assert.equal(p.dx,0);assert.equal(p.dz,0);assert.equal(p.transition,false);
- }
- const edge=cameraSectorDelta(.96,0,.7,11,.5,60,1/60);
- assert(edge.transition&&Math.hypot(edge.dx,edge.dz)>0);
- assert.equal(DEAD_NDC,.86);
+test('owner §21.7: canonical single camera module replaces canceled phone deadzone',()=>{
+ assert.equal(typeof createCameraRig,'function');
 });
