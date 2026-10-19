@@ -3,6 +3,7 @@ import {createBrain,stepBrain} from './creature-brain.mjs';
 import {immersionAt,swimVertical,bubbleEmissions,ambientBubbleAnchors,namedAssetInventory,nextBubbleSlot} from './stage7-simulation.mjs';
 import {seabedHeight} from './seabed.mjs';
 import {LANDMARKS,oceanPlacements,plannedOceanPopulation} from './ocean-placements.mjs';
+import {createSunkenAtmosphere} from './sunken-atmosphere.mjs';
 export {seabedHeight} from './seabed.mjs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const CHUNK=24;
@@ -33,6 +34,8 @@ export function createUnderwaterWorld(o) {
  const waterFill=new THREE.HemisphereLight(0x81ceea,0x10354a,0);
  const waterScatter=new THREE.PointLight(0x4fcaff,0,32,2);
  scene.add(waterFill,waterScatter);
+ // Ported shader effects from owner's reference, sharing this game's scene/renderer.
+ const atmosphere=createSunkenAtmosphere({THREE,scene,camera:o.camera,seed,SEA});
  const bubblePos=new Float32Array(bubbleCapacity*3),bubbleLife=new Float32Array(bubbleCapacity),bubbleVy=new Float32Array(bubbleCapacity);
  bubblePos.fill(-10000);
  const bubbleGeometry=new THREE.BufferGeometry();
@@ -77,7 +80,7 @@ export function createUnderwaterWorld(o) {
   model(name).then(proto=>{
    if(!ticket.live||!proto)return;
    const obj=proto.object.clone(true);obj.scale.multiplyScalar(scale);obj.position.set(x,y,z);
-   if(proto.clips.length && mixers.size<24 && /bathyscaphe|glow_fish|manta|angler|seahorse|kelp/.test(name)){
+   if(proto.clips.length && mixers.size<24 && /bathyscaphe|glow_fish|manta|angler|seahorse|kelp|kraken_tentacle|jellyfish|eel|nautilus|siphonophore|lantern_fish/.test(name)){
     const mix=new THREE.AnimationMixer(obj);mix.clipAction(proto.clips[0]).play();mixers.add(mix);ticket.mixer=mix;
    }
    obj.rotation.y=rotation;parent.add(obj);ticket.loaded=true;
@@ -205,6 +208,7 @@ export function createUnderwaterWorld(o) {
   const ventTick=Math.floor(time/.4);
   if(ventTick!==Math.floor((time-dt)/.4))for(const a of ambientBubbleAnchors(fixtures.map(f=>({id:f.id,x:f.x,z:f.z,y:floor(f.x,f.z)+.4})),player.pos,seed,ventTick))emitBubble(a.x,a.y,a.z);
   bubbleActive=updateBubbles(dt);
+  atmosphere.update(dt,immersion,player.pos);
   waterFill.intensity=1.25*immersion;
   waterScatter.intensity=1.8*immersion;
   waterScatter.position.set(player.pos.x,player.pos.y+5,player.pos.z+3);
@@ -253,11 +257,12 @@ export function createUnderwaterWorld(o) {
    for(const group of chunks.values())for(const t of group.userData.tickets)
     if(t.live&&t.loaded&&near(t.x,t.z))visible.push(t.name);
    return {...namedAssetInventory(visible),ruins:visible.filter(id=>/cathedral|arch|angel/.test(id)).length,
-    wrecks:visible.filter(id=>/wreck|ship/.test(id)).length,
+    wrecks:visible.filter(id=>/wreck|ship|galleon/.test(id)).length,
     fish:creatures.filter(c=>c.holder.visible&&c.holder.children.length>0&&near(c.holder.position.x,c.holder.position.z)).length,
-    plants:visible.filter(id=>/coral|kelp|seagrass/.test(id)).length};
+    plants:visible.filter(id=>/coral|kelp|seagrass|anemone|sea_fan|sponge|moss/.test(id)).length};
   },
   populationPlan(radius=40){return plannedOceanPopulation(player.pos,seed,floor,(x,z)=>!usesSurfaceTerrain(x,z),radius);},
+  get atmosphericEffects(){return atmosphere.counts;},
   update,toggleBathyscaphe,canFire,onShot,interact,
   get repairParts(){return repair.size;},get inBathyscaphe(){return bathy;},get chunks(){return chunks.size;},
   get creatures(){return creatures.length;},get questIndex(){return qi;}};
