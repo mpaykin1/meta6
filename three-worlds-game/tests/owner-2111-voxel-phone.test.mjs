@@ -41,15 +41,27 @@ test('§21.11: neighboring chunks share exact column elevations, deterministic g
   for(let z=0;z<16;z++)assert.equal(voxelSample(src,cx*16+16,cz*16+z),voxelSample(src,(cx+1)*16,cz*16+z));
  }
 });
-test('§21.11: native Island touch preserved, visible joystick prohibited; same quantized source for render and collision',()=>{
+test('§21.11: original Island joystick is not drawn; interaction is checked by real CDP phone test',()=>{
  const css=readFileSync(new URL('../mobile-controls.css',import.meta.url),'utf8');
- const js=readFileSync(new URL('../index.source.html',import.meta.url),'utf8');
  assert(/#v7Stick[^\n]*display:none!important/.test(css));
  assert(/#stick[^\n]*display:none!important/.test(css));
- assert(js.includes('touch.stickId = e.pointerId; touch.sx = e.clientX'));
- assert(js.includes('orbitBy(e.clientX - touch.cx, e.clientY - touch.cy, 0.008'));
- assert(js.includes('function terrainTop(px,pz){return voxelSample(terrainHeightRaw,px,pz)}'));
- assert(js.includes('buildGreedyVoxelChunk(cx,cz,terrainTop'));
- const under=readFileSync(new URL('../underwater-runtime.js',import.meta.url),'utf8');
- assert(under.includes('buildGreedyVoxelChunk(cx,cz,floor'));
+});
+test('§21.11: real Ash, Island extension and Sunken City height providers build integer greedy meshes',()=>{
+ const providers=[
+  ['ash',ashHeight,[[-9,2],[-6,4],[-3,-4]]],
+  ['island',islandHeight,[[6,2],[9,7],[-1,2]]],
+  ['sunken',seabedHeight,[[11,2],[16,9],[22,-5]]]
+ ];
+ for(const [name,provider,chunks] of providers)for(const [cx,cz] of chunks){
+  const geometry=buildGreedyVoxelChunk(cx,cz,(x,z)=>provider(x,z,1337));
+  assert(geometry.quads>0,name+' produced no geometry');
+  assert(geometry.pos.length>0&&geometry.indices.length>0);
+  assert(geometry.heights.every(Number.isInteger),name+' has fractional heights');
+  assert(geometry.pos.every(Number.isInteger),name+' has fractional voxel vertices');
+  assert(geometry.normals.every(v=>[-1,0,1].includes(v)),name+' has sloped faces');
+  for(let z=0;z<16;z++)for(let x=0;x<16;x++){
+   const expected=voxelSample((u,v)=>provider(u,v,1337),cx*16+x,cz*16+z);
+   assert.equal(geometry.heights[x+z*16],expected,name+' collision/mesh diverged at '+x+','+z);
+  }
+ }
 });
