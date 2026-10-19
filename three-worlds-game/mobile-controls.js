@@ -22,14 +22,31 @@ function create({native,onBuild,onSwap}){
   '<button id="v7Action" type="button" class="v7-action" aria-label="Jump and attack or fire"><span>'+icons.sword+icons.jump+'</span></button>';
  document.body.appendChild(hud);
  document.body.classList.add("v7-touch");
+ // The page must never pan/overscroll while a gameplay finger is active.
+ // Story dialogues and observer menus retain their own scrolling.
+ const gameplayTouch=e=>{
+  if(e.target.closest?.("#v6ReaderBody,#v5JournalBody,.v5-controls,#v5Dock"))return;
+  if(e.cancelable && (e.target.closest?.("#v7MobileHud,#c")||moveId!==null||attackId!==null))e.preventDefault();
+ };
+ document.addEventListener("touchmove",gameplayTouch,{passive:false,capture:true});
+ document.addEventListener("touchstart",gameplayTouch,{passive:false,capture:true});
+ const noGesture=e=>{if(e.cancelable)e.preventDefault()};
+ document.addEventListener("gesturestart",noGesture,{passive:false});
+ document.addEventListener("gesturechange",noGesture,{passive:false});
  if(forced())document.documentElement.classList.add("v7-test-mobile");
  const stick=hud.querySelector("#v7Stick"),knob=hud.querySelector("#v7Knob"),
   action=hud.querySelector("#v7Action"),build=hud.querySelector("#v7Build"),swap=hud.querySelector("#v7Swap");
  let moveId=null,attackId=null,pressCount=0,buildCount=0,moveCount=0;
+ let shootId=null;
  const eat=e=>{e.preventDefault();e.stopPropagation()};
  const zero=()=>{native.mobileMove(0,0);knob.style.transform="translate(-50%,-50%)"};
+ const clampRect=()=>stick.getBoundingClientRect();
+ const startPoint={x:0,y:0};
+ // Pointer capture survives dragging past the joystick's visual boundary.
+ // Do not reflow on every pointermove.
+ const center=()=>({cx:startPoint.x,cy:startPoint.y});
  function move(e){
-  const rect=stick.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const rect=clampRect(),{cx,cy}=center();
   let dx=(e.clientX-cx)/(rect.width*.34),dy=(e.clientY-cy)/(rect.height*.34),d=Math.hypot(dx,dy);
   if(d>1){dx/=d;dy/=d}
   native.mobileMove(dx,dy);moveCount++;
@@ -40,6 +57,7 @@ function create({native,onBuild,onSwap}){
  };
  stick.addEventListener("pointerdown",e=>{
   eat(e);if(moveId!==null)return;moveId=e.pointerId;
+  const rect=clampRect();startPoint.x=rect.left+rect.width/2;startPoint.y=rect.top+rect.height/2;
   try{stick.setPointerCapture(e.pointerId)}catch{}move(e)
  });
  stick.addEventListener("pointermove",e=>{if(e.pointerId===moveId){eat(e);move(e)}});
@@ -54,7 +72,6 @@ function create({native,onBuild,onSwap}){
   native.mobileCombo(true);action.classList.add("is-pressed");pressCount++;
  });
  for(const t of ["pointerup","pointercancel","lostpointercapture"])action.addEventListener(t,stopAction);
- let shootId=null;
  build.addEventListener("pointerdown",e=>{
   eat(e);
   if(forced())root.__uwButtonTrace={id:e.pointerId,previousId:shootId,state:native.G.state,wet:native.underwater?.isSubmerged(),bathy:native.underwater?.inBathyscaphe};
@@ -70,12 +87,16 @@ function create({native,onBuild,onSwap}){
  for(const evt of ["pointerup","pointercancel","lostpointercapture"])build.addEventListener(evt,e=>{if(shootId!==e.pointerId)return;eat(e);shootId=null;native.mobileShootRelease?.()});
  swap.addEventListener("pointerdown",e=>{eat(e);native.mobileSwap();onSwap?.()});
  function release(){moveId=null;attackId=null;shootId=null;native.mobileShootRelease?.();native.mobileRelease();zero();action.classList.remove("is-pressed")}
+ const touchCancel=()=>release();
+ document.addEventListener("touchcancel",touchCancel,{passive:true,capture:true});
  const hide=()=>{if(document.hidden)release()};
  document.addEventListener("visibilitychange",hide);
  root.addEventListener("blur",release);
  return Object.freeze({enabled:true,isMobile:enabled,ui:hud,release,
   get counters(){return{pressCount,buildCount,moveCount}},
-  dispose(){release();document.removeEventListener("visibilitychange",hide);root.removeEventListener("blur",release);
+  get pointers(){return{moveId,attackId,shootId}},
+  dispose(){release();document.removeEventListener("visibilitychange",hide);root.removeEventListener("blur",release);document.removeEventListener("touchcancel",touchCancel,true);
+    document.removeEventListener("touchmove",gameplayTouch,true);document.removeEventListener("touchstart",gameplayTouch,true);document.removeEventListener("gesturestart",noGesture);document.removeEventListener("gesturechange",noGesture);
     hud.remove();document.body.classList.remove("v7-touch")}})
 }
 root.ObserverMobileControls=Object.freeze({create,isMobile:enabled});
