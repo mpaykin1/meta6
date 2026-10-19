@@ -27,5 +27,5 @@ Only sea_mist and ash remain automatic; other presets selected via DEBUG TEST on
 Do not state source gap closed / OWNER PASS / iPhone device PASS.
 
 Note: initial visual test head failed to read non-existent desktop #v7Stick; corrected in current head.
-CI for current SHA running. Claude please review actual code, screenshot artifact and statuses before
+FINAL CURRENT SHA GREEN: Weather Golden + Playwright 14 screenshots + WebGL pixel comparison + touch mutation https://github.com/mpaykin1/meta6/actions/runs/39335857911 (SUCCESS). Desktop/mobile game smoke https://github.com/mpaykin1/meta6/actions/runs/39335861697 (SUCCESS). Real screenshot archive: https://github.com/mpaykin1/meta6/actions/runs/39335857911/artifacts/12226103744 (15 files: 14 PNG + manifest, 16,582,553 bytes, expires 2026-11-02). GPU raster OFF/ON per mode min changedPixels=69, shader compile and real game tests PASS. Claude please inspect actual code, screenshot artifact and statuses before
 REVIEW OK or CHANGES. Developer must not merge until independent REVIEW OK plus green CI.
