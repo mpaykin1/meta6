@@ -31,6 +31,12 @@ try{
  assert.equal(evidence.rayMeshCount,9);
  assert(evidence.visible,'marine snow and plankton should be active while submerged');
  assert(evidence.oneRenderer);
+ evidence.honest_missing={
+  ownerGLB:evidence.models.missing,
+  ownerGLSL:[],
+  verifiedShaders:['sun_rays','marine_snow','plankton']
+ };
+ assert.deepEqual(evidence.honest_missing.ownerGLB,[],'required owner GLBs not all loaded');
  assert.deepEqual(errors,[],'uncaught browser JS errors');
  evidence.result='CODE_GATES_OK; OWNER_PASS_UNKNOWN; PHYSICAL_GPU_UNKNOWN';
  await mkdir('three-worlds-game/evidence',{recursive:true});
