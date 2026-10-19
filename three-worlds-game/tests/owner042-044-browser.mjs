@@ -1,5 +1,6 @@
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import {assertNativeMobileMovement} from './owner-touch-gate.mjs';
 import {mkdir,writeFile} from 'node:fs/promises';
 const browser=await chromium.launch({headless:true,args:['--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,hasTouch:true,isMobile:true}),errors=[];
@@ -46,8 +47,7 @@ try{
  assert(Math.abs(during.r.x-before.r.x)<1&&Math.abs(after.r.y-before.r.y)<1);
  assert(during.width<=390+1&&during.height<=844+1,'browser viewport overflow');
  checks.browserLockPass=true;
- assert(during.input.vx>.15,'actual touch joystick did not feed player controls');
- assert(during.input.stickId!==null,'native floating touch pointer not captured on canvas');
+ assertNativeMobileMovement(during);
  assert(after.input.vx===0&&after.input.vy===0,'joystick stuck after release');
  checks.mobilePass=true;
  assert(Number.isFinite(during.lock.pos[0]),'shared Island rig not updating');
