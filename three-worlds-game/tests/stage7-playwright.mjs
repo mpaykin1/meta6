@@ -39,6 +39,14 @@ try{
  assert(report.wade.some(v=>v.luma>40),'A: all three daytime shoreline frames too dark');
  report.shore=await page.evaluate(()=>{const i=__isle;return {ground:i.terrainTop(63,32),edge:i.terrainTop(64,32),depth:i.underwater.immersionAt()}});
  assert(Math.abs(report.shore.ground-report.shore.edge)<1,'A: shore vertical seam');
+ // A: sample the ACTUAL running terrainTop function (accepted island + underwater renderer/collision), not a synthetic floor.
+ report.realShore=await page.evaluate(()=>{const i=__isle,out=[];for(let x=58;x<=76;x+=.5){const floor=i.terrainTop(x,32);const depth=i.underwater.immersionAt({x,y:floor+1.7,z:32});out.push({x,floor,depth});}return out});
+ assert(report.realShore[0].depth<=.001&&report.realShore.at(-1).depth>=.999,'A: real shoreline must move from dry to underwater');
+ for(let k=1;k<report.realShore.length;k++){
+  const a=report.realShore[k-1],b=report.realShore[k];assert(b.depth>=a.depth-1e-6&&b.depth-a.depth<.15,'A: abrupt real immersion '+b.x);
+  assert(Math.abs(b.floor-a.floor)/.5<=Math.tan(Math.PI/9)+.002,'A: steep real shoreline '+b.x);
+ }
+ assert(report.realShore.some(v=>v.depth>.1&&v.depth<.4)&&report.realShore.some(v=>v.depth>.55&&v.depth<.9),'A: no intermediate immersion');
  // Five virtual player minutes with evidence every ten seconds; real scene modules advance, no new HUD.
  await mkdir('three-worlds-game/evidence/play',{recursive:true});
  report.play=[];
