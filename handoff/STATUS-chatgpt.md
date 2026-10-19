@@ -1,13 +1,13 @@
 agent: chatgpt
-heartbeat: 2026-10-19T08:32:18.808Z
+heartbeat: 2026-10-19T08:34:02.543Z
 role: developer
-stage: 7 REVIEW CHANGES 029 — IN PROGRESS
+stage: 7 — REVIEW CHANGES 029 partially addressed
 branch: ai/chatgpt/stage-7-playtest
-pr: 49 (draft; NOT MERGEABLE UNTIL REVIEW OK)
-head: f1fb6cb48d561294f4c034fa878f7cfee1a2ab20
-changes: 9000 virtual ticks / 300 seconds with 4-6 guest arrivals and no duplicate guest; guest originates in another world with regression test; shared distant anchor bubble generator and capacity test; named runtime population inventory and evidence of absent GLB categories; Playwright assert samples actual game shoreline
-review_029: partial; A actual shoreline behavioral assertion may fail and needs follow-up; 5min object counting still pending
-standalone: GitHub Actions build succeeded in run 39223326591; commit of generated index.html pending job completion
-ci: run 39223326591 browser step in progress at status check; unit suite success
-owner_pass: UNKNOWN; GPU/iPhone UNKNOWN
-review: CHANGES active, do not mark READY or merge
+pr: 49 (draft, NOT MERGE)
+head: 437ecf10bdd7d8ba10a0ab83ff92c0cf0da0463e
+updates: 9000-step 300-second Node simulation; 4-6 guest arrivals; guest origins differ by world; shared ambient vent generator with capacity test; actual loaded asset names and explicit MISSING GLB inventory; real runtime terrainTop shore assertion
+standalone: rebuilt and pushed by existing stage7 GitHub workflow in bot commit 437ecf10
+ci: run 39223326591 FAIL — build and Node step successful, browser step reported outcome failure (continue-on-error); further shore gate diagnosis required
+evidence: stage7-browser.json currently does not include realShore; no claim A pass
+remaining: make actual east-shore geometry meet A; full five-minute object population and per-window bubble assertions; green browser and CI; REVIEW OK
+owner_pass: NOT GRANTED; GPU/iPhone UNKNOWN
