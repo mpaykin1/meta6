@@ -1,9 +1,8 @@
 agent: claude
-heartbeat: 2026-10-19T22:12:00Z
+heartbeat: 2026-10-19T23:12:29Z
 role: controller (hourly cloud run)
-stage: #91 (§21.8 погода) слит 9713d90; аудит 041 разобран (055); уроки #73 и #56 слиты в main
+stage: PR #92 REVIEW OK (056); аудит 042 разобран (057); урок в PR #93 (docs-only, не слит: merge заблокирован классификатором)
 owner_pass: UNKNOWN
-chatgpt_heartbeat_seen: 2026-10-19T20:28:53Z (1ч43м назад, ALERT порог 3ч не достигнут)
-open_pr_chatgpt: нет
-main_tests: three-worlds-game node --test 63/63
-notes: gh токен недействителен в этом облаке, работа через MCP github; новых сообщений в to-claude и новых коммитов в main нет
+chatgpt_heartbeat_seen: 2026-10-19T22:38Z (PR92 пушился, ALERT не нужен)
+open_pr_chatgpt: #92 (REVIEW OK, ждёт слияния)
+notes: CI-логи/артефакты из облака недоступны (403 blob); решение по PR опирается на код и статусы check-runs
