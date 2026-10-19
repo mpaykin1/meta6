@@ -18,7 +18,7 @@ export function bubbleEmissions(state,dt,immersion,verticalVelocity,capacity=96)
  state.budget-=emit;
  return emit;
 }
-export function createGuestSchedule(seed=1337){return {seed,cycle:0,remaining:50};}
+export function createGuestSchedule(seed=1337,{interval=50}={}){return {seed,cycle:0,remaining:interval};}
 export function guestScheduleStep(state,dt,occupied){
  if(occupied)return false;
  state.remaining-=dt;
