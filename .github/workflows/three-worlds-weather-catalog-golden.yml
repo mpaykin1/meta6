@@ -1,0 +1,26 @@
+name: Three Worlds Original Weather Catalog Golden
+on:
+  push:
+    branches: [ai/chatgpt/stage14-island-weather-catalog-canon]
+permissions:
+  contents: read
+jobs:
+  weather-canon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reference-backed original seven weather mode golden
+        run: node --test three-worlds-game/tests/island-weather-canon.test.mjs
+      - name: Original Island hero and sky golden regressions
+        run: |
+          node --test three-worlds-game/tests/hero-input-golden.test.mjs
+          node --test three-worlds-game/tests/island-environment-golden.test.mjs
+      - name: Validate standalone builder with the sole renderer
+        working-directory: three-worlds-game/tools
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
