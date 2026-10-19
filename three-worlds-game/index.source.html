@@ -490,7 +490,7 @@ import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
 import { createUnderwaterWorld } from './underwater-runtime.js';
-import {shoreSeabedHeight,seabedHeight} from './seabed.mjs';
+import {shoreSeabedHeight,seabedHeight,coastalBeachHeight} from './seabed.mjs';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -1855,18 +1855,19 @@ function groundBelow(px, py, pz) {
   return 0;
 }
 let heightSource = null;
-function terrainTop(px, pz) {
-  const x = Math.floor(px), z = Math.floor(pz);
-  if(px>=64){
-    if(!world)return seabedHeight(px,pz,G.seed);
-    const bz=Math.max(0,Math.min(63,Math.floor(pz)));
-    return shoreSeabedHeight(px,pz,G.seed,world.hgt[63+bz*W]);
-  }
-  if (x < 0 || z < 0 || x >= W || z >= D) if(!heightSource)return 1;
-  const a=Math.floor(px),b=Math.floor(pz),u=px-a,v=pz-b;
-  const h00=heightSource(a,b),h10=heightSource(a+1,b),h01=heightSource(a,b+1),h11=heightSource(a+1,b+1);
-  return u+v<=1?h00+(h10-h00)*u+(h01-h00)*v:h11+(h01-h11)*(1-u)+(h10-h11)*(1-v);
-  return world.hgt[x + z * W];
+function terrainTop(px,pz){
+ const x=Math.floor(px),z=Math.floor(pz),bz=Math.max(0,Math.min(63,z));
+ const seed=G.seed,edge48=world?world.hgt[48+bz*W]:1;
+ if(px>=64){
+  const edge63=world?world.hgt[63+bz*W]:1;
+  const base=world?shoreSeabedHeight(px,pz,seed,edge63):seabedHeight(px,pz,seed);
+  return coastalBeachHeight(px,pz,seed,edge48,base);
+ }
+ if(!heightSource)return 1;
+ const ax=Math.floor(px),az=Math.floor(pz),u=px-ax,v=pz-az;
+ const h00=heightSource(ax,az),h10=heightSource(ax+1,az),h01=heightSource(ax,az+1),h11=heightSource(ax+1,az+1);
+ const base=u+v<=1?h00+(h10-h00)*u+(h01-h00)*v:h11+(h01-h11)*(1-u)+(h10-h11)*(1-v);
+ return coastalBeachHeight(px,pz,seed,edge48,base);
 }
 function rayFree(o, d, maxT) {
   for (let t = 0.9; t < maxT; t += 0.2) {
@@ -2315,7 +2316,7 @@ function physicsStep(h) {
   const p = player.pos, v = player.vel;
   if(UW.inBathyscaphe)return flightStep(player,h,terrainTop,(x,y,z)=>ashWorld?.blocks(x,y,z));
   if (UW.isSubmerged(p)) return UW.physicsStep(h);
-  if(p.x<0||p.z<0||p.x>=W||p.z>=D){
+  if(p.x<0||p.z<0||p.x>=W||p.z>=D||(p.x>=48&&p.x<64&&Math.abs(p.z-32)<19)){
     const nx=p.x+v.x*h,nz=p.z+v.z*h,gy=terrainTop(nx,nz);
     if(!ashWorld?.blocks(nx,p.y,nz)&&(!player.onGround||gy-p.y<1.05)){p.x=nx;p.z=nz}else{v.x=v.z=0}
     v.y=Math.max(-28,v.y-PL.grav*h);p.y+=v.y*h;
@@ -2807,6 +2808,7 @@ function buildWorld(seed) {
   ashWorld?.dispose();
   ashWorld=createAshWorld({THREE,scene,player,terrainHeight:terrainTop,skyU,seed});
   buildChunks();
+  rebuildBeachPatch();
   riftStory?.dispose();
   riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
@@ -4325,7 +4327,7 @@ function renderFoes() {
 const CH = 16, NCH = (W / CH) * (D / CH);
 let chunks = [];
 const dirtyChunks = new Set();
-let terrainWindow = null;
+let terrainWindow = null,beachPatch=null;
 const worlds = new WorldManager();
 for(const id of ['island','ash','water'])worlds.register(id,{init(){},update(dt,p){terrainWindow?.update(p.x,p.z)},dispose(){}});
 function buildExtensionGeometry(cx,cz){
@@ -4337,6 +4339,27 @@ function buildExtensionGeometry(cx,cz){
  }
  for(let z=0;z<16;z++)for(let x=0;x<16;x++){const i=x+z*17;indices.push(i,i+17,i+1,i+1,i+17,i+18)}
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setAttribute('aCut',new THREE.Float32BufferAttribute(new Float32Array(pos.length/3),1));g.setIndex(indices);g.computeVertexNormals();return g;
+}
+// The existing core voxel chunk remains untouched; this narrow sand apron makes the
+// real collision surface visible on the 48..64 side of the accepted island.
+function rebuildBeachPatch(){
+ if(beachPatch){scene.remove(beachPatch);beachPatch.geometry.dispose();beachPatch=null;}
+ const x0=48,z0=13,w=16,d=38,pos=[],uv=[],col=[],idx=[];
+ for(let z=0;z<=d;z++)for(let x=0;x<=w;x++){
+  const wx=x0+x,wz=z0+z,y=terrainTop(wx,wz);
+  pos.push(wx,y+.035,wz);uv.push(x*.02,z*.02);
+  col.push(.86,.81,.67);
+ }
+ for(let z=0;z<d;z++)for(let x=0;x<w;x++){
+  const i=x+z*(w+1);idx.push(i,i+w+1,i+1,i+1,i+w+1,i+w+2);
+ }
+ const geo=new THREE.BufferGeometry();
+ geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+ geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+ geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+ geo.setAttribute('aCut',new THREE.Float32BufferAttribute(new Float32Array(pos.length/3),1));
+ geo.setIndex(idx);geo.computeVertexNormals();
+ beachPatch=new THREE.Mesh(geo,terrainMat);scene.add(beachPatch);
 }
 function buildChunks() {
   terrainWindow?.clear();
