@@ -46,7 +46,7 @@ try {
     canvasCount:document.querySelectorAll('canvas').length,
     scroll:[scrollX,scrollY],kind:__isle.weatherFX.snapshot().kind,
     rendererPrograms:__isle.renderer.info.programs?.length||0,
-    hiddenStick:getComputedStyle(document.querySelector('#v7Stick')).display==='none'
+    hiddenStick:!document.querySelector('#v7Stick')||getComputedStyle(document.querySelector('#v7Stick')).display==='none'
    }));
    assert(initial.rendererIsCanvas&&initial.weatherObjects===1,'unexpected scene/renderer duplication');
    assert.equal(initial.kind,'sea_mist','island must auto-select only canonical sea_mist');
