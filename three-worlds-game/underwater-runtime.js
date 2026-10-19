@@ -1,5 +1,8 @@
 import {usesSurfaceTerrain} from './world-core.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
+import {immersionAt,swimVertical,bubbleEmissions} from './stage7-simulation.mjs';
+import {seabedHeight} from './seabed.mjs';
+export {seabedHeight} from './seabed.mjs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const CHUNK=24;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -8,15 +11,6 @@ function hash(x,z,s){let n=Math.imul(x|0,374761393)^Math.imul(z|0,668265263)^Mat
 function noise(x,z,s){const a=Math.floor(x),b=Math.floor(z),u=smooth(0,1,x-a),v=smooth(0,1,z-b);
  return (hash(a,b,s)*(1-u)+hash(a+1,b,s)*u)*(1-v)+(hash(a,b+1,s)*(1-u)+hash(a+1,b+1,s)*u)*v;}
 const fbm=(x,z,s)=>noise(x,z,s)*.56+noise(x*2.03,z*2.03,s+9)*.3+noise(x*4.07,z*4.07,s+13)*.14;
-export function seabedHeight(x,z,seed=1337){
- const off=Math.max(0,-x,x-64,-z,z-64),gx=Math.round((x-128)/220),gz=Math.round((z-128)/220);
- let y=1+(fbm(x*.10,z*.10,seed)-.5)*.7-smooth(0,30,off)*6.5;
- for(let iz=gz-1;iz<=gz+1;iz++)for(let ix=gx-1;ix<=gx+1;ix++){
-  const cx=128+ix*220+(hash(ix,iz,seed)-.5)*60,cz=128+iz*220+(hash(ix,iz,seed+1)-.5)*60;
-  y+=smooth(1.5,.05,Math.hypot((x-cx)/25,(z-cz)/25))*12*smooth(55,85,off);
- }
- return Math.max(-12,y);
-}
 const QUESTS=[
  ['bell','Голос колокола','Найди соборный колокол на морском дне и прикоснись к нему.',[[75,34]]],
  ['shard','Карта погибшего города','Собери три осколка карты в разных руинах.',[[81,34],[89,27],[96,42]]],
@@ -26,7 +20,8 @@ const QUESTS=[
 ];
 const within=(p,x,z,r=4)=>Math.hypot(p.x-x,p.z-z)<r;
 export function createUnderwaterWorld(o) {
- const {THREE,scene,player,atlas,hero,SEA,seed,toast,getWeapon,getArsenal,getAmmo,getAim}=o;
+ const {THREE,scene,player,atlas,hero,SEA,toast,getWeapon,getArsenal,getAmmo,getAim}=o;
+ let seed=o.getSeed?.()??o.seed;
  const loader=new GLTFLoader(),chunks=new Map(),models=new Map(),creatures=[],mixers=new Set();
  const inside=(x,z)=>x>=0&&x<64&&z>=0&&z<64;
  const floor=(x,z)=>usesSurfaceTerrain(x,z) ? (o.surfaceHeight ? o.surfaceHeight(x,z) : o.terrainTop(x,z)) : seabedHeight(x,z,seed);
@@ -94,7 +89,7 @@ export function createUnderwaterWorld(o) {
   ['angler',78,44,1.2]
  ];
  const fixtures=[];
- landmarks.forEach(([id,x,z,size])=>{const holder=new THREE.Group();holder.position.set(x,0,z);scene.add(holder);addModel(holder,id,size,0,0,0,hash(x,z,seed)*6.28);fixtures.push({holder,x,z})});
+ landmarks.forEach(([id,x,z,size])=>{const holder=new THREE.Group();holder.position.set(x,0,z);scene.add(holder);addModel(holder,id,size,0,0,0,hash(x,z,seed)*6.28);fixtures.push({holder,x,z,id})});
  function chunk(cx,cz){
   const group=new THREE.Group(),pos=[],col=[],uv=[],faces=[],tickets=[];
   const corners=[[0,0],[1,0],[1,1],[0,1]];
@@ -125,7 +120,7 @@ export function createUnderwaterWorld(o) {
    const name=choices[Math.floor(hash(x,z,seed+5)*choices.length)];
    tickets.push(addModel(group,name,name==='cathedral_tower'?2.8:name==='arch'?1.8:1.1,x+.5,y,z+.5,hash(z,x,seed)*6.28));
   }
-  for(let i=0;i<3;i++){
+  for(let i=0;i<7;i++){
    const x=cx*CHUNK+3+hash(cx*13+i,cz*17-i,seed)*18,z=cz*CHUNK+3+hash(cx*29-i,cz*31+i,seed)*18;
    if(inside(x,z))continue;
    const fy=floor(x,z);if(fy>=SEA-1.7)continue;
@@ -148,15 +143,12 @@ export function createUnderwaterWorld(o) {
   }
   for(let i=creatures.length-1;i>=0;i--)if(!keep.has(creatures[i].chunk))creatures.splice(i,1);
  }
- function immersionAt(p=player.pos){return clamp((SEA+1.25-p.y)/2.7,0,1)*clamp((SEA-floor(p.x,p.z))/.8,0,1);}
- function isSubmerged(p=player.pos){return immersionAt(p)>.01;}
+ function immersionAtPlayer(p=player.pos){return immersionAt(SEA,p.y,floor(p.x,p.z));}
+ function isSubmerged(p=player.pos){return immersionAtPlayer(p)>.01;}
  function physicsStep(h){
-  const p=player.pos,v=player.vel,vy=player.jumpHeld?2.0:-.72;
-  v.y+=(vy-v.y)*clamp(h*3.6,0,1);p.x+=v.x*h;p.z+=v.z*h;
-  const gy=floor(p.x,p.z);p.y=clamp(p.y+v.y*h,gy+.08,Math.max(gy+.08,SEA+.55));
-  player.onGround=p.y<=gy+.09;
-  if(player.onGround)v.y=Math.max(0,v.y);
-  if(p.y>=SEA+.5)v.y=Math.min(0,v.y);
+  const p=player.pos,v=player.vel;
+  p.x+=v.x*h;p.z+=v.z*h;
+  swimVertical(player,h,floor(p.x,p.z),SEA);
   return 0;
  }
  function toggleBathyscaphe(){
@@ -214,9 +206,11 @@ export function createUnderwaterWorld(o) {
   mini.strokeStyle='#081c23';mini.strokeRect(61,61,6,6);
  }
  function update(dt){
-  time+=dt;const wet=isSubmerged();immersion+=(immersionAt()-immersion)*clamp(dt*3.5,0,1);
-  bubbleBudget+=dt*(immersion>0.04?(8+Math.abs(player.vel.y)*29)*immersion:0);
-  for(let i=0,n=Math.min(24,Math.floor(bubbleBudget));i<n;i++){const jitter=hash(i,Math.floor(time*80),seed);emitBubble(player.pos.x+(jitter-.5)*.85,player.pos.y-.3,player.pos.z+(hash(i,Math.floor(time*90),seed)-.5)*.85);bubbleBudget-=1;}
+  const newSeed=o.getSeed?.()??seed;
+  if(newSeed!==seed){seed=newSeed;lastChunk='';for(const [key,g] of chunks){g.userData.tickets.forEach(x=>{x.live=false;if(x.mixer)mixers.delete(x.mixer)});g.children.forEach(x=>x.geometry?.dispose());scene.remove(g)}chunks.clear();creatures.length=0;}
+  time+=dt;const wet=isSubmerged();immersion+=(immersionAtPlayer()-immersion)*clamp(dt*3.5,0,1);
+  const bubbles={budget:bubbleBudget};const newBubbles=bubbleEmissions(bubbles,dt,immersion,player.vel.y,bubbleCapacity);bubbleBudget=bubbles.budget;
+  for(let i=0,n=newBubbles;i<n;i++){const jitter=hash(i,Math.floor(time*80),seed);emitBubble(player.pos.x+(jitter-.5)*.85,player.pos.y-.3,player.pos.z+(hash(i,Math.floor(time*90),seed)-.5)*.85);}
   bubbleActive=updateBubbles(dt);
   for(const f of fixtures)f.holder.position.y=floor(f.x,f.z)+.4;
   if(wet)for(const [id,x,z]of [['bell',75,34],['ruins',89,27],['wreck',101,31]])if(!repair.has(id)&&within(player.pos,x,z,4)){repair.add(id);toast('Деталь батискафа '+repair.size+'/3',2200)}
@@ -255,8 +249,14 @@ export function createUnderwaterWorld(o) {
    c.phase=c.brain.phase;
   }
  }
- return {groundHeight:floor,isSubmerged,immersionAt,physicsStep,
+ return {groundHeight:floor,isSubmerged,immersionAt:immersionAtPlayer,physicsStep,
   get bubbleCount(){return bubbleActive;},
+  population(radius=40){const p=player.pos,near=(x,z)=>Math.hypot(x-p.x,z-p.z)<=radius;
+   return {ruins:fixtures.filter(f=>near(f.x,f.z)&&/cathedral|arch|angel/.test(f.id)).length,
+    wrecks:fixtures.filter(f=>near(f.x,f.z)&&/wreck|ship/.test(f.id)).length,
+    fish:creatures.filter(c=>c.holder.visible&&near(c.holder.position.x,c.holder.position.z)).length,
+    plants:fixtures.filter(f=>near(f.x,f.z)&&/coral|kelp|seagrass/.test(f.id)).length+chunks.size*5};
+  },
   update,toggleBathyscaphe,canFire,onShot,interact,
   get repairParts(){return repair.size;},get inBathyscaphe(){return bathy;},get chunks(){return chunks.size;},
   get creatures(){return creatures.length;},get questIndex(){return qi;}};
