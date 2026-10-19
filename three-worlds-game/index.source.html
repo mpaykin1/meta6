@@ -4961,6 +4961,7 @@ window.__isle = {
   // V5 direct access to original 3D runtime for Claude and the historical editor.
   scene, camera, THREE, renderer, canvas, atlasTex, heroTex, heroGeo, SEA, SFX,
   get rifts(){return riftStory}, worlds, terrainWindow:()=>terrainWindow, terrainTop, get terrainMeshes(){return chunks},
+  get inputPointers(){return {stickId:touch.stickId,camId:touch.camId,vx:touch.vx,vy:touch.vy}},
   spawnFoe(type,x,z){return spawnFoe(type,x,terrainTop(x,z)+1.1,z,true)},
   pause:setPaused, toggleMute, toggleFullscreen,
   hurtBy:(amount,x,z)=>hurt(amount,x,z),
