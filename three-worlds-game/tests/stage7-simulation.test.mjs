@@ -34,3 +34,11 @@ test('E: pure scheduler re-arms after guest completion (game outcomes checked in
  let second=false;for(let i=0;i<22*60;i++)second ||=guestScheduleStep(s,1/60,false);
  assert(second);assert.equal(s.cycle,1);assert.equal(count,1);
 });
+
+test('E: debug schedule triggers after five seconds without UI',()=>{
+ const state=createGuestSchedule(1337,{interval:5});let count=0;
+ for(let k=0;k<150;k++)if(guestScheduleStep(state,1/30,false))count++;
+ assert.equal(count,1);assert.equal(state.remaining,Infinity);
+ for(let k=0;k<90;k++)assert.equal(guestScheduleStep(state,1/30,true),false);
+ const next=finishGuestSchedule(state);assert(next>=50&&next<=70);
+});
