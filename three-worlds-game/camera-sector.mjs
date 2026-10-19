@@ -1,6 +1,6 @@
 // Pure, frame-rate-independent camera dead-zone control for phone PERSON mode.
-// World position is immutable inside central 40% screen square (NDC ±0.4).
-export const DEAD_NDC=.40;
+// World position remains fixed until the hero reaches the outermost 14% edge (NDC ±.86).
+export const DEAD_NDC=.86;
 export function cameraSectorDelta(ndcX,ndcY,yaw,dist,aspect,fov,dt){
  const x=Math.abs(ndcX)<=DEAD_NDC?0:ndcX-Math.sign(ndcX)*DEAD_NDC;
  const y=Math.abs(ndcY)<=DEAD_NDC?0:ndcY-Math.sign(ndcY)*DEAD_NDC;
