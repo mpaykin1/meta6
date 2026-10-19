@@ -69,11 +69,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Prepare reproducible build lock and install dependencies
+      - name: Install pinned build dependencies
         working-directory: three-worlds-game/tools
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm ci --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Assemble standalone offline game
         id: build
         working-directory: three-worlds-game/tools
