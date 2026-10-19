@@ -492,6 +492,7 @@ import {createLivingPopulation,LAND_ARMORY_IDS} from './living-population.mjs';
 import {createCameraRig} from './camera-rig.mjs';
 import {createIslandInput,createIslandHero,createIslandGroundGrip} from './hero-controls.mjs';
 import {createIslandEnvironment} from './island-environment.mjs';
+import {createIslandWeatherFX} from './island-weather-fx.mjs';
 import {voxelSample,buildGreedyVoxelChunk} from './voxel-terrain.mjs';
 import {createAshWorld,ashWeight} from './ash-world.mjs';
 import { lootPlacement } from './creature-brain.mjs';
@@ -1502,6 +1503,8 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 16),
   new THREE.ShaderMaterial({ uniforms: skyU, vertexShader: SKY_VERT, fragmentShader: SKY_FRAG, side: THREE.BackSide, depthWrite: false, depthTest: false }));
 sky.renderOrder = -10; sky.frustumCulled = false;
 scene.add(sky);
+// §21.8: the canonical GPU weather uses THIS scene, camera, composer and frame loop.
+const weatherFX=createIslandWeatherFX({THREE,scene,camera});
 
 // lights: hemisphere + key (sun / moon) + companion wisp + beacon
 const hemi = new THREE.HemisphereLight(0xffffff, 0x222222, 1.5);
@@ -4837,6 +4840,7 @@ function frame(now) {
   worlds.update(raw,player.pos);
   chunks=[...terrainWindow.items.values()];
   UW.update(raw);
+  weatherFX.update(raw,worldId,UW.isSubmerged(),G.time,renderer.domElement.height);
   ashWorld?.update(raw);
   livingIsland?.update(player.pos);
   if(play&&!UW.isSubmerged()&&!UW.inBathyscaphe){
@@ -4913,6 +4917,7 @@ window.__isle = {
   get livingLand(){return {islandChunks:livingIsland?.chunks||0,ashChunks:ashWorld?.chunks||0,ashPopulation:ashWorld?.population||0,plan:(x,z)=>livingIsland?.density(x,z),biome:(x,z)=>landBiomeAt(x,z,G.seed)}},
   get worldLife(){return {npcs:livingPopulation?.npcs||0,weapons:livingPopulation?.nearbyWeapons||0,sector:livingPopulation?.sector||null,plan:livingPopulation?.plan||null}},
   get inputPointers(){return {stickId:touch.stickId,camId:touch.camId,vx:touch.vx,vy:touch.vy}},
+  weatherFX: {select:kind=>weatherFX.select(kind),snapshot:()=>weatherFX.snapshot()},
   get cameraRig(){return {yaw:rig.yaw,pitch:rig.pitch,dist:rig.dist,pos:rig.pos.toArray(),look:rig.look.toArray(),eff:rig.eff,lift:rig.lift,spin:rig.spin,pspin:rig.pspin,blend:rig.blend}},
   spawnFoe(type,x,z){return spawnFoe(type,x,terrainTop(x,z)+1.1,z,true)},
   pause:setPaused, toggleMute, toggleFullscreen,
