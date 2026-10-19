@@ -1,26 +1,53 @@
 name: Three Worlds Original Weather Catalog Golden
 on:
   push:
-    branches: [ai/chatgpt/stage14-island-weather-catalog-canon]
+    branches: [ai/chatgpt/stage14-island-weather-catalog-canon, ai/chatgpt/stage16-island-weather-renderer]
 permissions:
-  contents: read
+  contents: write
 jobs:
   weather-canon:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 9
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Reference-backed original seven weather mode golden
-        run: node --test three-worlds-game/tests/island-weather-canon.test.mjs
-      - name: Original Island hero and sky golden regressions
-        run: |
-          node --test three-worlds-game/tests/hero-input-golden.test.mjs
-          node --test three-worlds-game/tests/island-environment-golden.test.mjs
-      - name: Validate standalone builder with the sole renderer
+      - name: Install pinned offline game dependencies
         working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Shared original seven weather modes and <=600-step Island golden
         run: |
-          npm ci --no-audit --no-fund
-          npm run build
+          set -euo pipefail
+          node --test three-worlds-game/tests/*.test.mjs
+      - name: Rebuild the one standalone HTML using original THREE scene/renderer
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Install browser for real original two-finger and mutation proof
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real game smoke (owner controls, environment, rain shaders, mobile)
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node three-worlds-game/tests/owner042-044-browser.mjs
+          mkdir -p three-worlds-game/evidence
+          node three-worlds-game/tests/owner-2111-touch-mutation-browser.mjs | tee three-worlds-game/evidence/owner-2111-mutation-proof.txt
+      - name: Save regenerated standalone and evidence only after green tests
+        if: github.ref_name == 'ai/chatgpt/stage16-island-weather-renderer'
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html three-worlds-game/evidence/owner-2111-mutation-proof.txt
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'build(stage16): verified standalone Island weather and mobile mutation proof'
+          git fetch origin ai/chatgpt/stage16-island-weather-renderer
+          git rebase origin/ai/chatgpt/stage16-island-weather-renderer
+          git push origin HEAD:ai/chatgpt/stage16-island-weather-renderer
