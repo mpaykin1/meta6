@@ -4,19 +4,19 @@ import {mkdir,writeFile} from 'node:fs/promises';
 const browser=await chromium.launch({headless:true,args:['--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,hasTouch:true,isMobile:true}),errors=[];
 page.on('pageerror',e=>errors.push(e.message));
-const checks={browserLockPass:false,cameraLockPass:false,mobilePass:false,worldLifePass:false,riftPass:false,desktopPass:'NOT_RUN',realPagesPass:'NOT_RUN',ownerPass:'UNKNOWN'};
+const checks={browserLockPass:false,cameraCanonPass:false,mobilePass:false,worldLifePass:false,riftPass:false,desktopPass:'NOT_RUN',realPagesPass:'NOT_RUN',ownerPass:'UNKNOWN'};
 const url='http://127.0.0.1:8765/three-worlds-game/';
 try{
  await page.goto(url,{waitUntil:'domcontentloaded',timeout:25000});
  await page.waitForFunction(()=>!!window.__isle?.worldLife&&!!document.querySelector('#v7Stick'),{timeout:20000});
  await page.evaluate(()=>{if(__isle.G.state==='title')__isle.startGame();__isle.killFoes();});
  await page.locator('#v7Stick').waitFor({state:'visible',timeout:15000});
- // Measure joystick displacement ONLY after a real PLAY frame has initialized the locked camera.
+ // Measure joystick displacement after the real PLAY camera rig has updated.
  // This is synchronization, not a timeout-based assertion bypass.
- await page.waitForFunction(()=>__isle.G.state==='play'&&__isle.cameraLock.active,{timeout:20000});
+ await page.waitForFunction(()=>__isle.G.state==='play'&&!!__isle.cameraRig,{timeout:20000});
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  const before=await page.evaluate(()=>({scroll:[scrollX,scrollY],r:document.querySelector('#c').getBoundingClientRect().toJSON(),
-   camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),Gstate:__isle.G.state,yaw:__isle.rig.y,lock:__isle.cameraLock,Gstate:__isle.G.state,
+   camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),Gstate:__isle.G.state,yaw:__isle.rig.y,lock:__isle.cameraRig,Gstate:__isle.G.state,
    width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight,
    inner:[innerWidth,innerHeight]}));
  const center=await page.locator('#v7Stick').boundingBox();
@@ -27,7 +27,7 @@ try{
  await page.waitForTimeout(420);
  const during=await page.evaluate(()=>({scroll:[scrollX,scrollY],r:document.querySelector('#c').getBoundingClientRect().toJSON(),
   camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),
-  input:__isle.inputPointers,lock:__isle.cameraLock,
+  input:__isle.inputPointers,lock:__isle.cameraRig,
   width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}));
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  await page.waitForTimeout(90);
@@ -40,13 +40,14 @@ try{
  assert(during.input.vx>.15,'actual touch joystick did not feed player controls');
  assert(after.input.vx===0&&after.input.vy===0,'joystick stuck after release');
  checks.mobilePass=true;
- assert(during.lock.active,'character camera lock disabled');
+ assert(Number.isFinite(during.lock.pos[0]),'shared Island rig not updating');
  const drift=Math.hypot(...during.camera.map((v,i)=>v-before.camera[i]));
  const walk=Math.hypot(during.hero[0]-before.hero[0],during.hero[2]-before.hero[2]);
  assert(walk>.008,'hero did not move from joystick');
  console.log('CAMERA_STICK_DEBUG '+JSON.stringify({before,during,after,drift,walk}));
- assert(drift<.1,'camera translated with joystick: '+drift);
- checks.cameraLockPass=true;
+ assert(drift>.005,'canonical camera failed to smoothly follow the hero');
+ assert(drift<Math.max(2,walk*5),'canonical camera jumped abruptly');
+ checks.cameraCanonPass=true;
  // Three real terrain samples; proofs are counts of actual scene brains, original foes and pickup objects.
  const worldSamples=[];
  for(const x of [20,145,-92]){
