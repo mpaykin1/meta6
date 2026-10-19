@@ -1,6 +1,6 @@
 import {usesSurfaceTerrain} from './world-core.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
-import {immersionAt,swimVertical,bubbleEmissions} from './stage7-simulation.mjs';
+import {immersionAt,swimVertical,bubbleEmissions,ambientBubbleAnchors,namedAssetInventory} from './stage7-simulation.mjs';
 import {seabedHeight} from './seabed.mjs';
 export {seabedHeight} from './seabed.mjs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -217,10 +217,7 @@ export function createUnderwaterWorld(o) {
   for(let i=0,n=newBubbles;i<n;i++){const jitter=hash(i,Math.floor(time*80),seed);emitBubble(player.pos.x+(jitter-.5)*.85,player.pos.y-.3,player.pos.z+(hash(i,Math.floor(time*90),seed)-.5)*.85);}
   // Ambient vents from existing wrecks and stone ruins use the same fixed-size pool.
   const ventTick=Math.floor(time/.4);
-  if(ventTick!==Math.floor((time-dt)/.4))for(let j=0;j<fixtures.length;j++){
-   const a=fixtures[j];if(!/wreck|cathedral|arch/.test(a.id)||Math.hypot(a.x-player.pos.x,a.z-player.pos.z)>40)continue;
-   if(hash(j,ventTick,seed)<.7)emitBubble(a.x+(hash(ventTick,j,seed)-.5),floor(a.x,a.z)+.4,a.z);
-  }
+  if(ventTick!==Math.floor((time-dt)/.4))for(const a of ambientBubbleAnchors(fixtures.map(f=>({id:f.id,x:f.x,z:f.z,y:floor(f.x,f.z)+.4})),player.pos,seed,ventTick))emitBubble(a.x,a.y,a.z);
   bubbleActive=updateBubbles(dt);
   waterFill.intensity=1.25*immersion;
   waterScatter.intensity=1.8*immersion;
@@ -269,7 +266,7 @@ export function createUnderwaterWorld(o) {
    for(const f of fixtures)if(f.holder.children.length&&near(f.x,f.z))visible.push(f.id);
    for(const group of chunks.values())for(const t of group.userData.tickets)
     if(t.live&&t.loaded&&near(t.x,t.z))visible.push(t.name);
-   return {ruins:visible.filter(id=>/cathedral|arch|angel/.test(id)).length,
+   return {...namedAssetInventory(visible),ruins:visible.filter(id=>/cathedral|arch|angel/.test(id)).length,
     wrecks:visible.filter(id=>/wreck|ship/.test(id)).length,
     fish:creatures.filter(c=>c.holder.visible&&c.holder.children.length>0&&near(c.holder.position.x,c.holder.position.z)).length,
     plants:visible.filter(id=>/coral|kelp|seagrass/.test(id)).length};
