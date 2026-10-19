@@ -31,6 +31,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   guest={mesh:m,brain:createBrain('original-scavenger',{x,z},seed),home:'ash',landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false};
   toast(line(guest,'neutral'),4200);
  }
+ function finishGuest(g){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;nextGuestIn=50+(((Math.sin((++guestCycle+seed)*12.9898)*43758.5453)%1+1)%1)*20;}
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
   for(let i=0;i<portals.length;i++){const p=portals[i],m=meshes[i];m.lookAt(camera.position.x,m.position.y,camera.position.z);if(cooldown===0&&Math.hypot(player.pos.x-p.x,player.pos.z-p.z)<1.5&&Math.abs(player.pos.y-height(p.x,p.z))<3)travel(p)}
@@ -40,13 +41,13 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   if(!g.landed){g.fall+=dt*9;p.y-=g.fall*dt;if(p.y<=floor+1.6){p.y=floor+1.6;g.landed=true;onTransition(.1)}}
   else{
    const attack=attacking();if(attack&&distance<3&&g.damageClock===0){g.brain.hp-=12;g.brain.relation='hostile';g.damageClock=.7;toast(line(g,'hostile'),2600)}
-   if(g.brain.hp<=0){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;nextGuestIn=50+((Math.sin((++guestCycle+seed)*12.9898)*43758.5453)%1+1)%1*20;return}
+   if(g.brain.hp<=0){finishGuest(g);return}
    if(g.brain.relation==='neutral'&&distance<2.6&&!attack){g.help+=dt;if(g.help>2){g.brain.relation='friend';toast(line(g,'friend'),2800)}}
    if(g.brain.relation==='neutral'&&g.age>25&&distance>13)g.brain.relation='hostile';
    stepBrain(g.brain,p,dt,{player:player.pos,height:(x,z)=>height(x,z)+1.6,sea:3.8});
    if(g.brain.relation==='hostile'&&distance<2&&g.damageClock===0){onAttack();g.damageClock=2}
    if(g.brain.relation==='friend'&&player.pos.x<-64&&!g.rewarded){g.rewarded=true;reward();toast(guestLine('ash','ash','home'),3200)}
-   if(g.rewarded){g.brain.relation='neutral';g.brain.state='wander';g.brain.target={x:-126,z:32};g.brain.clock=5;if(Math.hypot(p.x+126,p.z-32)<2){scene.remove(g.mesh);g.mesh.geometry.dispose();g.mesh.material.dispose();guest=null;return}}
+   if(g.rewarded){g.brain.relation='neutral';g.brain.state='wander';g.brain.target={x:-126,z:32};g.brain.clock=5;if(Math.hypot(p.x+126,p.z-32)<2){finishGuest(g);return}}
   }
   g.mesh.rotation.y=Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
   g.mesh.material.uniforms.frame.value=Math.floor(g.brain.phase*8)%8;
