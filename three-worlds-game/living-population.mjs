@@ -35,12 +35,15 @@ export function createLivingPopulation({THREE,scene,player,height,sea,seed,spawn
  const factory=createAshFactory(THREE),def=factory.models.find(v=>v.id==='scavenger');
  if(!def)throw Error('Original scavenger absent');
  if(LAND_ARMORY_IDS.some(id=>!weaponIds.includes(id)))throw Error('Original 20 weapons missing');
- let active=[],current='',elapsed=0,plan=null;
+ let active=[],current='',elapsed=0,plan=null,sectorEnemies=[];
  const harvested=new Set(),enemiesBySector=new Map();
  function clear(){for(const n of active){scene.remove(n.inst.root);n.inst.mat?.dispose()}active=[];}
  function sector(p){return [Math.floor(p.x/42),Math.floor(p.z/42),lifeRegion(p.x,p.z,sea,height,seed)].join(':')}
  function enter(p){
-  const key=sector(p);if(key===current)return;clear();current=key;
+  const key=sector(p);if(key===current)return;clear();
+  for(let i=loot.length-1;i>=0;i--)if(loot[i].lifeTag)loot.splice(i,1);
+  for(const f of sectorEnemies){f.hp=0;f.state='dissolve'}sectorEnemies=[];
+  current=key;
   // Every 42m sector has a complete original armory; IDs survive revisits.
   plan=lifePlan(p.x,p.z,seed,height,sea);
   if(plan.region==='water')return;
@@ -55,7 +58,7 @@ export function createLivingPopulation({THREE,scene,player,height,sea,seed,spawn
    active.push({inst,brain:createBrain('scavenger-'+key+'-'+i,{x:q.x,z:q.z},seed+i),pos:inst.root.position});
   }
   // Existing original foes are spawned by native combat path, never stand-ins.
-  for(const w of plan.enemies)spawnEnemy(w.id,w.x,w.y+1.2,w.z);
+  for(const w of plan.enemies){const f=spawnEnemy(w.id,w.x,w.y+1.2,w.z);if(f)sectorEnemies.push(f)}
  }
  function update(dt){
   elapsed+=dt;
@@ -67,10 +70,10 @@ export function createLivingPopulation({THREE,scene,player,height,sea,seed,spawn
   }
   factory.uniforms.uTime.value=elapsed;
   // Actual original enemies move and attack via updateFoes().
-  if(plan&&Math.floor(elapsed*2)!==Math.floor((elapsed-dt)*2)){
+  if(plan&&Math.floor(elapsed/8)!==Math.floor((elapsed-dt)/8)){
    const nearby=getEnemies().filter(f=>Math.hypot(f.segs[0].x-player.pos.x,f.segs[0].z-player.pos.z)<25);
    if(nearby.length<REQUIRED_LIFE.enemies)for(let i=0;i<REQUIRED_LIFE.enemies-nearby.length;i++){
-    const q=plan.enemies[i%plan.enemies.length];if(q)spawnEnemy(q.id,q.x,q.y+1.2,q.z);
+    const q=plan.enemies[i%plan.enemies.length];if(q){const f=spawnEnemy(q.id,q.x,q.y+1.2,q.z);if(f)sectorEnemies.push(f);}
    }
   }
  }
