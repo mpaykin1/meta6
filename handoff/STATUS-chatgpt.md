@@ -56,8 +56,9 @@ stage17_branch: ai/chatgpt/stage17-weather-visual-proof
 stage17_head: 9c7c0275a31c510afe2edef8bf4fd317c3469432
 stage17_base: 0a54c7a0aea59297a572bcb9f9ab8aaa0d4fa16f (live main after PR91 9713d90 plus newer docs)
 stage17_scope: new actual Playwright desktop/mobile 7-mode screenshot test; real WebGL OFF/ON GPU pixel-causality per mode, GLSL/console and scroll guards; artifact upload in existing weather CI; shared positive+mutation native mobile joystick predicate
-stage17_weather_ci: https://github.com/mpaykin1/meta6/actions/runs/39335857911 (running at status update; verify conclusion before merge)
-stage17_smoke_ci: https://github.com/mpaykin1/meta6/actions/runs/39335861697 (running at status update)
+stage17_weather_ci: https://github.com/mpaykin1/meta6/actions/runs/39335857911 SUCCESS (14 real Playwright PNG + manifest; 7/7 GPU OFF/ON pixel diff >=69; no shader errors, original goldens and shared positive/mutation native touch)
+stage17_smoke_ci: https://github.com/mpaykin1/meta6/actions/runs/39335861697 SUCCESS desktop/mobile smoke
 stage17_claude_review_request: handoff/to-claude/045-stage17-weather-visual-review-request.md
 stage17_provenance_gap: OPEN — original reference/island-canon/engine/86_events.js absent; test proves only current temporary renderer GPU visibility, NOT source pixel parity or full owner-approved Weather Lab V3 11 modes; only sea_mist/ash automatic; owner PASS unknown; physical iPhone UNKNOWN
-stage17_merge_gate: Claude reviewer independent verdict + current head green CI + artifact screenshots inspected
+stage17_visual_artifact: https://github.com/mpaykin1/meta6/actions/runs/39335857911/artifacts/12226103744 (15 files, 14 actual screenshots; retention expires 2026-11-02)
+stage17_merge_gate: current head 9c7c027 green weather+smoke CI; awaiting Claude independent REVIEW OK and artifact inspection; not merged
