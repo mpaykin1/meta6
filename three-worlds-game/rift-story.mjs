@@ -138,5 +138,5 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
  }
  function dispose(){onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
- return {update,dispose,travel,portals,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get guest(){return guest},get guestTimer(){return {...event.state,remaining:event.state.remaining}}};
+ return {update,dispose,travel,portals,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get guestTimer(){return {...event.state,remaining:event.state.remaining}}};
 }
