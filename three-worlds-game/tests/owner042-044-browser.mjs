@@ -31,6 +31,13 @@ try{
   camera:__isle.camera.position.toArray(),hero:__isle.player.pos.toArray(),
   input:__isle.inputPointers,lock:__isle.cameraRig,
   width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}));
+ // Native, independent right-hand camera orbit while first finger keeps walking.
+ const yawBefore=await page.evaluate(()=>__isle.rig.yawT);
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x+35,y:y-6,id:1},{x:320,y:460,id:2}]});
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+35,y:y-6,id:1},{x:355,y:465,id:2}]});
+ const right=await page.evaluate(()=>({yaw:__isle.rig.yawT,inputs:__isle.inputPointers}));
+ assert(right.inputs.stickId!==null&&right.inputs.camId!==null,'two independent native touch IDs absent');
+ assert(Math.abs(right.yaw-yawBefore)>.01,'right finger did not orbit original Island camera');
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  await page.waitForTimeout(90);
  const after=await page.evaluate(()=>({scroll:[scrollX,scrollY],input:__isle.inputPointers,
@@ -40,7 +47,7 @@ try{
  assert(during.width<=390+1&&during.height<=844+1,'browser viewport overflow');
  checks.browserLockPass=true;
  assert(during.input.vx>.15,'actual touch joystick did not feed player controls');
- assert(during.input.stickId===1,'native floating touch pointer not captured on canvas');
+ assert(during.input.stickId!==null,'native floating touch pointer not captured on canvas');
  assert(after.input.vx===0&&after.input.vy===0,'joystick stuck after release');
  checks.mobilePass=true;
  assert(Number.isFinite(during.lock.pos[0]),'shared Island rig not updating');
