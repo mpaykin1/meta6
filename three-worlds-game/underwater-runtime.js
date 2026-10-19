@@ -68,14 +68,14 @@ export function createUnderwaterWorld(o) {
   return models.get(name);
  }
  function addModel(parent,name,scale=1,x=0,y=0,z=0,rotation=0){
-  const ticket={live:true};
+  const ticket={live:true,name,x:parent.position.x+x,z:parent.position.z+z,loaded:false};
   model(name).then(proto=>{
    if(!ticket.live||!proto)return;
    const obj=proto.object.clone(true);obj.scale.multiplyScalar(scale);obj.position.set(x,y,z);
    if(proto.clips.length && mixers.size<24 && /bathyscaphe|glow_fish|manta|angler|seahorse|kelp/.test(name)){
     const mix=new THREE.AnimationMixer(obj);mix.clipAction(proto.clips[0]).play();mixers.add(mix);ticket.mixer=mix;
    }
-   obj.rotation.y=rotation;parent.add(obj);
+   obj.rotation.y=rotation;parent.add(obj);ticket.loaded=true;
   });return ticket;
  }
  addModel(sub,'bathyscaphe',1.65);addModel(ghost,'diving_helmet',.55);
@@ -252,10 +252,14 @@ export function createUnderwaterWorld(o) {
  return {groundHeight:floor,isSubmerged,immersionAt:immersionAtPlayer,physicsStep,
   get bubbleCount(){return bubbleActive;},
   population(radius=40){const p=player.pos,near=(x,z)=>Math.hypot(x-p.x,z-p.z)<=radius;
-   return {ruins:fixtures.filter(f=>near(f.x,f.z)&&/cathedral|arch|angel/.test(f.id)).length,
-    wrecks:fixtures.filter(f=>near(f.x,f.z)&&/wreck|ship/.test(f.id)).length,
-    fish:creatures.filter(c=>c.holder.visible&&near(c.holder.position.x,c.holder.position.z)).length,
-    plants:fixtures.filter(f=>near(f.x,f.z)&&/coral|kelp|seagrass/.test(f.id)).length+chunks.size*5};
+   const visible=[];
+   for(const f of fixtures)if(f.holder.children.length&&near(f.x,f.z))visible.push(f.id);
+   for(const group of chunks.values())for(const t of group.userData.tickets)
+    if(t.live&&t.loaded&&near(t.x,t.z))visible.push(t.name);
+   return {ruins:visible.filter(id=>/cathedral|arch|angel/.test(id)).length,
+    wrecks:visible.filter(id=>/wreck|ship/.test(id)).length,
+    fish:creatures.filter(c=>c.holder.visible&&c.holder.children.length>0&&near(c.holder.position.x,c.holder.position.z)).length,
+    plants:visible.filter(id=>/coral|kelp|seagrass/.test(id)).length};
   },
   update,toggleBathyscaphe,canFire,onShot,interact,
   get repairParts(){return repair.size;},get inBathyscaphe(){return bathy;},get chunks(){return chunks.size;},
