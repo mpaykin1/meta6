@@ -43,3 +43,11 @@ export function ambientBubbleAnchors(anchors,player,seed,tick,radius=40){
 }
 export const STAGE7_REQUIRED_ASSETS=['galleon','whale_skeleton','anchor','cannon','kraken_tentacle','sun_rays','marine_snow','plankton'];
 export function namedAssetInventory(names){const loaded=new Set(names);return {present:[...loaded].sort(),missing:STAGE7_REQUIRED_ASSETS.filter(n=>!loaded.has(n))};}
+
+// Identical bounded ring slot selection in Node and live particle renderer.
+export function nextBubbleSlot(state,capacity=96){
+ if(!Number.isInteger(capacity)||capacity<=0)throw Error('Invalid bubble pool size');
+ const slot=(state.cursor||0)%capacity;
+ state.cursor=(state.cursor||0)+1;
+ return slot;
+}
