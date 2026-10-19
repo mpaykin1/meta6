@@ -10,8 +10,8 @@ const ownerScene=path.join(root,'reference/sunken-city/index.html');
 const manifestPath=path.join(models,'MANIFEST.json');
 const hash=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 const names=(folder,ext)=>fs.readdirSync(folder).filter(n=>n.endsWith(ext)).sort();
-const originalManifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
-const sunkenCityModels=(originalManifest.sunkenCityModels||originalManifest.models.filter(n=>!n.startsWith('weather_'))).slice().sort();
+// Derive inventory from real owner binaries, never from the old 75-name manifest.
+const sunkenCityModels=names(models,'.glb').map(n=>n.slice(0,-4)).filter(n=>!n.startsWith('weather_')).sort();
 if(sunkenCityModels.length!==76)throw Error('Owner Sunken City source count changed: '+sunkenCityModels.length+' (expected 76); do not silently accept an incomplete import.');
 const archivedGLB=names(original,'.glb').map(n=>n.slice(0,-4));
 const expected=[...new Set([...sunkenCityModels,...archivedGLB])].sort();
