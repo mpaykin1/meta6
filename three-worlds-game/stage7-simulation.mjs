@@ -32,3 +32,14 @@ export function finishGuestSchedule(state){
  state.remaining=50+((q%1+1)%1)*20;
  return state.remaining;
 }
+
+// Reused by the live underwater runtime and pure Node tests. No new scene objects.
+export function ambientBubbleAnchors(anchors,player,seed,tick,radius=40){
+ const h=(x,z,s)=>{let n=Math.imul(x|0,374761393)^Math.imul(z|0,668265263)^Math.imul(s|0,362437);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296};
+ const out=[];for(let i=0;i<anchors.length;i++){
+  const a=anchors[i];if(!/wreck|cathedral|arch/.test(a.id)||Math.hypot(a.x-player.x,a.z-player.z)>radius)continue;
+  if(h(i,tick,seed)<.7)out.push({x:a.x+(h(tick,i,seed)-.5),y:a.y,z:a.z});
+ }return out;
+}
+export const STAGE7_REQUIRED_ASSETS=['galleon','whale_skeleton','anchor','cannon','kraken_tentacle','sun_rays','marine_snow','plankton'];
+export function namedAssetInventory(names){const loaded=new Set(names);return {present:[...loaded].sort(),missing:STAGE7_REQUIRED_ASSETS.filter(n=>!loaded.has(n))};}
