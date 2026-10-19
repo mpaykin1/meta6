@@ -13,8 +13,8 @@ const m=JSON.parse(fs.readFileSync(path.join(glb,'MANIFEST.json'),'utf8'));
 const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 test('§20.12: source GLB union, manifest and destination have zero missing IDs',()=>{
  const expected=[...new Set([...m.sunkenCityModels,...list(old,'.glb').map(n=>n.slice(0,-4))])].sort();
- assert.equal(m.schemaVersion,2);assert.equal(m.sunkenCityModels.length,75);
- assert.equal(m.grafOfflineModels.length,69);assert.equal(expected.length,87);
+ assert.equal(m.schemaVersion,2);assert.equal(m.sunkenCityModels.length,76);
+ assert.equal(m.grafOfflineModels.length,69);assert.equal(expected.length,88);
  assert.deepEqual(list(glb,'.glb').map(n=>n.slice(0,-4)),expected);
  assert.deepEqual(m.models,expected);
  assert.deepEqual(m.grafOfflineModels,list(old,'.glb').map(n=>n.slice(0,-4)));
