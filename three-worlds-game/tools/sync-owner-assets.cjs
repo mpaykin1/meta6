@@ -11,11 +11,11 @@ const hash=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex
 const names=(folder,ext)=>fs.readdirSync(folder).filter(n=>n.endsWith(ext)).sort();
 const originalManifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
 const sunkenCityModels=(originalManifest.sunkenCityModels||originalManifest.models.filter(n=>!n.startsWith('weather_'))).slice().sort();
-if(sunkenCityModels.length!==75)throw Error('Owner Sunken City source count changed: '+sunkenCityModels.length+' (expected 75); do not silently accept an incomplete import.');
+if(sunkenCityModels.length!==76)throw Error('Owner Sunken City source count changed: '+sunkenCityModels.length+' (expected 76); do not silently accept an incomplete import.');
 const archivedGLB=names(original,'.glb').map(n=>n.slice(0,-4));
 const expected=[...new Set([...sunkenCityModels,...archivedGLB])].sort();
 const weatherExtras=archivedGLB.filter(n=>!sunkenCityModels.includes(n));
-if(archivedGLB.length!==69||weatherExtras.length!==12||expected.length!==87)throw Error('Owner GRAF asset baseline changed; compare sources before synchronizing.');
+if(archivedGLB.length!==69||weatherExtras.length!==12||expected.length!==88)throw Error('Owner GRAF asset baseline changed; compare sources before synchronizing.');
 fs.mkdirSync(atlasTo,{recursive:true});
 for(const id of weatherExtras)fs.copyFileSync(path.join(original,id+'.glb'),path.join(models,id+'.glb'));
 const srcAtlases=fs.readdirSync(atlasFrom).filter(n=>fs.statSync(path.join(atlasFrom,n)).isFile()).sort();
@@ -42,9 +42,9 @@ for(const id of expected){
 }
 const manifest={
  schemaVersion:2,
- source:'Owner Sunken City GLB pack (75) + original GRAF OFFLINE GLB assets (69, of which 12 are additional)',
+ source:'Owner Sunken City GLB pack (76) + original GRAF OFFLINE GLB assets (69, of which 12 are additional)',
  sourcePaths:['reference/sunken-city/index.html','reference/graf-offline/glb','reference/graf-offline/atlases','reference/graf-offline/weather-manifest.json'],
- sources:{sunkenCityGlb:75,grafOfflineGlb:69,additionalWeatherGlb:12,atlasFiles:41},
+ sources:{sunkenCityGlb:76,grafOfflineGlb:69,additionalWeatherGlb:12,atlasFiles:41},
  sunkenCityModels,
  grafOfflineModels:archivedGLB,
  additionalWeatherModels:weatherExtras,
@@ -56,4 +56,4 @@ const manifest={
  notes:'No custom replacements. Source IDs, destination GLBs, shader source and weather PNGs validated; source artifacts outside repository still need independent inspection.'
 };
 fs.writeFileSync(manifestPath,JSON.stringify(manifest,null,2)+'\n');
-console.log(JSON.stringify({modelCount:expected.length,sunken:75,graf:69,newWeather:weatherExtras.length,atlases:srcAtlases.length,missing:missing.length,extra:extra.length,sceneIds:used.length}));
+console.log(JSON.stringify({modelCount:expected.length,sunken:76,graf:69,newWeather:weatherExtras.length,atlases:srcAtlases.length,missing:missing.length,extra:extra.length,sceneIds:used.length}));
