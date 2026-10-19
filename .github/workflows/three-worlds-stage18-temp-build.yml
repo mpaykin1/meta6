@@ -45,6 +45,9 @@ jobs:
           git add three-worlds-game/index.html
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "build(stage18): rebuild playable ocean shore boundary"
+          # Live browser smoke writes diagnostic evidence only in ephemeral CI checkout.
+          # Discard those uncommitted diagnostics before rebasing the rebuilt standalone.
+          git reset --hard HEAD
           git fetch origin ai/chatgpt/stage18-ocean-shore-seam-proof
           git rebase origin/ai/chatgpt/stage18-ocean-shore-seam-proof
           git push origin HEAD:ai/chatgpt/stage18-ocean-shore-seam-proof
