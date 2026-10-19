@@ -13,7 +13,8 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  function line(g,state){const text=dialogue.next({home:g.home,world:player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island',state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
  const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
  let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99;
- const guestTimer=createGuestSchedule(seed);
+ const guestTimer=createGuestSchedule(seed,{interval:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
+ let warnLeft=0;
  const geometry=new THREE.PlaneGeometry(3.5,5);
  const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,uniforms:{time:{value:0}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`varying vec2 vUv;uniform float time;
  void main(){vec2 p=(vUv-.5)*2.;float slit=sin(p.y*19.+time*.9)*.06+sin(p.y*7.-time*.4)*.08;
@@ -53,7 +54,8 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
   for(let i=0;i<portals.length;i++){const p=portals[i],m=meshes[i];m.lookAt(camera.position.x,m.position.y,camera.position.z);if(cooldown===0&&Math.hypot(player.pos.x-p.x,player.pos.z-p.z)<1.5&&Math.abs(player.pos.y-height(p.x,p.z))<3)travel(p)}
   riftAge+=dt;guestRift.visible=riftAge<3.5;if(guestRift.visible){guestRift.scale.x=clamp(Math.min(riftAge,3.5-riftAge)*2,.01,1);guestRift.lookAt(camera.position.x,guestRift.position.y,camera.position.z)}riftLight.intensity=guestRift.visible?3*Math.min(1,(3.5-riftAge)*2):0;
-  if(guestScheduleStep(guestTimer,dt,!!guest))spawnGuest();
+  if(guestScheduleStep(guestTimer,dt,!!guest)&&!warnLeft){warnLeft=1.5;guestRift.position.set(player.pos.x+5,height(player.pos.x+5,player.pos.z+2)+2.3,player.pos.z+2);riftLight.position.copy(guestRift.position);guestRift.visible=true;riftLight.intensity=2;toast('Воздух дрожит. Разлом открывается…',1600);}
+  if(warnLeft>0){warnLeft=Math.max(0,warnLeft-dt);guestRift.visible=true;guestRift.scale.x=.15+.04*Math.sin(clock*24);riftLight.intensity=2+.6*Math.sin(clock*28);if(warnLeft===0)spawnGuest();}
   if(!guest)return;const g=guest,p=g.mesh.position;g.age+=dt;g.damageClock=Math.max(0,g.damageClock-dt);
   const floor=height(p.x,p.z),distance=Math.hypot(p.x-player.pos.x,p.z-player.pos.z);
   if(!g.landed){g.fall+=dt*9;p.y-=g.fall*dt;if(p.y<=floor+1.6){p.y=floor+1.6;g.landed=true;onTransition(.1)}}
@@ -68,7 +70,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
     const nearby=getHostiles().filter(h=>Math.hypot(h.x-p.x,h.z-p.z)<9).sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z));
     if(nearby.length){damageHostile(nearby[0],8);g.damageClock=1.5;}
    }
-   if(g.brain.relation==='friend'&&player.pos.x<-64&&!g.rewarded){g.rewarded=true;reward();toast(guestLine('ash','ash','home'),3200)}
+   if(g.brain.relation==='friend'&&player.pos.x<-64&&Math.hypot(p.x-player.pos.x,p.z-player.pos.z)<=12&&!g.rewarded){g.rewarded=true;reward();toast(guestLine('ash','ash','home'),3200)}
    if(g.rewarded){g.brain.relation='neutral';g.brain.state='wander';g.brain.target={x:-126,z:32};g.brain.clock=5;if(Math.hypot(p.x+126,p.z-32)<2){finishGuest(g);return}}
   }
   g.mesh.rotation.y=Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
