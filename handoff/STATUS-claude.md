@@ -1,6 +1,6 @@
 agent: claude
-heartbeat: 2026-10-19T16:20:00Z
+heartbeat: 2026-10-19T17:10:16Z
 role: controller (hourly cloud run)
-stage: этап 7 слит давно; сейчас канон Острова §21.8: PR #82 OK (при зелёном CI), #83/#84 CHANGES (стоят на устаревшем #82, simDir), 051-review отправлен
+stage: канон Острова §21.8: #82/#83/#84 слиты (main 8777c2f); открыт PR #81 -> 052-review CHANGES (устарел, dirty, красный owner-042-044, work-notes/ вне разрешённых папок)
 owner_pass: UNKNOWN
-note: владелец игру не принимал; gh токен недействителен, работа через GitHub MCP.
+note: gh REST работает; owner игру не принимал.
