@@ -1,11 +1,479 @@
 {
   "base": "http://127.0.0.1:8765/three-worlds-game/",
   "environment": "Chromium emulated WebGL; GPU/iPhone unverified",
+  "frameLuma": {
+    "stage7-shore": 10.75268275841243,
+    "stage7-wade-knee": 34.13167394449607,
+    "stage7-wade-waist": 44.95173155088317,
+    "stage7-wade-head": 98.85380186317103,
+    "play/00": 105.48413185869013,
+    "play/01": 87.58942449154054,
+    "play/02": 71.19951478471292,
+    "play/03": 98.63332292907964,
+    "play/04": 111.46189865923279,
+    "play/05": 156.7244292828723,
+    "play/06": 97.25771147738025,
+    "play/07": 121.1389930507239,
+    "play/08": 115.64074398647524,
+    "play/09": 121.14438589114542,
+    "play/10": 99.07244333228255,
+    "play/11": 97.32784196039472,
+    "play/12": 96.51605116813283,
+    "play/13": 100.45513417480451,
+    "play/14": 99.39385158634398,
+    "play/15": 99.67606917957119,
+    "play/16": 99.72954364843532,
+    "play/17": 99.13867559197755,
+    "play/18": 99.57410450211688,
+    "play/19": 99.77929511150943,
+    "play/20": 100.3767706251312,
+    "play/21": 100.73483383430946,
+    "play/22": 101.54239774720375,
+    "play/23": 113.37681148423091,
+    "play/24": 36.15170058841743,
+    "play/25": 36.515110396183765,
+    "play/26": 36.430834987205124,
+    "play/27": 111.38697466667207,
+    "play/28": 111.62802621939073,
+    "play/29": 111.81206489912032,
+    "play/30": 110.96352485046094,
+    "stage7-depth": 107.46279101021032,
+    "stage7-emergent-island": 92.1704364284079
+  },
+  "shoreNaturalLuma": 10.75268275841243,
+  "wade": [
+    {
+      "name": "stage7-wade-knee",
+      "x": 60,
+      "luma": 34.13167394449607,
+      "depth": 1,
+      "y": 2.587709575510397
+    },
+    {
+      "name": "stage7-wade-waist",
+      "x": 66,
+      "luma": 44.95173155088317,
+      "depth": 1,
+      "y": 2.6135182415083413
+    },
+    {
+      "name": "stage7-wade-head",
+      "x": 72,
+      "luma": 98.85380186317103,
+      "depth": 1,
+      "y": 2.3877336450746807
+    }
+  ],
   "shore": {
     "ground": 1,
     "edge": 1,
     "depth": 1
   },
+  "play": [
+    {
+      "second": 0,
+      "name": "play/00",
+      "depth": 1,
+      "population": {
+        "ruins": 7,
+        "wrecks": 0,
+        "fish": 22,
+        "plants": 15
+      },
+      "bubbles": 19,
+      "guest": false
+    },
+    {
+      "second": 10,
+      "name": "play/01",
+      "depth": 1,
+      "population": {
+        "ruins": 8,
+        "wrecks": 1,
+        "fish": 23,
+        "plants": 18
+      },
+      "bubbles": 11,
+      "guest": false
+    },
+    {
+      "second": 20,
+      "name": "play/02",
+      "depth": 1,
+      "population": {
+        "ruins": 8,
+        "wrecks": 1,
+        "fish": 24,
+        "plants": 18
+      },
+      "bubbles": 15,
+      "guest": false
+    },
+    {
+      "second": 30,
+      "name": "play/03",
+      "depth": 1,
+      "population": {
+        "ruins": 8,
+        "wrecks": 1,
+        "fish": 24,
+        "plants": 18
+      },
+      "bubbles": 12,
+      "guest": false
+    },
+    {
+      "second": 40,
+      "name": "play/04",
+      "depth": 1,
+      "population": {
+        "ruins": 12,
+        "wrecks": 1,
+        "fish": 34,
+        "plants": 22
+      },
+      "bubbles": 15,
+      "guest": true
+    },
+    {
+      "second": 50,
+      "name": "play/05",
+      "depth": 1,
+      "population": {
+        "ruins": 12,
+        "wrecks": 1,
+        "fish": 33,
+        "plants": 27
+      },
+      "bubbles": 14,
+      "guest": true
+    },
+    {
+      "second": 60,
+      "name": "play/06",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 39,
+        "plants": 28
+      },
+      "bubbles": 19,
+      "guest": true
+    },
+    {
+      "second": 70,
+      "name": "play/07",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 39,
+        "plants": 28
+      },
+      "bubbles": 18,
+      "guest": true
+    },
+    {
+      "second": 80,
+      "name": "play/08",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 38,
+        "plants": 28
+      },
+      "bubbles": 19,
+      "guest": true
+    },
+    {
+      "second": 90,
+      "name": "play/09",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 40,
+        "plants": 28
+      },
+      "bubbles": 19,
+      "guest": true
+    },
+    {
+      "second": 100,
+      "name": "play/10",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 40,
+        "plants": 28
+      },
+      "bubbles": 24,
+      "guest": true
+    },
+    {
+      "second": 110,
+      "name": "play/11",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 41,
+        "plants": 28
+      },
+      "bubbles": 19,
+      "guest": true
+    },
+    {
+      "second": 120,
+      "name": "play/12",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 39,
+        "plants": 28
+      },
+      "bubbles": 17,
+      "guest": true
+    },
+    {
+      "second": 130,
+      "name": "play/13",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 38,
+        "plants": 28
+      },
+      "bubbles": 21,
+      "guest": true
+    },
+    {
+      "second": 140,
+      "name": "play/14",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 39,
+        "plants": 28
+      },
+      "bubbles": 23,
+      "guest": true
+    },
+    {
+      "second": 150,
+      "name": "play/15",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 37,
+        "plants": 28
+      },
+      "bubbles": 20,
+      "guest": true
+    },
+    {
+      "second": 160,
+      "name": "play/16",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 39,
+        "plants": 28
+      },
+      "bubbles": 19,
+      "guest": true
+    },
+    {
+      "second": 170,
+      "name": "play/17",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 39,
+        "plants": 28
+      },
+      "bubbles": 19,
+      "guest": true
+    },
+    {
+      "second": 180,
+      "name": "play/18",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 40,
+        "plants": 28
+      },
+      "bubbles": 18,
+      "guest": true
+    },
+    {
+      "second": 190,
+      "name": "play/19",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 41,
+        "plants": 28
+      },
+      "bubbles": 20,
+      "guest": true
+    },
+    {
+      "second": 200,
+      "name": "play/20",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 40,
+        "plants": 28
+      },
+      "bubbles": 21,
+      "guest": true
+    },
+    {
+      "second": 210,
+      "name": "play/21",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 39,
+        "plants": 28
+      },
+      "bubbles": 18,
+      "guest": true
+    },
+    {
+      "second": 220,
+      "name": "play/22",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 38,
+        "plants": 28
+      },
+      "bubbles": 20,
+      "guest": true
+    },
+    {
+      "second": 230,
+      "name": "play/23",
+      "depth": 1,
+      "population": {
+        "ruins": 14,
+        "wrecks": 1,
+        "fish": 40,
+        "plants": 28
+      },
+      "bubbles": 96,
+      "guest": true
+    },
+    {
+      "second": 240,
+      "name": "play/24",
+      "depth": 1,
+      "population": {
+        "ruins": 16,
+        "wrecks": 1,
+        "fish": 43,
+        "plants": 28
+      },
+      "bubbles": 16,
+      "guest": true
+    },
+    {
+      "second": 250,
+      "name": "play/25",
+      "depth": 1,
+      "population": {
+        "ruins": 16,
+        "wrecks": 1,
+        "fish": 45,
+        "plants": 28
+      },
+      "bubbles": 19,
+      "guest": true
+    },
+    {
+      "second": 260,
+      "name": "play/26",
+      "depth": 1,
+      "population": {
+        "ruins": 16,
+        "wrecks": 1,
+        "fish": 43,
+        "plants": 28
+      },
+      "bubbles": 19,
+      "guest": true
+    },
+    {
+      "second": 270,
+      "name": "play/27",
+      "depth": 0,
+      "population": {
+        "ruins": 4,
+        "wrecks": 0,
+        "fish": 27,
+        "plants": 22
+      },
+      "bubbles": 0,
+      "guest": true
+    },
+    {
+      "second": 280,
+      "name": "play/28",
+      "depth": 0,
+      "population": {
+        "ruins": 4,
+        "wrecks": 0,
+        "fish": 26,
+        "plants": 22
+      },
+      "bubbles": 0,
+      "guest": true
+    },
+    {
+      "second": 290,
+      "name": "play/29",
+      "depth": 0,
+      "population": {
+        "ruins": 4,
+        "wrecks": 0,
+        "fish": 29,
+        "plants": 22
+      },
+      "bubbles": 0,
+      "guest": true
+    },
+    {
+      "second": 300,
+      "name": "play/30",
+      "depth": 0,
+      "population": {
+        "ruins": 4,
+        "wrecks": 0,
+        "fish": 31,
+        "plants": 22
+      },
+      "bubbles": 0,
+      "guest": true
+    }
+  ],
   "populationBySeed": [
     {
       "ruins": 19,
@@ -32,16 +500,16 @@
       "relief": 4.716904258421646
     }
   ],
-  "bubbles": 86,
+  "bubbles": 89,
   "dualTouch": {
-    "yaw": -1.7767164050421926,
+    "yaw": -0.8849267058029177,
     "stickId": 2,
     "camId": 3,
     "vx": 0.8928571428571429
   },
   "camera": {
     "before": {
-      "yaw": 0.3392926144540447,
+      "yaw": 1.2967530231844278,
       "rect": {
         "x": 0,
         "y": 0,
@@ -56,7 +524,7 @@
       "scrollY": 0
     },
     "after": {
-      "yaw": -0.5607073855459553,
+      "yaw": 0.39675302318442773,
       "rect": {
         "x": 0,
         "y": 0,
