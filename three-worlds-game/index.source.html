@@ -486,6 +486,7 @@ body.v5-show-original-hud .hud-row{display:flex!important}
 import * as THREE from 'three';
 import {flightStep,createAirRoutes} from './transport.mjs';
 import {createRiftStory} from './rift-story.mjs';
+import {createRiftInputGuard} from './rift-input-guard.mjs';
 import {landBiomeAt} from './living-land.mjs';
 import {createLivingIsland} from './living-island-runtime.mjs';
 import {createLivingPopulation,LAND_ARMORY_IDS} from './living-population.mjs';
@@ -2242,6 +2243,15 @@ function releaseTouchPointers(){
   touch.stickId=null;touch.camId=null;touch.vx=touch.vy=0;
   $('stick').classList.remove('on');rig.spin=rig.pspin=0;
 }
+const riftInputGuard=createRiftInputGuard({
+ timeout:25,
+ resetInput:()=>{
+  keys.clear();releaseTouchPointers();onJumpRelease();releaseAll();
+  pad.mx=pad.my=0;pad.cx=pad.cy=0;
+  drag.active=false;mouseMask=0;clearTimeout(leftTimer);leftPointer=null;
+ },
+ setFrozen:locked=>{G.riftFrozen=locked;}
+});
 addEventListener('blur',releaseTouchPointers);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseTouchPointers()});
 document.addEventListener('touchcancel',releaseTouchPointers,{passive:true});
@@ -2728,7 +2738,7 @@ function buildWorld(seed) {
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
     canStart:()=>G.state==='play'&&!UW.isSubmerged()&&!UW.inBathyscaphe&&!combat.atk,
-    onFreeze:(lock)=>{G.riftFrozen=lock;if(lock){touch.vx=touch.vy=0;pad.mx=pad.my=0;releaseAll()}},
+    onFreeze:(lock)=>riftInputGuard.set(lock),
     onEventFX:(phase)=>{G.riftFX=['warning','opening','emerging'].includes(phase)?1:0;
       if(phase==='warning'){SFX.init();SFX.tone(82,.9,'sawtooth',.13,42);SFX.tone(110,1.6,'triangle',.08,63,.11);SFX.tone(55,2.2,'sine',.09,44,.1)}},
      getWorldId:()=>UW.isSubmerged()?'water':landBiomeAt(player.pos.x,player.pos.z,G.seed),
@@ -4813,6 +4823,9 @@ function frame(now) {
   requestAnimationFrame(frame);
   const raw = last ? Math.min(0.05, Math.max(0, (now - last) / 1000)) : 0.016;
   last = now;
+  // The rift may never hold movement/jump/attack beyond 25 real simulation seconds.
+  // Always advance even during a hit-stop, so the input escape cannot deadlock.
+  riftInputGuard.tick(raw);
   // hit-stop: a heavy blow freezes the simulation for a few frames; particles crawl, the camera keeps breathing
   const frozen = G.hitstop > 0;
   G.hitstop = Math.max(0, G.hitstop - raw);
