@@ -1,0 +1,37 @@
+name: TEMP Stage21 post-merge standalone rebuild
+on:
+  push:
+    branches:
+      - 'ai/chatgpt/stage21-ash-fog-uniform'
+    paths:
+      - '.github/workflows/temp-stage21-merge-rebuild.yml'
+permissions:
+  contents: write
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage21-ash-fog-uniform
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Rebuild merged source with pinned dependencies
+        working-directory: three-worlds-game/tools
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Validate Node goldens
+        run: node --test three-worlds-game/tests/*.test.mjs
+      - name: Commit rebuilt standalone only to feature branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'build(three-worlds): combine guest and Ash offline source'
+            git push origin HEAD:refs/heads/ai/chatgpt/stage21-ash-fog-uniform
+          fi
