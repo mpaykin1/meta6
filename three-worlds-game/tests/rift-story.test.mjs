@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {guestLine,guestHomeFor,riftCountdownAllowed} from '../rift-story.mjs';
+import {guestLine,guestHomeFor,riftCountdownAllowed,guestDialogueLines,MISSION_RIFT_TARGETS} from '../rift-story.mjs';
 import {createRiftEvent,RIFT_TIMING,frontOfHero} from '../rift-event.mjs';
 test('guest dialogue reflects source world, predicament and relationship',()=>{
  assert.match(guestLine('water','island','neutral'),/вода/);
@@ -59,4 +59,22 @@ test('audit 055: original guest is never deleted by timer before finishing the a
  for(let j=0;j<130;j++)step(1,true);
  assert.equal(e.state.remaining,remaining,'live guest suspends next countdown');
  guest.alive=false;step(65,false);assert.equal(e.state.phase,'warning');
+});
+
+test('audit044: exactly four source-authentic, manually gated guest lines',()=>{
+ const lines=guestDialogueLines('ash');
+ assert.equal(lines.length,4);
+ for(const phrase of lines)assert(phrase.length<=160);
+ assert.match(lines[0],/герой/);assert.match(lines[1],/Страж Пепла/);
+ assert.match(lines[2],/разлом/);assert.match(lines[3],/Поможешь мне/);
+ assert.throws(()=>guestDialogueLines('unknown'),/approved/);
+});
+test('audit044: explicit, uniquely identified in-world mission targets',()=>{
+ const expected={island:[-22,32],ash:[-126,32],water:[102,40]};
+ assert.equal(new Set(Object.values(MISSION_RIFT_TARGETS).map(t=>t.id)).size,3);
+ for(const [world,[x,z]] of Object.entries(expected)){
+  const t=MISSION_RIFT_TARGETS[world];
+  assert(t.id&&Number.isFinite(t.x)&&Number.isFinite(t.z));
+  assert.equal(t.x,x);assert.equal(t.z,z);
+ }
 });
