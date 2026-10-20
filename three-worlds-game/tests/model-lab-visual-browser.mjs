@@ -15,7 +15,7 @@ try{
   parts:Number(document.documentElement.getAttribute('data-parts')),
   palette:Number(document.documentElement.getAttribute('data-palette-colors'))
  }));
- if(info.model!=='gpt-rift-scout-v1'||info.directions!==8||info.frames!==8||info.cells!==64||info.parts!==15||info.palette!==12)
+ if(info.model!=='gpt-rift-scout-v1'||info.directions!==8||info.frames!==8||info.cells!==64||info.parts!==15||info.palette!==14)
   throw Error('atlas DOM contract mismatch '+JSON.stringify(info));
  const atlas=await page.screenshot({path:out+'/scout-atlas.png',clip:{x:0,y:0,width:768,height:768},omitBackground:true});
  const samples=[];
