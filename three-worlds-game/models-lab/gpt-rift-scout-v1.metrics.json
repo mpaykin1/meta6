@@ -10,13 +10,14 @@
     "usagePath": "three-worlds-game/rift-story.mjs",
     "metrics": {
       "articulatedParts": 8,
-      "voxelCount": "UNKNOWN (shared procedural source has no checked-in per-model report)",
-      "paletteColors": "UNKNOWN (shared palette; per-model used-color count not exported)",
+      "voxelCount": 525,
+      "paletteColors": 14,
       "animationFrames": 8,
       "viewDirections": 8,
-      "triangles": "UNKNOWN (runtime voxel meshing)",
-      "drawCalls": 1,
-      "fileBytes": "UNKNOWN (model shares ash-assets.mjs)"
+      "triangles": 1672,
+      "drawCalls": 8,
+      "fileBytes": 62011,
+      "measurement": "three-worlds-game/tests/model-lab-reference-metrics.test.mjs; source factory evaluated with minimal Vector3/Vector4 stubs, visible voxel faces counted per separately rendered articulated part"
     }
   },
   "candidate": {
