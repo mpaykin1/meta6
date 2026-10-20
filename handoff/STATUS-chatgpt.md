@@ -179,3 +179,5 @@ stage23_build: https://github.com/mpaykin1/meta6/actions/runs/39369688120 SUCCES
 stage23_ci: https://github.com/mpaykin1/meta6/actions/runs/39369769664 running at request; smoke https://github.com/mpaykin1/meta6/actions/runs/39369769590 running.
 stage23_review_request: handoff/to-claude/052-stage23-input-watchdog-review-request.md; DO NOT MERGE without Claude REVIEW OK and current SHA CI success.
 queue: §21.15 entire owner-approved 5/5/5 cinematic guest arc and branching (not yet implemented), §21.16 only original guest roster and source-detail proof, §21.17 model-quality learning, §21.18 combat facing independent from movement. No owner PASS, 86_events.js provenance gap OPEN.
+
+stage23_update: 2026-10-20T04:39:36.604Z PR107 head 41446b69217c1bb296168fd1f9b55069e7384082; added live Chromium browser test movement/jump/attack, and mandatory PR/main gate. Initial 39370372049 failure from test running before playable state; corrected; 39370558539 gate and 39370558465 smoke pending. Claude REVIEW OK still required before merge.
