@@ -129,9 +129,26 @@ try{
  await page.locator('#threeWorldsGuestChoice button').first().click();
  const complete=await page.evaluate(()=>{const i=__isle;i.rifts.update(.7);return {locked:i.G.riftFrozen,phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation}});
  assert.equal(complete.locked,false);assert.equal(complete.phase,'idle');assert.equal(complete.relation,'friend');
- // Short second cycle in ONE virtual update; verify refusal branch too.
- const second=await page.evaluate(()=>{const i=__isle;i.rifts.update(65);i.rifts.update(.65);i.rifts.update(1.25);i.rifts.update(1);
-  return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,visible:!!i.rifts.guest}});
+ // A helped guest must not disappear merely because the event clock expires.
+ const waiting=await page.evaluate(()=>{
+  const i=__isle,g=i.rifts.guest,initial=i.rifts.event.remaining;
+  for(let t=0;t<130;t++)i.rifts.update(1);
+  return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,alive:i.rifts.guest===g,
+    relation:i.rifts.guest?.brain.relation,remaining:i.rifts.event.remaining,initial};
+ });
+ assert.equal(waiting.phase,'idle','a living guest must defer the next warning');
+ assert.equal(waiting.alive,true,'helped guest vanished while waiting for a route home');
+ assert.equal(waiting.remaining,waiting.initial,'rift clock moved while guest alive');
+ // Complete the existing guest through the production death/finishGuest lifecycle.
+ // Only then may the next timed visitor appear and choose Refuse.
+ const second=await page.evaluate(()=>{
+  const i=__isle;
+  i.rifts.guest.brain.hp=0;
+  i.rifts.update(1/30);
+  if(i.rifts.guest)throw Error('guest must have completed before the next rift');
+  i.rifts.update(65);i.rifts.update(.65);i.rifts.update(1.25);i.rifts.update(1);
+  return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,visible:!!i.rifts.guest};
+ });
  assert.equal(second.phase,'dialogue');assert(second.visible);
  await page.locator('#threeWorldsGuestChoice button').last().click();
  const refusal=await page.evaluate(()=>{const i=__isle;i.rifts.update(.7);
@@ -139,7 +156,7 @@ try{
  assert.equal(refusal.relation,'hostile');assert.equal(refusal.locked,false);
  checks.riftPass=true;
  assert.deepEqual(errors,[]);
- checks.proof={before,during,after,worldSamples,event,riftInFrame,complete,second,refusal};
+ checks.proof={before,during,after,worldSamples,event,riftInFrame,complete,waiting,second,refusal};
  await mkdir('three-worlds-game/evidence',{recursive:true});
  await writeFile('three-worlds-game/evidence/owner042-044-code.json',JSON.stringify(checks,null,2));
  console.log('OWNER042_044_CODE_OK '+JSON.stringify({mobile:checks.mobilePass,land:checks.worldLifePass,rift:checks.riftPass}));
