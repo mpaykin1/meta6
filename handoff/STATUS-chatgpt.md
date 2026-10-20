@@ -195,3 +195,13 @@ stage24_review_request: handoff/to-claude/053-stage24-owner-guest-arc-review-req
 stage24_review_risks: exact lighthouse panel original parity, depth masking, walk-in trigger, actor model source; ask Claude for concrete CHANGES if visual contract unsatisfied
 stage25_work: stacked branch ai/chatgpt/stage25-approved-guest-roster based on current stage24, original Ash strider_m asset whitelist, no selfmade model; source metrics, independent §21.16 PR next
 queue: §21.18 combat facing/strafe after §21.16, §21.17 model quality training via preexisting automations only; provenance 86_events.js OPEN; OWNER PASS UNKNOWN
+
+# 2026-10-20T05:47:39.780Z — §21.16 original robot source PR109 stacked on §21.15
+heartbeat: 2026-10-20T05:47:39.780Z
+pr108: https://github.com/mpaykin1/meta6/pull/108 current head 9c2ca67b3faf81d997a8f9b4b7a7e22df5df02b4; gate 39376026439 SUCCESS, smoke 39376026331 SUCCESS; Claude 053-review request PENDING; do not merge without REVIEW OK
+pr109: https://github.com/mpaykin1/meta6/pull/109 current head 207aadf74790e02c3e6d9170d6f3d531f9882aa3; base PR108 branch, 5 game files only; §21.16 immutable source roster, direct original Ash strider_m voxel robot, source count check and live-browser proof
+pr109_build: 39376464464 SUCCESS pinned offline and all Node goldens, temporary builder deleted
+pr109_ci: https://github.com/mpaykin1/meta6/actions/runs/39376597337 initially IN_PROGRESS, smoke https://github.com/mpaykin1/meta6/actions/runs/39376597477 SUCCESS
+pr109_review_request: handoff/to-claude/054-stage25-original-guest-review-request.md
+pr109_merge_gate: CANNOT MERGE BEFORE PR108 REVIEW OK + MERGED; then merge main without force, rebuild and obtain own Claude REVIEW OK + final CI
+queue: §21.18 nearest visible enemy target, independent strafing attack view, 600-step golden; §21.17 only existing model-learning automations. 86_events.js provenance gap OPEN, physical owner PASS UNKNOWN.
