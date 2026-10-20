@@ -1,7 +1,8 @@
 import {DialogueGenerator} from './dialogue.mjs';
 import {createAshFactory} from './ash-assets.mjs';
 import {createAshQuestProps,questProp} from './ash-quest-props.mjs';
-import {instantiateOriginalGuest} from './guest-roster.mjs';
+import {instantiateOriginalGuest,chooseGuestOrigin} from './guest-roster.mjs';
+import {createSunkenOriginalGuest} from './sunken-guest.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
 import {createRiftEvent,RIFT_WORDS} from './rift-event.mjs';
@@ -132,16 +133,25 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   // Always bring a visitor from ANOTHER original game, never an Ash robot
   // onto its own Ash home terrain. The Island sprite comes verbatim from
   // the owner's live npc-catalog.js + original hero texture.
-  const current=getWorldId(),islandGuest=current==='ash';
-  let inst,ref,sourceVoxels,sourceParts,islandEntity=null;
+  const current=getWorldId(),source=chooseGuestOrigin(current,event.state.cycle);
+  const islandGuest=source.origin==='island',sunkenGuest=source.origin==='sunken';
+  let inst,ref,sourceVoxels,sourceParts,islandEntity=null,sunken=null,flameLight=null;
   if(islandGuest){
     const catalog=typeof window!=='undefined'?window.ObserverNpcCatalog:null;
     if(!catalog?.ROLES?.companion||!heroTex)throw Error('Original Island companion asset is unavailable');
     const visual=catalog.createMesh({THREE,heroTex},'companion',new THREE.Vector3());
     islandEntity={visual,role:'companion',relation:'neutral',motion:0,seed,dead:false,
       state:'idle',facing:1,x:0,y:0,z:0};
+    // The Island's original 6-frame NPC sprite is the actual Fire Keeper body.
+    // Its weak flame is a native wisp point-light (no fabricated mesh).
+    flameLight=new THREE.PointLight(0xff8c32,.75,4);
+    visual.mesh.add(flameLight);
     inst={root:visual.mesh,mat:{dispose:()=>catalog.dispose(islandEntity,scene)}};
-    ref={origin:'island',sourceModel:'companion'};sourceVoxels=null;sourceParts=1;
+    ref=source;sourceVoxels=null;sourceParts=1;
+  }else if(sunkenGuest){
+    sunken=createSunkenOriginalGuest({THREE,scene});
+    inst={root:sunken.root,mat:{dispose:()=>sunken.dispose()}};
+    ref=source;sourceVoxels=null;sourceParts=1;
   }else{
     factory ||= createAshFactory(THREE);
     const original=instantiateOriginalGuest(factory);
@@ -168,7 +178,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
     heart.name='ash-heart-blinking-red';
     m.add(heart);
   }
-  guest={mesh:m,inst,heart,islandEntity,brain:createBrain('original-'+ref.sourceModel,{x,z},seed),
+  guest={mesh:m,inst,heart,islandEntity,sunken,flameLight,brain:createBrain('original-'+ref.sourceModel,{x,z},seed),
    origin:ref.origin,originalId:ref.sourceModel,sourceVoxels,sourceParts,home:ref.origin,
    landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:ref.origin};
   if(guest.origin===current)throw Error('Same-world guest prohibited: '+current);
@@ -206,15 +216,11 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   // Owner §21.15: 5s in-world glitch, 5s held line, 5s real depth emergence.
   // Exactly one phase source controls both post FX and the terrain-anchored object.
   const phaseBefore=event.state.phase;
-  // Preserve the original cinematic camera. Only the ACTUAL terrain portal
-  // position and player's look vector follow its frustum during inertial drift.
   function visibleSpot(previous=null){
     camera.updateMatrixWorld(true);
     const probe=new THREE.Vector3();
-    const project=(x,z)=>{
-      probe.set(x,height(x,z)+2.3,z).project(camera);
-      return {x:probe.x,y:probe.y,z:probe.z};
-    };
+    const project=(x,z)=>{probe.set(x,height(x,z)+2.3,z).project(camera);
+      return {x:probe.x,y:probe.y,z:probe.z}};
     const chosen=chooseVisibleRiftSpot(player.pos,project,previous);
     if(chosen)player.look.set(chosen.x-player.pos.x,0,chosen.z-player.pos.z).normalize();
     return chosen;
@@ -223,11 +229,8 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
     visibleSpot();
   event.step(dt,{land:true,battle:false,occupied:!!guest,pos:player.pos,look:player.look});
   const phase=event.state.phase,spot=event.state.spot;
-  // Inertial camera drift between warning and arrival could throw the real
-  // portal outside a narrow phone view: recenter while the slit is opening.
   if(spot&&['warning','opening','emerging'].includes(phase)){
-    const selected=visibleSpot(spot);
-    if(selected){spot.x=selected.x;spot.z=selected.z;}
+    const selected=visibleSpot(spot);if(selected){spot.x=selected.x;spot.z=selected.z;}
   }
   const glitch=['warning','opening','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):
     phase==='emerging'?1:0;
@@ -287,7 +290,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   if(phase==='escort'&&guest&&spot&&
       Math.hypot(player.pos.x-spot.x,player.pos.z-spot.z)<1.0&&
       Math.abs(player.pos.y-height(spot.x,spot.z))<3){
-    const from=getWorldId(),to=guest.home===from?guestHomeFor(from):guest.home,
+    const from=getWorldId(),to=guest.home==='sunken'?'water':guest.home===from?guestHomeFor(from):guest.home,
       destinations={island:{x:30,z:32},ash:{x:-90,z:32},water:{x:95,z:34}},
       destination=destinations[to],target=missionTargetFor(to,portals),floor=height(destination.x,destination.z);
     travel({to:destination});
@@ -328,10 +331,13 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   }
   g.mesh.rotation.y=Number.isFinite(g.brain.heading)?g.brain.heading:Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
   if(g.heart)g.heart.scale.setScalar(.58+.42*(.5+.5*Math.sin(clock*9)));
+  if(g.flameLight)g.flameLight.intensity=.22+.48*(.5+.5*Math.sin(clock*5));
   if(g.islandEntity){
     const e=g.islandEntity;e.x=p.x;e.y=p.y-1.6;e.z=p.z;
     e.motion=g.landed?.35:0;e.state=g.landed?'walk':'idle';
     window.ObserverNpcCatalog.animate(e,clock,camera);
+  }else if(g.sunken){
+    g.sunken.update(dt,clock);
   }else{
     factory.uniforms.uTime.value=clock;
     factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
