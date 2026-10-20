@@ -1506,7 +1506,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 16),
 sky.renderOrder = -10; sky.frustumCulled = false;
 scene.add(sky);
 // §21.8: the canonical GPU weather uses THIS scene, camera, composer and frame loop.
-const weatherFX=createIslandWeatherFX({THREE,scene,camera});
+const weatherFX=createIslandWeatherFX({THREE,scene,camera,getSfx:()=>SFX});
 
 // lights: hemisphere + key (sun / moon) + companion wisp + beacon
 const hemi = new THREE.HemisphereLight(0xffffff, 0x222222, 1.5);
