@@ -1,7 +1,6 @@
 // §21.25: story props are instances of OWNER'S ORIGINAL shipped art, not
 // generated replacements. water_tower is an existing ash-assets definition;
 // weather_storm_crystal is the original GRAF GLB already in models/MANIFEST.json.
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {createAshFactory} from './ash-assets.mjs';
 
 export const ASH_QUEST_PROPS=Object.freeze([
@@ -28,8 +27,8 @@ export function createAshQuestProps({THREE,scene,height}){
  scene.add(holder);roots.set(crystal.id,holder);
  const lamp=new THREE.PointLight(0x41a9ff,1.8,5);
  holder.add(lamp);
- const loader=new GLTFLoader();
- const promise=new Promise(resolve=>{
+ const promise=import('three/addons/loaders/GLTFLoader.js').then(({GLTFLoader})=>new Promise(resolve=>{
+  const loader=new GLTFLoader();
   function loaded(gltf){
    if(disposed){resolve(false);return}
    const m=gltf.scene;
@@ -50,7 +49,7 @@ export function createAshQuestProps({THREE,scene,height}){
     loader.parse(bytes.buffer,'',loaded,fail);
    }catch{fail()}
   }else loader.load('./models/weather_storm_crystal.glb',loaded,undefined,fail);
- });
+ }));
  function update(time){
   holder.rotation.y=time*.45;
   holder.position.y=height(crystal.x,crystal.z)+.8+Math.sin(time*1.7)*.1;
