@@ -4,7 +4,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
-import {KEEPER_BUBBLE_CSS,createKeeperBubble} from '../keeper-bubble.mjs';
+import {KEEPER_BUBBLE_CSS} from '../keeper-bubble.mjs';
 const cssSource=new URL('../../../reference/island-canon/npc-say.css',import.meta.url);
 const jsSource=new URL('../../../reference/island-canon/npc-say-original.js',import.meta.url);
 const normalize=x=>x.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,' ').replace(/\s*([:;{},])\s*/g,'$1').trim();
@@ -27,8 +27,9 @@ test('OWNER §21.25 typewriter and fade require verified original script',{
 },()=>{
  const original=readFileSync(jsSource,'utf8');
  assert(original.includes('npc-say'), 'Supplied original script does not implement Keeper bubble');
- const runtime=createKeeperBubble.toString();
- assert(/setTimeout\(.*240/.test(runtime),'Current fade must be independently compared with verified original');
- // This source cannot be "verified" simply by another copy of current runtime.
+ // Fail closed: merely finding a script is not proof of equal timing,
+ // typed-character pacing, DOM transitions or fade. A reviewer must add a
+ // real semantic original-vs-runtime golden before unblocking this branch.
  assert(!original.includes('PROVISIONAL'), 'A reconstructed source cannot certify parity');
+ assert.fail('Verified original script now present: implement original-vs-runtime keyboard/typing/fade semantic golden before any parity PASS');
 });
