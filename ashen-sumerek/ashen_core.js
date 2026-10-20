@@ -46,6 +46,7 @@ const GU = {
   uFogD: { value: .02 },
   uFogH: { value: 1.2 },
   uGlowK: { value: 1 },
+  uLin: { value: 1 },
   uPL: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, -99, 0, 1)) },
   uPC: { value: [0, 1, 2, 3].map(() => new THREE.Vector3()) },
   tAtlas: { value: null },
@@ -53,7 +54,7 @@ const GU = {
   tFx: { value: null }
 };
 const GLSL_COMMON = `
-uniform float uTime,uFogD,uFogH,uGlowK;
+uniform float uTime,uFogD,uFogH,uGlowK,uLin;
 uniform vec3 uSunDir,uSunCol,uAmbCol,uRim,uFogCol;
 uniform vec4 uPL[4];
 uniform vec3 uPC[4];
@@ -190,7 +191,7 @@ void main(){
   vec3 em=vC*vE*uGlow*uGlowK;
   vec3 col=applyFog(lit,vec3(0.),vW);
   float fg=clamp(1.-exp(-uFogD*uFogD*dot(vW-cameraPosition,vW-cameraPosition)),0.,1.);
-  gl_FragColor=vec4(pow(max(col,vec3(0.)),vec3(2.2))+em*(1.-fg*.62),1.);
+  vec3 oc=col; if(uLin>.5) oc=pow(max(col,vec3(0.)),vec3(2.2)); gl_FragColor=vec4(oc+em*(1.-fg*.62),1.);
 }`;
 function voxMat(extra) {
   return new THREE.ShaderMaterial({
@@ -700,5 +701,5 @@ strider('strider_m', 'Шагоход «Курица»', { H: 30, bw: 8, L1: 14, 
   { const cols = [K.bone2, K.steel2, K.rust2, K.bone3, K.dirt2, K.steel1]; for (let i = 0; i < 6; i++) { const gg = new Grid(-3, -3, -3, 3, 3, 3), r = rng(400 + i); gg.box(-1 - (r() * 2 | 0), -1 - (r() * 2 | 0), -1 - (r() * 2 | 0), 1 + (r() * 2 | 0), 1 + (r() * 2 | 0), 1 + (r() * 2 | 0), cols[i]); gg.dent(.2, 410 + i); gg.cap(K.bone4, .3, 420 + i); const ox = i * 8 - 20, sh = new Grid(ox - 3, -3, -3, ox + 3, 3, 3); gg.each((x, y, z, c) => sh.set(x + ox, y, z, c)); d.add('c' + i, sh, [ox, 0, 0], null); } }
   d.cluster = true;
 })();
-return { MODELS, GU, K, PAL, RAMPS, Grid, meshGrid, instance, animate, voxMat, nomad, scav, soldier, rng, hash3, clamp, lerp, damp, sstep, wrapA, TAU, PI };
+return { GLSL_COMMON, RAMP_FLAT, ensureGeos, hex, MODELS, GU, K, PAL, RAMPS, Grid, meshGrid, instance, animate, voxMat, nomad, scav, soldier, rng, hash3, clamp, lerp, damp, sstep, wrapA, TAU, PI };
 }
