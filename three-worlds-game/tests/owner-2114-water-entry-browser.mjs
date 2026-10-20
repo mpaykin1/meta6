@@ -14,6 +14,11 @@ try{
   const x=58.5,z=32.5,h=i.terrainTop(x,z),p=i.player;
   p.pos.set(x,h+.08,z);p.vis.copy(p.pos);p.vel.set(0,0,0);p.onGround=true;
   i.clearInput();
+  const terrainProfile=[];
+  for(const zz of [16.5,24.5,32.5,40.5])for(const xx of [28.5,36.5,44.5,48.5,52.5,56.5,58.5,60.5,62.5,63.5,64.5,65.5,68.5,72.5,80.5]){
+    const gy=i.terrainTop(xx,zz);
+    terrainProfile.push({x:xx,z:zz,h:gy,dry:gy>=i.SEA});
+  }
   const samples=[];let maxJump=0;
   function probe(label,n){
    samples.push({label,n,x:+p.pos.x.toFixed(3),y:+p.pos.y.toFixed(3),
@@ -36,7 +41,7 @@ try{
    maxJump=Math.max(maxJump,Math.abs(p.pos.y-lastY));
    if(n%10===9)probe('out',n+1);
   }
-  return {samples,underwaterReached,entered,deep,exitX:p.pos.x,
+  return {terrainProfile,samples,underwaterReached,entered,deep,exitX:p.pos.x,
    exitDry:!i.underwater.isSubmerged(),maxJump,sea:i.SEA};
  });
  console.log('WATER_ENTRY_DIAGNOSTIC '+JSON.stringify(proof));
