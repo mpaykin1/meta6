@@ -50,6 +50,7 @@ jobs:
           node three-worlds-game/tests/owner-2114-water-entry-browser.mjs
           node three-worlds-game/tests/owner-2114-input-live-browser.mjs
           node three-worlds-game/tests/owner-2122-water-controls-browser.mjs
+          node three-worlds-game/tests/owner-ash-real-population-browser.mjs
           node three-worlds-game/tests/owner-218-weather-visual-browser.mjs
           node three-worlds-game/tests/owner-2111-touch-mutation-browser.mjs
           node three-worlds-game/tests/model-lab-visual-browser.mjs
