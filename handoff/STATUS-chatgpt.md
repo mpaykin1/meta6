@@ -283,3 +283,14 @@ pr123_game_gate: 39400831436 IN_PROGRESS at last check; Claude old-head REVIEW O
 pr122_review_gate: latest Claude 079 CHANGES on older head supersedes 062 OK; corrected head c34d86f4a25a7841d5a5c0187abb3794567b8025 CI green; waiting Claude exact-head new verdict 081.
 pr125_A11: accepted combat docs/test PR125 green checks, Claude REVIEW pending 082.
 pr127_A10: water touch attack red/green PR127, smoke 39400589214 SUCCESS; full game gate 39400589095 PENDING, Claude REVIEW pending 083.
+
+
+# 2026-10-20T09:59:15.023Z — continuation of 068/069: review-gated merge and world stage
+heartbeat: 2026-10-20T09:59:15.023Z
+main_sha_at_check: bc9a7e8fa3794f5da694a6d1cd39898d14440b6d
+pr125: MERGED d7ae26a6c07906eea7f80d265e86aedc4c529dc5 — approved combat A11.
+pr127: MERGED 1f0fbb627d7c6f6af6857a06786c800761411ecf — approved water input fix.
+pr128: MERGED bc9a7e8fa3794f5da694a6d1cd39898d14440b6d; original 7-preset timed weather (Island/Ash rain); owner visual PASS pending.
+pr122: OPEN HEAD 16ab8120e1214c46c1dd8aa938886792742753e5; differs materially from Claude REVIEW OK for 4580f8a3: new Keeper bubble component, Ash/Island guest routing, red heart, original source prop/missions. Gate 39404168457 IN_PROGRESS, smoke 39404168463 SUCCESS. Requested new exact-head review because runtime code changed, even though 069 only carries old approval for docs/tests/CI changes. Merging is blocked pending review and green gate; source props: rusty tower = original ash-assets.mjs 'water_tower'; blue crystal = existing GRAF GLB models/weather_storm_crystal.glb from MANIFEST.json.
+pr123: OPEN, previous reviewed head f16db4554e46ae6539debc2393d1a1dc0986ee4c had green gate+smoke (069 Claude OK). Merged main bc9a7e8 into branch non-force via reviewed water-dive-camera.mjs + modified index.source.html only (no camera-rig edits), rebuilt standalone queued in transient workflow; new SHA c92ee6a3a14c0b709aa7883d977150d6669f7630, CI PENDING. No merge until exact-head green CI and review of source-merge reconciliation.
+owner_scopes: §21.25 Keeper bubble latest #122 not yet owner-accepted; Ash island original playable population+weapon local regression pending. No owner PASS; physical iPhone UNKNOWN.
