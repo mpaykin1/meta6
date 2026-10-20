@@ -333,3 +333,14 @@ pr128: MERGED bc9a7e8fa3794f5da694a6d1cd39898d14440b6d, original Island rain/ash
 pr129: MERGED cec28175afb819b88ff9de16b0a316616cd0e6ee, reviewed 070/088, Ash archipelago three emerged islands, dry/wet navigable gap and 20 original weapons per island; final head 309f8101def1f2ab80f7633ad5dd6ea31774a8ae, game gate 39406502547 SUCCESS, smoke 39406502631 SUCCESS.
 pr130: OPEN head 1d5fc2d496900d7e8a29c6e96c3dbef788a50061; complementary original Ash nomad visual per accepted companion role; source merged with PR129 + accepted main with NO FORCE, standalone rebuilt pinned builder 39407056174 SUCCESS, builder removed; mandatory exact head 39407119954:in_progress:null, 39407119919:in_progress:null. Claude review 070/088 conditional OK; merge after both checks success.
 owner_live_pass: UNKNOWN; A01 deep, A05 ash islands, A06 guest, A09 rain are not owner-confirmed; physical iPhone result UNKNOWN.
+
+# 2026-10-20T10:23:43.102Z — COMPLETE requested 068/070/088 merge cycle
+heartbeat: 2026-10-20T10:23:43.102Z
+main_sha: bc20757c879a86a4abef7d37c17126893544c24f
+pr122: MERGED a7d9f39ae3b349a8b4fff08d5a31ae62c2a020a5; 12 canonical lines, Keeper .npc-say/viewport safety, 5+5+5s event, source-authentic owner Ash water_tower and GRAF weather_storm_crystal GLB, original Island guest route; exact-head Claude REVIEW OK 070/088 and gate/smoke green. A06 Sunken original guardian still OPEN.
+pr123: MERGED fc48dab86e578355b61538e4a37cd5e46489ac4f; original camera rig untouched, eye submerges only in real deep water, checked original modules unchanged, gate/smoke SUCCESS.
+pr128: MERGED bc9a7e8fa3794f5da694a6d1cd39898d14440b6d; time-based native Island and Ash rain event, underwater hidden, gate/smoke SUCCESS.
+pr129: MERGED cec28175afb819b88ff9de16b0a316616cd0e6ee; Ash three walkable emergent islands, wet gaps, original NPC/foes/20 weapons, gate 39406502547 and smoke 39406502631 SUCCESS, reviewed Claude 070/088.
+pr130: MERGED bc20757c879a86a4abef7d37c17126893544c24f; original ash-assets 'nomad' visual for companion-role AI only in Ash, accepted Island companion remains unchanged, additional original scavenger + two shades + twenty original native weapons each populated dry Ash region. Final head 1d5fc2d496900d7e8a29c6e96c3dbef788a50061, final gate 39407119954 SUCCESS and smoke 39407119919 SUCCESS, review 070/088. Source-built complete offline index.html and temporary workflows removed.
+remaining_owner_verdicts: A01 deep dive, A05 Ash world visuals, A06 dialogue guest including original Sunken guardian, A09 rain visually: UNKNOWN owner PASS. Physical iPhone/WebKit: UNKNOWN. Next optional 070 task: single coded live A01+A11 combined regression, then original Sunken guest source; do not retroactively claim PASS.
+game: https://mpaykin1.github.io/meta6/three-worlds-game/
