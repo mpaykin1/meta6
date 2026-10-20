@@ -13,8 +13,11 @@ test('§21.17 lab scout is a measured 8-direction 8-frame atlas and stays out of
  assert.equal(cells.length,64);
  assert.equal(new Set(cells.map(x=>x[1])).size,8);
  assert.equal(new Set(cells.map(x=>x[2])).size,8);
- assert.match(svg,/data-palette-colors="12"/);
+ assert.match(svg,/data-palette-colors="14"/);
  assert.match(svg,/data-parts="15"/);
+ const usedColors=new Set([...svg.matchAll(/(?:fill|stroke)="(#[0-9a-f]{6})"/g)].map(match=>match[1]));
+ assert.equal(usedColors.size,14,'declared palette must match colors actually rendered');
+ assert.equal(metrics.candidate.metrics.paletteColors,14);
  assert.equal(metrics.status,'lab-only-unreviewed');
  assert.equal(metrics.gameIntegration,false);
  assert.equal(metrics.candidate.metrics.animationFrames,8);
