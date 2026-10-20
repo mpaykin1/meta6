@@ -135,18 +135,40 @@ try{
  assert(riftInFrame.visible&&Math.abs(riftInFrame.x)<1&&Math.abs(riftInFrame.y)<1,
   'actual portal outside camera frame: '+JSON.stringify(riftInFrame));
  assert.deepEqual(event.labels,['Помочь','Отказаться']);
- await page.evaluate(()=>__isle.rifts.update(10)); // Wait for original-text-style typewriter to finish.
+ const fourLines=await page.evaluate(()=>{
+  const i=__isle,ui=document.querySelector('#threeWorldsGuestChoice'),seen=[];
+  for(let n=0;n<4;n++){
+    i.rifts.update(10);
+    seen.push(ui.querySelector('#guestStoryText').textContent);
+    if(n<3){
+      if(!ui.querySelector('div').hidden)throw Error('choice leaked before fourth line');
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+    }
+  }
+  if(ui.querySelector('div').hidden)throw Error('choice missing after fourth line');
+  return seen;
+ });
+ assert.equal(fourLines.length,4);assert.equal(new Set(fourLines).size,4);
  await page.locator('#threeWorldsGuestChoice button').first().click();
- const complete=await page.evaluate(()=>{
-  const i=__isle,from=i.rifts.guest.sourceWorld;
+ const waitingAtRift=await page.evaluate(()=>{
+  const i=__isle,old=i.player.pos.clone();
   i.rifts.update(5);
+  return {phase:i.rifts.event.phase,mission:i.rifts.mission,moved:i.player.pos.distanceTo(old)};
+ });
+ assert.equal(waitingAtRift.phase,'escort','closing should wait for actual portal entry');
+ assert.equal(waitingAtRift.mission,null,'standing outside rift cannot teleport');
+ assert.equal(waitingAtRift.moved,0);
+ const complete=await page.evaluate(()=>{
+  const i=__isle,from=i.rifts.guest.sourceWorld,s=i.rifts.event.spot;
+  i.player.pos.set(s.x,i.terrainTop(s.x,s.z)+.3,s.z);
+  i.rifts.update(.1);
   return {locked:i.G.riftFrozen,phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation,
     from,mission:i.rifts.mission,worldPosition:i.player.pos.x,cycle:i.rifts.event.cycle};
  });
- assert.equal(complete.locked,false);
- assert.equal(complete.phase,'idle');
- assert.equal(complete.relation,'friend');
- assert(complete.mission?.text&&complete.mission.world!==complete.from,'help must change world and issue mission');
+ assert.equal(complete.locked,false);assert.equal(complete.phase,'idle');
+ assert.equal(complete.relation,'friend');assert(complete.mission?.targetId&&complete.mission?.text);
+ assert.equal(complete.mission.completed,false);
+ assert(complete.mission.world!==complete.from,'help must change world and issue mission');
  assert.equal(complete.cycle,1);
  // The guest accompanies hero at the destination; only after finishing its
  // mission it may leave, allowing the next encounter and independent boss choice.
@@ -160,13 +182,23 @@ try{
  assert.equal(waiting.alive,true,'helped guest vanished before explaining mission');
  const second=await page.evaluate(()=>{
   const i=__isle;
-  i.rifts.update(26); // End escort AFTER delivering the mission.
-  if(i.rifts.guest)throw Error('guest did not finish scripted escort');
+  i.rifts.update(26);
+  if(!i.rifts.guest)throw Error('guest despawned without a completed objective');
+  const target=i.rifts.mission.target;
+  i.player.pos.set(target.x,i.terrainTop(target.x,target.z)+.3,target.z);
+  i.rifts.update(.1);
+  if(i.rifts.guest)throw Error('guest did not finish after reaching registered quest target');
   i.rifts.update(65);i.rifts.update(5);i.rifts.update(5);i.rifts.update(5);
   return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,visible:!!i.rifts.guest};
  });
  assert.equal(second.phase,'dialogue');assert(second.visible);
- await page.evaluate(()=>__isle.rifts.update(10)); // Second visitor finishes speaking before choice.
+ await page.evaluate(()=>{
+  const i=__isle;
+  for(let n=0;n<4;n++){
+    i.rifts.update(10);
+    if(n<3)document.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+  }
+ });
  await page.locator('#threeWorldsGuestChoice button').last().click();
  const refusal=await page.evaluate(()=>{
   const i=__isle;i.rifts.update(.7);
