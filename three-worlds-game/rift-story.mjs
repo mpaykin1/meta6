@@ -5,6 +5,7 @@ import {instantiateOriginalGuest} from './guest-roster.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
 import {createRiftEvent,RIFT_WORDS} from './rift-event.mjs';
+import {chooseVisibleRiftSpot,riftVisualScale} from './rift-visibility.mjs';
 import {createKeeperBubble} from './keeper-bubble.mjs';
 export function riftCountdownAllowed(_land,guest){return !guest;}
 export function guestHomeFor(world){return world==='ash'?'island':world==='water'?'ash':'water';}
@@ -205,22 +206,29 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   // Owner §21.15: 5s in-world glitch, 5s held line, 5s real depth emergence.
   // Exactly one phase source controls both post FX and the terrain-anchored object.
   const phaseBefore=event.state.phase;
-  if(riftCountdownAllowed(true,guest)&&phaseBefore==='idle'&&event.state.remaining<=dt){
-    const pos=player.pos,probe=new THREE.Vector3(),steps=32;
-    camera.updateMatrixWorld();
-    let best=null;
-    for(let i=0;i<steps;i++){
-      const theta=i*Math.PI*2/steps,dx=Math.cos(theta),dz=Math.sin(theta);
-      const x=pos.x+3.2*dx,z=pos.z+3.2*dz;
+  // Preserve the original cinematic camera. Only the ACTUAL terrain portal
+  // position and player's look vector follow its frustum during inertial drift.
+  function visibleSpot(previous=null){
+    camera.updateMatrixWorld(true);
+    const probe=new THREE.Vector3();
+    const project=(x,z)=>{
       probe.set(x,height(x,z)+2.3,z).project(camera);
-      if(!Number.isFinite(probe.x)||!Number.isFinite(probe.y)||probe.z<=-1||probe.z>=1)continue;
-      const score=probe.x*probe.x+probe.y*probe.y;
-      if(!best||score<best.score)best={dx,dz,score};
-    }
-    if(best)player.look.set(best.dx,0,best.dz);
+      return {x:probe.x,y:probe.y,z:probe.z};
+    };
+    const chosen=chooseVisibleRiftSpot(player.pos,project,previous);
+    if(chosen)player.look.set(chosen.x-player.pos.x,0,chosen.z-player.pos.z).normalize();
+    return chosen;
   }
+  if(riftCountdownAllowed(true,guest)&&phaseBefore==='idle'&&event.state.remaining<=dt)
+    visibleSpot();
   event.step(dt,{land:true,battle:false,occupied:!!guest,pos:player.pos,look:player.look});
   const phase=event.state.phase,spot=event.state.spot;
+  // Inertial camera drift between warning and arrival could throw the real
+  // portal outside a narrow phone view: recenter while the slit is opening.
+  if(spot&&['warning','opening','emerging'].includes(phase)){
+    const selected=visibleSpot(spot);
+    if(selected){spot.x=selected.x;spot.z=selected.z;}
+  }
   const glitch=['warning','opening','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):
     phase==='emerging'?1:0;
   onEventFX('intensity',glitch);
@@ -271,8 +279,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
     guestRift.lookAt(camera.position.x,guestRift.position.y,camera.position.z);
     // §21.25: warning is music+screen interference, then the slit itself opens
     // over a separate full five seconds. The escort reopens over five seconds.
-    const progress=phase==='warning'?.015:
-      ['opening','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):1;
+    const progress=riftVisualScale(phase,event.state.elapsed);
     guestRift.scale.set(Math.max(.015,progress),Math.max(.015,progress),1);
     riftLight.position.copy(guestRift.position);
     riftLight.intensity=3*progress;
