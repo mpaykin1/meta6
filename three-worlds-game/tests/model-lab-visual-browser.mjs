@@ -11,13 +11,13 @@ try{
   model:document.documentElement.getAttribute('data-model'),
   directions:Number(document.documentElement.getAttribute('data-directions')),
   frames:Number(document.documentElement.getAttribute('data-frames')),
-  cells:document.querySelectorAll('g[data-dir][data-frame]').length,
+  cells:document.querySelectorAll('g[data-d][data-a]').length,
   parts:Number(document.documentElement.getAttribute('data-parts')),
   palette:Number(document.documentElement.getAttribute('data-palette-colors')),
   reusedDefs:Number(document.documentElement.getAttribute('data-reused-defs')),
   useInstances:document.querySelectorAll('use').length,
-  facingDetails:[...document.querySelectorAll('[data-facing-detail]')].map(node=>node.getAttribute('data-facing-detail')),
-  beaconPulse:[...document.querySelectorAll('[data-motion-detail="beacon-pulse"]')].map(node=>({radius:Number(node.getAttribute('r')),opacity:Number(node.getAttribute('opacity'))}))
+  facingDetails:[...document.querySelectorAll('[data-f]')].map(node=>node.getAttribute('data-f')),
+  beaconPulse:[...document.querySelectorAll('[data-m="b"]')].map(node=>({radius:Number(node.getAttribute('r')),opacity:Number(node.getAttribute('opacity'))}))
  }));
  if(info.model!=='gpt-rift-scout-v1'||info.directions!==8||info.frames!==8||info.cells!==64||info.parts!==15||info.palette!==14||info.reusedDefs!==45||info.useInstances!==896||info.facingDetails.length!==64||new Set(info.facingDetails).size!==8||info.beaconPulse.length!==64||new Set(info.beaconPulse.map(sample=>sample.radius)).size!==5||new Set(info.beaconPulse.map(sample=>sample.opacity)).size!==5)
   throw Error('atlas DOM contract mismatch '+JSON.stringify(info));

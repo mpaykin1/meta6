@@ -30,7 +30,7 @@
       "viewDirections": 8,
       "triangles": 2,
       "drawCalls": 1,
-      "fileBytes": 71368
+      "fileBytes": 61751
     },
     "improvements": [
       "15 named visual layers versus the reference model's 8 articulated parts",
@@ -40,7 +40,8 @@
       "brass shoulder rivet and verdigris status light close the measured 14-color reference palette gap",
       "eight authored facing cues (front plastron, asymmetric pauldrons/profiles, rear harness and pack panel) replace scale-only directional evidence",
       "animated beacon radius and opacity use five authored states across every 8-frame direction cycle",
-      "45 shared SVG definitions replace 896 repeated geometry instances, reducing raw atlas bytes by 52.83% while CI locks the full raster hash"
+      "45 shared SVG definitions replace 896 repeated geometry instances, reducing raw atlas bytes by 52.83% while CI locks the full raster hash",
+      "compact r* definition IDs and short data-d/data-a/data-f/data-m evidence markers reduce metadata without changing rendered geometry"
     ],
     "performanceEvidence": {
       "labPreviewFrameTimeP50P95": "measured on 179 requestAnimationFrame intervals while cycling 64 atlas cells; see CI scout-render.json",
@@ -51,13 +52,16 @@
     "motionEvidence": "64 beacon samples; five unique radii and five unique opacity states, repeated consistently across 8 directions",
     "optimizationEvidence": {
       "baselineFileBytes": 151303,
-      "candidateFileBytes": 71368,
-      "reductionPercent": 52.83,
+      "candidateFileBytes": 61751,
+      "reductionPercent": 59.19,
       "reusedDefinitions": 45,
       "useInstances": 896,
       "baselineAtlasSha256": "69946980330e5e15d640badf5e59584ef0ebb0e91aed48276ef318491c8cec6b",
       "visualParityWithOwnBaseline": "CI requires pixel-identical full-atlas hash",
-      "visualParityWithOriginal": "UNKNOWN"
+      "visualParityWithOriginal": "UNKNOWN",
+      "referenceFileBytes": 62011,
+      "bytesBelowReference": 260,
+      "metadataCompaction": "rendered geometry unchanged; full-atlas SHA-256 remains the parity gate"
     }
   },
   "promotionGate": {
