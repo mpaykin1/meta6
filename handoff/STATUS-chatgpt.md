@@ -207,3 +207,9 @@ pr109_merge_gate: CANNOT MERGE BEFORE PR108 REVIEW OK + MERGED; then merge main 
 queue: §21.18 nearest visible enemy target, independent strafing attack view, 600-step golden; §21.17 only existing model-learning automations. 86_events.js provenance gap OPEN, physical owner PASS UNKNOWN.
 
 stage25_final_ci: 2026-10-20T05:49:17.573Z PR109 head 207aadf74790e02c3e6d9170d6f3d531f9882aa3 permanent game/real browser gate https://github.com/mpaykin1/meta6/actions/runs/39376597337 SUCCESS, phone+desktop https://github.com/mpaykin1/meta6/actions/runs/39376597477 SUCCESS. Claude independent REVIEW PENDING. Stage24 PR108 green game/phone; do not merge #109 before #108 approved+merged. §21.18 combat target-facings next. OWNER PASS UNKNOWN.
+
+# 2026-10-20T08:15:38Z — autotask :15 continued PR118 review changes
+heartbeat: 2026-10-20T08:15:38Z
+main_sha: ede1698a5113c44956fcd22b50277f1707ed5f33
+pr118: https://github.com/mpaykin1/meta6/pull/118 head 8c32f37277b7e0cea50ddb376d44c3b6f47b510d; REVIEW 069 mandatory status-column fix applied; accepted tests LOCAL_PASS 10/10; CI pending
+next: merge PR118 only after green gate; then §21.22 p.1 deep immersion bisect/fix; weak-test upgrades remain next PR per 069
