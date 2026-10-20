@@ -7,14 +7,29 @@ import {createRiftEvent,RIFT_WORDS} from './rift-event.mjs';
 export function riftCountdownAllowed(_land,guest){return !guest;}
 export function guestHomeFor(world){return world==='ash'?'island':world==='water'?'ash':'water';}
 // Only an approved original Ash guest is currently connected; never invent a source.
+export const GUEST_DIALOGUE=Object.freeze({
+ ash:Object.freeze([
+  'Приветствую тебя, о герой. Легенды о тебе дошли до моего мира.',
+  'Я Страж Пепла из Пепельного пути. Моё сердце разряжается (((, видишь, оно уже мигает красным.',
+  'Без него я погибну. В моём мире у ржавой вышки лежит голубой кристалл, он зарядит сердце.',
+  'Один я не дойду, на пути враги. Поможешь мне?'
+ ]),
+ island:Object.freeze([
+  'Приветствую тебя, герой. О твоей смелости говорят даже у нас.',
+  'Я Хранитель Огня с Острова сумерек. Мне холодно (((, видишь, моё пламя уже слабеет.',
+  'В воде я замерзну. Мне нужен костёр, он согреет меня.',
+  'Один я не выплыву, на берегу враги. Поможешь мне?'
+ ]),
+ sunken:Object.freeze([
+  'Приветствую тебя, герой. Тебя помнят даже в глубинах моего мира.',
+  'Я Страж Бездны из Затонувшего города. Мне трудно дышать (((, видишь, мои жабры мерцают красным.',
+  'Без воды я погибну. Рядом с тобой есть озеро с синей водой, в воде я смогу исцелиться.',
+  'Один я не доползу, мне мешают враги. Поможешь мне?'
+ ])
+});
 export function guestDialogueLines(origin){
- if(origin==='ash')return Object.freeze([
-  'Приветствую тебя, герой. О тебе говорят даже в Пепельном пути.',
-  'Я Страж Пепла. Мой янтарный огонёк гаснет (((',
-  'Без энергии я остановлюсь. Мне нужен разлом моего мира.',
-  'На пути стоят враги. Поможешь мне?'
- ]);
- throw Error('No approved four-line dialogue for original '+origin);
+ if(!GUEST_DIALOGUE[origin])throw Error('Original guest origin not connected: '+origin);
+ return GUEST_DIALOGUE[origin];
 }
 // One authoritative world-portal registry is used by collision, visuals and missions.
 export const RIFT_PORTALS=Object.freeze([
@@ -147,8 +162,8 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   }
   event.step(dt,{land:true,battle:false,occupied:!!guest,pos:player.pos,look:player.look});
   const phase=event.state.phase,spot=event.state.spot;
-  const glitch=['warning','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):
-    ['opening','emerging'].includes(phase)?1:0;
+  const glitch=['warning','opening','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):
+    phase==='emerging'?1:0;
   onEventFX('intensity',glitch);
   if(phase!==previousPhase){
     previousPhase=phase;onEventFX(phase);
@@ -188,7 +203,10 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   if(guestRift.visible&&spot){
     guestRift.position.set(spot.x,height(spot.x,spot.z)+2.3,spot.z);
     guestRift.lookAt(camera.position.x,guestRift.position.y,camera.position.z);
-    const progress=['warning','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):1;
+    // §21.25: warning is music+screen interference, then the slit itself opens
+    // over a separate full five seconds. The escort reopens over five seconds.
+    const progress=phase==='warning'?.015:
+      ['opening','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):1;
     guestRift.scale.set(Math.max(.015,progress),Math.max(.015,progress),1);
     riftLight.position.copy(guestRift.position);
     riftLight.intensity=3*progress;
