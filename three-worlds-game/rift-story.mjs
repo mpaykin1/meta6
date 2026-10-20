@@ -161,24 +161,22 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
    if(phase==='dialogue'||t>=1){g.landed=true;g.mesh.visible=true;onTransition(.1)}
   }
   else{
-   if(event.dialogue)return; // Guest waits for the owner's explicit Help/Refuse choice.
-   const attack=attacking();if(attack&&distance<3&&g.damageClock===0){g.brain.hp-=12;g.brain.relation='hostile';g.damageClock=.7;toast(line(g,'hostile'),2600)}
-   if(g.brain.hp<=0){finishGuest(g);return}
-   if(g.brain.relation==='neutral'&&distance<2.6&&!attack){g.help+=dt;if(g.help>2){g.brain.relation='friend';toast(line(g,'friend'),2800)}}
-   if(g.brain.relation==='neutral'&&g.age>25&&distance>13)g.brain.relation='hostile';
+   if(event.dialogue)return; // Choice remains explicit; no auto-friendship.
+   const attack=attacking();if(attack&&distance<3&&g.damageClock===0){g.brain.hp-=12;g.brain.relation='hostile';g.damageClock=.7;if(bossState){bossState.hp=Math.max(0,g.brain.hp);bossState.phase=g.brain.hp<90?2:1;}toast(line(g,'hostile'),2600)}
+   if(g.brain.hp<=0){if(event.state.phase==='boss'){reward();event.finishArc({kind:'victory',world:getWorldId(),text:'Победа над гостем из разлома.'});toast('Победа. Награда получена.',4000)}finishGuest(g);return}
+   // The visitor never silently switches allegiance: the player's choice is authoritative.
    stepBrain(g.brain,p,dt,{player:player.pos,height:(x,z)=>height(x,z)+1.6,sea:3.8});
    if(g.brain.relation==='hostile'&&distance<2&&g.damageClock===0){onAttack();g.damageClock=2}
    if(g.brain.relation==='friend'&&!g.rewarded&&g.damageClock===0){
     const nearby=getHostiles().filter(h=>Math.hypot(h.x-p.x,h.z-p.z)<9).sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z));
     if(nearby.length){damageHostile(nearby[0],8);g.damageClock=1.5;}
    }
-   if(g.brain.relation==='friend'&&player.pos.x<-64&&Math.hypot(p.x-player.pos.x,p.z-player.pos.z)<=12&&!g.rewarded){g.rewarded=true;reward();toast(guestLine('ash','ash','home'),3200)}
-   if(g.rewarded){g.brain.relation='neutral';g.brain.state='wander';g.brain.target={x:-126,z:32};g.brain.clock=5;if(Math.hypot(p.x+126,p.z-32)<2){finishGuest(g);return}}
+   if(mission&&g.brain.relation==='friend'&&g.age>25){finishGuest(g);return;}
   }
   g.mesh.rotation.y=Number.isFinite(g.brain.heading)?g.brain.heading:Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
   factory.uniforms.uTime.value=clock;
   factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
  }
  function dispose(){onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
- return {update,dispose,travel,portals,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
+ return {update,dispose,travel,portals,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get mission(){return mission},get boss(){return bossState?{...bossState}:null},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
 }
