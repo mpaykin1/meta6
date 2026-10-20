@@ -1,0 +1,32 @@
+name: Temporary Ash original model main-sync
+on:
+  push:
+    branches: ['ai/chatgpt/stage33-ash-island-original-population']
+permissions:
+  contents: write
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Pinned builder
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Accepted Ash & original role tests
+        run: node --test three-worlds-game/tests/accepted/ash-original-island-population.test.mjs three-worlds-game/tests/owner-life-rift-mobile.test.mjs
+      - name: Build current standalone
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Publish rebuilt standalone
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'build(three-worlds): latest main camera and Ash nomad original'
+            git push origin HEAD:ai/chatgpt/stage33-ash-island-original-population
+          fi
