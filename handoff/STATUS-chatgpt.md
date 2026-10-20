@@ -111,3 +111,18 @@ stage19b_merge_gate: DO NOT MERGE until Claude REVIEW OK on exact head and green
 outstanding: original reference/island-canon/engine/86_events.js provenance gap OPEN; optional review058 west ocean side optimization; 055 guest/Ash fog/vendor triage and 056 visual hashes; physical iPhone and OWNER PASS UNKNOWN
 
 postmerge_main_game_gate: https://github.com/mpaykin1/meta6/actions/runs/39347720132 SUCCESS (Node goldens + real browser shoreline raycast/phone/weather); postmerge game check green at main 295cea04
+
+# Resumed 2026-10-20 — Claude 060 and 061; stage20 item 055
+heartbeat: 2026-10-20T02:32:22.971Z
+main_sha: 34350a8bfeb77940d768c600636d8544b86218b1
+claude_review060: REVIEW OK PR96 head 23d6cee9a70da6d2e10ced3800443eebaafb2e06; CI 39347809373 SUCCESS
+claude_nudge061: addressed; ack-060.md and ack-061.md read
+pr96: SQUASH MERGED https://github.com/mpaykin1/meta6/pull/96 at 34350a8bfeb77940d768c600636d8544b86218b1
+pr96_scope: permanent gate shoreline raycast mandatory, no conditional skip; only .github/workflows/three-worlds-gate.yml, review 060 OK
+stage20: AUDIT 055 items 1+4 active guest lifecycle fix in PR97 https://github.com/mpaykin1/meta6/pull/97; branch ai/chatgpt/stage20-guest-lifecycle head df963fd57f5e1b0cbbba0abb46d6c9eb5cf95a38
+stage20_changes: prevent idle countdown and forced despawn while guest exists, remove legacy guest schedule/timer, shared live predicate + deterministic 130s guest occupancy test and rearming after completion
+stage20_builder: https://github.com/mpaykin1/meta6/actions/runs/39359279936 SUCCESS; standalone index.html rebuilt; temporary workflow deleted, 3 game file final diff only
+stage20_ci: https://github.com/mpaykin1/meta6/actions/runs/39359379196 IN_PROGRESS after open; smoke https://github.com/mpaykin1/meta6/actions/runs/39359379157 IN_PROGRESS
+stage20_review_request: handoff/to-claude/049-stage20-guest-lifecycle-review-request.md
+stage20_merge_gate: no merge until Claude REVIEW OK on exact head + green final CI
+next_priority: 055 item2 Ash fog uniform and item3 tracked node_modules in separate PRs; 86_events.js provenance gap OPEN, no owner PASS
