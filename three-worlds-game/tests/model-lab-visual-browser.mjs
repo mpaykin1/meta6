@@ -24,8 +24,35 @@ try{
   samples.push({name,sha256:createHash('sha256').update(png).digest('hex'),bytes:png.length});
  }
  if(new Set(samples.map(x=>x.sha256)).size!==samples.length)throw Error('rendered direction/frame samples are identical');
+ const labPreviewPerformance=await page.evaluate(async()=>{
+  const root=document.documentElement;
+  const frameTimes=[];
+  let previous;
+  for(let frame=0;frame<180;frame++){
+   await new Promise(resolve=>requestAnimationFrame(now=>{
+    if(previous!==undefined)frameTimes.push(now-previous);
+    previous=now;
+    const cell=frame%64;
+    root.setAttribute('viewBox',`${(cell%8)*96} ${Math.floor(cell/8)*96} 96 96`);
+    resolve();
+   }));
+  }
+  root.setAttribute('viewBox','0 0 768 768');
+  const percentile=(values,q)=>{
+   const sorted=[...values].sort((a,b)=>a-b);
+   return sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*q))];
+  };
+  const fps=frameTimes.map(ms=>1000/ms);
+  return {
+   frames:frameTimes.length,
+   frameTimeMs:{p50:percentile(frameTimes,.5),p95:percentile(frameTimes,.95)},
+   fps:{p50:percentile(fps,.5),p95:percentile(fps,.95)}
+  };
+ });
+ if(labPreviewPerformance.frames<170||!Number.isFinite(labPreviewPerformance.frameTimeMs.p95))
+  throw Error('lab preview performance sample incomplete '+JSON.stringify(labPreviewPerformance));
  const evidence={...info,atlas:{sha256:createHash('sha256').update(atlas).digest('hex'),bytes:atlas.length},samples,
-  browser:'Playwright Chromium 1.56.1 / SwiftShader',resolution:'800x800 DPR1',visualParity:'UNKNOWN',fpsP50P95:'UNKNOWN',gameIntegration:false};
+  browser:'Playwright Chromium 1.56.1 / SwiftShader',resolution:'800x800 DPR1',labPreviewPerformance,visualParity:'UNKNOWN',gameFpsP50P95:'UNKNOWN',gameIntegration:false};
  await writeFile(out+'/scout-render.json',JSON.stringify(evidence,null,2)+'\n');
  console.log(JSON.stringify(evidence));
 }finally{await browser.close()}
