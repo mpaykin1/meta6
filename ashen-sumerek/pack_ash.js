@@ -20,10 +20,10 @@ const BIG = [        // flattened plateaus: id, radius (cells), scale, solid foo
   L('viaduct', 4, 1.9, {}),
   L('wall_ruin', 2, 1.3, { solid: 'line' }), L('wall_ruin', 2, 1.3, { solid: 'line' }), L('wall_ruin', 2, 1.3, { solid: 'line' }),
   L('wreck_truck', 3, 0.9, { solid: 'line' }),
-  L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}),
+  L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}),
 ];
 const SMALL = [      // id, count, scale range, blocks the cell for coins
-  ['dead_tree_a', 9, [0.5, 0.85]], ['dead_tree_b', 9, [0.5, 0.85]], ['thorn_bush', 14, [0.6, 0.95]], ['fungus', 8, [0.7, 1.1]],
+  ['dead_tree_a', 13, [0.5, 0.85]], ['dead_tree_b', 13, [0.5, 0.85]], ['thorn_bush', 22, [0.6, 0.95]], ['fungus', 10, [0.7, 1.1]],
   ['barrel', 3, [0.75, 0.9]], ['crate', 3, [0.75, 0.9]], ['tire_stack', 2, [0.8, 0.9]], ['grave_cross', 3, [0.8, 1.0]],
 ];
 defineBiome('ashen', {
@@ -31,19 +31,19 @@ defineBiome('ashen', {
   short: 'серые кубы, руины, пепел',
   desc: 'Серый кубический край с холмами и скалами, руины бункеров, шагоходы, дроны и пепел в воздухе. Герой, оружие и погода — из Острова сумерек.',
   lede: 'Собери монеты среди руин, переживи пепельную бурю и одолей Колосса. Каждый раз пустошь населяют другие твари.',
-  dry: true,
+  dry: true,                  // = the Ashen mode (engine + models); the sea is the Island's own
   blocks: {
-    top: 'stone', soil: 'ash_dark', deep: 'ash_dark', beach: 'ash_dark', path: 'frost_brick', plaza: 'frost_brick',
+    top: 'stone', soil: 'ash_dark', deep: 'ash_dark', beach: 'ash_pale', path: 'frost_brick', plaza: 'frost_brick',
     wall: 'frost_brick', pier: 'plank', post: 'bark', rock: 'ash_pale', tower: 'frost_brick', towerCap: 'frost_brick', towerTop: 'ash_pale', door: 'plank',
   },
-  terrain: { height: 9.0, base: 0.3, hills: 1.05, plain: 0.82, rim: 6.5 },
+  terrain: { height: 8.8, base: 0.4, hills: 1.0 },
   flora: [],
-  rocks: 9, ruins: 3, piers: 0, shrines: 3,
+  rocks: 9, ruins: 3, piers: 2, shrines: 3,
   guardian: 'ash_colossus',
   foes: { imp: 0, shade: 0, frost_imp: 0, lantern_jelly: 0, rose_jelly: 0 },
   leafColors: ['#6b6870', '#4a4852', '#8a8590'],
   weather: { kind: 'ash', density: 0.85, wind: [1.3, 0.5] },
-  ambience: { wind: 1.1, waves: 0 },
+  ambience: { wind: 1.1, waves: 1 },
   onTerrain(g) {      // grey patches break the plain up: pale rock, dark rock, brownish dust
     const { hgt, kind, vox, at, ci, W, D, role } = g;
     const pale = g.block('ash_pale'), dark = g.block('ash_dark'), dirt = g.block('frozen_dirt'), stone = g.block('stone');
@@ -151,6 +151,7 @@ defineBiome('ashen', {
     // campfire beside the beacon, a radar with its turret, lamps along the path
     const dx = tw.door[0], dz = tw.door[1], px = -dz, pz = dx;
     const fx = Math.floor(tw.x + dx * 3 + px * 3), fz = Math.floor(tw.z + dz * 3 + pz * 3);
+    { const sx = fx + 2, sz = fz - 1; if (inb(sx, sz)) g.structures.push({ kind: 'ash', id: 'scavenger', x: sx + 0.5, y: hgt[ci(sx, sz)], z: sz + 0.5, s: 0.62, rot: 3.6 }); }
     if (inb(fx, fz)) { g.structures.push({ kind: 'ash', id: 'campfire', x: fx + 0.5, y: hgt[ci(fx, fz)], z: fz + 0.5, s: 0.85, rot: 0 }); stand[ci(fx, fz)] = BL; kind[ci(fx, fz)] = 5; }
     for (let tries = 0; tries < 120; tries++) {
       const x = Math.floor(RR(6, W - 7)), z = Math.floor(RR(6, D - 7));
@@ -165,7 +166,8 @@ defineBiome('ashen', {
     pathCells.sort((a, b) => Math.hypot(a[0] - sp.x, a[1] - sp.z) - Math.hypot(b[0] - sp.x, b[1] - sp.z));
     for (let k = 4, n = 0; k < pathCells.length && n < 6; k += Math.max(4, Math.floor(pathCells.length / 7)), n++) {
       const [x, z] = pathCells[k];
-      const lx = x + (n % 2 ? 2 : -2), lz = z + (n % 2 ? 1 : -1);
+      let lx = x + (n % 2 ? 2 : -2), lz = z + (n % 2 ? 1 : -1);
+      if (!cellFree(lx, lz)) { lx = x + (n % 2 ? -2 : 2); lz = z + (n % 2 ? -1 : 1); }
       if (!cellFree(lx, lz)) continue;
       g.structures.push({ kind: 'ash', id: 'lamp', x: lx + 0.5, y: hgt[ci(lx, lz)], z: lz + 0.5, s: 0.85, rot: (n % 2) * Math.PI });
       stand[ci(lx, lz)] = BL; kind[ci(lx, lz)] = 5;
@@ -174,7 +176,7 @@ defineBiome('ashen', {
   palette: {
     dusk: {
       skyTop: '#383b4a', skyHor: '#9c9aa2', fog: '#8a8c95', fogD: 0.021, keyCol: '#d3cde6', keyI: 2.7, sunEl: 0.5, sunVis: 0.2, moonMix: 0,
-      hemiSky: '#aeb0be', hemiGnd: '#3c3c46', hemiI: 2.1, deep: '#222534', shallow: '#3d4256', foam: '#9a9aa6', wSky: '#6e707c',
+      hemiSky: '#aeb0be', hemiGnd: '#3c3c46', hemiI: 2.1, 
       mist: 0, mistCol: '#7d7f8c', motes: 0.55, flies: 0, stars: 0.0, wisp: 0.25,
       gain: [1.0, 0.99, 1.02], lift: [0.015, 0.012, 0.025], bloom: 0.78, grain: 0.07, vig: 0.5,
     },
@@ -249,6 +251,11 @@ defineBrain('ashen', Object.assign({}, STALK, {
   },
   onHurtHero: STALK.onHurtHero,
 }));
+defineBrain('ashnomad', Object.assign({}, STALK, {
+  think(f, dt, s) { nomadThink(f, dt, s, STALK); },
+  onDamaged(f, dmg, o) { nomadHurt(f, dmg, o); },
+  onHurtHero() {},
+}));
 defineBrain('ashturret', Object.assign({}, STALK, {
   think(f, dt, s) {
     STALK.think(f, dt, s);
@@ -260,6 +267,9 @@ defineBrain('ashturret', Object.assign({}, STALK, {
 }));
 const LOOK = (r, g, b) => ({ core: [0.03, 0.03, 0.05], rim: [r, g, b], aura: [r, g, b], death: [r * 2, g * 2, b * 2, 2.4] });
 const LAND = (c) => ({ from: 'land', every: 3.5, dist: [12, 26], biomes: ['ashen'], ...c });
+defineEnemy('ash_nomad', { name: 'Странник', body: 'ashen', brain: 'ashnomad', ash: 'nomad', ashScale: 0.64, ashKind: 'human', ashAim: true, ashGlow: 0,
+  seg: 2, rad: 0.36, spacing: 0.28, hover: 0.7, hp: 90, dmg: 1, wander: 2.0, chase: 3.7, chaseR: 14, keep: 5.5, soul: 0.2, danger: 0, look: LOOK(0.4, 0.8, 1.0),
+  fire: { every: 2.5, range: 13, n: 1, speed: 7.2, up: 0.5 } });
 defineEnemy('ash_scav', { name: 'Мародёр', body: 'ashen', brain: 'ashen', ash: 'scavenger', ashScale: 0.62, ashKind: 'human', ashGlow: 1.0,
   seg: 2, rad: 0.36, spacing: 0.28, hover: 0.7, hp: 32, dmg: 1, wander: 2.0, chase: 3.7, chaseR: 9, soul: 0.2, danger: 0.5, look: LOOK(0.9, 0.3, 0.2),
   spawn: LAND({ priority: 3, max: (c) => (ashOn('ash_scav') && c.play >= 6 ? Math.min(4, 2 + Math.floor(c.collected / 6)) : 0) }) });
