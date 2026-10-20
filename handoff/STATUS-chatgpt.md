@@ -262,3 +262,15 @@ pr122: HEAD 2ae880cb1f0a0afa433b6863feb62e1a9775257d; gate 39395773283 SUCCESS, 
 pr120: HEAD 0301b925b801fb3971b472282b3aa3b4ec872f91; gate/smoke SUCCESS; REVIEW OK absent.
 pr121: HEAD db06c6b37a1dc78c70661b41aaa92c53172a4087; gate/smoke SUCCESS; REVIEW OK absent.
 next_queue: wait independent Claude REVIEW OK for 120,121,122,123; after gate unblock merge in §20.13 order; remaining §21.22 p.2 water combat/jump, p.3 Ash islands, §21.23 rain, 057, 055/056. Do not claim owner PASS. FPS not measured.
+
+# 2026-10-20T09:28:33.928Z — owner test 5, audit079 and water controls
+heartbeat: 2026-10-20T09:28:33.928Z
+main_sha_at_check: a18dd921c59b895bd0fadf96f588a4a66664f202
+review_062: #120 and #121 already merged before resumed task; #122 old head REVIEW OK superseded by later Claude REVIEW CHANGES 079.
+pr122: https://github.com/mpaykin1/meta6/pull/122 head c34d86f4a25a7841d5a5c0187abb3794567b8025, CI 39399914679/39399914832 SUCCESS, main integrated as two-parent merge, fixes 079 altitude XZ+Y, one RIFT_PORTALS, WORLD_OBJECTS.rift, closing 5s, A06 still OPEN mismatch approved crystal/tower. NEW independent REVIEW pending via handoff/to-claude/081-review-request-pr122-audit079.md. DO NOT MERGE until exact-head REVIEW OK.
+pr123: https://github.com/mpaykin1/meta6/pull/123 head f16db4554e46ae6539debc2393d1a1dc0986ee4c, Claude REVIEW OK 077 for original head; main integrated without force, offline rebuild 39400734379 SUCCESS, temp workflow removed; current gate 39400831436 and smoke 39400831427 PENDING. Re-review final head/CI before merge; owner deep PASS unset.
+pr125: https://github.com/mpaykin1/meta6/pull/125 head 9911ce2ea0edd3370cc1d7a0634ff79ed231d4d7, accepted combat A11 + Node golden; CI 39399492311/39399492005 SUCCESS; Claude review requested 082.
+pr127: https://github.com/mpaykin1/meta6/pull/127 head c6c38ef51a55c5d51d45396001748c8dbc41c430, restored mobileCombo underwater attack, real 90-step shallow/deep game test, red/green verified builder 39400431182 SUCCESS; gate 39400589095 PENDING, smoke 39400589214 SUCCESS; review requested 083. A10 owner acceptance UNKNOWN.
+owner063: combat accepted A11, water depth and Keeper-style guest bubble defects remain OPEN pending independent owner verification.
+owner064: exact Keeper .npc-say original code not found in available Library HTML or repo reference; cannot claim 1:1 import. Need source or verified artifact before parity declaration.
+next: merge approved green heads (no duplicate work), then Keeper original style, Ash islands+original population, automatic Island rain. No OWNER PASS. FPS not measured.
