@@ -9,14 +9,14 @@ test('§21.17 lab scout is a measured 8-direction 8-frame atlas and stays out of
   readFile(new URL('index.source.html',root),'utf8'),
   readFile(new URL('models/MANIFEST.json',root),'utf8')
  ]);
- const cells=[...svg.matchAll(/<g data-dir="(\d)" data-frame="(\d)"/g)];
+ const cells=[...svg.matchAll(/<g data-d="(\d)" data-a="(\d)"/g)];
  assert.equal(cells.length,64);
  assert.equal(new Set(cells.map(x=>x[1])).size,8);
  assert.equal(new Set(cells.map(x=>x[2])).size,8);
- const facing=[...svg.matchAll(/data-facing-detail="([^"]+)"/g)].map(match=>match[1]);
+ const facing=[...svg.matchAll(/data-f="([^"]+)"/g)].map(match=>match[1]);
  assert.equal(facing.length,64,'every atlas cell needs an authored facing cue');
  assert.equal(new Set(facing).size,8,'eight directions need eight distinct authored cues, not scale-only views');
- const beaconPulses=[...svg.matchAll(/data-motion-detail="beacon-pulse"[^>]*r="([^"]+)"[^>]*opacity="([^"]+)"/g)];
+ const beaconPulses=[...svg.matchAll(/data-m="b"[^>]*r="([^"]+)"[^>]*opacity="([^"]+)"/g)];
  assert.equal(beaconPulses.length,64,'every atlas cell needs an animated beacon sample');
  assert.equal(new Set(beaconPulses.map(match=>match[1])).size,5,'beacon radius must pulse across the animation, not stay static');
  assert.equal(new Set(beaconPulses.map(match=>match[2])).size,5,'beacon opacity must pulse across the animation, not stay static');
