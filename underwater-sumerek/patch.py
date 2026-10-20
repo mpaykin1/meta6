@@ -8,7 +8,7 @@ atlas=open('sunken_atlas.b64').read()
 rep('"structures":"crystal"}};','"structures":"crystal"},"sunken":{"label":"Затонувший город","fog":"#0b4663","tone":"cyan","seed":5150,"cols":[30,30,3,20,4,10,7,30,30,10,20,3],"props":["ruin","monolith","rock","crystal","lantern"],"structures":"gothic"}};')
 rep('const BIOME_ATLASES = {','const BIOME_ATLASES = {"sunken":"data:image/webp;base64,'+atlas+'",')
 rep(" crystal: {top:'#413587'"," sunken: {top:'#06304d', horizon:'#1f8fb0', fog:'#0b5c7c', lift:[.0,.05,.09], gain:[1.0,1.08,1.14]},\n crystal: {top:'#413587'")
-rep("import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';","import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';\nimport { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';")
+rep("import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';","import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';\nimport { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';\nimport { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';")
 rep("const SEA = 3.8;                       // water surface height","let SEA = 3.8;                         // water surface height (far below the world in the sunken biome: everything is underwater)\nlet UW = false;                        // sunken biome: swim physics, 3D sea creatures")
 # seabed relief
 rep("hgt[ci(x, z)] = Math.max(1, Math.round(1 + mask * (0.42 + 0.8 * hills) * 8.4));",
@@ -54,15 +54,16 @@ rep("        else if (bm === 'recover') ty = gnd + 1.05 + 0.15 * Math.sin(f.t * 
         }
       }""")
 # model system inserted before section 31
-model_code = open('uwfoes.js').read()
+model_code = open('uwfoes.js').read() + open('city.js').read()
 marker="/* =============================================================================\n   31 · Destruction"
 rep(marker, model_code+"\n"+marker)
-rep("function renderFoes() {\n  let n = 0;","function renderFoes() {\n  let n = 0;\n  if (UW && !uwFail) { updateFoeModels(); foeInst.geo.instanceCount = 0; foeBody.visible = foeAura.visible = false; return; }\n  clearFoeModels();")
+rep("function renderFoes() {\n  let n = 0;","function renderFoes() {\n  let n = 0;\n  if (UW) updateCity();\n  if (UW && !uwFail) { updateFoeModels(); foeInst.geo.instanceCount = 0; foeBody.visible = foeAura.visible = false; return; }\n  clearFoeModels();")
 rep("terrainMat.emissive.set(id==='classic'?0x000000:0x292331);","terrainMat.emissive.set(id==='classic'?0x000000:id==='sunken'?0x04141f:0x292331);")
 rep("terrainMat.emissive.set(biome==='classic'?0x000000:0x292331);","terrainMat.emissive.set(biome==='classic'?0x000000:biome==='sunken'?0x04141f:0x292331);")
+rep("  drawMinimapBase();\n  G.best = readBest();\n}","  drawMinimapBase();\n  G.best = readBest();\n  if (UW) buildCity(); else clearCity();\n}")
 # biome mode
 rep("function changeBiome(id,seed){\n if(!BIOME_DEFS[id])id='classic';","function setBiomeMode(id){\n UW=id==='sunken'; SEA=UW?-200:3.8; waterU.uSea.value=SEA; water.visible=!UW; water.position.y=SEA; for(const m of mists)m.visible=!UW; if(UW)preloadUW();\n}\nfunction changeBiome(id,seed){\n if(!BIOME_DEFS[id])id='classic';\n setBiomeMode(id);")
 rep("const biome=BIOME_DEFS[qp.get('biome')]?qp.get('biome'):'classic';\n  activeBiome=biome;","const biome=BIOME_DEFS[qp.get('biome')]?qp.get('biome'):'sunken';\n  setBiomeMode(biome);activeBiome=biome;")
-rep("  get coins() { return coins; },","  get coins() { return coins; },\n  get uw() { return { UW, uwFail, models: foeModels.size, cache: Object.keys(uwCache), SEA }; },")
+rep("  get coins() { return coins; },","  get coins() { return coins; },\n  get uw() { return { UW, uwFail, models: foeModels.size, city: [CITY.mixers.length, CITY.movers.length, CITY.schools.length, CITY.group && CITY.group.children.length], cache: Object.keys(uwCache), SEA }; },")
 open('index.html','w').write(s)
 print(len(s))
