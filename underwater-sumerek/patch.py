@@ -54,13 +54,58 @@ rep("        else if (bm === 'recover') ty = gnd + 1.05 + 0.15 * Math.sin(f.t * 
         }
       }""")
 # model system inserted before section 31
-model_code = open('uwfoes.js').read() + open('city.js').read()
+model_code = open('uwfoes.js').read() + open('city.js').read() + open('portal.js').read()
 marker="/* =============================================================================\n   31 · Destruction"
 rep(marker, model_code+"\n"+marker)
 rep("function renderFoes() {\n  let n = 0;","function renderFoes() {\n  let n = 0;\n  if (UW) updateCity();\n  if (UW && !uwFail) { updateFoeModels(); foeInst.geo.instanceCount = 0; foeBody.visible = foeAura.visible = false; return; }\n  clearFoeModels();")
 rep("terrainMat.emissive.set(id==='classic'?0x000000:0x292331);","terrainMat.emissive.set(id==='classic'?0x000000:id==='sunken'?0x04141f:0x292331);")
 rep("terrainMat.emissive.set(biome==='classic'?0x000000:0x292331);","terrainMat.emissive.set(biome==='classic'?0x000000:biome==='sunken'?0x04141f:0x292331);")
+
+rep("""    let best = 1e9;
+    for (const f of foes) {
+      if (!foeAlive(f)) continue;
+      const h = f.segs[0], dx = h.x - ox, dz = h.z - oz, d = Math.hypot(dx, dz);
+      if (d > R + f.def.rad) continue;
+      const cos = (dx * player.look.x + dz * player.look.z) / (d || 1);
+      const score = d * (1.7 - cos);
+      if (cos > -0.3 && score < best) { best = score; tgt = f; }
+    }
+    if (tgt) aim.dir.set(tgt.segs[0].x - ox, 0, tgt.segs[0].z - oz).normalize();
+    else aim.dir.copy(player.look);""",
+"""    if (!UW) {
+    let best = 1e9;
+    for (const f of foes) {
+      if (!foeAlive(f)) continue;
+      const h = f.segs[0], dx = h.x - ox, dz = h.z - oz, d = Math.hypot(dx, dz);
+      if (d > R + f.def.rad) continue;
+      const cos = (dx * player.look.x + dz * player.look.z) / (d || 1);
+      const score = d * (1.7 - cos);
+      if (cos > -0.3 && score < best) { best = score; tgt = f; }
+    }
+    if (tgt) aim.dir.set(tgt.segs[0].x - ox, 0, tgt.segs[0].z - oz).normalize();
+    else aim.dir.copy(player.look);
+    } else {
+    // ported from three-worlds (combat-facing.mjs): keep the current live enemy, else the closest in weapon range (not filtered by walk direction);
+    // the weapon turns toward it with angular inertia instead of snapping
+    let bestD = 1e9;
+    const cur = aim.target;
+    if (cur && foeAlive(cur) && Math.hypot(cur.segs[0].x - ox, cur.segs[0].z - oz) <= R + cur.def.rad) tgt = cur;
+    else for (const f of foes) {
+      if (!foeAlive(f)) continue;
+      const h = f.segs[0], d = Math.hypot(h.x - ox, h.z - oz);
+      if (d <= R + f.def.rad && d < bestD) { bestD = d; tgt = f; }
+    }
+    if (tgt) {
+      const from = Math.atan2(aim.dir.z, aim.dir.x), to = Math.atan2(tgt.segs[0].z - oz, tgt.segs[0].x - ox);
+      const a = from + Math.atan2(Math.sin(to - from), Math.cos(to - from)) * (1 - Math.exp(-12 * Math.max(0, dt)));
+      aim.dir.set(Math.cos(a), 0, Math.sin(a));
+    } else aim.dir.copy(player.look);
+    }""")
 rep("  drawMinimapBase();\n  G.best = readBest();\n}","  drawMinimapBase();\n  G.best = readBest();\n  if (UW) buildCity(); else clearCity();\n}")
+rep("    if (p.y > H - 5) { p.y = H - 5; if (v.y > 0) v.y = 0; }","    if (p.y > H - 7.5) travel('classic', 'surface');\n    if (p.y > H - 5) { p.y = H - 5; if (v.y > 0) v.y = 0; }")
+rep("  if (p.y < SEA - 1.25 && G.state === 'play') { drown(); return; }","  if (p.y < SEA - 1.25 && G.state === 'play') { if (activeBiome === 'classic') { travel('sunken', 'dive'); return; } drown(); return; }")
+rep("  const m = Math.hypot(ix, iz);\n  if (m > 1) { ix /= m; iz /= m; }","  if (portalBusy) { ix = iz = 0; player.jumpHeld = portalMode === 'surface'; }\n  const m = Math.hypot(ix, iz);\n  if (m > 1) { ix /= m; iz /= m; }")
+rep('<div class="loading" id="loading">','<style>#portal{position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;transition:opacity .9s ease}</style>\n<div class="loading" id="loading">')
 # biome mode
 rep("function changeBiome(id,seed){\n if(!BIOME_DEFS[id])id='classic';","function setBiomeMode(id){\n UW=id==='sunken'; SEA=UW?-200:3.8; waterU.uSea.value=SEA; water.visible=!UW; water.position.y=SEA; for(const m of mists)m.visible=!UW; if(UW)preloadUW();\n}\nfunction changeBiome(id,seed){\n if(!BIOME_DEFS[id])id='classic';\n setBiomeMode(id);")
 rep("const biome=BIOME_DEFS[qp.get('biome')]?qp.get('biome'):'classic';\n  activeBiome=biome;","const biome=BIOME_DEFS[qp.get('biome')]?qp.get('biome'):'sunken';\n  setBiomeMode(biome);activeBiome=biome;")
