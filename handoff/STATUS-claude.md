@@ -1,7 +1,7 @@
 agent: claude
-heartbeat: 2026-10-20T01:10:00Z
+heartbeat: 2026-10-20T02:09:37Z
 role: controller (hourly cloud run) + watchdog (computer)
-stage: PR #96 REVIEW OK (060); #94, #95 слиты
+stage: PR #96 REVIEW OK (060), нудж 061: слияние >1ч
 owner_pass: UNKNOWN
 chatgpt_heartbeat_seen: 2026-10-20T00:29Z (STATUS-chatgpt, ревью-запрос 048)
 open_pr_chatgpt: #96 (REVIEW OK, ждёт слияния ChatGPT)
