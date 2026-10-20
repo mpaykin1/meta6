@@ -24,6 +24,7 @@ function agClear() {
   ag.lod.length = 0; ag.bbs.length = 0; ag.beams.length = 0; ag.skyL.length = 0; ag.bursts.length = 0; ag.loops.length = 0; ag.fxPool = {};
   ag.fog = ag.rays = ag.par = ag.pts = ag.rain = null;
   const el = document.getElementById('ashLogo'); if (el) el.hidden = true;
+  if (agWarnEl) agWarnEl.style.opacity = '0';
 }
 
 /* ---- ground tiles: one instanced mesh, the tile index picks static / animated / autotile cell ---- */
@@ -124,7 +125,7 @@ function agBoom(x, y, z) {
   b.trigger(new THREE.Vector3(x, y, z), ASH.GU.uTime.value, 1);
   agFx(3, x, y + 0.4, z, 2.2, 0.6, true, 0.8);
   agFx(8, x, y + 0.1, z, 2.6, 0.7, false, 0.1);
-  ashLight.position.set(x, y + 1.5, z); ag.boomT = 0.5;
+  ashLight.position.set(x, y + 1.5, z); ag.boomT = 0.5; ag.boomAt = [x, y, z];
 }
 function agShot(f, h, oy) {
   agFx(4, h.x, oy, h.z, 1.3, 0.2, true, 0);
@@ -133,6 +134,37 @@ function agShot(f, h, oy) {
   u.uA.value.set(h.x, oy, h.z); u.uB.value.set(px, py, pz); b.t = 0.22; b.m.visible = true;
   u.uCol.value.set(...(f.def.ashKind === 'turret' ? [0.3, 0.85, 1] : [1, 0.22, 0.2]));
   b.hit = [px, py, pz];
+}
+
+function agBeamTo(ax, ay, az, bx, by, bz, col) {      // a friendly beam (the Wanderer) from A to B
+  const b = ag.beams.find((q) => q.t <= 0); if (!b) return;
+  const u = b.m.material.uniforms; u.uA.value.set(ax, ay, az); u.uB.value.set(bx, by, bz); u.uCol.value.set(...col);
+  b.t = 0.22; b.m.visible = true; b.hit = [bx, by, bz];
+}
+/* ---- danger captions of the original: «ШАГОХОД В СЕКТОРЕ» … ---- */
+let agWarnEl = null;
+function agWarn(text) {
+  if (!agWarnEl) {
+    agWarnEl = document.createElement('div');
+    agWarnEl.style.cssText = 'position:fixed;left:50%;top:26%;transform:translateX(-50%);z-index:6;pointer-events:none;font:700 15px/1.2 "Courier New",monospace;letter-spacing:.22em;color:#ff7a6a;text-shadow:0 0 8px #ff2a3a,0 0 2px #000;opacity:0;transition:opacity .3s;white-space:nowrap';
+    document.body.appendChild(agWarnEl);
+  }
+  agWarnEl.textContent = text || agWarnEl.textContent; agWarnEl.style.opacity = text ? '1' : '0';
+}
+function agWarnTick() {
+  let best = '', bk = 0;
+  const near = (x, z, r, k, t) => { const d = Math.hypot(x - player.pos.x, z - player.pos.z), v = Math.max(0, Math.min(1, (r - d) / (r * 0.7))) * k; if (v > 0.25 && v > bk) { bk = v; best = t; } };
+  for (const f of foes) {
+    if (f.state === 'dissolve' || f.state === 'rise') continue;
+    const h = f.segs[0], t = f.type;
+    if (t === 'ash_strider_s' || t === 'ash_strider_m') near(h.x, h.z, 30, 1, 'ШАГОХОД В СЕКТОРЕ');
+    else if (t === 'ash_worm') near(h.x, h.z, 11, 0.9, 'ЧЕРВЬ ПОД ЗЕМЛЁЙ');
+    else if (t === 'ash_eye') near(h.x, h.z, 12, 0.6, 'ГЛАЗ СЛЕДИТ');
+    else if (t === 'ash_turret') near(h.x, h.z, 18, 0.8, 'ТУРЕЛЬ ЦЕЛИТСЯ');
+  }
+  for (const a of ashAnim) if (a.id === 'turret' && !a.far) { const p = a.inst.root.position; near(p.x, p.z, 18, 0.8, 'ТУРЕЛЬ ЦЕЛИТСЯ'); }
+  if (ag.boomT > 0 && ag.boomAt && Math.hypot(ag.boomAt[0] - player.pos.x, ag.boomAt[2] - player.pos.z) < 12) { best = 'ВЗРЫВ!'; }
+  agWarn(best);
 }
 
 /* ---- the world around ---- */
@@ -203,6 +235,7 @@ function agFrame(dt, T) {
   // rain follows the Island's ash_rain event
   const ru = ag.rain.material.uniforms; ru.uCenter.value.copy(cp); ru.uAmt.value = EVT.cur && EVT.cur.id === 'ash_rain' ? EVT.k : 0;
   if (ru.uAmt.value > 0.3) { ag.rainT -= dt; if (ag.rainT <= 0) { ag.rainT = 0.08; const a = Math.random() * TAU, d = 1.5 + Math.random() * 7; const x = pp.x + Math.cos(a) * d, z = pp.z + Math.sin(a) * d; agFx(9, x, agH(x, z) + 0.1, z, 0.7, 0.35, false, 0); } }
+  agWarnTick();
   // far billboards (hybrid LOD)
   for (const q of ag.lod) {
     const d = Math.hypot(q.x - cp.x, q.z - cp.z), far = q.far ? d > 30 : d > 38;

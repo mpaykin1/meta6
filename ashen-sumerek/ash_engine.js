@@ -55,6 +55,7 @@ function renderAshFoe(f) {                         // body.render of the 'ashen'
   let want = m.yaw;
   const dxp = player.pos.x - h.x, dzp = player.pos.z - h.z, dist = Math.hypot(dxp, dzp);
   if (def.ashAim && f.state === 'chase' && dist < (def.fire ? def.fire.range : 10)) want = Math.atan2(dxp, dzp);
+  else if (f.ally && f.tgt && f.tgt.state !== 'dissolve') want = Math.atan2(f.tgt.segs[0].x - h.x, f.tgt.segs[0].z - h.z);
   else if (spN > 0.25) want = Math.atan2(f.vel.x, f.vel.z);
   else if (def.ashAim) want = Math.atan2(dxp, dzp);
   let d = want - m.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -78,7 +79,7 @@ function renderAshFoe(f) {                         // body.render of the 'ashen'
   const slow = f.slow > 0 ? 0.35 : 1, tt = f.t * slow + f.seed;
   let o;
   switch (def.ashKind) {
-    case 'human': o = { speed: clamp(spN / 2.6, 0, 1.3), aim: f.state === 'chase' && dist < 13 ? 1 : 0 }; break;
+    case 'human': o = { speed: clamp(spN / 2.6, 0, 1.3), aim: (f.state === 'chase' && dist < 13) || (f.ally && f.tgt) ? 1 : 0 }; break;
     case 'strider': o = { mode: spN > 0.3 ? 'walk' : 'idle', speed: clamp(spN / 2.0, 0, 1.2), fire: f.fireK || 0 }; break;
     case 'colossus': o = { mode: spN > 0.3 ? 'walk' : 'idle', speed: clamp(spN / 2.4, 0, 1.2) }; break;
     case 'drone': o = { vx: f.vel.x * 0.25, vz: f.vel.z * 0.25 }; break;
@@ -94,6 +95,7 @@ function renderAshFoe(f) {                         // body.render of the 'ashen'
   u.uTint.value.copy(f.slow > 0 ? ashFreeze : ashHit);
   u.uDis.value = f.state === 'dissolve' ? 1 - Math.max(0, f.alpha) : f.state === 'rise' ? 1 - Math.min(1, f.t * 0.8) : 0;
   // red eyes / lamps glow into the dust
+  if (f.ally && f.alpha > 0.2 && f.state !== 'dissolve') glow.spark(h.x, y + 1.35, h.z, 0.09, C.ice, 0.14, 0);      // a friend's faint blue mark
   if (f.alpha > 0.2 && f.state !== 'dissolve' && def.ashGlow) glow.spark(h.x, y + def.ashGlow, h.z, def.rad * 2.2, C.eyeGlow, 0.16, 0);
 }
 
@@ -118,6 +120,87 @@ function ashShoot(f, dt, s) {
   flashLight(tmpE.set(h.x, oy, h.z), 0xff7a30, 6);
   SFX.orb();
   agShot(f, h, oy);
+}
+
+
+/* ---- the Wanderer («Кочевник», the original hero model): a companion that can turn on the hero ---------------
+   ally: follows the hero, shoots the nearest foe · betrayal: the hero hits him twice, or he is greedy and the last coins
+   are near · truce: beaten to a quarter of his health he yields; left far behind for a while he calms down. */
+const nomadS = { spawned: false, f: null, greed: false, betrayed: false };
+function nomadSpawn() {
+  if (!DRY || G.state !== 'play' || nomadS.spawned) return;
+  nomadS.spawned = true; nomadS.betrayed = false; nomadS.greed = Math.random() < 0.5;
+  const f = spawnFoe('ash_nomad', player.pos.x + 3, player.pos.y + 1, player.pos.z + 2, false);
+  if (!f) { nomadS.spawned = false; return; }
+  f.def = Object.assign({}, f.def); f.ally = true; f.anger = 0; f.calm = 0; f.shootT = 1.2; nomadS.f = f;
+  toast('Странник идёт с тобой', 3200);
+}
+function nomadTurn(f, text) {
+  f.ally = false; f.state = 'chase'; f.timer = 0; f.anger = 0; f.calm = 0; f.def.danger = 0.7; f.def.ashGlow = 1.0; f.shootT = 1.6;
+  toast(text, 3400, true, 2);
+}
+function nomadTruce(f) {
+  f.ally = true; f.state = 'wander'; f.anger = 0; f.hp = f.maxHp * 0.55; f.stun = 1.2; f.def.danger = 0; f.def.ashGlow = 0; f.shootT = 2;
+  nomadS.betrayed = true;
+  toast('Странник: «Хватит. Мир?»', 3200);
+}
+function nomadHurt(f, dmg, o) {
+  if (o && o.dot) return;
+  if (f.ally) {
+    f.anger++;
+    if (f.anger >= 2) nomadTurn(f, 'Странник: «Ты поднял на меня руку!»');
+    else toast('Странник: «Эй! Осторожнее!»', 1800, true);
+  } else {
+    f.state = 'chase'; f.calm = 0;
+    if (f.hp > 0 && f.hp <= f.maxHp * 0.25) nomadTruce(f);
+  }
+}
+function nomadThink(f, dt, s, STALK) {
+  const head = f.segs[0], def = f.def;
+  f.harmful = false;
+  if (f.state === 'dissolve' || f.state === 'rise') return;
+  if (!f.ally) {                                                  // enemy: the stalker's chase + gunfire
+    STALK.think(f, dt, s);
+    if (s.dist < def.keep) f.target.set(head.x - s.dxp * 3, 0, head.z - s.dzp * 3);
+    ashShoot(f, dt, s);
+    f.calm = s.dist > 45 ? f.calm + dt : 0;
+    if (f.calm > 20) nomadTruce(f);
+    return;
+  }
+  if (nomadS.greed && !nomadS.betrayed && G.total && G.collected >= G.total * 0.8) { nomadS.betrayed = true; nomadTurn(f, 'Странник: «Маяк мой. Прости.»'); return; }
+  f.state = 'wander'; def.danger = 0; f.hold = false;
+  let tg = null, bd = 1e9;
+  for (const q of foes) {
+    if (q === f || q.state === 'dissolve' || q.state === 'rise' || q.alpha < 0.6) continue;
+    const h = q.segs[0], d = Math.hypot(h.x - head.x, h.z - head.z);
+    if (d < 16 && d < bd && Math.hypot(h.x - s.px, h.z - s.pz) < 24) { bd = d; tg = q; }
+  }
+  f.tgt = tg;
+  if (tg) {
+    const th = tg.segs[0], dx = th.x - head.x, dz = th.z - head.z, d = Math.hypot(dx, dz) || 1;
+    if (d < 4.5) f.target.set(head.x - dx / d * 3, 0, head.z - dz / d * 3), f.speed = 3.6;
+    else if (d > 8) f.target.set(th.x, 0, th.z), f.speed = 3.4;
+    else f.target.set(head.x, 0, head.z), f.speed = 0.6;
+    f.shootT -= dt;
+    if (f.shootT <= 0 && d < 14 && f.stun <= 0) {
+      f.shootT = rr(1.3, 2.0);
+      const oy = head.y + 0.5;
+      damageFoe(tg, 14, dx / d, dz / d, { at: th, kb: 1.5 });
+      agBeamTo(head.x, oy, head.z, th.x, th.y + 0.3, th.z, [0.3, 0.85, 1]);
+      agFx(4, head.x, oy, head.z, 1.1, 0.2, true, 0);
+      glow.spark(head.x, oy, head.z, 1.0, C.ice, 0.6, 0);
+      flashLight(tmpE.set(head.x, oy, head.z), 0x55ccff, 5);
+      SFX.orb();
+      f.fireK = 1;
+    }
+  } else {
+    const d = s.dist;
+    if (d > 4) { f.target.set(s.px, 0, s.pz); f.speed = d > 20 ? 6.5 : d > 10 ? 5.0 : 3.2; }
+    else { f.target.set(head.x, 0, head.z); f.speed = 0.4; }
+  }
+  f.fireK = Math.max(0, (f.fireK || 0) - dt * 3.2);
+  f.turn = 2.4; f.yk = 2.6; f.arrive = 0.01;
+  f.ty = Math.max(terrainTop(head.x, head.z), SEA) + def.hover + 0.3 * Math.sin(f.t * 1.7 + f.seed);
 }
 
 /* ---- random roster: not every Ashen creature at once ------------------------------------- */
@@ -146,6 +229,7 @@ function clearAsh() {
   ashAnim.length = 0;
   while (ashGroup.children.length) { const c = ashGroup.children[0]; ashGroup.remove(c); c.traverse((o) => { if (o.isMesh && o.material && o.material.dispose) o.material.dispose(); }); }
   while (ashSky.children.length) { const c = ashSky.children[0]; ashSky.remove(c); c.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); }
+  nomadS.spawned = false; nomadS.f = null;
   Object.assign(ashFx, { fire: null, rover: null, lasers: [], far: [], fungi: [], lamps: [], pylon: null });
   ashLight.intensity = 0; ashFloor.visible = false; clearAshFoes(); agClear(); sky.visible = true;
 }
@@ -158,10 +242,10 @@ function putAsh(id, x, y, z, s, rot, own) {
 }
 function buildAsh() {
   clearAsh();
-  const w = world;
+  const w = world, lodList = [];
   for (const st of w.structures) {
     if (st.kind !== 'ash') continue;
-    const inst = putAsh(st.id, st.x, st.y, st.z, st.s, st.rot);
+    const inst = putAsh(st.id, st.x, st.y, st.z, st.s, st.rot); lodList.push([inst, st]);
     if (st.id === 'campfire') { ashFx.fire = inst; ashFx.fireAt = new THREE.Vector3(st.x, st.y, st.z); }
     else if (st.id === 'lamp') ashFx.lamps.push(inst);
     else if (st.id === 'fungus') ashFx.fungi.push(inst);
@@ -186,6 +270,7 @@ function buildAsh() {
     ashAnim.push({ inst, id: 'colossus', far: true });
   }
   agBuild();
+  for (const [inst, st] of lodList) agRegisterLod(inst, st);   // far props swap to baked flat pictures in the haze
   ashFloor.visible = true;
 }
 const ashV = new THREE.Vector3(), ashQ = new THREE.Quaternion(), ashUp = new THREE.Vector3(0, 1, 0);
@@ -196,6 +281,7 @@ function ashFrame() {      // once a frame (renderFoes) in a dry biome
   const T = G.time;
   ashSync(T);
   sweepAshFoes();
+  nomadSpawn();
   // animated props
   for (const a of ashAnim) {
     if (a.far) {
@@ -218,6 +304,10 @@ function ashFrame() {      // once a frame (renderFoes) in a dry biome
       a.inst.root.position.set(x, R.y + 0.05, z);
       if (Math.hypot(x - px, z - pz) > 1e-4) { let d = Math.atan2(x - px, z - pz) - a.inst.root.rotation.y; a.inst.root.rotation.y += Math.atan2(Math.sin(d), Math.cos(d)) * Math.min(1, dt * 4); }
       ASH.animate(a.inst, T, { speed: 1 });
+    } else if (a.id === 'scavenger') {                    // the marauder by the fire turns to watch the hero
+      const p = a.inst.root.position; let dd = Math.atan2(player.pos.x - p.x, player.pos.z - p.z) - a.inst.root.rotation.y;
+      a.inst.root.rotation.y += Math.atan2(Math.sin(dd), Math.cos(dd)) * Math.min(1, dt * 1.2);
+      ASH.animate(a.inst, T + a.ph, { speed: 0 });
     } else if (a.id === 'turret' || a.id === 'radar') {
       ASH.animate(a.inst, T + a.ph, { mode: 'idle' });
     } else ASH.animate(a.inst, T + (a.ph || 0), {});
