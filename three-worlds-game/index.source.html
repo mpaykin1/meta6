@@ -492,6 +492,7 @@ import {landBiomeAt} from './living-land.mjs';
 import {createLivingIsland} from './living-island-runtime.mjs';
 import {createLivingPopulation,LAND_ARMORY_IDS} from './living-population.mjs';
 import {createCameraRig} from './camera-rig.mjs';
+import {waterCameraShift} from './water-dive-camera.mjs';
 import {createIslandInput,createIslandHero,createIslandGroundGrip} from './hero-controls.mjs';
 import {createIslandEnvironment} from './island-environment.mjs';
 import {createIslandWeatherFX} from './island-weather-fx.mjs';
@@ -2677,6 +2678,17 @@ const updateCamera = createCameraRig({
  world:{get beacon(){return world.beacon}},
  tmpA,tmpB,tmpD,camera,U,sky,cutU,rayFree,clamp,damp,lerp,smooth,angDiff,REDUCED
 });
+// Deep water shifts only the eye height, never the canonical Island camera rig.
+let underwaterEyeShift=0;
+function updateDivingCamera(dt){
+ underwaterEyeShift=waterCameraShift(underwaterEyeShift,camera.position.y,
+  player.vis.y,terrainTop(player.pos.x,player.pos.z),SEA,UW.immersionAt(),dt);
+ if(underwaterEyeShift<1e-5)return;
+ camera.position.y-=underwaterEyeShift;
+ camera.updateMatrixWorld();
+ sky.position.copy(camera.position);
+ cutU.uCutB.value.copy(camera.position);
+}
 
 /* -----------------------------------------------------------------------------
    20 · Post levers + environment
@@ -2739,7 +2751,7 @@ function buildWorld(seed) {
   buildChunks();
   rebuildBeachPatch();
   riftStory?.dispose();
-  riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
+  riftStory=createRiftStory({THREE,scene,renderer,camera,player,heroTex,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
     canStart:()=>G.state==='play', // §21.15 accepts combat and underwater encounters
@@ -4780,6 +4792,8 @@ function updateCombatHud(dt) {
   }
   for (; i < BARS.length; i++) if (BARS[i].el.style.opacity !== '0') BARS[i].el.style.opacity = '0';
   const boss = riftStory?.boss || (G.warden && foeAlive(G.warden) ? G.warden : null);
+  const bossCaption=whud.boss.querySelector('span');
+  if(bossCaption)bossCaption.textContent=riftStory?.boss?'Страж Пепла':'Страж маяка';
   if (whud.boss.hidden === !!boss) { whud.boss.hidden = !boss; hud.root.classList.toggle('boss-on', !!boss); whud.lag = 1; }
   if (boss) {
     // the white "lag" bar trails the health, so each blow reads as a chunk bitten out of the bar
@@ -4858,6 +4872,7 @@ function frame(now) {
   updateEnvironment(raw);
   updateBeacon(raw);
   updateCamera(raw);
+  updateDivingCamera(raw);
   updateHeroMesh(raw);
   const worldId=UW.isSubmerged()?'water':landBiomeAt(player.pos.x,player.pos.z,G.seed);
   if(worlds.active!==worldId&&!worlds.transition)void worlds.enter(worldId);
@@ -4997,7 +5012,7 @@ window.__isle = {
     updatePlayer(dt);
     if (fight) {
       updateCombat(dt);
-      updateCamera(dt); updateHeroMesh(dt);
+      updateCamera(dt); updateDivingCamera(dt); updateHeroMesh(dt);
       sprites.begin(); ribbons.begin(); renderHeld();       // keeps the muzzle where the hand is
     }
     updatePickups(dt); updateLoot(); updateProjectiles(dt); updateFoes(dt); updateSouls(dt); updateFx(dt); updateBeacon(dt);
