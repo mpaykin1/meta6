@@ -126,7 +126,19 @@ try{
  assert.equal(event.origin,'ash');
  assert(event.actualVoxels>=event.sourceVoxels&&event.actualParts>=event.sourceParts,
   'guest source detail was simplified before rendering');
- assert.equal(event.locked,false,'movement must release at dialogue');
+ assert.equal(event.locked,true,'owner §21.25: hero must remain frozen until explicit dialogue choice');
+ const keeperUI=await page.evaluate(()=>{
+   const el=document.querySelector('#threeWorldsGuestChoice');
+   const title=el?.querySelector('.npc-say-name'),txt=el?.querySelector('#guestStoryText');
+   const style=getComputedStyle(el),name=getComputedStyle(title),body=getComputedStyle(txt);
+   return {className:el?.className,tag:el?.tagName,name:title?.textContent,
+     labelFamily:name.fontFamily,textFamily:body.fontFamily,position:style.position,
+     width:el?.getBoundingClientRect().width,boxes:el?.querySelectorAll('.npc-say-choices .btn').length};
+ });
+ assert(keeperUI.className.includes('npc-say')&&keeperUI.tag!=='DIALOG');
+ assert(keeperUI.name==='СТРАЖ ПЕПЛА'&&keeperUI.labelFamily.includes('Pixelify Sans'));
+ assert(keeperUI.textFamily.includes('Pixelify Sans')&&keeperUI.position==='fixed');
+ assert(keeperUI.width<=320.5&&keeperUI.boxes===2,'not the original keeper-sized in-world bubble');
  assert(Math.abs(event.distance-3.2)<.1&&event.alignment>.99,'terrain portal not in front of hero');
  const riftInFrame=await page.evaluate(()=>{
   const i=__isle,p=i.rifts.riftMesh.position.clone().project(i.camera);
