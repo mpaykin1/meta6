@@ -3,7 +3,8 @@
 // uses the source-described wrapped THREE.Points cloud, with seven exact presets.
 // No second WebGL renderer, canvas, HUD control or animation loop.
 import {createIslandWeatherCatalog} from './island-weather.mjs';
-export function createIslandWeatherFX({THREE,scene,camera,count=320}){
+import {worldWeatherAt} from './weather-cycle.mjs';
+export function createIslandWeatherFX({THREE,scene,camera,count=320,getSfx=()=>null}){
  const catalog=createIslandWeatherCatalog(),geo=new THREE.BufferGeometry();
  const pos=new Float32Array(count*3),phase=new Float32Array(count*3);
  let seed=708014;
@@ -59,7 +60,7 @@ export function createIslandWeatherFX({THREE,scene,camera,count=320}){
  const points=new THREE.Points(geo,material);
  points.name='island-canon-weather-gpu';points.frustumCulled=false;points.renderOrder=10;
  scene.add(points);
- let kind=null,override=null;
+ let kind=null,override=null,lastRainAudio=-Infinity,wasRaining=false;
  function setKind(next){
   if(!catalog.has(next))throw Error('Unknown original Island weather: '+next);
   if(next===kind)return kind;
@@ -73,7 +74,27 @@ export function createIslandWeatherFX({THREE,scene,camera,count=320}){
  }
  function select(next){override=next===null?null:setKind(next);return override}
  function update(dt,worldId,submerged,time,pixelHeight=800){
-  if(override===null)setKind(worldId==='ash'?'ash':'sea_mist');
+  if(override===null)setKind(worldWeatherAt(worldId,submerged,time));
+  const rain=!submerged&&kind==='rain';
+  if(rain){
+   // Weather changes the existing single world's sky/fog, never the frozen
+   // original Island camera, geometry or second renderer.
+   if(scene.fog){
+    scene.fog.color.lerp(new THREE.Color('#48566b'),Math.min(.035,dt*.7));
+    scene.fog.density=Math.max(scene.fog.density,.012);
+   }
+   // Reuse the game's native WebAudio noise generator after a user gesture.
+   // No looping sources, background thread or extra audio engine.
+   if(time-lastRainAudio>2.7){
+    const sfx=getSfx();
+    if(sfx?.ctx&&sfx?.noiseBuf&&!sfx.muted){
+      sfx.hiss(2.65,920,.5,.055,'lowpass');
+      if(!wasRaining)sfx.tone(75,1.5,'sine',.025,52);
+      lastRainAudio=time;
+    }
+   }
+  }
+  wasRaining=rain;
   uniforms.uTime.value=time;
   uniforms.uPixels.value=pixelHeight/(2*Math.tan(camera.fov*Math.PI/360));
   points.position.copy(camera.position);

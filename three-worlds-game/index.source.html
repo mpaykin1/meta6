@@ -1506,7 +1506,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 16),
 sky.renderOrder = -10; sky.frustumCulled = false;
 scene.add(sky);
 // §21.8: the canonical GPU weather uses THIS scene, camera, composer and frame loop.
-const weatherFX=createIslandWeatherFX({THREE,scene,camera});
+const weatherFX=createIslandWeatherFX({THREE,scene,camera,getSfx:()=>SFX});
 
 // lights: hemisphere + key (sun / moon) + companion wisp + beacon
 const hemi = new THREE.HemisphereLight(0xffffff, 0x222222, 1.5);
@@ -4779,7 +4779,6 @@ function updateCombatHud(dt) {
   }
   for (; i < BARS.length; i++) if (BARS[i].el.style.opacity !== '0') BARS[i].el.style.opacity = '0';
   const boss = riftStory?.boss || (G.warden && foeAlive(G.warden) ? G.warden : null);
-  // Audit 044: original lighthouse warden HUD must never label Ash guest.
   const bossCaption=whud.boss.querySelector('span');
   if(bossCaption)bossCaption.textContent=riftStory?.boss?'Страж Пепла':'Страж маяка';
   if (whud.boss.hidden === !!boss) { whud.boss.hidden = !boss; hud.root.classList.toggle('boss-on', !!boss); whud.lag = 1; }
