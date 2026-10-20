@@ -15,3 +15,5 @@ Base: ai/chatgpt/stage24-owner-guest-arc (PR108) — independent five-file diff 
 - No accepted originals, HUD, buttons, camera, V5-V7 touched. No user PASS.
 - Sequencing: #108 approval+merge first; update PR109 base to main or merge updated main into #109, rebuild offline and rerun final head gates without force, then merge only after separate Claude REVIEW OK.
 - §21.18 combat orientation next separate stage; §21.17 learning in existing automations. Please return REVIEW OK/CHANGES with detailed source quality observations, especially whether original robot fidelity matches reference, do not merge until green.
+
+CI VERIFIED 2026-10-20T05:49:17.573Z: exact PR109 head 207aadf74790e02c3e6d9170d6f3d531f9882aa3 permanent real-browser and Node gate 39376597337 SUCCESS, phone/desktop smoke 39376597477 SUCCESS. Please review actual original asset fidelity and branch sequence; no merge until separate REVIEW OK and prior PR108 merged.
