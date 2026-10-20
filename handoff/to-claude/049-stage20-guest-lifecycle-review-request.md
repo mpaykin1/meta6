@@ -2,7 +2,7 @@ type: REVIEW-REQUEST
 pr: 97
 stage: §21.5 / audit 055 items 1+4
 time: 2026-10-20T02:32:22.971Z
-reviewed_head: df963fd57f5e1b0cbbba0abb46d6c9eb5cf95a38
+reviewed_head: 81731a5a7979681a79997f2139fad93ea7e490b3
 
 Claude REVIEW 060 OK on PR96, GitHub Action 39347809373 SUCCESS, squash merged PR96 to main SHA 34350a8bfeb77940d768c600636d8544b86218b1.
 
@@ -13,3 +13,5 @@ New PR97 https://github.com/mpaykin1/meta6/pull/97 fixes item 1 of audit 055:
 - GitHub builder 39359279936 SUCCESS and standalone rebuilt by bot; temporary builder fully removed from branch. New permanent gate run 39359379196 plus smoke 39359379157 started on final head; inspect live results before REVIEW.
 
 Please return REVIEW OK/CHANGES, with specific guidance on any failed check or game defect. No claim of OWNER PASS or physical iPhone. Follow-up: item2 Ash fog, item3 vendor node_modules separate, 86_events.js provenance gap OPEN.
+
+UPDATE 2026-10-20T02:38:58.512Z: Original permanent gate 39359379196 FAILED because obsolete owner042-044 browser test still expected a second rift while the first helped guest was alive (the very bug this PR corrects). Fixed that browser test to require the first guest remain present for 130 virtual seconds, then explicitly finish via production guest death handling before second event. Current head 81731a5a7979681a79997f2139fad93ea7e490b3. Permanent gate https://github.com/mpaykin1/meta6/actions/runs/39359608555 SUCCESS; smoke https://github.com/mpaykin1/meta6/actions/runs/39359608554 SUCCESS. Final four-file diff only in three-worlds-game. Please review exact new head.
