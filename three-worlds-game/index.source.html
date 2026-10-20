@@ -4779,7 +4779,7 @@ function updateCombatHud(dt) {
   }
   for (; i < BARS.length; i++) if (BARS[i].el.style.opacity !== '0') BARS[i].el.style.opacity = '0';
   const boss = riftStory?.boss || (G.warden && foeAlive(G.warden) ? G.warden : null);
-  // Audit 044: the original lighthouse boss must not label an Ash rift visitor.
+  // Audit 044: original lighthouse warden HUD must never label Ash guest.
   const bossCaption=whud.boss.querySelector('span');
   if(bossCaption)bossCaption.textContent=riftStory?.boss?'Страж Пепла':'Страж маяка';
   if (whud.boss.hidden === !!boss) { whud.boss.hidden = !boss; hud.root.classList.toggle('boss-on', !!boss); whud.lag = 1; }
@@ -4961,7 +4961,7 @@ window.__isle = {
   // V7 mobile overlay calls ORIGINAL game controls; desktop keyboard/mouse are unchanged.
   mobileMove(dx,dy){touch.vx=clamp(dx,-1,1);touch.vy=clamp(dy,-1,1)},
   mobileCombo(on){
-    if(on&&G.state==='play'){onJumpPress();if(!UW.isSubmerged())setAttack('touch',true)}
+    if(on&&G.state==='play'){onJumpPress();setAttack('touch',true)}
     else{onJumpRelease();setAttack('touch',false)}
   },
   mobileSwap(){if(G.state==='play'){if(UW.isSubmerged())UW.toggleBathyscaphe();else cycleWeapon(1)}},
