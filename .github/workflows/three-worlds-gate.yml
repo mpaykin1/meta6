@@ -43,6 +43,7 @@ jobs:
           sleep 2
           node three-worlds-game/tests/owner042-044-browser.mjs
           node three-worlds-game/tests/owner-2111-shore-raycast-browser.mjs
+          node three-worlds-game/tests/owner-2114-water-entry-browser.mjs
           node three-worlds-game/tests/owner-218-weather-visual-browser.mjs
           node three-worlds-game/tests/owner-2111-touch-mutation-browser.mjs
       - name: Preserve real browser screenshots and diagnostic proof

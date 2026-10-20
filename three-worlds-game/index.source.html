@@ -1873,7 +1873,11 @@ function terrainHeightRaw(px,pz){
  if(px>=64){
   const edge63=world?world.hgt[63+bz*W]:1;
   const base=world?shoreSeabedHeight(px,pz,seed,edge63):seabedHeight(px,pz,seed);
-  return coastalBeachHeight(px,pz,seed,edge48,base);
+  const profile=coastalBeachHeight(px,pz,seed,edge48,base);
+  // Preserve the untouched Island's final column at x=63 and make the
+  // first ocean columns join it without the former 2m vertical step.
+  const u=Math.max(0,Math.min(1,(px-64)/8)),t=u*u*(3-2*u);
+  return edge63+(profile-edge63)*t;
  }
  if(!heightSource)return 1;
  const ax=Math.floor(px),az=Math.floor(pz),u=px-ax,v=pz-az;
