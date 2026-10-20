@@ -63,7 +63,7 @@ test('audit 055: original guest is never deleted by timer before finishing the a
 });
 
 test('§21.25: all 12 sentences exactly match QUEST_RULES, independent markdown source',()=>{
- const md=readFileSync(new URL('../../../docs/QUEST_RULES_RU.md',import.meta.url),'utf8');
+ const md=readFileSync(new URL('../../docs/QUEST_RULES_RU.md',import.meta.url),'utf8');
  const owners=[['ash','Страж Пепла'],['island','Хранитель Огня (Остров)'],['sunken','Страж Бездны (Затонувший город)']];
  for(const [origin,label] of owners){
   const row=md.split('\n').find(l=>l.startsWith(label+': '));
