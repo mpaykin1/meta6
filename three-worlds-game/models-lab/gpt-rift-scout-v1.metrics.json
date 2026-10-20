@@ -68,6 +68,7 @@
       "artifact": "three-worlds-game/evidence/model-lab/scout-reference-source.png",
       "comparisonManifest": "three-worlds-game/evidence/model-lab/scout-comparison.json",
       "source": "actual scavenger voxel grids and source palette rendered as four deterministic isometric directions",
+      "candidateSamples": "matching cardinal directions 0/2/4/6, all at idle frame 0 with explicit atlas cell coordinates",
       "visualParity": "UNKNOWN pending Claude review"
     }
   },
