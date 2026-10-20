@@ -4,11 +4,13 @@ on:
     paths:
       - 'three-worlds-game/**'
       - '.github/workflows/three-worlds-gate.yml'
+      - 'docs/ACCEPTED_BEHAVIORS.md'
   push:
     branches: [main]
     paths:
       - 'three-worlds-game/**'
       - '.github/workflows/three-worlds-gate.yml'
+      - 'docs/ACCEPTED_BEHAVIORS.md'
 permissions:
   contents: read
 jobs:
@@ -30,6 +32,8 @@ jobs:
         run: npm run build
       - name: Node goldens from actual current revision
         run: node --test three-worlds-game/tests/*.test.mjs
+      - name: Mandatory accepted behavior contract tests (owner §21.20)
+        run: node --test three-worlds-game/tests/accepted/*.test.mjs
       - name: Original accepted offline game must match source
         run: git diff --exit-code -- three-worlds-game/index.html
       - name: Install pinned Playwright Chromium / SwiftShader
