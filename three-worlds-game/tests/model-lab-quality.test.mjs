@@ -16,6 +16,10 @@ test('§21.17 lab scout is a measured 8-direction 8-frame atlas and stays out of
  const facing=[...svg.matchAll(/data-facing-detail="([^"]+)"/g)].map(match=>match[1]);
  assert.equal(facing.length,64,'every atlas cell needs an authored facing cue');
  assert.equal(new Set(facing).size,8,'eight directions need eight distinct authored cues, not scale-only views');
+ const beaconPulses=[...svg.matchAll(/data-motion-detail="beacon-pulse"[^>]*r="([^"]+)"[^>]*opacity="([^"]+)"/g)];
+ assert.equal(beaconPulses.length,64,'every atlas cell needs an animated beacon sample');
+ assert.equal(new Set(beaconPulses.map(match=>match[1])).size,5,'beacon radius must pulse across the animation, not stay static');
+ assert.equal(new Set(beaconPulses.map(match=>match[2])).size,5,'beacon opacity must pulse across the animation, not stay static');
  for(const name of new Set(facing))assert.equal(facing.filter(value=>value===name).length,8,`facing cue ${name} must cover all frames`);
  assert.match(svg,/data-palette-colors="14"/);
  assert.match(svg,/data-parts="15"/);
