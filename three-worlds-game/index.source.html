@@ -2737,9 +2737,10 @@ function buildWorld(seed) {
   riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
-    canStart:()=>G.state==='play'&&!UW.isSubmerged()&&!UW.inBathyscaphe&&!combat.atk,
+    canStart:()=>G.state==='play', // §21.15 accepts combat and underwater encounters
     onFreeze:(lock)=>riftInputGuard.set(lock),
-    onEventFX:(phase)=>{G.riftFX=['warning','opening','emerging'].includes(phase)?1:0;
+    onEventFX:(phase,progress)=>{if(phase==='intensity'){G.riftFX=progress;return}
+      G.riftFX=['warning','opening','emerging','closing'].includes(phase)?1:0;
       if(phase==='warning'){SFX.init();SFX.tone(82,.9,'sawtooth',.13,42);SFX.tone(110,1.6,'triangle',.08,63,.11);SFX.tone(55,2.2,'sine',.09,44,.1)}},
      getWorldId:()=>UW.isSubmerged()?'water':landBiomeAt(player.pos.x,player.pos.z,G.seed),
     reward:()=>takeLoot({id:'pistol',x:player.pos.x,y:player.pos.y,z:player.pos.z,alive:true}),
@@ -4772,7 +4773,7 @@ function updateCombatHud(dt) {
     b.fill.style.transform = `scaleX(${Math.max(0, f.hp / f.maxHp).toFixed(3)})`;
   }
   for (; i < BARS.length; i++) if (BARS[i].el.style.opacity !== '0') BARS[i].el.style.opacity = '0';
-  const boss = G.warden && foeAlive(G.warden) ? G.warden : null;
+  const boss = riftStory?.boss || (G.warden && foeAlive(G.warden) ? G.warden : null);
   if (whud.boss.hidden === !!boss) { whud.boss.hidden = !boss; hud.root.classList.toggle('boss-on', !!boss); whud.lag = 1; }
   if (boss) {
     // the white "lag" bar trails the health, so each blow reads as a chunk bitten out of the bar
