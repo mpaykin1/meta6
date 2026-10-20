@@ -23,6 +23,9 @@ test('§21.17 lab scout is a measured 8-direction 8-frame atlas and stays out of
  for(const name of new Set(facing))assert.equal(facing.filter(value=>value===name).length,8,`facing cue ${name} must cover all frames`);
  assert.match(svg,/data-palette-colors="14"/);
  assert.match(svg,/data-parts="15"/);
+ assert.match(svg,/data-reused-defs="45"/);
+ assert.equal((svg.match(/<use\b/g)||[]).length,896,'repeated rendered geometry must use shared definitions');
+ assert.equal(Buffer.byteLength(svg),71368,'optimized lab atlas raw size is a measured contract');
  const usedColors=new Set([...svg.matchAll(/(?:fill|stroke)="(#[0-9a-f]{6})"/g)].map(match=>match[1]));
  assert.equal(usedColors.size,14,'declared palette must match colors actually rendered');
  assert.equal(metrics.candidate.metrics.paletteColors,14);
