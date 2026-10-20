@@ -9,11 +9,12 @@ try{
  page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8765/three-worlds-game/',{waitUntil:'domcontentloaded',timeout:30000});
  await page.waitForFunction(()=>!!window.__isle?.mobileMove&&!!window.__isle?.stepKeyboard,{timeout:30000});
+ await page.evaluate(()=>{if(__isle.G.state==='title')__isle.startGame()});
+ await page.waitForFunction(()=>__isle.G.state==='play',{timeout:20000});
  const proof=await page.evaluate(()=>{
   const i=__isle;
-  if(i.G.state==='title')i.startGame();
   i.killFoes();i.clearInput();
-  const x=20,z=32,y=i.terrainTop(x,z);
+  const x=i.world.spawn.x,z=i.world.spawn.z,y=i.terrainTop(x,z);
   i.player.pos.set(x,y+.08,z);
   i.player.vel.set(0,0,0);
   i.player.onGround=false;
@@ -24,7 +25,7 @@ try{
   const movement=Math.hypot(i.player.pos.x-before.x,i.player.pos.z-before.z);
   i.mobileMove(0,0);
   // Return to accepted dry voxel floor and prime the original coyote/jump circuit.
-  i.player.pos.set(20,i.terrainTop(20,32)+.08,32);
+  i.player.pos.set(x,i.terrainTop(x,z)+.08,z);
   i.player.vel.set(0,0,0);i.player.onGround=true;
   i.player.coyote=.11;
   i.mobileCombo(true);
@@ -33,7 +34,7 @@ try{
   const jumped=i.player.vel.y>0&&i.player.pos.y>i.terrainTop(i.player.pos.x,i.player.pos.z);
   i.mobileCombo(false);i.mobileRelease();
   const after={attack:i.input.atk,jumpHeld:i.player.jumpHeld,vx:i.inputPointers.vx};
-  return {initialLock,dry,movement,pressed,jumped,after,scroll:[scrollX,scrollY],canvas:document.querySelectorAll('#c').length,
+  return {state:i.G.state,x,z,initialLock,dry,movement,pressed,jumped,after,scroll:[scrollX,scrollY],canvas:document.querySelectorAll('#c').length,
     stickDisplay:getComputedStyle(document.querySelector('#stick')).display};
  });
  assert(proof.dry&&!proof.initialLock,'test must start in unfrozen dry original Island');
