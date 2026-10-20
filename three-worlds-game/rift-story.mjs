@@ -54,7 +54,7 @@ export function guestLine(home,current,state){
  const need=home==='water'&&current!=='water'?'Мне нужна вода. Проводи меня к берегу.':home==='ash'&&current==='water'?'Я замерзаю. Выведи меня к огню.':'Пепел закрыл дорогу домой. Помоги добраться до разлома.';
  return state==='friend'?'Ты не бросил меня. Я прикрою тебя.':state==='hostile'?'Ты видел, что мне нужна помощь. Теперь я защищаюсь.':state==='home'?'Дорога открыта. Это оружие теперь твоё.':need;
 }
-export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,toast,prepare,onTransition,attacking,onAttack,reward,getHostiles=()=>[],damageHostile=()=>{},getWorldId=()=>player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island',canStart=()=>true,onEventFX=()=>{},onFreeze=()=>{}}){
+export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,height,seed,toast,prepare,onTransition,attacking,onAttack,reward,getHostiles=()=>[],damageHostile=()=>{},getWorldId=()=>player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island',canStart=()=>true,onEventFX=()=>{},onFreeze=()=>{}}){
  let snapshot={};try{snapshot=JSON.parse(localStorage.getItem('three-worlds-dialogue')||'{}')}catch{}
  const dialogue=new DialogueGenerator(snapshot);
  function line(g,state){const text=dialogue.next({home:g.home,world:getWorldId(),state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
@@ -124,14 +124,34 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   // Directly animate the owner's original scavenger asset. This removes the
   // first-appearance WebGL readback/render-target dependency which could prevent
   // the timed guest from materializing for an idle player.
-  factory ||= createAshFactory(THREE);
-  const {inst,ref,sourceVoxels,sourceParts}=instantiateOriginalGuest(factory);
+  // Always bring a visitor from ANOTHER original game, never an Ash robot
+  // onto its own Ash home terrain. The Island sprite comes verbatim from
+  // the owner's live npc-catalog.js + original hero texture.
+  const current=getWorldId(),islandGuest=current==='ash';
+  let inst,ref,sourceVoxels,sourceParts,islandEntity=null;
+  if(islandGuest){
+    const catalog=typeof window!=='undefined'?window.ObserverNpcCatalog:null;
+    if(!catalog?.ROLES?.companion||!heroTex)throw Error('Original Island companion asset is unavailable');
+    const visual=catalog.createMesh({THREE,heroTex},'companion',new THREE.Vector3());
+    islandEntity={visual,role:'companion',relation:'neutral',motion:0,seed,dead:false,
+      state:'idle',facing:1,x:0,y:0,z:0};
+    inst={root:visual.mesh,mat:{dispose:()=>catalog.dispose(islandEntity,scene)}};
+    ref={origin:'island',sourceModel:'companion'};sourceVoxels=null;sourceParts=1;
+  }else{
+    factory ||= createAshFactory(THREE);
+    const original=instantiateOriginalGuest(factory);
+    ({inst,ref,sourceVoxels,sourceParts}=original);
+  }
   const target=spot||event.state.spot||{x:player.pos.x+2.6,z:player.pos.z};
   const x=target.x,z=target.z;
-  const m=inst.root;m.position.set(x,height(x,z)+1.6,z);m.scale.setScalar(0.92);scene.add(m);
+  const m=inst.root;m.position.set(x,height(x,z)+1.6,z);
+  if(!islandGuest)m.scale.setScalar(0.92);scene.add(m);
   guestRift.position.set(x,height(x,z)+2.3,z);guestRift.visible=true;
   riftLight.position.copy(guestRift.position);riftAge=0;
-  guest={mesh:m,inst,brain:createBrain('original-strider_m',{x,z},seed),origin:ref.origin,originalId:ref.sourceModel,sourceVoxels,sourceParts,home:ref.origin,landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:ref.origin};
+  guest={mesh:m,inst,islandEntity,brain:createBrain('original-'+ref.sourceModel,{x,z},seed),
+   origin:ref.origin,originalId:ref.sourceModel,sourceVoxels,sourceParts,home:ref.origin,
+   landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:ref.origin};
+  if(guest.origin===current)throw Error('Same-world guest prohibited: '+current);
   // The guest is revealed from the depth of the original rift, without ballistic fall.
   m.visible=false;
   return true;
@@ -272,8 +292,14 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
    // The guide persists until its registered mission objective is reached.
   }
   g.mesh.rotation.y=Number.isFinite(g.brain.heading)?g.brain.heading:Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
-  factory.uniforms.uTime.value=clock;
-  factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
+  if(g.islandEntity){
+    const e=g.islandEntity;e.x=p.x;e.y=p.y-1.6;e.z=p.z;
+    e.motion=g.landed?.35:0;e.state=g.landed?'walk':'idle';
+    window.ObserverNpcCatalog.animate(e,clock,camera);
+  }else{
+    factory.uniforms.uTime.value=clock;
+    factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
+  }
  }
  function dispose(){ashQuest.dispose();document.removeEventListener('keydown',onDialogKey,true);onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
  return {update,dispose,travel,portals,ashQuest,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get mission(){return mission},get boss(){return bossState?{...bossState}:null},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
