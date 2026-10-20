@@ -56,6 +56,29 @@ try{
   assert(Math.abs(a.h-b.h)<=1,'visible voxel seam at original Island/ocean boundary '+zz+' '+a.h+'→'+b.h);
  }
  assert(proof.exitDry,'hero could not reach dry shore after submerged return');
+ // Owner §21.22 A01/A08: a real MID-DEPTH camera dive, distinct from shallow
+ // terrain traversal. Force the player to a known physically deep sea cell;
+ // the original rig is advanced via the real game code, not a fake formula.
+ const immersionCamera=await page.evaluate(()=>{
+  const i=__isle,p=i.player,sea=i.SEA;
+  const x=116,z=108,floor=i.terrainTop(x,z);
+  if(floor>sea-4)throw Error('midwater fixture is not deep: '+floor);
+  p.pos.set(x,sea-2.35,z);p.vis.copy(p.pos);p.vel.set(0,0,0);p.onGround=false;
+  i.clearInput();
+  for(let n=0;n<120;n++)i.sim(1/60,0,0,false,true);
+  const deep={floor,playerY:p.pos.y,cameraY:i.camera.position.y,sea,immersion:i.underwater.immersionAt()};
+  const shoreX=69,shoreZ=32,shallows=i.terrainTop(shoreX,shoreZ);
+  p.pos.set(shoreX,Math.max(shallows+.35,sea-.1),shoreZ);p.vis.copy(p.pos);p.vel.set(0,0,0);
+  for(let n=0;n<120;n++)i.sim(1/60,0,0,false,true);
+  const shallow={floor:shallows,playerY:p.pos.y,cameraY:i.camera.position.y,sea,immersion:i.underwater.immersionAt()};
+  return {deep,shallow};
+ });
+ console.log('OWNER_2122_REAL_CAMERA_IMMERSION '+JSON.stringify(immersionCamera));
+ assert(immersionCamera.deep.immersion>.65,'deep-fixture hero never submerged');
+ assert(immersionCamera.deep.cameraY<immersionCamera.deep.sea-.12,
+  'camera remained above surface at genuine mid-depth, owner regression §21.22 A01/A08');
+ assert(immersionCamera.shallow.cameraY>immersionCamera.shallow.sea,
+  'shallow-water acceptance regressed: camera dipped under water');
  assert.deepEqual(errors,[],'browser errors: '+errors.join(' | '));
  console.log('OWNER_2114_WATER_ENTRY_PASS');
 }finally{await browser.close();}
