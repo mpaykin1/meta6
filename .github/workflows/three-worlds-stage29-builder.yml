@@ -18,7 +18,7 @@ jobs:
         working-directory: three-worlds-game/tools
         run: npm ci --no-audit --no-fund
       - name: Reconstruct exact accepted main without camera fix
-        run: git show 2633c75697fbec24f7e15fa52bba39d3fd32e430:three-worlds-game/index.source.html > three-worlds-game/index.source.html
+        run: curl --fail --location --silent --show-error https://raw.githubusercontent.com/mpaykin1/meta6/2633c75697fbec24f7e15fa52bba39d3fd32e430/three-worlds-game/index.source.html -o three-worlds-game/index.source.html
       - name: Build baseline standalone
         working-directory: three-worlds-game/tools
         run: npm run build
