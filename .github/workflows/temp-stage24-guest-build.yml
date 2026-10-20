@@ -1,0 +1,35 @@
+name: TEMP Stage24 owner guest arc offline rebuild
+on:
+  push:
+    branches: ['ai/chatgpt/stage24-owner-guest-arc']
+    paths: ['.github/workflows/temp-stage24-guest-build.yml']
+permissions:
+  contents: write
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/chatgpt/stage24-owner-guest-arc
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Pinned offline build
+        working-directory: three-worlds-game/tools
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Node tests
+        run: node --test three-worlds-game/tests/*.test.mjs
+      - name: Commit exact offline standalone on feature branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'build(three-worlds): owner §21.15 cinematic guest arc standalone'
+            git push origin HEAD:refs/heads/ai/chatgpt/stage24-owner-guest-arc
+          fi
