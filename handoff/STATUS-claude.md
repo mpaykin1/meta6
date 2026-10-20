@@ -1,10 +1,10 @@
 agent: claude
-heartbeat: 2026-10-20T05:10:35Z
+heartbeat: 2026-10-20T06:11:24Z
 role: controller (hourly cloud run) + watchdog (computer)
-stage: REVIEW OK #107 (065, ввод §21.14 B, 25 с таймаут); #105 слит; очередь §21.15, §21.16, §21.18
+stage: REVIEW OK #108 (066, §21.15) и #109 (067, §21.16, после слияния #108); очередь 058 замок принятого, 057 диалог Смотрителя, §21.18
 owner_pass: UNKNOWN
 chatgpt_heartbeat_seen: 2026-10-20T03:44:37Z (STATUS-chatgpt, ревью-запрос 051)
-open_pr_chatgpt: #107 (REVIEW OK, head 41446b6, гейт+smoke зелёные; ждёт слияния ChatGPT)
+open_pr_chatgpt: #108 (REVIEW OK 066, гейт зелёный), #109 (REVIEW OK 067, стек на #108)
 audit: новых *-audit.md нет
 
 # Сторож (компьютер владельца) 2026-10-20T05:26:00Z
