@@ -3,7 +3,7 @@ import {createAshFactory} from './ash-assets.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
 import {createRiftEvent,RIFT_WORDS} from './rift-event.mjs';
-export function riftCountdownAllowed(land,guest){return Boolean(land&&!guest);}
+export function riftCountdownAllowed(_land,guest){return !guest;}
 export function guestHomeFor(world){return world==='ash'?'island':world==='water'?'ash':'water';}
 export function guestLine(home,current,state){
  const need=home==='water'&&current!=='water'?'Мне нужна вода. Проводи меня к берегу.':home==='ash'&&current==='water'?'Я замерзаю. Выведи меня к огню.':'Пепел закрыл дорогу домой. Помоги добраться до разлома.';
@@ -14,7 +14,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  const dialogue=new DialogueGenerator(snapshot);
  function line(g,state){const text=dialogue.next({home:g.home,world:getWorldId(),state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
  const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
- let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99;
+ let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99,mission=null,bossState=null;
  const event=createRiftEvent(seed,{initial:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
  let previousPhase='idle';
  const choiceUI=document.createElement('dialog');choiceUI.id='threeWorldsGuestChoice';
@@ -28,7 +28,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  for(const btn of [help,refuse])btn.style.cssText='min-width:125px;min-height:48px;border-radius:8px;border:1px solid #aafff4;background:#283945;color:white;font:17px Georgia,serif';
  controls.append(help,refuse);choiceUI.append(speech,question,controls);document.body.appendChild(choiceUI);
  choiceUI.addEventListener('cancel',e=>e.preventDefault());
- function selectChoice(value){if(!event.choose(value))return;choiceUI.close();if(guest){guest.brain.relation=value==='help'?'friend':'hostile';guest.brain.state=value==='help'?'follow':'attack';toast(line(guest,value==='help'?'friend':'hostile'),3600)}onEventFX('closing')}
+ function selectChoice(value){if(!event.choose(value))return;choiceUI.close();onFreeze(false);if(guest){guest.brain.relation=value==='help'?'friend':'hostile';guest.brain.state=value==='help'?'follow':'attack';toast(value==='help'?'Пойдём со мной.':'Жаль, что ты выбрал быть моим врагом.',3600)}if(value==='refuse'&&guest){guest.brain.hp=180;bossState={hp:180,maxHp:180,phase:1};onEventFX('boss');}else onEventFX('closing')}
  help.addEventListener('click',()=>selectChoice('help'));
  refuse.addEventListener('click',()=>selectChoice('refuse'));
 
@@ -70,33 +70,33 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   const inst=factory.instance(def);
   const target=spot||event.state.spot||{x:player.pos.x+2.6,z:player.pos.z};
   const x=target.x,z=target.z;
-  const m=inst.root;m.position.set(x,height(x,z)+4,z);m.scale.setScalar(1.6);scene.add(m);
+  const m=inst.root;m.position.set(x,height(x,z)+1.6,z);m.scale.setScalar(1.6);scene.add(m);
   guestRift.position.set(x,height(x,z)+2.3,z);guestRift.visible=true;
   riftLight.position.copy(guestRift.position);riftAge=0;
-  guest={mesh:m,inst,brain:createBrain('original-scavenger',{x,z},seed),home:guestHomeFor(getWorldId()),landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false};
-  toast(line(guest,'neutral'),4200);
+  guest={mesh:m,inst,brain:createBrain('original-scavenger',{x,z},seed),home:guestHomeFor(getWorldId()),landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:getWorldId()};
+  // The guest is revealed from the depth of the original rift, without ballistic fall.
+  m.visible=false;
   return true;
  }
  function finishGuest(g){
-  scene.remove(g.mesh);g.inst.mat.dispose();guest=null;
+  scene.remove(g.mesh);g.inst.mat.dispose();guest=null;bossState=null;
  }
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
   for(let i=0;i<portals.length;i++){const p=portals[i],m=meshes[i];m.lookAt(camera.position.x,m.position.y,camera.position.z);if(cooldown===0&&Math.hypot(player.pos.x-p.x,player.pos.z-p.z)<1.5&&Math.abs(player.pos.y-height(p.x,p.z))<3)travel(p)}
   riftAge+=dt;guestRift.visible=riftAge<3.5;if(guestRift.visible){guestRift.scale.x=clamp(Math.min(riftAge,3.5-riftAge)*2,.01,1);guestRift.lookAt(camera.position.x,guestRift.position.y,camera.position.z)}riftLight.intensity=guestRift.visible?3*Math.min(1,(3.5-riftAge)*2):0;
   // A single scriptable event: sound + glitch -> spoken line -> rift -> guest -> dialog -> close.
-  const ground=height(player.pos.x,player.pos.z);
-  const land=getWorldId()!=='water'&&Number.isFinite(ground)&&ground>3.92;
+  const land=true; // Owner §21.15: water and combat do not suppress an incoming event.
   // Cinematic director rotates only the HERO at the event instant.
   // Evaluate real projected candidates on a 2.6m circle (not the camera rig).
   // The original Island camera, timing, inertia and frustum remain untouched.
-  if(riftCountdownAllowed(land,guest)&&event.state.phase==='idle'&&event.state.remaining<=dt&&canStart()){
+  if(riftCountdownAllowed(land,guest)&&event.state.phase==='idle'&&event.state.remaining<=dt){
     const pos=player.pos,probe=new THREE.Vector3(),steps=32;
     camera.updateMatrixWorld();
     let best=null;
     for(let i=0;i<steps;i++){
       const theta=i*Math.PI*2/steps,dx=Math.cos(theta),dz=Math.sin(theta);
-      const x=pos.x+2.6*dx,z=pos.z+2.6*dz;
+      const x=pos.x+3.2*dx,z=pos.z+3.2*dz;
       probe.set(x,height(x,z)+2.3,z).project(camera);
       if(!Number.isFinite(probe.x)||!Number.isFinite(probe.y)||probe.z<=-1||probe.z>=1)continue;
       const score=probe.x*probe.x+probe.y*probe.y;
@@ -104,7 +104,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
     }
     if(best)player.look.set(best.dx,0,best.dz);
   }
-  event.step(dt,{land:riftCountdownAllowed(land,guest),battle:!canStart(),pos:player.pos,look:player.look});
+  event.step(dt,{land:true,battle:false,occupied:!!guest,pos:player.pos,look:player.look});
   const phase=event.state.phase;
   if(phase!==previousPhase){
    previousPhase=phase;
