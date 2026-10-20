@@ -27,7 +27,8 @@ export function lifePlan(x,z,seed,height,sea=3.8){
  const pick=(i)=>sites.length?sites[Math.floor(hash(i+3,seed^551,Math.floor(x)*11+Math.floor(z)*17)*sites.length)]:null;
  const place=(id,i)=>{const p=pick(i);return p?{...p,id,region}:null};
  return {region,
-  npcs:[place('scavenger',410),place('companion',411)].filter(Boolean),
+  // Ash-born NPCs must use BOTH original Ash rigs, never an Island sprite proxy.
+  npcs:[place('scavenger',410),place(region==='ash'?'nomad':'companion',411)].filter(Boolean),
   enemies:[place(region==='ash'?'shade':'imp',510),place(region==='ash'?'shade':'imp',511)].filter(Boolean),
   weapons:LAND_ARMORY_IDS.map((id,i)=>place(id,i+700)).filter(Boolean)};
 }
@@ -65,7 +66,10 @@ export function createLivingPopulation({THREE,scene,camera,heroTex,player,height
      state:'idle',facing:1,x:q.x,y:q.y,z:q.z};
     active.push({originalRole:true,entity,brain,pos:visual.mesh.position});
    }else{
-    const inst=factory.instance(def);inst.root.position.set(q.x,q.y,q.z);scene.add(inst.root);
+    const original=factory.models.find(model=>model.id===q.id);
+    if(!original||typeof original.stats!=='function'||original.stats().voxels<100)
+     throw Error('original Ash character asset missing '+q.id);
+    const inst=factory.instance(original);inst.root.position.set(q.x,q.y,q.z);scene.add(inst.root);
     active.push({inst,brain,pos:inst.root.position});
    }
   }
