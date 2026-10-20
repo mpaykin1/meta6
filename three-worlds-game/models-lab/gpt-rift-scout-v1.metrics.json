@@ -10,13 +10,14 @@
     "usagePath": "three-worlds-game/rift-story.mjs",
     "metrics": {
       "articulatedParts": 8,
-      "voxelCount": "UNKNOWN (shared procedural source has no checked-in per-model report)",
-      "paletteColors": "UNKNOWN (shared palette; per-model used-color count not exported)",
+      "voxelCount": 525,
+      "paletteColors": 14,
       "animationFrames": 8,
       "viewDirections": 8,
-      "triangles": "UNKNOWN (runtime voxel meshing)",
-      "drawCalls": 1,
-      "fileBytes": "UNKNOWN (model shares ash-assets.mjs)"
+      "triangles": 1672,
+      "drawCalls": 8,
+      "fileBytes": 62011,
+      "measurement": "three-worlds-game/tests/model-lab-reference-metrics.test.mjs; source factory evaluated with minimal Vector3/Vector4 stubs, visible voxel faces counted per separately rendered articulated part"
     }
   },
   "candidate": {
@@ -24,19 +25,29 @@
     "metrics": {
       "articulatedVisualLayers": 15,
       "voxelCount": "N/A (2.5D vector atlas study)",
-      "paletteColors": 12,
+      "paletteColors": 14,
       "animationFrames": 8,
       "viewDirections": 8,
       "triangles": 2,
       "drawCalls": 1,
-      "fileBytes": 134767
+      "fileBytes": 151303
     },
     "improvements": [
       "15 named visual layers versus the reference model's 8 articulated parts",
       "independent counter-swinging limbs across 8 walk frames",
       "secondary cloak and scarf motion",
-      "armor seams, stitches, pack, emissive visor and antenna beacon"
-    ]
+      "armor seams, stitches, pack, emissive visor and antenna beacon",
+      "brass shoulder rivet and verdigris status light close the measured 14-color reference palette gap",
+      "eight authored facing cues (front plastron, asymmetric pauldrons/profiles, rear harness and pack panel) replace scale-only directional evidence",
+      "animated beacon radius and opacity use five authored states across every 8-frame direction cycle"
+    ],
+    "performanceEvidence": {
+      "labPreviewFrameTimeP50P95": "measured on 179 requestAnimationFrame intervals while cycling 64 atlas cells; see CI scout-render.json",
+      "labPreviewFpsP50P95": "measured in the same Playwright Chromium / SwiftShader run",
+      "gameFpsP50P95": "UNKNOWN (candidate is not integrated into the game)"
+    },
+    "directionEvidence": "64 cells contain one authored facing cue each; 8 unique cue types, each repeated for all 8 animation frames",
+    "motionEvidence": "64 beacon samples; five unique radii and five unique opacity states, repeated consistently across 8 directions"
   },
   "promotionGate": {
     "claudeReviewRequired": true,
