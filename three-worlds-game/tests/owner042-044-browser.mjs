@@ -159,7 +159,7 @@ try{
  assert.equal(waitingAtRift.mission,null,'standing outside rift cannot teleport');
  assert.equal(waitingAtRift.moved,0);
  const complete=await page.evaluate(()=>{
-  const i=__isle,from=i.rifts.guest.sourceWorld,s=i.rifts.event.spot;
+  const i=__isle,from=i.worlds.active,s=i.rifts.event.spot;
   i.player.pos.set(s.x,i.terrainTop(s.x,s.z)+.3,s.z);
   i.rifts.update(.1);
   return {locked:i.G.riftFrozen,phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation,
