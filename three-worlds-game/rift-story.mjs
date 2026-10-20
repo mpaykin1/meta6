@@ -16,11 +16,20 @@ export function guestDialogueLines(origin){
  ]);
  throw Error('No approved four-line dialogue for original '+origin);
 }
-export const MISSION_RIFT_TARGETS=Object.freeze({
- island:Object.freeze({id:'rift-island',x:-22,z:32}),
- ash:Object.freeze({id:'rift-ash',x:-126,z:32}),
- water:Object.freeze({id:'rift-water',x:102,z:40})
-});
+// One authoritative world-portal registry is used by collision, visuals and missions.
+export const RIFT_PORTALS=Object.freeze([
+ Object.freeze({id:'rift-island',world:'island',x:-22,z:32,to:Object.freeze({x:-82,z:32})}),
+ Object.freeze({id:'rift-ash',world:'ash',x:-126,z:32,to:Object.freeze({x:100,z:34})}),
+ Object.freeze({id:'rift-water',world:'water',x:102,z:40,to:Object.freeze({x:46,z:32})})
+]);
+// Gameplay names must resolve to actual rendered/interactive objects, never a
+// made-up quest item. Approved crystal/tower not yet present: A06 remains OPEN.
+export const WORLD_OBJECTS=Object.freeze({rift:Object.freeze({id:'rift',source:'rift-story.mjs',kind:'terrain-portal'})});
+export function missionTargetFor(world,portals=RIFT_PORTALS){
+ const p=portals.find(p=>p.world===world);
+ if(!p||portals.filter(q=>q.id===p.id).length!==1)throw Error('missing or duplicate actual portal in '+world);
+ return p;
+}
 export function guestLine(home,current,state){
  const need=home==='water'&&current!=='water'?'Мне нужна вода. Проводи меня к берегу.':home==='ash'&&current==='water'?'Я замерзаю. Выведи меня к огню.':'Пепел закрыл дорогу домой. Помоги добраться до разлома.';
  return state==='friend'?'Ты не бросил меня. Я прикрою тебя.':state==='hostile'?'Ты видел, что мне нужна помощь. Теперь я защищаюсь.':state==='home'?'Дорога открыта. Это оружие теперь твоё.':need;
@@ -29,7 +38,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  let snapshot={};try{snapshot=JSON.parse(localStorage.getItem('three-worlds-dialogue')||'{}')}catch{}
  const dialogue=new DialogueGenerator(snapshot);
  function line(g,state){const text=dialogue.next({home:g.home,world:getWorldId(),state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
- const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
+ const portals=RIFT_PORTALS,meshes=[];
  let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99,mission=null,bossState=null,dialogFull='',dialogTyped=0,dialogIndex=0,dialogLines=[];
  const event=createRiftEvent(seed,{initial:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
  let previousPhase='idle';
@@ -113,7 +122,8 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
   // A mission ends only at its genuine registered terrain portal.
   if(mission&&!mission.completed&&mission.world===getWorldId()&&
-    Math.hypot(player.pos.x-mission.target.x,player.pos.z-mission.target.z)<1.25){
+    Math.hypot(player.pos.x-mission.target.x,player.pos.z-mission.target.z)<1.25&&
+    Math.abs(player.pos.y-height(mission.target.x,mission.target.z))<3){
     mission.completed=true;toast('Миссия выполнена. Награда получена.',3600);reward();
     if(guest&&guest.brain.relation==='friend')finishGuest(guest);
   }
@@ -137,8 +147,8 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   }
   event.step(dt,{land:true,battle:false,occupied:!!guest,pos:player.pos,look:player.look});
   const phase=event.state.phase,spot=event.state.spot;
-  const glitch=phase==='warning'?clamp(event.state.elapsed/5,0,1):
-    ['opening','emerging','closing'].includes(phase)?1:0;
+  const glitch=['warning','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):
+    ['opening','emerging'].includes(phase)?1:0;
   onEventFX('intensity',glitch);
   if(phase!==previousPhase){
     previousPhase=phase;onEventFX(phase);
@@ -178,22 +188,23 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   if(guestRift.visible&&spot){
     guestRift.position.set(spot.x,height(spot.x,spot.z)+2.3,spot.z);
     guestRift.lookAt(camera.position.x,guestRift.position.y,camera.position.z);
-    const progress=phase==='warning'?clamp(event.state.elapsed/5,0,1):1;
+    const progress=['warning','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):1;
     guestRift.scale.set(Math.max(.015,progress),Math.max(.015,progress),1);
     riftLight.position.copy(guestRift.position);
     riftLight.intensity=3*progress;
   }else riftLight.intensity=0;
   if(phase==='escort'&&guest&&spot&&
-      Math.hypot(player.pos.x-spot.x,player.pos.z-spot.z)<1.0){
+      Math.hypot(player.pos.x-spot.x,player.pos.z-spot.z)<1.0&&
+      Math.abs(player.pos.y-height(spot.x,spot.z))<3){
     const from=getWorldId(),to=guest.home===from?guestHomeFor(from):guest.home,
       destinations={island:{x:30,z:32},ash:{x:-90,z:32},water:{x:95,z:34}},
-      destination=destinations[to],target=MISSION_RIFT_TARGETS[to],floor=height(destination.x,destination.z);
+      destination=destinations[to],target=missionTargetFor(to,portals),floor=height(destination.x,destination.z);
     travel({to:destination});
     if(to==='water')player.pos.y=Math.min(3,Math.max(floor+.35,1));
     guest.mesh.position.set(player.pos.x+1.5,height(player.pos.x+1.5,player.pos.z)+1.6,player.pos.z);
     guest.landed=true;guest.brain.relation='friend';guest.age=0;
     mission={origin:from,world:to,kind:'escort',targetId:target.id,target:{x:target.x,z:target.z},completed:false,
-      text:'Новая миссия: подойди к светящейся щели в этом мире.'};
+      text:'Новая миссия: подойди к светящейся щели в этом мире.',targetType:WORLD_OBJECTS.rift.id};
     toast('Пойдём со мной. '+mission.text,7000);
     event.finishArc(mission);
   }
