@@ -19,4 +19,6 @@
 
 | 2026-10-20T19:12Z | gpt-rift-scout-v1 | ash-assets.mjs: scavenger | 15 против 8 | 14 против 14 | 8×8 против 8×8 | 2 / 1 против 1672 / 8 | 61751 B против 62011 B общего исходника | Сокращены только SVG ID и служебные evidence-атрибуты; 71368→61751 B (−13,47%; −59,19% от исходных 151303 B), геометрия и raster SHA остаются неизменными | visual parity с оригиналом UNKNOWN / game FPS UNKNOWN |
 
+| 2026-10-20T19:48Z | gpt-rift-scout-v1 | ash-assets.mjs: scavenger | 15 против 8 | 14 против 14 | 8×8 против 8×8 | 2 / 1 против 1672 / 8 | 61644 B против 62011 B общего исходника | Каноническая SVG-запись дробей без ведущего нуля: 61751→61644 B (−0,17%; −59,26% от исходных 151303 B); ожидаемый полный raster SHA остаётся прежним | visual parity с оригиналом UNKNOWN / game FPS UNKNOWN |
+
 Точные причины оставшихся `UNKNOWN` записаны в `three-worlds-game/models-lab/gpt-rift-scout-v1.metrics.json`. SVG — только изолированный предпросмотр атласа; в `index.source.html`, standalone `index.html` и `models/MANIFEST.json` он не подключён. Метрики эталона фиксирует `three-worlds-game/tests/model-lab-reference-metrics.test.mjs`.
