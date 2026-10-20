@@ -487,6 +487,7 @@ import * as THREE from 'three';
 import {flightStep,createAirRoutes} from './transport.mjs';
 import {createRiftStory} from './rift-story.mjs';
 import {createRiftInputGuard} from './rift-input-guard.mjs';
+import {chooseCombatTarget,turnWeaponToward} from './combat-facing.mjs';
 import {landBiomeAt} from './living-land.mjs';
 import {createLivingIsland} from './living-island-runtime.mjs';
 import {createLivingPopulation,LAND_ARMORY_IDS} from './living-population.mjs';
@@ -2480,9 +2481,12 @@ function getIslandHeroControls(){
 function updatePlayer(dt){
  // Original Island canon for all dry biomes; only §20 underwater/ship and
  // the §21.5 frozen-dialogue state require the existing specialized adapter.
- if(G.riftFrozen||UW.inBathyscaphe||UW.isSubmerged(player.pos)||player.pos.y<SEA-1.25)
-  return updatePlayerSpecial(dt);
- return getIslandHeroControls().updatePlayer(dt);
+ const out=(G.riftFrozen||UW.inBathyscaphe||UW.isSubmerged(player.pos)||player.pos.y<SEA-1.25)?
+  updatePlayerSpecial(dt):getIslandHeroControls().updatePlayer(dt);
+ // Combat facing is wholly independent of velocity/joystick, even when retreating.
+ if(G.state==='play'&&aim.target&&foeAlive(aim.target)&&aim.auto)
+  player.look.set(aim.dir.x,0,aim.dir.z);
+ return out;
 }
 function updateHeroMesh(dt){return getIslandHeroControls().updateHeroMesh(dt)}
 function hurt(n, fx, fz) {
@@ -2673,8 +2677,7 @@ const updateCamera = createCameraRig({
  world:{get beacon(){return world.beacon}},
  tmpA,tmpB,tmpD,camera,U,sky,cutU,rayFree,clamp,damp,lerp,smooth,angDiff,REDUCED
 });
-// Deep water shifts the *rendered eye* only; verbatim original Island camera
-// physics, inertia, view rotation and shallow-world golden remain untouched.
+// Deep water: shift only rendered eye, never rewrite original Island camera rig.
 let underwaterEyeShift=0;
 function updateDivingCamera(dt){
  underwaterEyeShift=waterCameraShift(underwaterEyeShift,camera.position.y,
@@ -3175,17 +3178,18 @@ function updateAim(dt) {
     }
   } else {
     const R = w.ranged ? (w.range || 15) : w.reach + 1.2;
-    let best = 1e9;
-    for (const f of foes) {
-      if (!foeAlive(f)) continue;
-      const h = f.segs[0], dx = h.x - ox, dz = h.z - oz, d = Math.hypot(dx, dz);
-      if (d > R + f.def.rad) continue;
-      const cos = (dx * player.look.x + dz * player.look.z) / (d || 1);
-      const score = d * (1.7 - cos);
-      if (cos > -0.3 && score < best) { best = score; tgt = f; }
-    }
-    if (tgt) aim.dir.set(tgt.segs[0].x - ox, 0, tgt.segs[0].z - oz).normalize();
-    else aim.dir.copy(player.look);
+    // Keep current live enemy first, then acquire closest visible in weapon range.
+    // Do NOT filter by movement direction: retreating must still shoot forward.
+    camera.updateMatrixWorld();
+    tgt=chooseCombatTarget(foes,aim.target,player.pos,R,foeAlive,f=>{
+      const h=f.segs[0],p=tmpC.set(h.x,h.y+.7,h.z).project(camera);
+      return p.z>-1&&p.z<1&&Math.abs(p.x)<=1&&Math.abs(p.y)<=1;
+    });
+    if(tgt){
+      const h=tgt.segs[0],target={x:h.x-ox,z:h.z-oz};
+      const out=turnWeaponToward(aim.dir,target,dt,{speed:12});
+      aim.dir.set(out.x,0,out.z);
+    }else aim.dir.copy(player.look);
     aim.auto = true;
   }
   aim.target = tgt;
@@ -3229,7 +3233,7 @@ function startReload() {
 }
 function engaged() {
   const w = curWeapon();
-  return !!(combat.atk || combat.lastAtk < 0.6 || combat.charging || combat.beam.on || combat.flail.on || combat.dash > 0 || (w.ranged && !aim.auto));
+  return !!((aim.target&&foeAlive(aim.target)) || combat.atk || combat.lastAtk < 0.6 || combat.charging || combat.beam.on || combat.flail.on || combat.dash > 0 || (w.ranged && !aim.auto));
 }
 function updateCombat(dt) {
   const w = curWeapon();
