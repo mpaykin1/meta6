@@ -33,10 +33,16 @@ export function createKeeperBubble({THREE,camera}){
  const text=document.createElement('p');text.className='npc-say-text';
  root.append(name,text);document.body.append(root);
  const v=new THREE.Vector3();
+ let fadeTimer=null;
  function show(title,body=''){
+  if(fadeTimer!==null){clearTimeout(fadeTimer);fadeTimer=null}
   name.textContent=title;text.textContent=body;root.hidden=false;root.open=true;root.style.opacity='1';
  }
- function hide(){root.style.opacity='0';root.hidden=true;root.open=false}
+ function hide(){
+  root.style.opacity='0';root.open=false;
+  if(fadeTimer!==null)clearTimeout(fadeTimer);
+  fadeTimer=setTimeout(()=>{if(!root.open)root.hidden=true;fadeTimer=null},240);
+ }
  root.showModal=()=>show(name.textContent,text.textContent);
  root.close=hide;
  function place(x,y,z){
@@ -48,6 +54,6 @@ export function createKeeperBubble({THREE,camera}){
   root.style.top=((-v.y*.5+.5)*window.innerHeight).toFixed(1)+'px';
   root.style.opacity='1';return true;
  }
- function dispose(){hide();root.remove();style.remove()}
+ function dispose(){if(fadeTimer!==null)clearTimeout(fadeTimer);root.remove();style.remove()}
  return {root,name,text,show,hide,place,dispose};
 }
