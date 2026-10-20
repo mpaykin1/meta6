@@ -69,6 +69,7 @@ function renderAshFoe(f) {                         // body.render of the 'ashen'
   }
   m.root.position.set(x, y, z);
   m.root.rotation.y = m.yaw;
+  if (f.state === 'dissolve' && !m.boom) { m.boom = true; agBoom(h.x, y + 0.5, h.z); }
   const rise = Math.max(0.001, Math.min(1, f.t * 0.8) * (f.state === 'dissolve' ? Math.max(0, f.alpha) : 1));
   const sc = (def.ashScale || 0.6) * (0.55 + 0.45 * Math.min(1, f.t * 0.8));
   m.inst.root.scale.setScalar(sc);
@@ -116,6 +117,7 @@ function ashShoot(f, dt, s) {
   glow.spark(h.x, oy, h.z, 1.1, C.ember, 0.7, 0);
   flashLight(tmpE.set(h.x, oy, h.z), 0xff7a30, 6);
   SFX.orb();
+  agShot(f, h, oy);
 }
 
 /* ---- random roster: not every Ashen creature at once ------------------------------------- */
@@ -145,7 +147,7 @@ function clearAsh() {
   while (ashGroup.children.length) { const c = ashGroup.children[0]; ashGroup.remove(c); c.traverse((o) => { if (o.isMesh && o.material && o.material.dispose) o.material.dispose(); }); }
   while (ashSky.children.length) { const c = ashSky.children[0]; ashSky.remove(c); c.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); }
   Object.assign(ashFx, { fire: null, rover: null, lasers: [], far: [], fungi: [], lamps: [], pylon: null });
-  ashLight.intensity = 0; ashFloor.visible = false; clearAshFoes();
+  ashLight.intensity = 0; ashFloor.visible = false; clearAshFoes(); agClear(); sky.visible = true;
 }
 function putAsh(id, x, y, z, s, rot, own) {
   const def = ASHM(id);
@@ -183,12 +185,7 @@ function buildAsh() {
     ashFx.far.push({ inst, a, r, i });
     ashAnim.push({ inst, id: 'colossus', far: true });
   }
-  // laser beams in the sky (original W.sky_l)
-  const lm = new THREE.MeshBasicMaterial({ color: 0xff2a3a, transparent: true, opacity: 0.38, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
-  for (let i = 0; i < 5; i++) {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 360, 5, 1, true), lm.clone());
-    m.userData.k = i; ashSky.add(m); ashFx.lasers.push(m);
-  }
+  agBuild();
   ashFloor.visible = true;
 }
 const ashV = new THREE.Vector3(), ashQ = new THREE.Quaternion(), ashUp = new THREE.Vector3(0, 1, 0);
@@ -238,15 +235,5 @@ function ashFrame() {      // once a frame (renderFoes) in a dry biome
     if (Math.random() < dt * 4) dust.emit(p.x + rr(-0.2, 0.2), p.y + 1.4, p.z + rr(-0.2, 0.2), rr(-0.1, 0.3), rr(0.5, 1), rr(-0.1, 0.1), rr(2, 3.5), 0.3, 0.9, C.smoke, 0.4, 0, 0.5, 0);
   }
   ashRosterTick(dt);
-  // sky lasers sweep slowly around the hero
-  const cp = camera.position;
-  for (const m of ashFx.lasers) {
-    const k = m.userData.k, a = T * 0.02 * (1 + k * 0.3) + k * 1.3, a2 = a + 0.6 + 0.3 * Math.sin(T * 0.07 + k);
-    const ax = cp.x + Math.cos(a) * 150, az = cp.z + Math.sin(a) * 150, ay = 50 + k * 8 + Math.sin(T * 0.1 + k) * 4;
-    const bx = cp.x + Math.cos(a2) * 190, bz = cp.z + Math.sin(a2) * 190, by = 0;
-    ashV.set(bx - ax, by - ay, bz - az);
-    m.position.set((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2);
-    ashQ.setFromUnitVectors(ashUp, ashV.normalize()); m.quaternion.copy(ashQ);
-    m.material.opacity = 0.14 + 0.2 * (0.5 + 0.5 * Math.sin(T * 0.6 + k * 2));
-  }
+  agFrame(dt, T);
 }

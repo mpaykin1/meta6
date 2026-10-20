@@ -300,4 +300,43 @@ defineEnemy('ash_colossus', Object.assign({}, WARDEN, { name: 'Колосс', bo
   } }) }));
 }
 
+/* --- packs/ashen/weapons.js --- */
+{
+/* The three guns of «Пепельный путь» as playable weapons, on top of the Island's own arsenal. Sprites are the side view of the
+   original voxel models (one voxel = one pixel), see the atlas patch. */
+defineProjectile('rocket', {
+  splash: 1.8,
+  draw(p) { glow.spark(p.pos.x, p.pos.y, p.pos.z, 0.36, C.flashWarm, 1, 0); glow.spark(p.pos.x, p.pos.y, p.pos.z, 1.0, C.fire, 0.5, 0); },
+  trail(p) {
+    const q = p.pos;
+    glow.emit(q.x, q.y, q.z, rr(-0.3, 0.3) - p.vel.x * 0.05, rr(-0.2, 0.5), rr(-0.3, 0.3) - p.vel.z * 0.05, rr(0.2, 0.4), 0.16, 0.03, C.fire, 1, 0, 2, 2);
+    dust.emit(q.x, q.y, q.z, 0, 0.4, 0, 0.9, 0.15, 0.5, C.smokeLight, 0.45, -0.2, 1, 0);
+    return 0.02;
+  },
+});
+defineProjectile('plasma', {
+  draw(p) { glow.spark(p.pos.x, p.pos.y, p.pos.z, 0.3, C.zapCore, 1, 0); glow.spark(p.pos.x, p.pos.y, p.pos.z, 0.95, C.zapGlow, 0.55, 0); },
+  trail(p) { glow.emit(p.pos.x, p.pos.y, p.pos.z, rr(-0.3, 0.3), rr(-0.3, 0.3), rr(-0.3, 0.3), rr(0.2, 0.35), 0.12, 0.02, C.zapGlow, 0.8, 0, 2, 2); return 0.03; },
+  impact(p) { const q = p.pos; for (let k = 0; k < 8; k++) glow.emit(q.x, q.y, q.z, rr(-2.5, 2.5), rr(0.3, 2.5), rr(-2.5, 2.5), rr(0.15, 0.35), 0.1, 0.02, C.zapCore, 1, 6, 1, 1); },
+});
+defineWeapon('ash_rifle', {
+  name: 'Винтовка пустоши', art: 'ash_rifle', kind: 'ranged', rar: 'epic', fire: 'proj', proj: 'bullet',
+  dmg: 26, cd: 0.6, speed: 64, life: 1.5, size: 0.16, r: 0.1, pierce: 1, kb: 4, mag: 5, reload: 1.5, casing: true, tracer: 1, recoil: 1.3,
+  color: col3(0.7, 0.95, 1, 3), stat: 'Урон 26 · 5 патронов · пробивает цель', desc: 'Длинный точный выстрел: пуля пробивает первого врага и летит дальше.',
+  held: 1.2, loot: { tier: 9 }, flash: { col: 'zapGlow', light: 0x9fdcff },
+  sfx: [['hiss', 0.16, 2200, 0.5, 0.2], ['tone', 150, 0.16, 'square', 0.09, 45], ['sweep', 0.3, 1800, 300, 1.2, 0.04]] });
+defineWeapon('ash_rocket', {
+  name: 'Ракетомёт', art: 'ash_rocket', kind: 'ranged', rar: 'legend', fire: 'proj', proj: 'rocket',
+  dmg: 58, cd: 0.9, speed: 22, life: 2.2, size: 0.5, r: 0.2, aoe: 3.6, kb: 9, mag: 2, reload: 2.4, recoil: 1.8,
+  stat: 'Урон 58 · взрыв радиусом 3.6', desc: 'Ракета летит прямо и рвётся о первое, во что попадёт.',
+  held: 1.3, loot: { tier: 17 }, flash: { big: true, smoke: true },
+  sfx: [['tone', 90, 0.3, 'sawtooth', 0.1, 40], ['hiss', 0.4, 700, 0.5, 0.14, 'lowpass'], ['sweep', 0.5, 300, 1200, 1.5, 0.05]] });
+defineWeapon('ash_plasma', {
+  name: 'Плазмаган', art: 'ash_plasma', kind: 'ranged', rar: 'epic', fire: 'proj', proj: 'plasma', auto: true,
+  dmg: 9, cd: 1 / 7, speed: 30, spread: 4, life: 1.4, size: 0.3, r: 0.16, pierce: 1, kb: 1.5, mag: 24, reload: 1.8, glow: 0.4,
+  stat: 'Урон 9 · 7 сгустков в секунду', desc: 'Очередь голубой плазмы, пока держишь атаку. Сгусток прошивает двоих.',
+  held: 1.2, loot: { tier: 12 }, flash: { col: 'zapGlow', light: 0x7fe6ff },
+  sfx: [['sweep', 0.12, 1800, 500, 2, 0.05], ['tone', 620, 0.1, 'triangle', 0.05, 220]] });
+}
+
 packEnd();
