@@ -2,8 +2,8 @@ import {DialogueGenerator} from './dialogue.mjs';
 import {createAshFactory} from './ash-assets.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
-import {createGuestSchedule,finishGuestSchedule} from './stage7-simulation.mjs';
 import {createRiftEvent,RIFT_WORDS} from './rift-event.mjs';
+export function riftCountdownAllowed(land,guest){return Boolean(land&&!guest);}
 export function guestHomeFor(world){return world==='ash'?'island':world==='water'?'ash':'water';}
 export function guestLine(home,current,state){
  const need=home==='water'&&current!=='water'?'Мне нужна вода. Проводи меня к берегу.':home==='ash'&&current==='water'?'Я замерзаю. Выведи меня к огню.':'Пепел закрыл дорогу домой. Помоги добраться до разлома.';
@@ -15,7 +15,6 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  function line(g,state){const text=dialogue.next({home:g.home,world:getWorldId(),state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
  const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
  let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99;
- const guestTimer=createGuestSchedule(seed,{interval:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
  const event=createRiftEvent(seed,{initial:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
  let previousPhase='idle';
  const choiceUI=document.createElement('dialog');choiceUI.id='threeWorldsGuestChoice';
@@ -79,7 +78,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   return true;
  }
  function finishGuest(g){
-  scene.remove(g.mesh);g.inst.mat.dispose();guest=null;finishGuestSchedule(guestTimer);
+  scene.remove(g.mesh);g.inst.mat.dispose();guest=null;
  }
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
@@ -91,7 +90,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   // Cinematic director rotates only the HERO at the event instant.
   // Evaluate real projected candidates on a 2.6m circle (not the camera rig).
   // The original Island camera, timing, inertia and frustum remain untouched.
-  if(land&&event.state.phase==='idle'&&event.state.remaining<=dt&&canStart()){
+  if(riftCountdownAllowed(land,guest)&&event.state.phase==='idle'&&event.state.remaining<=dt&&canStart()){
     const pos=player.pos,probe=new THREE.Vector3(),steps=32;
     camera.updateMatrixWorld();
     let best=null;
@@ -105,12 +104,12 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
     }
     if(best)player.look.set(best.dx,0,best.dz);
   }
-  event.step(dt,{land,battle:!canStart(),pos:player.pos,look:player.look});
+  event.step(dt,{land:riftCountdownAllowed(land,guest),battle:!canStart(),pos:player.pos,look:player.look});
   const phase=event.state.phase;
   if(phase!==previousPhase){
    previousPhase=phase;
    onEventFX(phase);
-   if(phase==='warning'){if(guest)finishGuest(guest);onFreeze(true);toast(RIFT_WORDS,2400,true);}
+   if(phase==='warning'){onFreeze(true);toast(RIFT_WORDS,2400,true);}
    if(phase==='opening'){
     const p=event.state.spot;
     guestRift.position.set(p.x,height(p.x,p.z)+2.3,p.z);
@@ -155,5 +154,5 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
  }
  function dispose(){onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
- return {update,dispose,travel,portals,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get guestTimer(){return {...event.state,remaining:event.state.remaining}}};
+ return {update,dispose,travel,portals,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
 }
