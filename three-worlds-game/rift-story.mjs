@@ -84,13 +84,10 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
   for(let i=0;i<portals.length;i++){const p=portals[i],m=meshes[i];m.lookAt(camera.position.x,m.position.y,camera.position.z);if(cooldown===0&&Math.hypot(player.pos.x-p.x,player.pos.z-p.z)<1.5&&Math.abs(player.pos.y-height(p.x,p.z))<3)travel(p)}
-  riftAge+=dt;guestRift.visible=riftAge<3.5;if(guestRift.visible){guestRift.scale.x=clamp(Math.min(riftAge,3.5-riftAge)*2,.01,1);guestRift.lookAt(camera.position.x,guestRift.position.y,camera.position.z)}riftLight.intensity=guestRift.visible?3*Math.min(1,(3.5-riftAge)*2):0;
-  // A single scriptable event: sound + glitch -> spoken line -> rift -> guest -> dialog -> close.
-  const land=true; // Owner §21.15: water and combat do not suppress an incoming event.
-  // Cinematic director rotates only the HERO at the event instant.
-  // Evaluate real projected candidates on a 2.6m circle (not the camera rig).
-  // The original Island camera, timing, inertia and frustum remain untouched.
-  if(riftCountdownAllowed(land,guest)&&event.state.phase==='idle'&&event.state.remaining<=dt){
+  // Owner §21.15: 5s in-world glitch, 5s held line, 5s real depth emergence.
+  // Exactly one phase source controls both post FX and the terrain-anchored object.
+  const phaseBefore=event.state.phase;
+  if(riftCountdownAllowed(true,guest)&&phaseBefore==='idle'&&event.state.remaining<=dt){
     const pos=player.pos,probe=new THREE.Vector3(),steps=32;
     camera.updateMatrixWorld();
     let best=null;
@@ -105,35 +102,64 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
     if(best)player.look.set(best.dx,0,best.dz);
   }
   event.step(dt,{land:true,battle:false,occupied:!!guest,pos:player.pos,look:player.look});
-  const phase=event.state.phase;
+  const phase=event.state.phase,spot=event.state.spot;
   if(phase!==previousPhase){
-   previousPhase=phase;
-   onEventFX(phase);
-   if(phase==='warning'){onFreeze(true);toast(RIFT_WORDS,2400,true);}
-   if(phase==='opening'){
-    const p=event.state.spot;
-    guestRift.position.set(p.x,height(p.x,p.z)+2.3,p.z);
-    riftAge=0;guestRift.visible=true;riftLight.position.copy(guestRift.position);
-   }
-   if(phase==='emerging')spawnGuest(event.state.spot);
-   if(phase==='dialogue'){
-    if(!guest)spawnGuest(event.state.spot);
-    question.textContent=guest?line(guest,'neutral'):'Гость из другого мира просит помощи.';
-    if(!choiceUI.open)choiceUI.showModal();
-   }
-   if(phase==='closing'){
-    if(choiceUI.open)choiceUI.close();
-    riftAge=2.9;
-   }
-   if(phase==='idle'){onFreeze(false);onEventFX('idle');}
+    previousPhase=phase;onEventFX(phase);
+    if(phase==='warning'){
+      onFreeze(true);
+      guestRift.position.set(spot.x,height(spot.x,spot.z)+2.3,spot.z);
+      guestRift.visible=true;
+      riftLight.position.copy(guestRift.position);
+    }
+    if(phase==='opening')toast(RIFT_WORDS,5000,true);
+    if(phase==='emerging')spawnGuest(spot);
+    if(phase==='dialogue'){
+      if(!guest)spawnGuest(spot);
+      onFreeze(false);
+      question.textContent=guest?line(guest,'neutral'):'Гость из другого мира просит помощи.';
+      if(!choiceUI.open)choiceUI.showModal();
+    }
+    if(phase==='closing'){
+      if(choiceUI.open)choiceUI.close();
+      onFreeze(false);
+    }
+    if(phase==='escort'&&guest){
+      const from=getWorldId(),to=guestHomeFor(from),
+        destinations={island:{x:30,z:32},ash:{x:-90,z:32},water:{x:95,z:34}},
+        destination=destinations[to],floor=height(destination.x,destination.z);
+      travel({to:destination});
+      if(to==='water')player.pos.y=Math.min(3,Math.max(floor+.35,1));
+      guest.mesh.position.set(player.pos.x+1.5,height(player.pos.x+1.5,player.pos.z)+1.6,player.pos.z);
+      guest.landed=true;guest.brain.relation='friend';guest.age=0;
+      mission={origin:from,world:to,kind:'escort',text:to==='water'?
+        'Новая миссия: исследуй затонувшие руины и найди знак пути.':
+        to==='ash'?'Новая миссия: найди безопасную тропу сквозь пепел.':
+        'Новая миссия: доберись до маяка и узнай источник разломов.'};
+      toast('Пойдём со мной. '+mission.text,7000);
+      event.finishArc(mission);
+    }
+    if(phase==='idle'){onFreeze(false);onEventFX('idle');}
   }
-  if(phase==='opening'||phase==='emerging'){
-   guestRift.visible=true;riftAge=Math.min(2.8,riftAge+dt*.75);
-   guestRift.scale.x=clamp((phase==='opening'?event.state.elapsed:1)*1.1,.08,1);
-  }else if(phase==='dialogue'){guestRift.visible=true;guestRift.scale.x=1;}
+  guestRift.visible=['warning','opening','emerging','dialogue','closing'].includes(phase);
+  if(guestRift.visible&&spot){
+    guestRift.position.set(spot.x,height(spot.x,spot.z)+2.3,spot.z);
+    guestRift.lookAt(camera.position.x,guestRift.position.y,camera.position.z);
+    const progress=phase==='warning'?clamp(event.state.elapsed/5,0,1):1;
+    guestRift.scale.set(Math.max(.015,progress),Math.max(.015,progress),1);
+    riftLight.position.copy(guestRift.position);
+    riftLight.intensity=3*progress;
+  }else riftLight.intensity=0;
   if(!guest)return;const g=guest,p=g.mesh.position;g.age+=dt;g.damageClock=Math.max(0,g.damageClock-dt);
   const floor=height(p.x,p.z),distance=Math.hypot(p.x-player.pos.x,p.z-player.pos.z);
-  if(!g.landed){g.fall+=dt*9;p.y-=g.fall*dt;if(p.y<=floor+1.6){p.y=floor+1.6;g.landed=true;onTransition(.1)}}
+  if(!g.landed){
+   // Emerge five full seconds from INSIDE the slit, at floor height: never drop onto the hero.
+   const t=phase==='emerging'?clamp(event.state.elapsed/5,0,1):0;
+   const deltaX=spot.x-player.pos.x,deltaZ=spot.z-player.pos.z,L=Math.hypot(deltaX,deltaZ)||1;
+   const u=deltaX/L,v=deltaZ/L;
+   p.x=spot.x+u*(1.6-2.2*t);p.z=spot.z+v*(1.6-2.2*t);
+   p.y=height(p.x,p.z)+1.6;g.mesh.visible=t>.01;
+   if(phase==='dialogue'||t>=1){g.landed=true;g.mesh.visible=true;onTransition(.1)}
+  }
   else{
    if(event.dialogue)return; // Guest waits for the owner's explicit Help/Refuse choice.
    const attack=attacking();if(attack&&distance<3&&g.damageClock===0){g.brain.hp-=12;g.brain.relation='hostile';g.damageClock=.7;toast(line(g,'hostile'),2600)}
