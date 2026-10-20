@@ -4774,6 +4774,9 @@ function updateCombatHud(dt) {
   }
   for (; i < BARS.length; i++) if (BARS[i].el.style.opacity !== '0') BARS[i].el.style.opacity = '0';
   const boss = riftStory?.boss || (G.warden && foeAlive(G.warden) ? G.warden : null);
+  // Audit 044: the original lighthouse boss must not label an Ash rift visitor.
+  const bossCaption=whud.boss.querySelector('span');
+  if(bossCaption)bossCaption.textContent=riftStory?.boss?'Страж Пепла':'Страж маяка';
   if (whud.boss.hidden === !!boss) { whud.boss.hidden = !boss; hud.root.classList.toggle('boss-on', !!boss); whud.lag = 1; }
   if (boss) {
     // the white "lag" bar trails the health, so each blow reads as a chunk bitten out of the bar
