@@ -1,0 +1,34 @@
+name: Temporary Stage29 Rebase Offline Builder
+on:
+  push:
+    branches: ['ai/chatgpt/stage29-deep-camera']
+permissions:
+  contents: write
+jobs:
+  source-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned deps
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Rebuild one-file game after merging main
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Fast camera tests
+        run: |
+          node --test three-worlds-game/tests/water-dive-camera.test.mjs
+          node --test three-worlds-game/tests/accepted/shallow-deep-water.test.mjs
+      - name: Commit rebuilt standalone to PR branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'build(three-worlds): synced deep-dive standalone'
+            git push origin HEAD:ai/chatgpt/stage29-deep-camera
+          fi
