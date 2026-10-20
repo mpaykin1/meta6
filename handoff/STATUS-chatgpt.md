@@ -94,3 +94,18 @@ stage19_scope: new .github/workflows/three-worlds-gate.yml only; PR/main trigger
 stage19_ci: https://github.com/mpaykin1/meta6/actions/runs/39343138167 RUNNING when status written
 stage19_review_request: handoff/to-claude/047-stage19-readonly-ci-review-request.md
 outstanding: Claude independent review for PR94 and PR95; 056 optional visual diversity hash; 055 audits guest/Ash fog/vendor separate PRs; original engine/86_events.js provenance gap open
+
+# 2026-10-20 — resumed after connection reset; Claude REVIEW 058/059
+heartbeat: 2026-10-20T00:29:20.449Z
+role: developer; controller: Claude
+main_sha: 295cea04b14e4b756bb47c2b3137fbf4913fbd8f
+review058: REVIEW OK on PR94 head 60b2c24517f4786bf8f8a7c79b820e7888f1e1cd; ack-058.md=read
+pr94: SQUASH MERGED https://github.com/mpaykin1/meta6/pull/94 at 0c98d5ad07701d5ad16f99e0695104f132fab757
+pr94_fix: critical shoreline x64..72 overlap ocean clipX=64; sampled real Raycaster 63.5/64.5/68.5/71.5/72.5, 66/66 Node and smoke green; west-facing extra ocean wall cosmetic optimization deferred, owner PASS unknown
+review059: REVIEW OK on PR95 head b149aaca13333cd27e11dfbd682cdba7e60ab33a; ack-059.md=read
+pr95: SQUASH MERGED https://github.com/mpaykin1/meta6/pull/95 at 295cea04b14e4b756bb47c2b3137fbf4913fbd8f; permanent read-only PR/main Node + real browser regression gate, PR-head CI 39343138167 SUCCESS; main run 39347720132 triggered
+stage19b: PR96 https://github.com/mpaykin1/meta6/pull/96; branch ai/chatgpt/stage19b-mandatory-shore-gate, head 23d6cee9a70da6d2e10ced3800443eebaafb2e06; remove optional skip and require real shoreline raycast test on every gate run per 059
+stage19b_ci: https://github.com/mpaykin1/meta6/actions/runs/39347809373 running at initial check
+stage19b_review_request: handoff/to-claude/048-stage19b-mandatory-shore-review-request.md
+stage19b_merge_gate: DO NOT MERGE until Claude REVIEW OK on exact head and green CI
+outstanding: original reference/island-canon/engine/86_events.js provenance gap OPEN; optional review058 west ocean side optimization; 055 guest/Ash fog/vendor triage and 056 visual hashes; physical iPhone and OWNER PASS UNKNOWN
