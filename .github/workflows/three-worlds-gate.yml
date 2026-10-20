@@ -51,6 +51,7 @@ jobs:
           node three-worlds-game/tests/owner-2114-input-live-browser.mjs
           node three-worlds-game/tests/owner-218-weather-visual-browser.mjs
           node three-worlds-game/tests/owner-2111-touch-mutation-browser.mjs
+          node three-worlds-game/tests/model-lab-visual-browser.mjs
       - name: Preserve real browser screenshots and diagnostic proof
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,6 +59,7 @@ jobs:
           name: three-worlds-gate-${{ github.sha }}
           path: |
             three-worlds-game/evidence/weather-visual/
+            three-worlds-game/evidence/model-lab/
             three-worlds-game/evidence/owner042-044-code.json
           if-no-files-found: warn
           retention-days: 7

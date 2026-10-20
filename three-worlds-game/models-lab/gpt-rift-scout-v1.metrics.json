@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "gpt-rift-scout-v1",
+  "status": "lab-only-unreviewed",
+  "gameIntegration": false,
+  "source": "GPT-authored SVG atlas study; not copied from an original model",
+  "reference": {
+    "id": "scavenger",
+    "path": "three-worlds-game/ash-assets.mjs",
+    "usagePath": "three-worlds-game/rift-story.mjs",
+    "metrics": {
+      "articulatedParts": 8,
+      "voxelCount": "UNKNOWN (shared procedural source has no checked-in per-model report)",
+      "paletteColors": "UNKNOWN (shared palette; per-model used-color count not exported)",
+      "animationFrames": 8,
+      "viewDirections": 8,
+      "triangles": "UNKNOWN (runtime voxel meshing)",
+      "drawCalls": 1,
+      "fileBytes": "UNKNOWN (model shares ash-assets.mjs)"
+    }
+  },
+  "candidate": {
+    "path": "three-worlds-game/models-lab/gpt-rift-scout-v1.svg",
+    "metrics": {
+      "articulatedVisualLayers": 15,
+      "voxelCount": "N/A (2.5D vector atlas study)",
+      "paletteColors": 12,
+      "animationFrames": 8,
+      "viewDirections": 8,
+      "triangles": 2,
+      "drawCalls": 1,
+      "fileBytes": 134767
+    },
+    "improvements": [
+      "15 named visual layers versus the reference model's 8 articulated parts",
+      "independent counter-swinging limbs across 8 walk frames",
+      "secondary cloak and scarf motion",
+      "armor seams, stitches, pack, emissive visor and antenna beacon"
+    ]
+  },
+  "promotionGate": {
+    "claudeReviewRequired": true,
+    "renderedPlaywrightFramesRequired": true,
+    "visualParity": "UNKNOWN",
+    "fpsP50P95": "UNKNOWN",
+    "prohibitedFromGame": true
+  }
+}
