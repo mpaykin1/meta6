@@ -1877,10 +1877,10 @@ const BIG = [        // flattened plateaus: id, radius (cells), scale, solid foo
   L('viaduct', 4, 1.9, {}),
   L('wall_ruin', 2, 1.3, { solid: 'line' }), L('wall_ruin', 2, 1.3, { solid: 'line' }), L('wall_ruin', 2, 1.3, { solid: 'line' }),
   L('wreck_truck', 3, 0.9, { solid: 'line' }),
-  L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}),
+  L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}), L('pylon', 2, 1.2, {}),
 ];
 const SMALL = [      // id, count, scale range, blocks the cell for coins
-  ['dead_tree_a', 9, [0.5, 0.85]], ['dead_tree_b', 9, [0.5, 0.85]], ['thorn_bush', 14, [0.6, 0.95]], ['fungus', 8, [0.7, 1.1]],
+  ['dead_tree_a', 13, [0.5, 0.85]], ['dead_tree_b', 13, [0.5, 0.85]], ['thorn_bush', 22, [0.6, 0.95]], ['fungus', 10, [0.7, 1.1]],
   ['barrel', 3, [0.75, 0.9]], ['crate', 3, [0.75, 0.9]], ['tire_stack', 2, [0.8, 0.9]], ['grave_cross', 3, [0.8, 1.0]],
 ];
 defineBiome('ashen', {
@@ -2008,6 +2008,7 @@ defineBiome('ashen', {
     // campfire beside the beacon, a radar with its turret, lamps along the path
     const dx = tw.door[0], dz = tw.door[1], px = -dz, pz = dx;
     const fx = Math.floor(tw.x + dx * 3 + px * 3), fz = Math.floor(tw.z + dz * 3 + pz * 3);
+    { const sx = fx + 2, sz = fz - 1; if (inb(sx, sz)) g.structures.push({ kind: 'ash', id: 'scavenger', x: sx + 0.5, y: hgt[ci(sx, sz)], z: sz + 0.5, s: 0.62, rot: 3.6 }); }
     if (inb(fx, fz)) { g.structures.push({ kind: 'ash', id: 'campfire', x: fx + 0.5, y: hgt[ci(fx, fz)], z: fz + 0.5, s: 0.85, rot: 0 }); stand[ci(fx, fz)] = BL; kind[ci(fx, fz)] = 5; }
     for (let tries = 0; tries < 120; tries++) {
       const x = Math.floor(RR(6, W - 7)), z = Math.floor(RR(6, D - 7));
@@ -2022,7 +2023,8 @@ defineBiome('ashen', {
     pathCells.sort((a, b) => Math.hypot(a[0] - sp.x, a[1] - sp.z) - Math.hypot(b[0] - sp.x, b[1] - sp.z));
     for (let k = 4, n = 0; k < pathCells.length && n < 6; k += Math.max(4, Math.floor(pathCells.length / 7)), n++) {
       const [x, z] = pathCells[k];
-      const lx = x + (n % 2 ? 2 : -2), lz = z + (n % 2 ? 1 : -1);
+      let lx = x + (n % 2 ? 2 : -2), lz = z + (n % 2 ? 1 : -1);
+      if (!cellFree(lx, lz)) { lx = x + (n % 2 ? -2 : 2); lz = z + (n % 2 ? -1 : 1); }
       if (!cellFree(lx, lz)) continue;
       g.structures.push({ kind: 'ash', id: 'lamp', x: lx + 0.5, y: hgt[ci(lx, lz)], z: lz + 0.5, s: 0.85, rot: (n % 2) * Math.PI });
       stand[ci(lx, lz)] = BL; kind[ci(lx, lz)] = 5;
@@ -2106,6 +2108,11 @@ defineBrain('ashen', Object.assign({}, STALK, {
   },
   onHurtHero: STALK.onHurtHero,
 }));
+defineBrain('ashnomad', Object.assign({}, STALK, {
+  think(f, dt, s) { nomadThink(f, dt, s, STALK); },
+  onDamaged(f, dmg, o) { nomadHurt(f, dmg, o); },
+  onHurtHero() {},
+}));
 defineBrain('ashturret', Object.assign({}, STALK, {
   think(f, dt, s) {
     STALK.think(f, dt, s);
@@ -2117,6 +2124,9 @@ defineBrain('ashturret', Object.assign({}, STALK, {
 }));
 const LOOK = (r, g, b) => ({ core: [0.03, 0.03, 0.05], rim: [r, g, b], aura: [r, g, b], death: [r * 2, g * 2, b * 2, 2.4] });
 const LAND = (c) => ({ from: 'land', every: 3.5, dist: [12, 26], biomes: ['ashen'], ...c });
+defineEnemy('ash_nomad', { name: 'Странник', body: 'ashen', brain: 'ashnomad', ash: 'nomad', ashScale: 0.64, ashKind: 'human', ashAim: true, ashGlow: 0,
+  seg: 2, rad: 0.36, spacing: 0.28, hover: 0.7, hp: 90, dmg: 1, wander: 2.0, chase: 3.7, chaseR: 14, keep: 5.5, soul: 0.2, danger: 0, look: LOOK(0.4, 0.8, 1.0),
+  fire: { every: 2.5, range: 13, n: 1, speed: 7.2, up: 0.5 } });
 defineEnemy('ash_scav', { name: 'Мародёр', body: 'ashen', brain: 'ashen', ash: 'scavenger', ashScale: 0.62, ashKind: 'human', ashGlow: 1.0,
   seg: 2, rad: 0.36, spacing: 0.28, hover: 0.7, hp: 32, dmg: 1, wander: 2.0, chase: 3.7, chaseR: 9, soul: 0.2, danger: 0.5, look: LOOK(0.9, 0.3, 0.2),
   spawn: LAND({ priority: 3, max: (c) => (ashOn('ash_scav') && c.play >= 6 ? Math.min(4, 2 + Math.floor(c.collected / 6)) : 0) }) });
@@ -2929,7 +2939,7 @@ void main() {
   #include <fog_vertex>
 }`;
 const SHADE_FRAG = /* glsl */`
-uniform float uTime; uniform vec3 uCoreK[16]; uniform vec3 uRimK[16]; uniform vec4 uShapeK[16];
+uniform float uTime; uniform vec3 uCoreK[24]; uniform vec3 uRimK[24]; uniform vec4 uShapeK[24];
 varying vec2 vUv; varying float vAlpha; varying float vSeed; varying vec4 vFx; varying float vKind;
 #include <fog_pars_fragment>
 void main() {
@@ -2967,7 +2977,7 @@ void main() {
   #include <fog_fragment>
 }`;
 const AURA_FRAG = /* glsl */`
-uniform float uTime; uniform vec3 uAuraK[16]; uniform vec4 uShapeK[16];
+uniform float uTime; uniform vec3 uAuraK[24]; uniform vec4 uShapeK[24];
 varying vec2 vUv; varying float vAlpha; varying float vSeed; varying vec4 vFx; varying float vKind;
 #include <fog_pars_fragment>
 void main() {
@@ -5611,7 +5621,7 @@ function beamDamage(a, b, dmg, w) {
 const FOES = {};              // id → finalized enemy definition
 const KIND_ID = {};           // id → palette slot in the foe shaders
 const SPAWNERS = [];          // enemies that rise from the sea / ground on their own, by priority
-const MAX_KINDS = 16;
+const MAX_KINDS = 24;
 let foes = [];
 const souls = [];
 const foeAlive = (f) => f.state !== 'dissolve' && f.hp > 0;
@@ -7272,6 +7282,7 @@ function renderAshFoe(f) {                         // body.render of the 'ashen'
   let want = m.yaw;
   const dxp = player.pos.x - h.x, dzp = player.pos.z - h.z, dist = Math.hypot(dxp, dzp);
   if (def.ashAim && f.state === 'chase' && dist < (def.fire ? def.fire.range : 10)) want = Math.atan2(dxp, dzp);
+  else if (f.ally && f.tgt && f.tgt.state !== 'dissolve') want = Math.atan2(f.tgt.segs[0].x - h.x, f.tgt.segs[0].z - h.z);
   else if (spN > 0.25) want = Math.atan2(f.vel.x, f.vel.z);
   else if (def.ashAim) want = Math.atan2(dxp, dzp);
   let d = want - m.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -7295,7 +7306,7 @@ function renderAshFoe(f) {                         // body.render of the 'ashen'
   const slow = f.slow > 0 ? 0.35 : 1, tt = f.t * slow + f.seed;
   let o;
   switch (def.ashKind) {
-    case 'human': o = { speed: clamp(spN / 2.6, 0, 1.3), aim: f.state === 'chase' && dist < 13 ? 1 : 0 }; break;
+    case 'human': o = { speed: clamp(spN / 2.6, 0, 1.3), aim: (f.state === 'chase' && dist < 13) || (f.ally && f.tgt) ? 1 : 0 }; break;
     case 'strider': o = { mode: spN > 0.3 ? 'walk' : 'idle', speed: clamp(spN / 2.0, 0, 1.2), fire: f.fireK || 0 }; break;
     case 'colossus': o = { mode: spN > 0.3 ? 'walk' : 'idle', speed: clamp(spN / 2.4, 0, 1.2) }; break;
     case 'drone': o = { vx: f.vel.x * 0.25, vz: f.vel.z * 0.25 }; break;
@@ -7311,6 +7322,7 @@ function renderAshFoe(f) {                         // body.render of the 'ashen'
   u.uTint.value.copy(f.slow > 0 ? ashFreeze : ashHit);
   u.uDis.value = f.state === 'dissolve' ? 1 - Math.max(0, f.alpha) : f.state === 'rise' ? 1 - Math.min(1, f.t * 0.8) : 0;
   // red eyes / lamps glow into the dust
+  if (f.ally && f.alpha > 0.2 && f.state !== 'dissolve') glow.spark(h.x, y + 1.35, h.z, 0.09, C.ice, 0.14, 0);      // a friend's faint blue mark
   if (f.alpha > 0.2 && f.state !== 'dissolve' && def.ashGlow) glow.spark(h.x, y + def.ashGlow, h.z, def.rad * 2.2, C.eyeGlow, 0.16, 0);
 }
 
@@ -7335,6 +7347,87 @@ function ashShoot(f, dt, s) {
   flashLight(tmpE.set(h.x, oy, h.z), 0xff7a30, 6);
   SFX.orb();
   agShot(f, h, oy);
+}
+
+
+/* ---- the Wanderer («Кочевник», the original hero model): a companion that can turn on the hero ---------------
+   ally: follows the hero, shoots the nearest foe · betrayal: the hero hits him twice, or he is greedy and the last coins
+   are near · truce: beaten to a quarter of his health he yields; left far behind for a while he calms down. */
+const nomadS = { spawned: false, f: null, greed: false, betrayed: false };
+function nomadSpawn() {
+  if (!DRY || G.state !== 'play' || nomadS.spawned) return;
+  nomadS.spawned = true; nomadS.betrayed = false; nomadS.greed = Math.random() < 0.5;
+  const f = spawnFoe('ash_nomad', player.pos.x + 3, player.pos.y + 1, player.pos.z + 2, false);
+  if (!f) { nomadS.spawned = false; return; }
+  f.def = Object.assign({}, f.def); f.ally = true; f.anger = 0; f.calm = 0; f.shootT = 1.2; nomadS.f = f;
+  toast('Странник идёт с тобой', 3200);
+}
+function nomadTurn(f, text) {
+  f.ally = false; f.state = 'chase'; f.timer = 0; f.anger = 0; f.calm = 0; f.def.danger = 0.7; f.def.ashGlow = 1.0; f.shootT = 1.6;
+  toast(text, 3400, true, 2);
+}
+function nomadTruce(f) {
+  f.ally = true; f.state = 'wander'; f.anger = 0; f.hp = f.maxHp * 0.55; f.stun = 1.2; f.def.danger = 0; f.def.ashGlow = 0; f.shootT = 2;
+  nomadS.betrayed = true;
+  toast('Странник: «Хватит. Мир?»', 3200);
+}
+function nomadHurt(f, dmg, o) {
+  if (o && o.dot) return;
+  if (f.ally) {
+    f.anger++;
+    if (f.anger >= 2) nomadTurn(f, 'Странник: «Ты поднял на меня руку!»');
+    else toast('Странник: «Эй! Осторожнее!»', 1800, true);
+  } else {
+    f.state = 'chase'; f.calm = 0;
+    if (f.hp > 0 && f.hp <= f.maxHp * 0.25) nomadTruce(f);
+  }
+}
+function nomadThink(f, dt, s, STALK) {
+  const head = f.segs[0], def = f.def;
+  f.harmful = false;
+  if (f.state === 'dissolve' || f.state === 'rise') return;
+  if (!f.ally) {                                                  // enemy: the stalker's chase + gunfire
+    STALK.think(f, dt, s);
+    if (s.dist < def.keep) f.target.set(head.x - s.dxp * 3, 0, head.z - s.dzp * 3);
+    ashShoot(f, dt, s);
+    f.calm = s.dist > 45 ? f.calm + dt : 0;
+    if (f.calm > 20) nomadTruce(f);
+    return;
+  }
+  if (nomadS.greed && !nomadS.betrayed && G.total && G.collected >= G.total * 0.8) { nomadS.betrayed = true; nomadTurn(f, 'Странник: «Маяк мой. Прости.»'); return; }
+  f.state = 'wander'; def.danger = 0; f.hold = false;
+  let tg = null, bd = 1e9;
+  for (const q of foes) {
+    if (q === f || q.state === 'dissolve' || q.state === 'rise' || q.alpha < 0.6) continue;
+    const h = q.segs[0], d = Math.hypot(h.x - head.x, h.z - head.z);
+    if (d < 16 && d < bd && Math.hypot(h.x - s.px, h.z - s.pz) < 24) { bd = d; tg = q; }
+  }
+  f.tgt = tg;
+  if (tg) {
+    const th = tg.segs[0], dx = th.x - head.x, dz = th.z - head.z, d = Math.hypot(dx, dz) || 1;
+    if (d < 4.5) f.target.set(head.x - dx / d * 3, 0, head.z - dz / d * 3), f.speed = 3.6;
+    else if (d > 8) f.target.set(th.x, 0, th.z), f.speed = 3.4;
+    else f.target.set(head.x, 0, head.z), f.speed = 0.6;
+    f.shootT -= dt;
+    if (f.shootT <= 0 && d < 14 && f.stun <= 0) {
+      f.shootT = rr(1.3, 2.0);
+      const oy = head.y + 0.5;
+      damageFoe(tg, 14, dx / d, dz / d, { at: th, kb: 1.5 });
+      agBeamTo(head.x, oy, head.z, th.x, th.y + 0.3, th.z, [0.3, 0.85, 1]);
+      agFx(4, head.x, oy, head.z, 1.1, 0.2, true, 0);
+      glow.spark(head.x, oy, head.z, 1.0, C.ice, 0.6, 0);
+      flashLight(tmpE.set(head.x, oy, head.z), 0x55ccff, 5);
+      SFX.orb();
+      f.fireK = 1;
+    }
+  } else {
+    const d = s.dist;
+    if (d > 4) { f.target.set(s.px, 0, s.pz); f.speed = d > 20 ? 6.5 : d > 10 ? 5.0 : 3.2; }
+    else { f.target.set(head.x, 0, head.z); f.speed = 0.4; }
+  }
+  f.fireK = Math.max(0, (f.fireK || 0) - dt * 3.2);
+  f.turn = 2.4; f.yk = 2.6; f.arrive = 0.01;
+  f.ty = Math.max(terrainTop(head.x, head.z), SEA) + def.hover + 0.3 * Math.sin(f.t * 1.7 + f.seed);
 }
 
 /* ---- random roster: not every Ashen creature at once ------------------------------------- */
@@ -7363,6 +7456,7 @@ function clearAsh() {
   ashAnim.length = 0;
   while (ashGroup.children.length) { const c = ashGroup.children[0]; ashGroup.remove(c); c.traverse((o) => { if (o.isMesh && o.material && o.material.dispose) o.material.dispose(); }); }
   while (ashSky.children.length) { const c = ashSky.children[0]; ashSky.remove(c); c.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); }
+  nomadS.spawned = false; nomadS.f = null;
   Object.assign(ashFx, { fire: null, rover: null, lasers: [], far: [], fungi: [], lamps: [], pylon: null });
   ashLight.intensity = 0; ashFloor.visible = false; clearAshFoes(); agClear(); sky.visible = true;
 }
@@ -7375,10 +7469,10 @@ function putAsh(id, x, y, z, s, rot, own) {
 }
 function buildAsh() {
   clearAsh();
-  const w = world;
+  const w = world, lodList = [];
   for (const st of w.structures) {
     if (st.kind !== 'ash') continue;
-    const inst = putAsh(st.id, st.x, st.y, st.z, st.s, st.rot);
+    const inst = putAsh(st.id, st.x, st.y, st.z, st.s, st.rot); lodList.push([inst, st]);
     if (st.id === 'campfire') { ashFx.fire = inst; ashFx.fireAt = new THREE.Vector3(st.x, st.y, st.z); }
     else if (st.id === 'lamp') ashFx.lamps.push(inst);
     else if (st.id === 'fungus') ashFx.fungi.push(inst);
@@ -7403,6 +7497,7 @@ function buildAsh() {
     ashAnim.push({ inst, id: 'colossus', far: true });
   }
   agBuild();
+  for (const [inst, st] of lodList) agRegisterLod(inst, st);   // far props swap to baked flat pictures in the haze
   ashFloor.visible = true;
 }
 const ashV = new THREE.Vector3(), ashQ = new THREE.Quaternion(), ashUp = new THREE.Vector3(0, 1, 0);
@@ -7413,6 +7508,7 @@ function ashFrame() {      // once a frame (renderFoes) in a dry biome
   const T = G.time;
   ashSync(T);
   sweepAshFoes();
+  nomadSpawn();
   // animated props
   for (const a of ashAnim) {
     if (a.far) {
@@ -7435,6 +7531,10 @@ function ashFrame() {      // once a frame (renderFoes) in a dry biome
       a.inst.root.position.set(x, R.y + 0.05, z);
       if (Math.hypot(x - px, z - pz) > 1e-4) { let d = Math.atan2(x - px, z - pz) - a.inst.root.rotation.y; a.inst.root.rotation.y += Math.atan2(Math.sin(d), Math.cos(d)) * Math.min(1, dt * 4); }
       ASH.animate(a.inst, T, { speed: 1 });
+    } else if (a.id === 'scavenger') {                    // the marauder by the fire turns to watch the hero
+      const p = a.inst.root.position; let dd = Math.atan2(player.pos.x - p.x, player.pos.z - p.z) - a.inst.root.rotation.y;
+      a.inst.root.rotation.y += Math.atan2(Math.sin(dd), Math.cos(dd)) * Math.min(1, dt * 1.2);
+      ASH.animate(a.inst, T + a.ph, { speed: 0 });
     } else if (a.id === 'turret' || a.id === 'radar') {
       ASH.animate(a.inst, T + a.ph, { mode: 'idle' });
     } else ASH.animate(a.inst, T + (a.ph || 0), {});
@@ -7481,6 +7581,7 @@ function agClear() {
   ag.lod.length = 0; ag.bbs.length = 0; ag.beams.length = 0; ag.skyL.length = 0; ag.bursts.length = 0; ag.loops.length = 0; ag.fxPool = {};
   ag.fog = ag.rays = ag.par = ag.pts = ag.rain = null;
   const el = document.getElementById('ashLogo'); if (el) el.hidden = true;
+  if (agWarnEl) agWarnEl.style.opacity = '0';
 }
 
 /* ---- ground tiles: one instanced mesh, the tile index picks static / animated / autotile cell ---- */
@@ -7581,7 +7682,7 @@ function agBoom(x, y, z) {
   b.trigger(new THREE.Vector3(x, y, z), ASH.GU.uTime.value, 1);
   agFx(3, x, y + 0.4, z, 2.2, 0.6, true, 0.8);
   agFx(8, x, y + 0.1, z, 2.6, 0.7, false, 0.1);
-  ashLight.position.set(x, y + 1.5, z); ag.boomT = 0.5;
+  ashLight.position.set(x, y + 1.5, z); ag.boomT = 0.5; ag.boomAt = [x, y, z];
 }
 function agShot(f, h, oy) {
   agFx(4, h.x, oy, h.z, 1.3, 0.2, true, 0);
@@ -7590,6 +7691,37 @@ function agShot(f, h, oy) {
   u.uA.value.set(h.x, oy, h.z); u.uB.value.set(px, py, pz); b.t = 0.22; b.m.visible = true;
   u.uCol.value.set(...(f.def.ashKind === 'turret' ? [0.3, 0.85, 1] : [1, 0.22, 0.2]));
   b.hit = [px, py, pz];
+}
+
+function agBeamTo(ax, ay, az, bx, by, bz, col) {      // a friendly beam (the Wanderer) from A to B
+  const b = ag.beams.find((q) => q.t <= 0); if (!b) return;
+  const u = b.m.material.uniforms; u.uA.value.set(ax, ay, az); u.uB.value.set(bx, by, bz); u.uCol.value.set(...col);
+  b.t = 0.22; b.m.visible = true; b.hit = [bx, by, bz];
+}
+/* ---- danger captions of the original: «ШАГОХОД В СЕКТОРЕ» … ---- */
+let agWarnEl = null;
+function agWarn(text) {
+  if (!agWarnEl) {
+    agWarnEl = document.createElement('div');
+    agWarnEl.style.cssText = 'position:fixed;left:50%;top:26%;transform:translateX(-50%);z-index:6;pointer-events:none;font:700 15px/1.2 "Courier New",monospace;letter-spacing:.22em;color:#ff7a6a;text-shadow:0 0 8px #ff2a3a,0 0 2px #000;opacity:0;transition:opacity .3s;white-space:nowrap';
+    document.body.appendChild(agWarnEl);
+  }
+  agWarnEl.textContent = text || agWarnEl.textContent; agWarnEl.style.opacity = text ? '1' : '0';
+}
+function agWarnTick() {
+  let best = '', bk = 0;
+  const near = (x, z, r, k, t) => { const d = Math.hypot(x - player.pos.x, z - player.pos.z), v = Math.max(0, Math.min(1, (r - d) / (r * 0.7))) * k; if (v > 0.25 && v > bk) { bk = v; best = t; } };
+  for (const f of foes) {
+    if (f.state === 'dissolve' || f.state === 'rise') continue;
+    const h = f.segs[0], t = f.type;
+    if (t === 'ash_strider_s' || t === 'ash_strider_m') near(h.x, h.z, 30, 1, 'ШАГОХОД В СЕКТОРЕ');
+    else if (t === 'ash_worm') near(h.x, h.z, 11, 0.9, 'ЧЕРВЬ ПОД ЗЕМЛЁЙ');
+    else if (t === 'ash_eye') near(h.x, h.z, 12, 0.6, 'ГЛАЗ СЛЕДИТ');
+    else if (t === 'ash_turret') near(h.x, h.z, 18, 0.8, 'ТУРЕЛЬ ЦЕЛИТСЯ');
+  }
+  for (const a of ashAnim) if (a.id === 'turret' && !a.far) { const p = a.inst.root.position; near(p.x, p.z, 18, 0.8, 'ТУРЕЛЬ ЦЕЛИТСЯ'); }
+  if (ag.boomT > 0 && ag.boomAt && Math.hypot(ag.boomAt[0] - player.pos.x, ag.boomAt[2] - player.pos.z) < 12) { best = 'ВЗРЫВ!'; }
+  agWarn(best);
 }
 
 /* ---- the world around ---- */
@@ -7660,6 +7792,7 @@ function agFrame(dt, T) {
   // rain follows the Island's ash_rain event
   const ru = ag.rain.material.uniforms; ru.uCenter.value.copy(cp); ru.uAmt.value = EVT.cur && EVT.cur.id === 'ash_rain' ? EVT.k : 0;
   if (ru.uAmt.value > 0.3) { ag.rainT -= dt; if (ag.rainT <= 0) { ag.rainT = 0.08; const a = Math.random() * TAU, d = 1.5 + Math.random() * 7; const x = pp.x + Math.cos(a) * d, z = pp.z + Math.sin(a) * d; agFx(9, x, agH(x, z) + 0.1, z, 0.7, 0.35, false, 0); } }
+  agWarnTick();
   // far billboards (hybrid LOD)
   for (const q of ag.lod) {
     const d = Math.hypot(q.x - cp.x, q.z - cp.z), far = q.far ? d > 30 : d > 38;

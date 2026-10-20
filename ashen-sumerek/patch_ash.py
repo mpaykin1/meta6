@@ -78,6 +78,9 @@ rep('<div class="arsenal" id="arsenal"></div>', '<div class="arsenal" id="arsena
 rep('.loading { position: fixed;', '.agcat { width: min(92vw, 1000px); text-align: left; }\n.agcat summary { cursor: pointer; font-size: 15px; letter-spacing: .2em; text-transform: uppercase; color: var(--paper-dim); padding: 8px 0; pointer-events: auto; }\n#ashCatBody { max-height: 36vh; overflow-y: auto; pointer-events: auto; }\n.agrow { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 12px; }\n.agrow figure { margin: 0; display: flex; flex-direction: column; gap: 4px; max-width: 360px; }\n.agrow canvas { image-rendering: pixelated; background: #1a1a22; max-width: 100%; }\n.agrow figcaption { font-size: 12px; color: var(--paper-dim); }\n.loading { position: fixed;')
 rep("  for (const m of mists) m.visible = !DRY;\n}", "  for (const m of mists) m.visible = !DRY;\n  const ac = document.getElementById('ashCat'); if (ac) ac.hidden = !DRY;\n}\ndocument.getElementById('ashCat').addEventListener('toggle', () => agCatalog());")
 
+rep('uniform float uTime; uniform vec3 uCoreK[16]; uniform vec3 uRimK[16]; uniform vec4 uShapeK[16];','uniform float uTime; uniform vec3 uCoreK[24]; uniform vec3 uRimK[24]; uniform vec4 uShapeK[24];')
+rep('uniform float uTime; uniform vec3 uAuraK[16]; uniform vec4 uShapeK[16];','uniform float uTime; uniform vec3 uAuraK[24]; uniform vec4 uShapeK[24];')
+rep('const MAX_KINDS = 16;','const MAX_KINDS = 24;')
 rep('  bloom.strength = pal.bloom + beacon.flare * 0.45 + G.hurt * 0.25;','  bloom.strength = (pal.bloom + beacon.flare * 0.45 + G.hurt * 0.25) * 0.12;')
 open('index.html','w').write(s)
 print(len(s))
