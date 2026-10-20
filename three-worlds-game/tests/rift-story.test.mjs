@@ -77,6 +77,18 @@ test('§21.25: all 12 sentences exactly match QUEST_RULES, independent markdown 
  assert.throws(()=>guestDialogueLines('unknown'),/origin not connected/);
 });
 
+test('§21.25: all named Ash props resolve to real original shipped assets',()=>{
+ const tower=WORLD_OBJECTS.rusty_tower,crystal=WORLD_OBJECTS.blue_crystal;
+ assert(tower&&crystal);assert.equal(tower.model,'water_tower');
+ assert.equal(crystal.model,'weather_storm_crystal');
+ const models=JSON.parse(readFileSync(new URL('../models/MANIFEST.json',import.meta.url),'utf8'));
+ assert(models.models.includes(crystal.model),'original GRAF GLB missing');
+ assert(models.grafOfflineModels.includes(crystal.model));
+ const ash=readFileSync(new URL('../ash-assets.mjs',import.meta.url),'utf8');
+ assert(ash.includes("S('water_tower'"),'owner tower geometry source missing');
+ const originalIsland=readFileSync(new URL('../npc-catalog.js',import.meta.url),'utf8');
+ assert(originalIsland.includes('companion:{name:'),'original Island guest role missing');
+});
 test('audit079: mission targets reuse the actual drawn/traversable portal registry',()=>{
  assert.equal(RIFT_PORTALS.length,3);
  assert.equal(new Set(RIFT_PORTALS.map(p=>p.id)).size,3);
