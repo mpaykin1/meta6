@@ -185,10 +185,22 @@ try{
  });
  assert.equal(waiting.phase,'idle');
  assert.equal(waiting.alive,true,'helped guest vanished before explaining mission');
+ await page.waitForFunction(()=>__isle.rifts.ashQuest.has('blue_crystal'),{timeout:10000});
  const second=await page.evaluate(()=>{
   const i=__isle;
   i.rifts.update(26);
   if(!i.rifts.guest)throw Error('guest despawned without a completed objective');
+  // Owner original asset must be physically in the Ash scene before collection.
+  if(i.rifts.mission.world==='ash'){
+    const original=i.rifts.ashQuest;
+    if(!original.roots.has('rusty_tower')||!original.has('blue_crystal'))
+      throw Error('original quest objects are missing from scene');
+    const crystal=original.roots.get('blue_crystal');
+    i.player.pos.set(crystal.position.x,i.terrainTop(crystal.position.x,crystal.position.z)+.3,crystal.position.z);
+    i.rifts.update(.1);
+    if(!i.rifts.mission.crystalCollected||crystal.visible)
+      throw Error('real blue crystal not picked up before portal completion');
+  }
   const target=i.rifts.mission.target;
   i.player.pos.set(target.x,i.terrainTop(target.x,target.z)+10,target.z);
   i.rifts.update(.1);
