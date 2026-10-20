@@ -1,0 +1,34 @@
+name: Temporary stage28 audit079 offline rebuild
+on:
+  push:
+    branches: ['ai/chatgpt/audit044-guest-contract']
+permissions:
+  contents: write
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned dependencies
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Rebuild standalone
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Short dialogue, world and approved contracts
+        run: |
+          node --test three-worlds-game/tests/rift-story.test.mjs
+          node --test three-worlds-game/tests/accepted/*.test.mjs
+      - name: Commit standalone generated HTML
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'build(three-worlds): audit079 verified dialog and terrain rift'
+            git push origin HEAD:ai/chatgpt/audit044-guest-contract
+          fi
