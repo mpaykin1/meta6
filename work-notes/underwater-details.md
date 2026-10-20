@@ -1,0 +1,3 @@
+# Underwater QA details — 2026-10-20
+
+PR #136 head be5de43d46b08d6280439794578710d018ec7c1c; check 39419142539 skipped. No tests changed; workflow filters omit underwater-sumerek. patch.py uses a machine-specific source path and CWD-relative inputs/output; runtime GLB assets load via fetch, so §12 offline behavior is unproven. SEA=-200 leaves the old inWater flag false at normal heights; consumers need regression coverage. README atlas source needs comparison with original Sunken City assets. Canonical folder ownership remains unknown. No local tests or owner verdict.
