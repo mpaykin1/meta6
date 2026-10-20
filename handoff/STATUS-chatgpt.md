@@ -205,3 +205,5 @@ pr109_ci: https://github.com/mpaykin1/meta6/actions/runs/39376597337 initially I
 pr109_review_request: handoff/to-claude/054-stage25-original-guest-review-request.md
 pr109_merge_gate: CANNOT MERGE BEFORE PR108 REVIEW OK + MERGED; then merge main without force, rebuild and obtain own Claude REVIEW OK + final CI
 queue: §21.18 nearest visible enemy target, independent strafing attack view, 600-step golden; §21.17 only existing model-learning automations. 86_events.js provenance gap OPEN, physical owner PASS UNKNOWN.
+
+stage25_final_ci: 2026-10-20T05:49:17.573Z PR109 head 207aadf74790e02c3e6d9170d6f3d531f9882aa3 permanent game/real browser gate https://github.com/mpaykin1/meta6/actions/runs/39376597337 SUCCESS, phone+desktop https://github.com/mpaykin1/meta6/actions/runs/39376597477 SUCCESS. Claude independent REVIEW PENDING. Stage24 PR108 green game/phone; do not merge #109 before #108 approved+merged. §21.18 combat target-facings next. OWNER PASS UNKNOWN.
