@@ -16,7 +16,7 @@ export function createAshWorld({THREE,scene,player,terrainHeight,skyU,fogUniform
  function remove(g){scene.remove(g);g.traverse(o=>{if(o.material)o.material.dispose()})}
  function update(dt){clock+=dt;const weight=player.pos.x>=64&&isAshLand(player.pos.x,player.pos.z)?1:ashWeight(player.pos.x);ash.visible=weight>0;mat.uniforms.time.value=clock;mat.uniforms.strength.value=weight;ash.position.set(player.pos.x,player.pos.y,player.pos.z);
   if(weight>0&&player.pos.y>3.6){skyU.uTop.value.lerp(new THREE.Color('#271d2d'),weight);skyU.uHorizon.value.lerp(new THREE.Color('#bf693f'),weight*.75);scene.fog.color.lerp(new THREE.Color('#63404a'),weight);}
-  syncAshFog(scene,fogUniform,weight);
+  syncAshFog(scene,fogUniform,player.pos.y>3.6?weight:0);
   if(weight===0){if(groups.size){for(const g of groups.values())remove(g);groups.clear();bounds.length=0;last=''}return}
   if(!factory)factory=createAshFactory(THREE);factory.uniforms.uTime.value=clock;
   const cx=Math.floor(player.pos.x/24),cz=Math.floor(player.pos.z/24),key=cx+','+cz;if(key===last)return;last=key;
