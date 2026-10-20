@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="768" height="768" viewBox="0 0 768 768" data-model="gpt-rift-scout-v1" data-directions="8" data-frames="8" data-palette-colors="12" data-parts="16">
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="768" viewBox="0 0 768 768" data-model="gpt-rift-scout-v1" data-directions="8" data-frames="8" data-palette-colors="12" data-parts="15">
 <metadata>{"status":"lab-only-unreviewed","reference":"ash-assets.mjs#scavenger","gameIntegration":false}</metadata>
 <g data-dir="0" data-frame="0" transform="translate(48 80) scale(1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
