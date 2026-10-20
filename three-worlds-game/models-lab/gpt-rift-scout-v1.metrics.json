@@ -25,18 +25,19 @@
     "metrics": {
       "articulatedVisualLayers": 15,
       "voxelCount": "N/A (2.5D vector atlas study)",
-      "paletteColors": 12,
+      "paletteColors": 14,
       "animationFrames": 8,
       "viewDirections": 8,
       "triangles": 2,
       "drawCalls": 1,
-      "fileBytes": 134767
+      "fileBytes": 140847
     },
     "improvements": [
       "15 named visual layers versus the reference model's 8 articulated parts",
       "independent counter-swinging limbs across 8 walk frames",
       "secondary cloak and scarf motion",
-      "armor seams, stitches, pack, emissive visor and antenna beacon"
+      "armor seams, stitches, pack, emissive visor and antenna beacon",
+      "brass shoulder rivet and verdigris status light close the measured 14-color reference palette gap"
     ]
   },
   "promotionGate": {
