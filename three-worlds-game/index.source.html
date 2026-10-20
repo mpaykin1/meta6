@@ -4931,7 +4931,7 @@ setTimeout(() => start({}), 2500);
 window.__isle = {
   // V5 direct access to original 3D runtime for Claude and the historical editor.
   scene, camera, THREE, renderer, canvas, atlasTex, heroTex, heroGeo, SEA, SFX,
-  get rifts(){return riftStory}, worlds, terrainWindow:()=>terrainWindow, terrainTop, get terrainMeshes(){return chunks},
+  get rifts(){return riftStory}, get riftInputGuard(){return riftInputGuard}, worlds, terrainWindow:()=>terrainWindow, terrainTop, get terrainMeshes(){return chunks},
   get livingLand(){return {islandChunks:livingIsland?.chunks||0,ashChunks:ashWorld?.chunks||0,ashPopulation:ashWorld?.population||0,plan:(x,z)=>livingIsland?.density(x,z),biome:(x,z)=>landBiomeAt(x,z,G.seed)}},
   get worldLife(){return {npcs:livingPopulation?.npcs||0,weapons:livingPopulation?.nearbyWeapons||0,sector:livingPopulation?.sector||null,plan:livingPopulation?.plan||null}},
   get inputPointers(){return {stickId:touch.stickId,camId:touch.camId,vx:touch.vx,vy:touch.vy}},
