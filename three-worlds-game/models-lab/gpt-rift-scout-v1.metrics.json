@@ -30,7 +30,7 @@
       "viewDirections": 8,
       "triangles": 2,
       "drawCalls": 1,
-      "fileBytes": 151303
+      "fileBytes": 71368
     },
     "improvements": [
       "15 named visual layers versus the reference model's 8 articulated parts",
@@ -39,7 +39,8 @@
       "armor seams, stitches, pack, emissive visor and antenna beacon",
       "brass shoulder rivet and verdigris status light close the measured 14-color reference palette gap",
       "eight authored facing cues (front plastron, asymmetric pauldrons/profiles, rear harness and pack panel) replace scale-only directional evidence",
-      "animated beacon radius and opacity use five authored states across every 8-frame direction cycle"
+      "animated beacon radius and opacity use five authored states across every 8-frame direction cycle",
+      "45 shared SVG definitions replace 896 repeated geometry instances, reducing raw atlas bytes by 52.83% while CI locks the full raster hash"
     ],
     "performanceEvidence": {
       "labPreviewFrameTimeP50P95": "measured on 179 requestAnimationFrame intervals while cycling 64 atlas cells; see CI scout-render.json",
@@ -47,7 +48,17 @@
       "gameFpsP50P95": "UNKNOWN (candidate is not integrated into the game)"
     },
     "directionEvidence": "64 cells contain one authored facing cue each; 8 unique cue types, each repeated for all 8 animation frames",
-    "motionEvidence": "64 beacon samples; five unique radii and five unique opacity states, repeated consistently across 8 directions"
+    "motionEvidence": "64 beacon samples; five unique radii and five unique opacity states, repeated consistently across 8 directions",
+    "optimizationEvidence": {
+      "baselineFileBytes": 151303,
+      "candidateFileBytes": 71368,
+      "reductionPercent": 52.83,
+      "reusedDefinitions": 45,
+      "useInstances": 896,
+      "baselineAtlasSha256": "69946980330e5e15d640badf5e59584ef0ebb0e91aed48276ef318491c8cec6b",
+      "visualParityWithOwnBaseline": "CI requires pixel-identical full-atlas hash",
+      "visualParityWithOriginal": "UNKNOWN"
+    }
   },
   "promotionGate": {
     "claudeReviewRequired": true,
