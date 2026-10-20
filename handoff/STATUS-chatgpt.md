@@ -305,3 +305,11 @@ pr122: OPEN head 98819b854b5c34d95c43f82a4036603a99fefa45; source-backed offline
 pr123: OPEN head 6486758f2b43c1c78c16d155d10b3f9fe23807d5; final head game gate 39404717139 SUCCESS and smoke 39404717189 SUCCESS. Prior exact-sha smoke failure 84.49% mobile vs >85 gate; rerun on identical old SHA passed 90.77%; nondeterministic visual coverage (run 39400831427 attempts 1-2, artifact 12253798904/12256182123). The current head was updated by another participant, no merge without current head Claude REVIEW OK and owner A01/A08 approval.
 pr129: OPEN head 9a7d36a676755bedd193e2278edf7e941c258399, exact head gate 39404752087 SUCCESS, smoke 39404752000 SUCCESS. 3 separated additional Ash islands, collision/visual shared height, real native companions/enemies/20 weapons, short accepted test and source-backed standalone, Claude review requested handoff/to-claude/085-ash-islands-review-request.md. A05 remains OPEN.
 handoff: 084-guest-dive-rain-review-request.md; 085-ash-islands-review-request.md. Do not merge unreviewed PR. No FULL OWNER PASS; FPS UNKNOWN. Frozen underwater-world and V5–V7 unchanged.
+
+# 2026-10-20T10:07:35.216Z — live reconciliation after concurrent merges
+main_sha: fc48dab86e578355b61538e4a37cd5e46489ac4f
+pr123: MERGED by another contributor, current head 6486758f2b43c1c78c16d155d10b3f9fe23807d5; exact-head gate 39404717139 + smoke 39404717189 SUCCESS, prior visual coverage 84.49% run 39400831427 attempt1 PASS on attempt2; A01/A08 owner live approval not inferred.
+pr122: OPEN on concurrently updated head 727bf3e354b8a7555bf0581dae274ad9f8d4cbbf, mergeability conflict/unknown; old head 98819b85 gate 39405121937 FAILURE, Playwright mobile button outside viewport at owner042-044-browser.mjs:164; bubble code now includes screen bounds clamp from another contributor. Exact latest head CI and Claude REVIEW UNKNOWN; DO NOT MERGE.
+pr129: OPEN head 9a7d36a676755bedd193e2278edf7e941c258399, game+smoke SUCCESS before new main but mergeability conflict; Claude REVIEW OK UNKNOWN, not merged.
+pr128: MERGED earlier; weather owner A09 acceptance still OPEN.
+Next: reconcile concurrently updated #122 against latest main, verify actual head green and independent Claude review, then PR129; no duplicate PR or fake PASS.
