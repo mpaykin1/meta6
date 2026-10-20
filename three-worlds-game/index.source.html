@@ -2717,7 +2717,7 @@ function buildWorld(seed) {
   world = generateWorld(seed);
   heightSource = createHeightSource(seed,(x,z)=>world.hgt[x+z*W]);
   ashWorld?.dispose();
-  ashWorld=createAshWorld({THREE,scene,player,terrainHeight:terrainTop,skyU,seed,getBiome:(x,z)=>landBiomeAt(x,z,seed),sea:SEA});
+  ashWorld=createAshWorld({THREE,scene,player,terrainHeight:terrainTop,skyU,fogUniform:U.fogD,seed,getBiome:(x,z)=>landBiomeAt(x,z,seed),sea:SEA});
   livingIsland?.dispose();
   livingPopulation?.dispose();livingPopulation=null;
   livingIsland=createLivingIsland({THREE,scene,world,material:terrainMat,height:terrainTop,sea:SEA,seed,faces:FACES,faceTiles:FACE_TILES,blocks:B,W,D,H});
