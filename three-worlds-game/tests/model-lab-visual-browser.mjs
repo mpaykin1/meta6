@@ -1,8 +1,56 @@
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import {createAshFactory} from '../ash-assets.mjs';
 const out='three-worlds-game/evidence/model-lab';
 await mkdir(out,{recursive:true});
+class RefVector3{
+ constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z})}
+ normalize(){const length=Math.hypot(this.x,this.y,this.z)||1;this.x/=length;this.y/=length;this.z/=length;return this}
+}
+class RefVector4{constructor(x=0,y=0,z=0,w=0){Object.assign(this,{x,y,z,w})}}
+const referencePalette=[null,
+ '#17161f','#262633','#3a3b4d','#565968','#7d8190',
+ '#2a1612','#4a2417','#733319','#a24a1f','#c9732c',
+ '#5a2f10','#9a5a14','#d98a1e','#f0b03a','#ffd978',
+ '#1a1512','#2b221b','#3f3226','#594632','#7a6044',
+ '#25252b','#3d3d45','#5c5c64','#85858a','#b0aea8',
+ '#14170f','#232814','#38401d','#545c2a','#7a8238',
+ '#3a0a12','#7a1220','#c4202e','#ff3d4a','#ff9a9a',
+ '#0c2a3a','#14587a','#2a9cc4','#6fdcff','#d4f6ff',
+ '#1b1620','#2d2536','#473b52','#6a5a73','#928093',
+ '#ff9e29','#ff5714','#ff2933','#4dd9ff','#fff2d9','#66ff80'];
+function shade(hex,factor){
+ const value=parseInt(hex.slice(1),16);
+ const channel=shift=>Math.max(0,Math.min(255,Math.round(((value>>shift)&255)*factor))).toString(16).padStart(2,'0');
+ return '#'+channel(16)+channel(8)+channel(0);
+}
+function buildReferenceAtlas(){
+ const factory=createAshFactory({Vector3:RefVector3,Vector4:RefVector4});
+ const model=factory.models.find(candidate=>candidate.id==='scavenger');
+ if(!model)throw Error('original Ash scavenger reference is missing');
+ const voxels=[],colors=new Set();
+ for(const part of model.parts)part.grid.each((x,y,z,color)=>{voxels.push({x,y,z,color});colors.add(color)});
+ if(model.parts.length!==8||voxels.length!==525||colors.size!==14)
+  throw Error('original Ash scavenger visual source changed '+JSON.stringify({parts:model.parts.length,voxels:voxels.length,colors:colors.size}));
+ const width=768,height=224,cellWidth=192;
+ let svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+width+'" height="'+height+'" viewBox="0 0 '+width+' '+height+'"><rect width="100%" height="100%" fill="#101018"/>';
+ [0,2,4,6].forEach((direction,column)=>{
+  const angle=direction*Math.PI/4,cos=Math.cos(angle),sin=Math.sin(angle);
+  const projected=voxels.map(voxel=>({...voxel,rx:voxel.x*cos-voxel.z*sin,depth:voxel.x*sin+voxel.z*cos}))
+   .sort((a,b)=>a.depth-b.depth||a.y-b.y||a.x-b.x);
+  svg+='<text x="'+(column*cellWidth+8)+'" y="18" fill="#b0aea8" font-family="monospace" font-size="12">source scavenger d'+direction+'</text>';
+  for(const voxel of projected){
+   const x=column*cellWidth+96+voxel.rx*4,y=202-voxel.y*4+voxel.depth*1.6,color=referencePalette[voxel.color];
+   if(!color)throw Error('unmapped Ash palette index '+voxel.color);
+   const p=(points,fill)=>{svg+='<polygon points="'+points+'" fill="'+fill+'" stroke="#08080c" stroke-width=".35"/>'};
+   p((x)+','+(y-4)+' '+(x+4)+','+(y-2)+' '+x+','+y+' '+(x-4)+','+(y-2),shade(color,1.18));
+   p((x-4)+','+(y-2)+' '+x+','+y+' '+x+','+(y+4)+' '+(x-4)+','+(y+2),shade(color,.72));
+   p((x+4)+','+(y-2)+' '+x+','+y+' '+x+','+(y+4)+' '+(x+4)+','+(y+2),shade(color,.92));
+  }
+ });
+ return {svg:svg+'</svg>',parts:model.parts.length,voxels:voxels.length,paletteColors:colors.size,directions:[0,2,4,6]};
+}
 const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
 try{
  const page=await browser.newPage({viewport:{width:800,height:800},deviceScaleFactor:1});
@@ -57,7 +105,19 @@ try{
  });
  if(labPreviewPerformance.frames<170||!Number.isFinite(labPreviewPerformance.frameTimeMs.p95))
   throw Error('lab preview performance sample incomplete '+JSON.stringify(labPreviewPerformance));
- const evidence={...info,atlas:{sha256:atlasHash,bytes:atlas.length},samples,
+ const reference=buildReferenceAtlas();
+ const referencePage=await browser.newPage({viewport:{width:768,height:224},deviceScaleFactor:1});
+ await referencePage.setContent(reference.svg,{waitUntil:'load'});
+ const referencePng=await referencePage.screenshot({path:out+'/scout-reference-source.png',clip:{x:0,y:0,width:768,height:224}});
+ await referencePage.close();
+ if(referencePng.length<10000)throw Error('original Ash reference projection is unexpectedly empty '+referencePng.length);
+ const referenceProjection={parts:reference.parts,voxels:reference.voxels,paletteColors:reference.paletteColors,directions:reference.directions,
+  sha256:createHash('sha256').update(referencePng).digest('hex'),bytes:referencePng.length,
+  renderer:'deterministic isometric projection of actual scavenger voxel grids and source palette'};
+ const comparison={reference:referenceProjection,candidate:{atlasSha256:atlasHash,samples},visualParity:'UNKNOWN',
+  reviewNote:'Evidence makes source and candidate inspectable side by side; only Claude review may decide parity.'};
+ await writeFile(out+'/scout-comparison.json',JSON.stringify(comparison,null,2)+'\n');
+ const evidence={...info,atlas:{sha256:atlasHash,bytes:atlas.length},samples,referenceProjection,
   browser:'Playwright Chromium 1.56.1 / SwiftShader',resolution:'800x800 DPR1',labPreviewPerformance,visualParity:'UNKNOWN',gameFpsP50P95:'UNKNOWN',gameIntegration:false};
  await writeFile(out+'/scout-render.json',JSON.stringify(evidence,null,2)+'\n');
  console.log(JSON.stringify(evidence));
