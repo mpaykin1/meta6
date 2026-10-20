@@ -2738,7 +2738,7 @@ function buildWorld(seed) {
   buildChunks();
   rebuildBeachPatch();
   riftStory?.dispose();
-  riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
+  riftStory=createRiftStory({THREE,scene,renderer,camera,player,heroTex,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
     canStart:()=>G.state==='play', // §21.15 accepts combat and underwater encounters
