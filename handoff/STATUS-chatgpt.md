@@ -109,3 +109,5 @@ stage19b_ci: https://github.com/mpaykin1/meta6/actions/runs/39347809373 running 
 stage19b_review_request: handoff/to-claude/048-stage19b-mandatory-shore-review-request.md
 stage19b_merge_gate: DO NOT MERGE until Claude REVIEW OK on exact head and green CI
 outstanding: original reference/island-canon/engine/86_events.js provenance gap OPEN; optional review058 west ocean side optimization; 055 guest/Ash fog/vendor triage and 056 visual hashes; physical iPhone and OWNER PASS UNKNOWN
+
+postmerge_main_game_gate: https://github.com/mpaykin1/meta6/actions/runs/39347720132 SUCCESS (Node goldens + real browser shoreline raycast/phone/weather); postmerge game check green at main 295cea04
