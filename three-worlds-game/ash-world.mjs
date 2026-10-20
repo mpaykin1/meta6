@@ -12,7 +12,7 @@ export function createAshWorld({THREE,scene,player,terrainHeight,skyU,fogUniform
  geo.setAttribute('position',new THREE.BufferAttribute(data,3));
  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:{value:0},strength:{value:0}},vertexShader:'uniform float time; varying float fade; void main(){vec3 p=position;p.x+=sin(time*.4+p.z)*2.;p.y=mod(p.y-time*.9,18.);vec4 v=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*v;gl_PointSize=clamp(22./max(1.,-v.z),1.,4.);fade=.4+.3*sin(p.x);}',fragmentShader:'uniform float strength; varying float fade;void main(){if(length(gl_PointCoord-.5)>.5)discard;gl_FragColor=vec4(.8,.55,.39,fade*strength);}'});
  const ash=new THREE.Points(geo,mat);ash.frustumCulled=false;ash.visible=false;scene.add(ash);
- function isAshLand(x,z){return x<-40||(getBiome(x,z)==='ash'&&terrainHeight(x,z)>sea+.12)}
+ function isAshLand(x,z){return (x<-40||getBiome(x,z)==='ash')&&terrainHeight(x,z)>sea+.12}
  function remove(g){scene.remove(g);g.traverse(o=>{if(o.material)o.material.dispose()})}
  function update(dt){clock+=dt;const weight=player.pos.x>=64&&isAshLand(player.pos.x,player.pos.z)?1:ashWeight(player.pos.x);ash.visible=weight>0;mat.uniforms.time.value=clock;mat.uniforms.strength.value=weight;ash.position.set(player.pos.x,player.pos.y,player.pos.z);
   if(weight>0&&player.pos.y>3.6){skyU.uTop.value.lerp(new THREE.Color('#271d2d'),weight);skyU.uHorizon.value.lerp(new THREE.Color('#bf693f'),weight*.75);scene.fog.color.lerp(new THREE.Color('#63404a'),weight);}
