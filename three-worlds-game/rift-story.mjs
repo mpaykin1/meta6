@@ -148,7 +148,22 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   if(!islandGuest)m.scale.setScalar(0.92);scene.add(m);
   guestRift.position.set(x,height(x,z)+2.3,z);guestRift.visible=true;
   riftLight.position.copy(guestRift.position);riftAge=0;
-  guest={mesh:m,inst,islandEntity,brain:createBrain('original-'+ref.sourceModel,{x,z},seed),
+  // The owner's canonical distress sign is visibly red and pulses on the
+  // original Ash robot; its source voxels and animation rig stay untouched.
+  let heart=null;
+  if(ref.origin==='ash'){
+    m.updateMatrixWorld(true);
+    const box=new THREE.Box3().setFromObject(m),size=new THREE.Vector3();
+    box.getSize(size);const mid=box.getCenter(new THREE.Vector3());
+    const at=new THREE.Vector3(mid.x,box.min.y+size.y*.63,box.max.z+.12);
+    const radius=Math.max(.11,Math.min(.2,size.y*.065));
+    heart=new THREE.Mesh(new THREE.SphereGeometry(radius,10,8),
+      new THREE.MeshBasicMaterial({color:0xff1a38}));
+    heart.position.copy(m.worldToLocal(at));
+    heart.name='ash-heart-blinking-red';
+    m.add(heart);
+  }
+  guest={mesh:m,inst,heart,islandEntity,brain:createBrain('original-'+ref.sourceModel,{x,z},seed),
    origin:ref.origin,originalId:ref.sourceModel,sourceVoxels,sourceParts,home:ref.origin,
    landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:ref.origin};
   if(guest.origin===current)throw Error('Same-world guest prohibited: '+current);
@@ -157,7 +172,9 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   return true;
  }
  function finishGuest(g){
-  scene.remove(g.mesh);g.inst.mat.dispose();guest=null;bossState=null;
+  scene.remove(g.mesh);
+  if(g.heart){g.heart.geometry.dispose();g.heart.material.dispose()}
+  g.inst.mat.dispose();guest=null;bossState=null;
  }
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
@@ -292,6 +309,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
    // The guide persists until its registered mission objective is reached.
   }
   g.mesh.rotation.y=Number.isFinite(g.brain.heading)?g.brain.heading:Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
+  if(g.heart)g.heart.scale.setScalar(.58+.42*(.5+.5*Math.sin(clock*9)));
   if(g.islandEntity){
     const e=g.islandEntity;e.x=p.x;e.y=p.y-1.6;e.z=p.z;
     e.motion=g.landed?.35:0;e.state=g.landed?'walk':'idle';
@@ -301,6 +319,6 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
     factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
   }
  }
- function dispose(){ashQuest.dispose();document.removeEventListener('keydown',onDialogKey,true);onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
+ function dispose(){ashQuest.dispose();document.removeEventListener('keydown',onDialogKey,true);onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);if(guest.heart){guest.heart.geometry.dispose();guest.heart.material.dispose()}guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
  return {update,dispose,travel,portals,ashQuest,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get mission(){return mission},get boss(){return bossState?{...bossState}:null},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
 }
