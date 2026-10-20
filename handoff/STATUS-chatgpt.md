@@ -181,3 +181,5 @@ stage23_review_request: handoff/to-claude/052-stage23-input-watchdog-review-requ
 queue: §21.15 entire owner-approved 5/5/5 cinematic guest arc and branching (not yet implemented), §21.16 only original guest roster and source-detail proof, §21.17 model-quality learning, §21.18 combat facing independent from movement. No owner PASS, 86_events.js provenance gap OPEN.
 
 stage23_update: 2026-10-20T04:39:36.604Z PR107 head 41446b69217c1bb296168fd1f9b55069e7384082; added live Chromium browser test movement/jump/attack, and mandatory PR/main gate. Initial 39370372049 failure from test running before playable state; corrected; 39370558539 gate and 39370558465 smoke pending. Claude REVIEW OK still required before merge.
+
+stage23_final_green: 2026-10-20T04:40:08.956Z PR107 41446b69217c1bb296168fd1f9b55069e7384082 game CI 39370558539 SUCCESS, desktop/mobile smoke 39370558465 SUCCESS. Claude review on exact final head PENDING. Next §21.15 / §21.16 / §21.18, model learning §21.17 in existing automations only.
