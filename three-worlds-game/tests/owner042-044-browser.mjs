@@ -128,6 +128,7 @@ try{
  assert(riftInFrame.visible&&Math.abs(riftInFrame.x)<1&&Math.abs(riftInFrame.y)<1,
   'actual portal outside camera frame: '+JSON.stringify(riftInFrame));
  assert.deepEqual(event.labels,['Помочь','Отказаться']);
+ await page.evaluate(()=>__isle.rifts.update(10)); // Wait for original-text-style typewriter to finish.
  await page.locator('#threeWorldsGuestChoice button').first().click();
  const complete=await page.evaluate(()=>{
   const i=__isle,from=i.rifts.guest.sourceWorld;
@@ -158,6 +159,7 @@ try{
   return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,visible:!!i.rifts.guest};
  });
  assert.equal(second.phase,'dialogue');assert(second.visible);
+ await page.evaluate(()=>__isle.rifts.update(10)); // Second visitor finishes speaking before choice.
  await page.locator('#threeWorldsGuestChoice button').last().click();
  const refusal=await page.evaluate(()=>{
   const i=__isle;i.rifts.update(.7);
