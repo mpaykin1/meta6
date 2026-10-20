@@ -30,7 +30,7 @@
       "viewDirections": 8,
       "triangles": 2,
       "drawCalls": 1,
-      "fileBytes": 61751
+      "fileBytes": 61644
     },
     "improvements": [
       "15 named visual layers versus the reference model's 8 articulated parts",
@@ -52,16 +52,16 @@
     "motionEvidence": "64 beacon samples; five unique radii and five unique opacity states, repeated consistently across 8 directions",
     "optimizationEvidence": {
       "baselineFileBytes": 151303,
-      "candidateFileBytes": 61751,
-      "reductionPercent": 59.19,
+      "candidateFileBytes": 61644,
+      "reductionPercent": 59.26,
       "reusedDefinitions": 45,
       "useInstances": 896,
       "baselineAtlasSha256": "69946980330e5e15d640badf5e59584ef0ebb0e91aed48276ef318491c8cec6b",
       "visualParityWithOwnBaseline": "CI requires pixel-identical full-atlas hash",
       "visualParityWithOriginal": "UNKNOWN",
       "referenceFileBytes": 62011,
-      "bytesBelowReference": 260,
-      "metadataCompaction": "rendered geometry unchanged; full-atlas SHA-256 remains the parity gate"
+      "bytesBelowReference": 367,
+      "metadataCompaction": "compact IDs, evidence markers and SVG leading-zero number syntax; rendered geometry unchanged; full-atlas SHA-256 remains the parity gate"
     }
   },
   "promotionGate": {
