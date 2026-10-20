@@ -1,5 +1,6 @@
 import {DialogueGenerator} from './dialogue.mjs';
 import {createAshFactory} from './ash-assets.mjs';
+import {createAshQuestProps,questProp} from './ash-quest-props.mjs';
 import {instantiateOriginalGuest} from './guest-roster.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
@@ -39,7 +40,11 @@ export const RIFT_PORTALS=Object.freeze([
 ]);
 // Gameplay names must resolve to actual rendered/interactive objects, never a
 // made-up quest item. Approved crystal/tower not yet present: A06 remains OPEN.
-export const WORLD_OBJECTS=Object.freeze({rift:Object.freeze({id:'rift',source:'rift-story.mjs',kind:'terrain-portal'})});
+export const WORLD_OBJECTS=Object.freeze({
+ rift:Object.freeze({id:'rift',source:'rift-story.mjs',kind:'terrain-portal'}),
+ rusty_tower:questProp('rusty_tower'),
+ blue_crystal:questProp('blue_crystal')
+});
 export function missionTargetFor(world,portals=RIFT_PORTALS){
  const p=portals.find(p=>p.world===world);
  if(!p||portals.filter(q=>q.id===p.id).length!==1)throw Error('missing or duplicate actual portal in '+world);
@@ -54,6 +59,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  const dialogue=new DialogueGenerator(snapshot);
  function line(g,state){const text=dialogue.next({home:g.home,world:getWorldId(),state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
  const portals=RIFT_PORTALS,meshes=[];
+ const ashQuest=createAshQuestProps({THREE,scene,height});
  let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99,mission=null,bossState=null,dialogFull='',dialogTyped=0,dialogIndex=0,dialogLines=[];
  const event=createRiftEvent(seed,{initial:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
  let previousPhase='idle';
@@ -135,8 +141,20 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  }
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
+  ashQuest.update(clock);
+  // §21.25: collect the ORIGINAL blue GRAF crystal next to the ORIGINAL
+  // rusty Ash tower first; then escort the original guest to the real portal.
+  const crystal=questProp('blue_crystal');
+  if(mission&&mission.world==='ash'&&!mission.crystalCollected&&
+    getWorldId()==='ash'&&ashQuest.has(crystal.id)&&
+    Math.hypot(player.pos.x-crystal.x,player.pos.z-crystal.z)<1.5&&
+    Math.abs(player.pos.y-height(crystal.x,crystal.z))<3){
+    mission.crystalCollected=true;
+    ashQuest.roots.get(crystal.id).visible=false;
+    toast('Голубой кристалл найден. Теперь подойди к светящейся щели.',3500);
+  }
   // A mission ends only at its genuine registered terrain portal.
-  if(mission&&!mission.completed&&mission.world===getWorldId()&&
+  if(mission&&!mission.completed&&(mission.world!=='ash'||mission.crystalCollected)&&mission.world===getWorldId()&&
     Math.hypot(player.pos.x-mission.target.x,player.pos.z-mission.target.z)<1.25&&
     Math.abs(player.pos.y-height(mission.target.x,mission.target.z))<3){
     mission.completed=true;toast('Миссия выполнена. Награда получена.',3600);reward();
@@ -222,7 +240,10 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
     guest.mesh.position.set(player.pos.x+1.5,height(player.pos.x+1.5,player.pos.z)+1.6,player.pos.z);
     guest.landed=true;guest.brain.relation='friend';guest.age=0;
     mission={origin:from,world:to,kind:'escort',targetId:target.id,target:{x:target.x,z:target.z},completed:false,
-      text:'Новая миссия: подойди к светящейся щели в этом мире.',targetType:WORLD_OBJECTS.rift.id};
+      requiredItemId:to==='ash'?WORLD_OBJECTS.blue_crystal.id:null,crystalCollected:to!=='ash',
+      text:to==='ash'?'Новая миссия: найди голубой кристалл возле ржавой вышки.':'Новая миссия: подойди к светящейся щели в этом мире.',
+      targetType:WORLD_OBJECTS.rift.id};
+    if(to==='ash')ashQuest.roots.get('blue_crystal').visible=true;
     toast('Пойдём со мной. '+mission.text,7000);
     event.finishArc(mission);
   }
@@ -254,6 +275,6 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   factory.uniforms.uTime.value=clock;
   factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
  }
- function dispose(){document.removeEventListener('keydown',onDialogKey,true);onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
- return {update,dispose,travel,portals,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get mission(){return mission},get boss(){return bossState?{...bossState}:null},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
+ function dispose(){ashQuest.dispose();document.removeEventListener('keydown',onDialogKey,true);onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
+ return {update,dispose,travel,portals,ashQuest,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get mission(){return mission},get boss(){return bossState?{...bossState}:null},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
 }
