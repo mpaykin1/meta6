@@ -16,6 +16,7 @@
  <path data-part="scarf" d="M12-48q-3.9700000000000006 8 3.0299999999999994 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-plastron" d="M-8-48h16v12H-8z" fill="none" stroke="#f0c674" stroke-width="1.5"/>
  </g>
 <g data-dir="0" data-frame="1" transform="translate(48 174.44) scale(1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -33,6 +34,7 @@
  <path data-part="scarf" d="M12-48q0.13999999999999968 8 7.14 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-plastron" d="M-8-48h16v12H-8z" fill="none" stroke="#f0c674" stroke-width="1.5"/>
  </g>
 <g data-dir="0" data-frame="2" transform="translate(48 269.8) scale(1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -50,6 +52,7 @@
  <path data-part="scarf" d="M12-48q8.85 8 15.85 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-plastron" d="M-8-48h16v12H-8z" fill="none" stroke="#f0c674" stroke-width="1.5"/>
  </g>
 <g data-dir="0" data-frame="3" transform="translate(48 366.44) scale(1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -67,6 +70,7 @@
  <path data-part="scarf" d="M12-48q17.060000000000002 8 24.060000000000002 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-plastron" d="M-8-48h16v12H-8z" fill="none" stroke="#f0c674" stroke-width="1.5"/>
  </g>
 <g data-dir="0" data-frame="4" transform="translate(48 464) scale(1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -84,6 +88,7 @@
  <path data-part="scarf" d="M12-48q19.97 8 26.97 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-plastron" d="M-8-48h16v12H-8z" fill="none" stroke="#f0c674" stroke-width="1.5"/>
  </g>
 <g data-dir="0" data-frame="5" transform="translate(48 558.44) scale(1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -101,6 +106,7 @@
  <path data-part="scarf" d="M12-48q15.86 8 22.86 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-plastron" d="M-8-48h16v12H-8z" fill="none" stroke="#f0c674" stroke-width="1.5"/>
  </g>
 <g data-dir="0" data-frame="6" transform="translate(48 653.8) scale(1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -118,6 +124,7 @@
  <path data-part="scarf" d="M12-48q7.15 8 14.15 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-plastron" d="M-8-48h16v12H-8z" fill="none" stroke="#f0c674" stroke-width="1.5"/>
  </g>
 <g data-dir="0" data-frame="7" transform="translate(48 750.44) scale(1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -135,6 +142,7 @@
  <path data-part="scarf" d="M12-48q-1.0600000000000005 8 5.9399999999999995 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-plastron" d="M-8-48h16v12H-8z" fill="none" stroke="#f0c674" stroke-width="1.5"/>
  </g>
 <g data-dir="1" data-frame="0" transform="translate(144 80) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -152,6 +160,7 @@
  <path data-part="scarf" d="M12-48q-3.9700000000000006 8 3.0299999999999994 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-right-pauldron" d="M12-51q8 3 7 12l-8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="1" data-frame="1" transform="translate(144 174.44) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -169,6 +178,7 @@
  <path data-part="scarf" d="M12-48q0.13999999999999968 8 7.14 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-right-pauldron" d="M12-51q8 3 7 12l-8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="1" data-frame="2" transform="translate(144 269.8) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -186,6 +196,7 @@
  <path data-part="scarf" d="M12-48q8.85 8 15.85 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-right-pauldron" d="M12-51q8 3 7 12l-8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="1" data-frame="3" transform="translate(144 366.44) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -203,6 +214,7 @@
  <path data-part="scarf" d="M12-48q17.060000000000002 8 24.060000000000002 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-right-pauldron" d="M12-51q8 3 7 12l-8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="1" data-frame="4" transform="translate(144 464) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -220,6 +232,7 @@
  <path data-part="scarf" d="M12-48q19.97 8 26.97 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-right-pauldron" d="M12-51q8 3 7 12l-8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="1" data-frame="5" transform="translate(144 558.44) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -237,6 +250,7 @@
  <path data-part="scarf" d="M12-48q15.86 8 22.86 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-right-pauldron" d="M12-51q8 3 7 12l-8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="1" data-frame="6" transform="translate(144 653.8) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -254,6 +268,7 @@
  <path data-part="scarf" d="M12-48q7.15 8 14.15 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-right-pauldron" d="M12-51q8 3 7 12l-8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="1" data-frame="7" transform="translate(144 750.44) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -271,6 +286,7 @@
  <path data-part="scarf" d="M12-48q-1.0600000000000005 8 5.9399999999999995 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-right-pauldron" d="M12-51q8 3 7 12l-8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="2" data-frame="0" transform="translate(240 80) scale(0.68 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -288,6 +304,7 @@
  <path data-part="scarf" d="M12-48q-3.9700000000000006 8 3.0299999999999994 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="right-profile-plate" d="M13-55h7v24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="2" data-frame="1" transform="translate(240 174.44) scale(0.68 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -305,6 +322,7 @@
  <path data-part="scarf" d="M12-48q0.13999999999999968 8 7.14 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="right-profile-plate" d="M13-55h7v24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="2" data-frame="2" transform="translate(240 269.8) scale(0.68 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -322,6 +340,7 @@
  <path data-part="scarf" d="M12-48q8.85 8 15.85 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="right-profile-plate" d="M13-55h7v24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="2" data-frame="3" transform="translate(240 366.44) scale(0.68 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -339,6 +358,7 @@
  <path data-part="scarf" d="M12-48q17.060000000000002 8 24.060000000000002 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="right-profile-plate" d="M13-55h7v24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="2" data-frame="4" transform="translate(240 464) scale(0.68 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -356,6 +376,7 @@
  <path data-part="scarf" d="M12-48q19.97 8 26.97 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="right-profile-plate" d="M13-55h7v24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="2" data-frame="5" transform="translate(240 558.44) scale(0.68 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -373,6 +394,7 @@
  <path data-part="scarf" d="M12-48q15.86 8 22.86 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="right-profile-plate" d="M13-55h7v24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="2" data-frame="6" transform="translate(240 653.8) scale(0.68 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -390,6 +412,7 @@
  <path data-part="scarf" d="M12-48q7.15 8 14.15 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="right-profile-plate" d="M13-55h7v24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="2" data-frame="7" transform="translate(240 750.44) scale(0.68 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -407,6 +430,7 @@
  <path data-part="scarf" d="M12-48q-1.0600000000000005 8 5.9399999999999995 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="right-profile-plate" d="M13-55h7v24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="3" data-frame="0" transform="translate(336 80) scale(-0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -424,6 +448,7 @@
  <path data-part="scarf" d="M12-48q-3.9700000000000006 8 3.0299999999999994 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-right-harness" d="M-13-52L12-29M9-51L-9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="3" data-frame="1" transform="translate(336 174.44) scale(-0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -441,6 +466,7 @@
  <path data-part="scarf" d="M12-48q0.13999999999999968 8 7.14 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-right-harness" d="M-13-52L12-29M9-51L-9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="3" data-frame="2" transform="translate(336 269.8) scale(-0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -458,6 +484,7 @@
  <path data-part="scarf" d="M12-48q8.85 8 15.85 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-right-harness" d="M-13-52L12-29M9-51L-9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="3" data-frame="3" transform="translate(336 366.44) scale(-0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -475,6 +502,7 @@
  <path data-part="scarf" d="M12-48q17.060000000000002 8 24.060000000000002 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-right-harness" d="M-13-52L12-29M9-51L-9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="3" data-frame="4" transform="translate(336 464) scale(-0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -492,6 +520,7 @@
  <path data-part="scarf" d="M12-48q19.97 8 26.97 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-right-harness" d="M-13-52L12-29M9-51L-9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="3" data-frame="5" transform="translate(336 558.44) scale(-0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -509,6 +538,7 @@
  <path data-part="scarf" d="M12-48q15.86 8 22.86 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-right-harness" d="M-13-52L12-29M9-51L-9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="3" data-frame="6" transform="translate(336 653.8) scale(-0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -526,6 +556,7 @@
  <path data-part="scarf" d="M12-48q7.15 8 14.15 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-right-harness" d="M-13-52L12-29M9-51L-9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="3" data-frame="7" transform="translate(336 750.44) scale(-0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -543,6 +574,7 @@
  <path data-part="scarf" d="M12-48q-1.0600000000000005 8 5.9399999999999995 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-right-harness" d="M-13-52L12-29M9-51L-9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="4" data-frame="0" transform="translate(432 80) scale(-1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -560,6 +592,7 @@
  <path data-part="scarf" d="M12-48q-3.9700000000000006 8 3.0299999999999994 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-pack-panel" d="M-13-53h26v27H-13zM-7-46h14v7H-7z" fill="#2a1612" stroke="#d98a1e" stroke-width="2"/>
  </g>
 <g data-dir="4" data-frame="1" transform="translate(432 174.44) scale(-1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -577,6 +610,7 @@
  <path data-part="scarf" d="M12-48q0.13999999999999968 8 7.14 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-pack-panel" d="M-13-53h26v27H-13zM-7-46h14v7H-7z" fill="#2a1612" stroke="#d98a1e" stroke-width="2"/>
  </g>
 <g data-dir="4" data-frame="2" transform="translate(432 269.8) scale(-1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -594,6 +628,7 @@
  <path data-part="scarf" d="M12-48q8.85 8 15.85 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-pack-panel" d="M-13-53h26v27H-13zM-7-46h14v7H-7z" fill="#2a1612" stroke="#d98a1e" stroke-width="2"/>
  </g>
 <g data-dir="4" data-frame="3" transform="translate(432 366.44) scale(-1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -611,6 +646,7 @@
  <path data-part="scarf" d="M12-48q17.060000000000002 8 24.060000000000002 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-pack-panel" d="M-13-53h26v27H-13zM-7-46h14v7H-7z" fill="#2a1612" stroke="#d98a1e" stroke-width="2"/>
  </g>
 <g data-dir="4" data-frame="4" transform="translate(432 464) scale(-1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -628,6 +664,7 @@
  <path data-part="scarf" d="M12-48q19.97 8 26.97 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-pack-panel" d="M-13-53h26v27H-13zM-7-46h14v7H-7z" fill="#2a1612" stroke="#d98a1e" stroke-width="2"/>
  </g>
 <g data-dir="4" data-frame="5" transform="translate(432 558.44) scale(-1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -645,6 +682,7 @@
  <path data-part="scarf" d="M12-48q15.86 8 22.86 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-pack-panel" d="M-13-53h26v27H-13zM-7-46h14v7H-7z" fill="#2a1612" stroke="#d98a1e" stroke-width="2"/>
  </g>
 <g data-dir="4" data-frame="6" transform="translate(432 653.8) scale(-1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -662,6 +700,7 @@
  <path data-part="scarf" d="M12-48q7.15 8 14.15 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-pack-panel" d="M-13-53h26v27H-13zM-7-46h14v7H-7z" fill="#2a1612" stroke="#d98a1e" stroke-width="2"/>
  </g>
 <g data-dir="4" data-frame="7" transform="translate(432 750.44) scale(-1 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -679,6 +718,7 @@
  <path data-part="scarf" d="M12-48q-1.0600000000000005 8 5.9399999999999995 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-pack-panel" d="M-13-53h26v27H-13zM-7-46h14v7H-7z" fill="#2a1612" stroke="#d98a1e" stroke-width="2"/>
  </g>
 <g data-dir="5" data-frame="0" transform="translate(528 80) scale(-0.9062741699796953 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -696,6 +736,7 @@
  <path data-part="scarf" d="M12-48q-3.9700000000000006 8 3.0299999999999994 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-left-harness" d="M13-52L-12-29M-9-51L9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="5" data-frame="1" transform="translate(528 174.44) scale(-0.9062741699796953 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -713,6 +754,7 @@
  <path data-part="scarf" d="M12-48q0.13999999999999968 8 7.14 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-left-harness" d="M13-52L-12-29M-9-51L9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="5" data-frame="2" transform="translate(528 269.8) scale(-0.9062741699796953 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -730,6 +772,7 @@
  <path data-part="scarf" d="M12-48q8.85 8 15.85 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-left-harness" d="M13-52L-12-29M-9-51L9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="5" data-frame="3" transform="translate(528 366.44) scale(-0.9062741699796953 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -747,6 +790,7 @@
  <path data-part="scarf" d="M12-48q17.060000000000002 8 24.060000000000002 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-left-harness" d="M13-52L-12-29M-9-51L9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="5" data-frame="4" transform="translate(528 464) scale(-0.9062741699796953 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -764,6 +808,7 @@
  <path data-part="scarf" d="M12-48q19.97 8 26.97 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-left-harness" d="M13-52L-12-29M-9-51L9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="5" data-frame="5" transform="translate(528 558.44) scale(-0.9062741699796953 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -781,6 +826,7 @@
  <path data-part="scarf" d="M12-48q15.86 8 22.86 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-left-harness" d="M13-52L-12-29M-9-51L9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="5" data-frame="6" transform="translate(528 653.8) scale(-0.9062741699796953 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -798,6 +844,7 @@
  <path data-part="scarf" d="M12-48q7.15 8 14.15 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-left-harness" d="M13-52L-12-29M-9-51L9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="5" data-frame="7" transform="translate(528 750.44) scale(-0.9062741699796953 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -815,6 +862,7 @@
  <path data-part="scarf" d="M12-48q-1.0600000000000005 8 5.9399999999999995 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="rear-left-harness" d="M13-52L-12-29M-9-51L9-29" fill="none" stroke="#d98a1e" stroke-width="3"/>
  </g>
 <g data-dir="6" data-frame="0" transform="translate(624 80) scale(-0.6800000000000002 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -832,6 +880,7 @@
  <path data-part="scarf" d="M12-48q-3.9700000000000006 8 3.0299999999999994 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="left-profile-plate" d="M-20-55h7l1 24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="6" data-frame="1" transform="translate(624 174.44) scale(-0.6800000000000002 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -849,6 +898,7 @@
  <path data-part="scarf" d="M12-48q0.13999999999999968 8 7.14 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="left-profile-plate" d="M-20-55h7l1 24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="6" data-frame="2" transform="translate(624 269.8) scale(-0.6800000000000002 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -866,6 +916,7 @@
  <path data-part="scarf" d="M12-48q8.85 8 15.85 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="left-profile-plate" d="M-20-55h7l1 24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="6" data-frame="3" transform="translate(624 366.44) scale(-0.6800000000000002 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -883,6 +934,7 @@
  <path data-part="scarf" d="M12-48q17.060000000000002 8 24.060000000000002 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="left-profile-plate" d="M-20-55h7l1 24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="6" data-frame="4" transform="translate(624 464) scale(-0.6800000000000002 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -900,6 +952,7 @@
  <path data-part="scarf" d="M12-48q19.97 8 26.97 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="left-profile-plate" d="M-20-55h7l1 24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="6" data-frame="5" transform="translate(624 558.44) scale(-0.6800000000000002 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -917,6 +970,7 @@
  <path data-part="scarf" d="M12-48q15.86 8 22.86 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="left-profile-plate" d="M-20-55h7l1 24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="6" data-frame="6" transform="translate(624 653.8) scale(-0.6800000000000002 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -934,6 +988,7 @@
  <path data-part="scarf" d="M12-48q7.15 8 14.15 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="left-profile-plate" d="M-20-55h7l1 24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="6" data-frame="7" transform="translate(624 750.44) scale(-0.6800000000000002 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -951,6 +1006,7 @@
  <path data-part="scarf" d="M12-48q-1.0600000000000005 8 5.9399999999999995 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="left-profile-plate" d="M-20-55h7l1 24h-8z" fill="#565968" stroke="#4ce0b3"/>
  </g>
 <g data-dir="7" data-frame="0" transform="translate(720 80) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -968,6 +1024,7 @@
  <path data-part="scarf" d="M12-48q-3.9700000000000006 8 3.0299999999999994 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-left-pauldron" d="M-12-51q-8 3-7 12l8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="7" data-frame="1" transform="translate(720 174.44) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -985,6 +1042,7 @@
  <path data-part="scarf" d="M12-48q0.13999999999999968 8 7.14 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-left-pauldron" d="M-12-51q-8 3-7 12l8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="7" data-frame="2" transform="translate(720 269.8) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -1002,6 +1060,7 @@
  <path data-part="scarf" d="M12-48q8.85 8 15.85 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-left-pauldron" d="M-12-51q-8 3-7 12l8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="7" data-frame="3" transform="translate(720 366.44) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -1019,6 +1078,7 @@
  <path data-part="scarf" d="M12-48q17.060000000000002 8 24.060000000000002 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-left-pauldron" d="M-12-51q-8 3-7 12l8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="7" data-frame="4" transform="translate(720 464) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -1036,6 +1096,7 @@
  <path data-part="scarf" d="M12-48q19.97 8 26.97 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-left-pauldron" d="M-12-51q-8 3-7 12l8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="7" data-frame="5" transform="translate(720 558.44) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -1053,6 +1114,7 @@
  <path data-part="scarf" d="M12-48q15.86 8 22.86 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-left-pauldron" d="M-12-51q-8 3-7 12l8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="7" data-frame="6" transform="translate(720 653.8) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -1070,6 +1132,7 @@
  <path data-part="scarf" d="M12-48q7.15 8 14.15 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-left-pauldron" d="M-12-51q-8 3-7 12l8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 <g data-dir="7" data-frame="7" transform="translate(720 750.44) scale(0.9062741699796952 1)">
  <ellipse data-part="shadow" cx="0" cy="4" rx="20" ry="5" fill="#17161f" opacity=".45"/>
@@ -1087,5 +1150,6 @@
  <path data-part="scarf" d="M12-48q-1.0600000000000005 8 5.9399999999999995 19" fill="none" stroke="#c4202e" stroke-width="5" stroke-linecap="round"/>
  <rect data-part="pack" x="-24" y="-47" width="8" height="23" rx="2" fill="#2a1612" stroke="#d98a1e"/>
  <path data-part="stitches" d="M-12-33l4 3m3-3l4 3m3-3l4 3" stroke="#ff9a9a" stroke-width="1.2"/>
+ <path data-facing-detail="front-left-pauldron" d="M-12-51q-8 3-7 12l8-2z" fill="#565968" stroke="#f0c674"/>
  </g>
 </svg>
