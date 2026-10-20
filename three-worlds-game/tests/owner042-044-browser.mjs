@@ -112,13 +112,20 @@ try{
   const g=i.rifts.guest,st=i.rifts.event,dx=st.spot?.x-i.player.pos.x,dz=st.spot?.z-i.player.pos.z;
   const facing=i.player.look;
   return {phase:st.phase,history:st.history,locked:i.G.riftFrozen,visible:!!g&&i.scene.children.includes(g.mesh),
-    parts:g?.mesh.children.length||0,distance:Math.hypot(dx,dz),
+    parts:g?.mesh.children.length||0,sourceId:g?.originalId,origin:g?.origin,
+    sourceVoxels:g?.sourceVoxels,actualVoxels:g?.inst.def.stats().voxels,
+    sourceParts:g?.sourceParts,actualParts:g?.inst.def.parts.length,
+    distance:Math.hypot(dx,dz),
     alignment:(dx*facing.x+dz*facing.z)/(Math.hypot(dx,dz)*Math.hypot(facing.x,facing.z)),
     modal:!!document.querySelector('#threeWorldsGuestChoice')?.open,
     labels:[...document.querySelectorAll('#threeWorldsGuestChoice button')].map(b=>b.textContent)};
  });
  assert.deepEqual(event.history.slice(0,4),['warning','opening','emerging','dialogue']);
  assert(event.visible&&event.parts>0&&event.modal,'guest or dialogue missing after 5+5+5');
+ assert.equal(event.sourceId,'strider_m','guest must be ORIGINAL Ash robot, not custom GPT proxy');
+ assert.equal(event.origin,'ash');
+ assert(event.actualVoxels>=event.sourceVoxels&&event.actualParts>=event.sourceParts,
+  'guest source detail was simplified before rendering');
  assert.equal(event.locked,false,'movement must release at dialogue');
  assert(Math.abs(event.distance-3.2)<.1&&event.alignment>.99,'terrain portal not in front of hero');
  const riftInFrame=await page.evaluate(()=>{
