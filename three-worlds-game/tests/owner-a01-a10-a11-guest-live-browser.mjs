@@ -34,10 +34,14 @@ try{
   for(let n=0;n<100;n++)i.sim(1/60,0,0,false,true);
   i.giveAll();i.equip('pistol');
   // A11: target stays selected while movement is commanded in the opposite direction.
-  const dx=3,dz=3,foe=i.foeNear('shade',dx,dz);
+  // Real target must be INSIDE the current camera frustum; fixed world
+  // offsets can point behind the camera and legitimately fail auto-targeting.
+  const cameraForward=new i.THREE.Vector3();
+  i.camera.getWorldDirection(cameraForward);cameraForward.y=0;cameraForward.normalize();
+  const foe=i.foeNear('shade',cameraForward.x*3.8,cameraForward.z*3.8);
   i.aim.cursorT=0;
   const before={x:p.pos.x,z:p.pos.z};
-  for(let n=0;n<48;n++)i.sim(1/60,-1,0,false,true);
+  for(let n=0;n<26;n++)i.sim(1/60,0,-1,false,true);
   const aim={selected:i.aim.target===foe,travel:Math.hypot(p.pos.x-before.x,p.pos.z-before.z),
     facing:(()=>{const h=foe.segs[0],d=Math.hypot(h.x-p.pos.x,h.z-p.pos.z)||1;
       return (i.aim.dir.x*(h.x-p.pos.x)+i.aim.dir.z*(h.z-p.pos.z))/d})()};
