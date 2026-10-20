@@ -126,7 +126,19 @@ try{
  assert.equal(event.origin,'ash');
  assert(event.actualVoxels>=event.sourceVoxels&&event.actualParts>=event.sourceParts,
   'guest source detail was simplified before rendering');
- assert.equal(event.locked,false,'movement must release at dialogue');
+ assert.equal(event.locked,true,'owner §21.25: hero must remain frozen until explicit dialogue choice');
+ const keeperUI=await page.evaluate(()=>{
+   const el=document.querySelector('#threeWorldsGuestChoice');
+   const title=el?.querySelector('.npc-say-name'),txt=el?.querySelector('#guestStoryText');
+   const style=getComputedStyle(el),name=getComputedStyle(title),body=getComputedStyle(txt);
+   return {className:el?.className,tag:el?.tagName,name:title?.textContent,
+     labelFamily:name.fontFamily,textFamily:body.fontFamily,position:style.position,
+     width:el?.getBoundingClientRect().width,boxes:el?.querySelectorAll('.npc-say-choices .btn').length};
+ });
+ assert(keeperUI.className.includes('npc-say')&&keeperUI.tag!=='DIALOG');
+ assert(keeperUI.name==='СТРАЖ ПЕПЛА'&&keeperUI.labelFamily.includes('Pixelify Sans'));
+ assert(keeperUI.textFamily.includes('Pixelify Sans')&&keeperUI.position==='fixed');
+ assert(keeperUI.width<=320.5&&keeperUI.boxes===2,'not the original keeper-sized in-world bubble');
  assert(Math.abs(event.distance-3.2)<.1&&event.alignment>.99,'terrain portal not in front of hero');
  const riftInFrame=await page.evaluate(()=>{
   const i=__isle,p=i.rifts.riftMesh.position.clone().project(i.camera);
@@ -135,18 +147,45 @@ try{
  assert(riftInFrame.visible&&Math.abs(riftInFrame.x)<1&&Math.abs(riftInFrame.y)<1,
   'actual portal outside camera frame: '+JSON.stringify(riftInFrame));
  assert.deepEqual(event.labels,['Помочь','Отказаться']);
- await page.evaluate(()=>__isle.rifts.update(10)); // Wait for original-text-style typewriter to finish.
+ const fourLines=await page.evaluate(()=>{
+  const i=__isle,ui=document.querySelector('#threeWorldsGuestChoice'),seen=[];
+  for(let n=0;n<4;n++){
+    i.rifts.update(10);
+    seen.push(ui.querySelector('#guestStoryText').textContent);
+    if(n<3){
+      if(!ui.querySelector('div').hidden)throw Error('choice leaked before fourth line');
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+    }
+  }
+  if(ui.querySelector('div').hidden)throw Error('choice missing after fourth line');
+  return seen;
+ });
+ assert.equal(fourLines.length,4);assert.equal(new Set(fourLines).size,4);
  await page.locator('#threeWorldsGuestChoice button').first().click();
- const complete=await page.evaluate(()=>{
-  const i=__isle,from=i.rifts.guest.sourceWorld;
+ const waitingAtRift=await page.evaluate(()=>{
+  const i=__isle,old=i.player.pos.clone(),spot=i.rifts.event.spot;
   i.rifts.update(5);
+  // Negative test: a character directly ABOVE the same portal XZ must not travel.
+  i.player.pos.set(spot.x,i.terrainTop(spot.x,spot.z)+10,spot.z);
+  i.rifts.update(.1);
+  return {phase:i.rifts.event.phase,mission:i.rifts.mission,
+    moved:old.distanceTo(i.player.pos),altitude:i.player.pos.y,
+    expectedWorld: i.rifts.event.phase};
+ });
+ assert.equal(waitingAtRift.phase,'escort','closing should wait for actual portal entry');
+ assert.equal(waitingAtRift.mission,null,'same XZ at +10m must not teleport');
+ assert(waitingAtRift.moved>0,'altitude-negative fixture failed to move the player');
+ const complete=await page.evaluate(()=>{
+  const i=__isle,from=i.worlds.active,s=i.rifts.event.spot;
+  i.player.pos.set(s.x,i.terrainTop(s.x,s.z)+.3,s.z);
+  i.rifts.update(.1);
   return {locked:i.G.riftFrozen,phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation,
     from,mission:i.rifts.mission,worldPosition:i.player.pos.x,cycle:i.rifts.event.cycle};
  });
- assert.equal(complete.locked,false);
- assert.equal(complete.phase,'idle');
- assert.equal(complete.relation,'friend');
- assert(complete.mission?.text&&complete.mission.world!==complete.from,'help must change world and issue mission');
+ assert.equal(complete.locked,false);assert.equal(complete.phase,'idle');
+ assert.equal(complete.relation,'friend');assert(complete.mission?.targetId&&complete.mission?.text);
+ assert.equal(complete.mission.completed,false);
+ assert(complete.mission.world!==complete.from,'help must change world and issue mission');
  assert.equal(complete.cycle,1);
  // The guest accompanies hero at the destination; only after finishing its
  // mission it may leave, allowing the next encounter and independent boss choice.
@@ -158,15 +197,40 @@ try{
  });
  assert.equal(waiting.phase,'idle');
  assert.equal(waiting.alive,true,'helped guest vanished before explaining mission');
+ await page.waitForFunction(()=>__isle.rifts.ashQuest.has('blue_crystal'),{timeout:10000});
  const second=await page.evaluate(()=>{
   const i=__isle;
-  i.rifts.update(26); // End escort AFTER delivering the mission.
-  if(i.rifts.guest)throw Error('guest did not finish scripted escort');
+  i.rifts.update(26);
+  if(!i.rifts.guest)throw Error('guest despawned without a completed objective');
+  // Owner original asset must be physically in the Ash scene before collection.
+  if(i.rifts.mission.world==='ash'){
+    const original=i.rifts.ashQuest;
+    if(!original.roots.has('rusty_tower')||!original.has('blue_crystal'))
+      throw Error('original quest objects are missing from scene');
+    const crystal=original.roots.get('blue_crystal');
+    i.player.pos.set(crystal.position.x,i.terrainTop(crystal.position.x,crystal.position.z)+.3,crystal.position.z);
+    i.rifts.update(.1);
+    if(!i.rifts.mission.crystalCollected||crystal.visible)
+      throw Error('real blue crystal not picked up before portal completion');
+  }
+  const target=i.rifts.mission.target;
+  i.player.pos.set(target.x,i.terrainTop(target.x,target.z)+10,target.z);
+  i.rifts.update(.1);
+  if(i.rifts.mission.completed||!i.rifts.guest)throw Error('altitude-only location illegally completed quest');
+  i.player.pos.set(target.x,i.terrainTop(target.x,target.z)+.3,target.z);
+  i.rifts.update(.1);
+  if(i.rifts.guest)throw Error('guest did not finish after reaching registered quest target');
   i.rifts.update(65);i.rifts.update(5);i.rifts.update(5);i.rifts.update(5);
   return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,visible:!!i.rifts.guest};
  });
  assert.equal(second.phase,'dialogue');assert(second.visible);
- await page.evaluate(()=>__isle.rifts.update(10)); // Second visitor finishes speaking before choice.
+ await page.evaluate(()=>{
+  const i=__isle;
+  for(let n=0;n<4;n++){
+    i.rifts.update(10);
+    if(n<3)document.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+  }
+ });
  await page.locator('#threeWorldsGuestChoice button').last().click();
  const refusal=await page.evaluate(()=>{
   const i=__isle;i.rifts.update(.7);

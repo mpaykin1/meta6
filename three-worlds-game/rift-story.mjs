@@ -1,35 +1,98 @@
 import {DialogueGenerator} from './dialogue.mjs';
 import {createAshFactory} from './ash-assets.mjs';
+import {createAshQuestProps,questProp} from './ash-quest-props.mjs';
 import {instantiateOriginalGuest} from './guest-roster.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
 import {createRiftEvent,RIFT_WORDS} from './rift-event.mjs';
+import {createKeeperBubble} from './keeper-bubble.mjs';
 export function riftCountdownAllowed(_land,guest){return !guest;}
 export function guestHomeFor(world){return world==='ash'?'island':world==='water'?'ash':'water';}
+// Only an approved original Ash guest is currently connected; never invent a source.
+export const GUEST_DIALOGUE=Object.freeze({
+ ash:Object.freeze([
+  'Приветствую тебя, о герой. Легенды о тебе дошли до моего мира.',
+  'Я Страж Пепла из Пепельного пути. Моё сердце разряжается (((, видишь, оно уже мигает красным.',
+  'Без него я погибну. В моём мире у ржавой вышки лежит голубой кристалл, он зарядит сердце.',
+  'Один я не дойду, на пути враги. Поможешь мне?'
+ ]),
+ island:Object.freeze([
+  'Приветствую тебя, герой. О твоей смелости говорят даже у нас.',
+  'Я Хранитель Огня с Острова сумерек. Мне холодно (((, видишь, моё пламя уже слабеет.',
+  'В воде я замерзну. Мне нужен костёр, он согреет меня.',
+  'Один я не выплыву, на берегу враги. Поможешь мне?'
+ ]),
+ sunken:Object.freeze([
+  'Приветствую тебя, герой. Тебя помнят даже в глубинах моего мира.',
+  'Я Страж Бездны из Затонувшего города. Мне трудно дышать (((, видишь, мои жабры мерцают красным.',
+  'Без воды я погибну. Рядом с тобой есть озеро с синей водой, в воде я смогу исцелиться.',
+  'Один я не доползу, мне мешают враги. Поможешь мне?'
+ ])
+});
+export function guestDialogueLines(origin){
+ if(!GUEST_DIALOGUE[origin])throw Error('Original guest origin not connected: '+origin);
+ return GUEST_DIALOGUE[origin];
+}
+// One authoritative world-portal registry is used by collision, visuals and missions.
+export const RIFT_PORTALS=Object.freeze([
+ Object.freeze({id:'rift-island',world:'island',x:-22,z:32,to:Object.freeze({x:-82,z:32})}),
+ Object.freeze({id:'rift-ash',world:'ash',x:-126,z:32,to:Object.freeze({x:100,z:34})}),
+ Object.freeze({id:'rift-water',world:'water',x:102,z:40,to:Object.freeze({x:46,z:32})})
+]);
+// Gameplay names must resolve to actual rendered/interactive objects, never a
+// made-up quest item. Approved crystal/tower not yet present: A06 remains OPEN.
+export const WORLD_OBJECTS=Object.freeze({
+ rift:Object.freeze({id:'rift',source:'rift-story.mjs',kind:'terrain-portal'}),
+ rusty_tower:questProp('rusty_tower'),
+ blue_crystal:questProp('blue_crystal')
+});
+export function missionTargetFor(world,portals=RIFT_PORTALS){
+ const p=portals.find(p=>p.world===world);
+ if(!p||portals.filter(q=>q.id===p.id).length!==1)throw Error('missing or duplicate actual portal in '+world);
+ return p;
+}
 export function guestLine(home,current,state){
  const need=home==='water'&&current!=='water'?'Мне нужна вода. Проводи меня к берегу.':home==='ash'&&current==='water'?'Я замерзаю. Выведи меня к огню.':'Пепел закрыл дорогу домой. Помоги добраться до разлома.';
  return state==='friend'?'Ты не бросил меня. Я прикрою тебя.':state==='hostile'?'Ты видел, что мне нужна помощь. Теперь я защищаюсь.':state==='home'?'Дорога открыта. Это оружие теперь твоё.':need;
 }
-export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,toast,prepare,onTransition,attacking,onAttack,reward,getHostiles=()=>[],damageHostile=()=>{},getWorldId=()=>player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island',canStart=()=>true,onEventFX=()=>{},onFreeze=()=>{}}){
+export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,height,seed,toast,prepare,onTransition,attacking,onAttack,reward,getHostiles=()=>[],damageHostile=()=>{},getWorldId=()=>player.pos.y<3.6?'water':player.pos.x<-64?'ash':'island',canStart=()=>true,onEventFX=()=>{},onFreeze=()=>{}}){
  let snapshot={};try{snapshot=JSON.parse(localStorage.getItem('three-worlds-dialogue')||'{}')}catch{}
  const dialogue=new DialogueGenerator(snapshot);
  function line(g,state){const text=dialogue.next({home:g.home,world:getWorldId(),state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
- const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
- let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99,mission=null,bossState=null,dialogFull='',dialogTyped=0;
+ const portals=RIFT_PORTALS,meshes=[];
+ const ashQuest=createAshQuestProps({THREE,scene,height});
+ let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99,mission=null,bossState=null,dialogFull='',dialogTyped=0,dialogIndex=0,dialogLines=[];
  const event=createRiftEvent(seed,{initial:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
  let previousPhase='idle';
- const choiceUI=document.createElement('dialog');choiceUI.id='threeWorldsGuestChoice';
+ const keeperBubble=createKeeperBubble({THREE,camera});
+ const choiceUI=keeperBubble.root;choiceUI.id='threeWorldsGuestChoice';
  choiceUI.setAttribute('aria-label','Разрыв: гость из другого мира');
- choiceUI.style.cssText='max-width:min(560px,92vw);background:#171628;color:#f7e9cf;border:2px solid #6ffff0;border-radius:13px;padding:22px;box-shadow:0 15px 75px #000b;font:17px/1.5 Georgia,serif;touch-action:pan-y;z-index:99';
- const speech=document.createElement('p');speech.textContent=RIFT_WORDS;
- const question=document.createElement('p');question.id='guestStoryText';question.setAttribute('aria-live','polite');
- const controls=document.createElement('div');controls.style.cssText='display:flex;gap:12px;justify-content:center;flex-wrap:wrap';
- const help=document.createElement('button');help.textContent='Помочь';help.type='button';
- const refuse=document.createElement('button');refuse.textContent='Отказаться';refuse.type='button';
- for(const btn of [help,refuse])btn.style.cssText='min-width:125px;min-height:48px;border-radius:8px;border:1px solid #aafff4;background:#283945;color:white;font:17px Georgia,serif';
- controls.append(help,refuse);controls.hidden=true;choiceUI.append(speech,question,controls);document.body.appendChild(choiceUI);
- choiceUI.addEventListener('cancel',e=>e.preventDefault());
- function selectChoice(value){if(!event.choose(value))return;choiceUI.close();onFreeze(false);if(guest){guest.brain.relation=value==='help'?'friend':'hostile';guest.brain.state=value==='help'?'follow':'attack';toast(value==='help'?'Пойдём со мной.':'Жаль, что ты выбрал быть моим врагом.',3600)}if(value==='refuse'&&guest){guest.brain.hp=180;bossState={hp:180,maxHp:180,phase:1};onEventFX('boss');}else onEventFX('closing')}
+ const question=keeperBubble.text;question.id='guestStoryText';
+ const controls=document.createElement('div');controls.className='npc-say-choices';
+ const help=document.createElement('button');help.textContent='Помочь';help.type='button';help.className='btn';
+ const refuse=document.createElement('button');refuse.textContent='Отказаться';refuse.type='button';refuse.className='btn';
+ controls.append(help,refuse);controls.hidden=true;choiceUI.append(controls);
+ const GUEST_TITLES=Object.freeze({ash:'СТРАЖ ПЕПЛА',island:'ХРАНИТЕЛЬ ОГНЯ',sunken:'СТРАЖ БЕЗДНЫ'});
+ let heroTyped=0;
+ function nextDialogueLine(){
+  if(event.state.phase!=='dialogue'||!choiceUI.open||!controls.hidden)return false;
+  if(dialogTyped<dialogFull.length){dialogTyped=dialogFull.length;question.textContent=dialogFull;return true}
+  if(dialogIndex<dialogLines.length-1){dialogFull=dialogLines[++dialogIndex];dialogTyped=0;question.textContent='';return true}
+  return false;
+ }
+ function onDialogKey(e){if(event.state.phase!=='dialogue'||!choiceUI.open)return;
+  if(e.key==='Escape'||e.key==='Tab'||e.ctrlKey||e.altKey||e.metaKey)return;
+  if(['Shift','Control','Alt','Meta'].includes(e.key))return;
+  if(controls.hidden){e.preventDefault();e.stopPropagation();nextDialogueLine();}
+ }
+ function onDialogTouch(e){
+  if(event.state.phase!=='dialogue'||!choiceUI.open||!controls.hidden)return;
+  if(e.target?.closest?.('button'))return;
+  e.preventDefault();e.stopPropagation();nextDialogueLine();
+ }
+ document.addEventListener('keydown',onDialogKey,true);
+ document.addEventListener('pointerdown',onDialogTouch,true);
+ function selectChoice(value){if(controls.hidden||!event.choose(value))return;choiceUI.close();onFreeze(false);if(guest){guest.brain.relation=value==='help'?'friend':'hostile';guest.brain.state=value==='help'?'follow':'attack';toast(value==='help'?'Пойдём со мной.':'Жаль, что ты выбрал быть моим врагом.',3600)}if(value==='refuse'&&guest){guest.brain.hp=180;bossState={hp:180,maxHp:180,phase:1};onEventFX('boss');}else onEventFX('closing')}
  help.addEventListener('click',()=>selectChoice('help'));
  refuse.addEventListener('click',()=>selectChoice('refuse'));
 
@@ -65,23 +128,79 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   // Directly animate the owner's original scavenger asset. This removes the
   // first-appearance WebGL readback/render-target dependency which could prevent
   // the timed guest from materializing for an idle player.
-  factory ||= createAshFactory(THREE);
-  const {inst,ref,sourceVoxels,sourceParts}=instantiateOriginalGuest(factory);
+  // Always bring a visitor from ANOTHER original game, never an Ash robot
+  // onto its own Ash home terrain. The Island sprite comes verbatim from
+  // the owner's live npc-catalog.js + original hero texture.
+  const current=getWorldId(),islandGuest=current==='ash';
+  let inst,ref,sourceVoxels,sourceParts,islandEntity=null;
+  if(islandGuest){
+    const catalog=typeof window!=='undefined'?window.ObserverNpcCatalog:null;
+    if(!catalog?.ROLES?.companion||!heroTex)throw Error('Original Island companion asset is unavailable');
+    const visual=catalog.createMesh({THREE,heroTex},'companion',new THREE.Vector3());
+    islandEntity={visual,role:'companion',relation:'neutral',motion:0,seed,dead:false,
+      state:'idle',facing:1,x:0,y:0,z:0};
+    inst={root:visual.mesh,mat:{dispose:()=>catalog.dispose(islandEntity,scene)}};
+    ref={origin:'island',sourceModel:'companion'};sourceVoxels=null;sourceParts=1;
+  }else{
+    factory ||= createAshFactory(THREE);
+    const original=instantiateOriginalGuest(factory);
+    ({inst,ref,sourceVoxels,sourceParts}=original);
+  }
   const target=spot||event.state.spot||{x:player.pos.x+2.6,z:player.pos.z};
   const x=target.x,z=target.z;
-  const m=inst.root;m.position.set(x,height(x,z)+1.6,z);m.scale.setScalar(0.92);scene.add(m);
+  const m=inst.root;m.position.set(x,height(x,z)+1.6,z);
+  if(!islandGuest)m.scale.setScalar(0.92);scene.add(m);
   guestRift.position.set(x,height(x,z)+2.3,z);guestRift.visible=true;
   riftLight.position.copy(guestRift.position);riftAge=0;
-  guest={mesh:m,inst,brain:createBrain('original-strider_m',{x,z},seed),origin:ref.origin,originalId:ref.sourceModel,sourceVoxels,sourceParts,home:guestHomeFor(getWorldId()),landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:getWorldId()};
+  // The owner's canonical distress sign is visibly red and pulses on the
+  // original Ash robot; its source voxels and animation rig stay untouched.
+  let heart=null;
+  if(ref.origin==='ash'){
+    m.updateMatrixWorld(true);
+    const box=new THREE.Box3().setFromObject(m),size=new THREE.Vector3();
+    box.getSize(size);const mid=box.getCenter(new THREE.Vector3());
+    const at=new THREE.Vector3(mid.x,box.min.y+size.y*.63,box.max.z+.12);
+    const radius=Math.max(.11,Math.min(.2,size.y*.065));
+    heart=new THREE.Mesh(new THREE.SphereGeometry(radius,10,8),
+      new THREE.MeshBasicMaterial({color:0xff1a38}));
+    heart.position.copy(m.worldToLocal(at));
+    heart.name='ash-heart-blinking-red';
+    m.add(heart);
+  }
+  guest={mesh:m,inst,heart,islandEntity,brain:createBrain('original-'+ref.sourceModel,{x,z},seed),
+   origin:ref.origin,originalId:ref.sourceModel,sourceVoxels,sourceParts,home:ref.origin,
+   landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:ref.origin};
+  if(guest.origin===current)throw Error('Same-world guest prohibited: '+current);
   // The guest is revealed from the depth of the original rift, without ballistic fall.
   m.visible=false;
   return true;
  }
  function finishGuest(g){
-  scene.remove(g.mesh);g.inst.mat.dispose();guest=null;bossState=null;
+  scene.remove(g.mesh);
+  if(g.heart){g.heart.geometry.dispose();g.heart.material.dispose()}
+  g.inst.mat.dispose();guest=null;bossState=null;
  }
  function travel(p){prepare(p.to.x,p.to.z);player.pos.set(p.to.x,height(p.to.x,p.to.z)+.3,p.to.z);player.vel.set(0,0,0);cooldown=6;onTransition();}
  function update(dt){clock+=dt;cooldown=Math.max(0,cooldown-dt);material.uniforms.time.value=clock;
+  ashQuest.update(clock);
+  // §21.25: collect the ORIGINAL blue GRAF crystal next to the ORIGINAL
+  // rusty Ash tower first; then escort the original guest to the real portal.
+  const crystal=questProp('blue_crystal');
+  if(mission&&mission.world==='ash'&&!mission.crystalCollected&&
+    getWorldId()==='ash'&&ashQuest.has(crystal.id)&&
+    Math.hypot(player.pos.x-crystal.x,player.pos.z-crystal.z)<1.5&&
+    Math.abs(player.pos.y-height(crystal.x,crystal.z))<3){
+    mission.crystalCollected=true;
+    ashQuest.roots.get(crystal.id).visible=false;
+    toast('Голубой кристалл найден. Теперь подойди к светящейся щели.',3500);
+  }
+  // A mission ends only at its genuine registered terrain portal.
+  if(mission&&!mission.completed&&(mission.world!=='ash'||mission.crystalCollected)&&mission.world===getWorldId()&&
+    Math.hypot(player.pos.x-mission.target.x,player.pos.z-mission.target.z)<1.25&&
+    Math.abs(player.pos.y-height(mission.target.x,mission.target.z))<3){
+    mission.completed=true;toast('Миссия выполнена. Награда получена.',3600);reward();
+    if(guest&&guest.brain.relation==='friend')finishGuest(guest);
+  }
   for(let i=0;i<portals.length;i++){const p=portals[i],m=meshes[i];m.lookAt(camera.position.x,m.position.y,camera.position.z);if(cooldown===0&&Math.hypot(player.pos.x-p.x,player.pos.z-p.z)<1.5&&Math.abs(player.pos.y-height(p.x,p.z))<3)travel(p)}
   // Owner §21.15: 5s in-world glitch, 5s held line, 5s real depth emergence.
   // Exactly one phase source controls both post FX and the terrain-anchored object.
@@ -102,61 +221,80 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   }
   event.step(dt,{land:true,battle:false,occupied:!!guest,pos:player.pos,look:player.look});
   const phase=event.state.phase,spot=event.state.spot;
-  const glitch=phase==='warning'?clamp(event.state.elapsed/5,0,1):
-    ['opening','emerging','closing'].includes(phase)?1:0;
+  const glitch=['warning','opening','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):
+    phase==='emerging'?1:0;
   onEventFX('intensity',glitch);
   if(phase!==previousPhase){
     previousPhase=phase;onEventFX(phase);
     if(phase==='warning'){
-      onFreeze(true);
+      onFreeze(true);heroTyped=0;
+      keeperBubble.show('ГЕРОЙ','');controls.hidden=true;
       guestRift.position.set(spot.x,height(spot.x,spot.z)+2.3,spot.z);
       guestRift.visible=true;
       riftLight.position.copy(guestRift.position);
     }
-    if(phase==='opening')toast(RIFT_WORDS,5000,true);
+    if(phase==='opening')keeperBubble.hide();
     if(phase==='emerging')spawnGuest(spot);
     if(phase==='dialogue'){
       if(!guest)spawnGuest(spot);
-      onFreeze(false);
-      dialogFull=guest?line(guest,'neutral'):'Гость из другого мира просит помощи.';
+      onFreeze(true);
+      dialogLines=guest?guestDialogueLines(guest.origin):[];
+      if(dialogLines.length!==4)throw Error('Four approved guest lines missing');
+      dialogIndex=0;dialogFull=dialogLines[0];
       dialogTyped=0;question.textContent='';controls.hidden=true;
-      if(!choiceUI.open)choiceUI.showModal();
+      keeperBubble.show(GUEST_TITLES[guest.origin]||'ГОСТЬ','');
     }
     if(phase==='closing'){
-      if(choiceUI.open)choiceUI.close();
-      onFreeze(false);
+      keeperBubble.hide();onFreeze(true);
     }
     if(phase==='escort'&&guest){
-      const from=getWorldId(),to=guestHomeFor(from),
-        destinations={island:{x:30,z:32},ash:{x:-90,z:32},water:{x:95,z:34}},
-        destination=destinations[to],floor=height(destination.x,destination.z);
-      travel({to:destination});
-      if(to==='water')player.pos.y=Math.min(3,Math.max(floor+.35,1));
-      guest.mesh.position.set(player.pos.x+1.5,height(player.pos.x+1.5,player.pos.z)+1.6,player.pos.z);
-      guest.landed=true;guest.brain.relation='friend';guest.age=0;
-      mission={origin:from,world:to,kind:'escort',text:to==='water'?
-        'Новая миссия: исследуй затонувшие руины и найди знак пути.':
-        to==='ash'?'Новая миссия: найди безопасную тропу сквозь пепел.':
-        'Новая миссия: доберись до маяка и узнай источник разломов.'};
-      toast('Пойдём со мной. '+mission.text,7000);
-      event.finishArc(mission);
+      onFreeze(false);
+      // Travel requires physical collision with the rift after the five-second reopening.
+      toast('Пойдём со мной. Войди в разлом перед тобой.',4000);
     }
     if(phase==='idle'){onFreeze(false);onEventFX('idle');}
   }
-  if(phase==='dialogue'){
-    dialogTyped=Math.min(dialogFull.length,dialogTyped+dt*30);
-    question.textContent=dialogFull.slice(0,Math.floor(dialogTyped));
-    controls.hidden=dialogTyped<dialogFull.length;
+  if(phase==='warning'){
+    heroTyped=Math.min(RIFT_WORDS.length,heroTyped+dt/.055);
+    question.textContent=RIFT_WORDS.slice(0,Math.floor(heroTyped));
+    keeperBubble.place(player.pos.x,player.pos.y+2.6,player.pos.z);
   }
-  guestRift.visible=['warning','opening','emerging','dialogue','closing'].includes(phase);
+  if(phase==='dialogue'){
+    keeperBubble.place(guest.mesh.position.x,guest.mesh.position.y+1.6,guest.mesh.position.z);
+    dialogTyped=Math.min(dialogFull.length,dialogTyped+dt/.055);
+    question.textContent=dialogFull.slice(0,Math.floor(dialogTyped));
+    controls.hidden=dialogIndex!==dialogLines.length-1||dialogTyped<dialogFull.length;
+  }
+  guestRift.visible=['warning','opening','emerging','dialogue','closing','escort'].includes(phase);
   if(guestRift.visible&&spot){
     guestRift.position.set(spot.x,height(spot.x,spot.z)+2.3,spot.z);
     guestRift.lookAt(camera.position.x,guestRift.position.y,camera.position.z);
-    const progress=phase==='warning'?clamp(event.state.elapsed/5,0,1):1;
+    // §21.25: warning is music+screen interference, then the slit itself opens
+    // over a separate full five seconds. The escort reopens over five seconds.
+    const progress=phase==='warning'?.015:
+      ['opening','closing'].includes(phase)?clamp(event.state.elapsed/5,0,1):1;
     guestRift.scale.set(Math.max(.015,progress),Math.max(.015,progress),1);
     riftLight.position.copy(guestRift.position);
     riftLight.intensity=3*progress;
   }else riftLight.intensity=0;
+  if(phase==='escort'&&guest&&spot&&
+      Math.hypot(player.pos.x-spot.x,player.pos.z-spot.z)<1.0&&
+      Math.abs(player.pos.y-height(spot.x,spot.z))<3){
+    const from=getWorldId(),to=guest.home===from?guestHomeFor(from):guest.home,
+      destinations={island:{x:30,z:32},ash:{x:-90,z:32},water:{x:95,z:34}},
+      destination=destinations[to],target=missionTargetFor(to,portals),floor=height(destination.x,destination.z);
+    travel({to:destination});
+    if(to==='water')player.pos.y=Math.min(3,Math.max(floor+.35,1));
+    guest.mesh.position.set(player.pos.x+1.5,height(player.pos.x+1.5,player.pos.z)+1.6,player.pos.z);
+    guest.landed=true;guest.brain.relation='friend';guest.age=0;
+    mission={origin:from,world:to,kind:'escort',targetId:target.id,target:{x:target.x,z:target.z},completed:false,
+      requiredItemId:to==='ash'?WORLD_OBJECTS.blue_crystal.id:null,crystalCollected:to!=='ash',
+      text:to==='ash'?'Новая миссия: найди голубой кристалл возле ржавой вышки.':'Новая миссия: подойди к светящейся щели в этом мире.',
+      targetType:WORLD_OBJECTS.rift.id};
+    if(to==='ash')ashQuest.roots.get('blue_crystal').visible=true;
+    toast('Пойдём со мной. '+mission.text,7000);
+    event.finishArc(mission);
+  }
   if(!guest)return;const g=guest,p=g.mesh.position;g.age+=dt;g.damageClock=Math.max(0,g.damageClock-dt);
   const floor=height(p.x,p.z),distance=Math.hypot(p.x-player.pos.x,p.z-player.pos.z);
   if(!g.landed){
@@ -179,12 +317,19 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
     const nearby=getHostiles().filter(h=>Math.hypot(h.x-p.x,h.z-p.z)<9).sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z));
     if(nearby.length){damageHostile(nearby[0],8);g.damageClock=1.5;}
    }
-   if(mission&&g.brain.relation==='friend'&&g.age>25){finishGuest(g);return;}
+   // The guide persists until its registered mission objective is reached.
   }
   g.mesh.rotation.y=Number.isFinite(g.brain.heading)?g.brain.heading:Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
-  factory.uniforms.uTime.value=clock;
-  factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
+  if(g.heart)g.heart.scale.setScalar(.58+.42*(.5+.5*Math.sin(clock*9)));
+  if(g.islandEntity){
+    const e=g.islandEntity;e.x=p.x;e.y=p.y-1.6;e.z=p.z;
+    e.motion=g.landed?.35:0;e.state=g.landed?'walk':'idle';
+    window.ObserverNpcCatalog.animate(e,clock,camera);
+  }else{
+    factory.uniforms.uTime.value=clock;
+    factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
+  }
  }
- function dispose(){onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
- return {update,dispose,travel,portals,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get mission(){return mission},get boss(){return bossState?{...bossState}:null},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
+ function dispose(){ashQuest.dispose();document.removeEventListener('keydown',onDialogKey,true);document.removeEventListener('pointerdown',onDialogTouch,true);onFreeze(false);keeperBubble.dispose();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);if(guest.heart){guest.heart.geometry.dispose();guest.heart.material.dispose()}guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
+ return {update,dispose,travel,portals,ashQuest,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get mission(){return mission},get boss(){return bossState?{...bossState}:null},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
 }
