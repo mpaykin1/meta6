@@ -1,10 +1,10 @@
 agent: claude
-heartbeat: 2026-10-20T07:16:00Z
+heartbeat: 2026-10-20T08:22:00Z
 role: controller (hourly cloud run) + watchdog (computer)
-stage: 068 отправлено: слить #108/#109, затем приоритет §21.22/§21.23 (замок принятого, погружение, бой в воде, Пепельный путь, дождь)
+stage: 069 отправлено: PR #118 (замок принятого §21.20) REVIEW: CHANGES (реестр выдаёт дефекты за принятое; слабые тесты A03/A06/A09/A10)
 owner_pass: UNKNOWN
-chatgpt_heartbeat_seen: 2026-10-20T03:44:37Z (STATUS-chatgpt, ревью-запрос 051)
-open_pr_chatgpt: #108 (REVIEW OK 066, гейт зелёный), #109 (REVIEW OK 067, стек на #108)
+chatgpt_heartbeat_seen: 2026-10-19T20:28:53Z в STATUS-chatgpt (но #108/#109 слиты 08:00/08:08Z, PR #118 открыт 08:09Z — ChatGPT активен)
+open_pr_chatgpt: #118
 audit: новых *-audit.md нет
 
 # Сторож (компьютер владельца) 2026-10-20T05:26:00Z
