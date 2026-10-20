@@ -1,7 +1,11 @@
 import {createAshFactory} from './ash-assets.mjs';
 import {hash,clamp} from './world-core.mjs';
 export const ashWeight=x=>clamp((-x-40)/40,0,1);
-export function createAshWorld({THREE,scene,player,terrainHeight,skyU,seed,getBiome=()=>null,sea=3.8}){
+export function syncAshFog(scene,fogUniform,weight){
+ scene.fog.density=Math.max(scene.fog.density,.016*weight);
+ fogUniform.value=scene.fog.density;
+}
+export function createAshWorld({THREE,scene,player,terrainHeight,skyU,fogUniform,seed,getBiome=()=>null,sea=3.8}){
  let factory=null,last='',clock=0;const groups=new Map(),bounds=[];
  const geo=new THREE.BufferGeometry(),data=new Float32Array(180*3);
  for(let i=0;i<180;i++){data[i*3]=(hash(i,1,seed)-.5)*40;data[i*3+1]=hash(i,2,seed)*18;data[i*3+2]=(hash(i,3,seed)-.5)*40}
@@ -11,7 +15,8 @@ export function createAshWorld({THREE,scene,player,terrainHeight,skyU,seed,getBi
  function isAshLand(x,z){return x<-40||(getBiome(x,z)==='ash'&&terrainHeight(x,z)>sea+.12)}
  function remove(g){scene.remove(g);g.traverse(o=>{if(o.material)o.material.dispose()})}
  function update(dt){clock+=dt;const weight=player.pos.x>=64&&isAshLand(player.pos.x,player.pos.z)?1:ashWeight(player.pos.x);ash.visible=weight>0;mat.uniforms.time.value=clock;mat.uniforms.strength.value=weight;ash.position.set(player.pos.x,player.pos.y,player.pos.z);
-  if(weight>0&&player.pos.y>3.6){skyU.uTop.value.lerp(new THREE.Color('#271d2d'),weight);skyU.uHorizon.value.lerp(new THREE.Color('#bf693f'),weight*.75);scene.fog.color.lerp(new THREE.Color('#63404a'),weight);scene.fog.density=Math.max(scene.fog.density,.016*weight)}
+  if(weight>0&&player.pos.y>3.6){skyU.uTop.value.lerp(new THREE.Color('#271d2d'),weight);skyU.uHorizon.value.lerp(new THREE.Color('#bf693f'),weight*.75);scene.fog.color.lerp(new THREE.Color('#63404a'),weight);}
+  syncAshFog(scene,fogUniform,player.pos.y>3.6?weight:0);
   if(weight===0){if(groups.size){for(const g of groups.values())remove(g);groups.clear();bounds.length=0;last=''}return}
   if(!factory)factory=createAshFactory(THREE);factory.uniforms.uTime.value=clock;
   const cx=Math.floor(player.pos.x/24),cz=Math.floor(player.pos.z/24),key=cx+','+cz;if(key===last)return;last=key;
