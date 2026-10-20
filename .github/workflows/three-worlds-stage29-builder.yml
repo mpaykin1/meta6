@@ -6,7 +6,7 @@ permissions:
   contents: write
 jobs:
   original-red:
-    if: github.event.head_commit.message != 'build(three-worlds): reproducible water dive standalone'
+    if: "${{ github.event.head_commit.message != 'build(three-worlds): reproducible water dive standalone' }}"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -42,7 +42,7 @@ jobs:
           echo "RED_CONTROL_VERIFIED"
   stage29-builder:
     needs: original-red
-    if: github.event.head_commit.message != 'build(three-worlds): reproducible water dive standalone'
+    if: "${{ github.event.head_commit.message != 'build(three-worlds): reproducible water dive standalone' }}"
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
