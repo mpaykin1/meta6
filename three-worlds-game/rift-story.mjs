@@ -1,5 +1,6 @@
 import {DialogueGenerator} from './dialogue.mjs';
 import {createAshFactory} from './ash-assets.mjs';
+import {instantiateOriginalGuest} from './guest-roster.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
 import {createRiftEvent,RIFT_WORDS} from './rift-event.mjs';
@@ -50,7 +51,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  const guestRift=new THREE.Mesh(geometry,material);guestRift.visible=false;scene.add(guestRift);
  const riftLight=new THREE.PointLight(0x38e8e6,0,9);scene.add(riftLight);
  function bake(){
-  factory ||= createAshFactory(THREE);const def=factory.models.find(d=>d.id==='scavenger'),inst=factory.instance(def),s=new THREE.Scene();s.add(inst.root);
+  factory ||= createAshFactory(THREE);const {inst}=instantiateOriginalGuest(factory),s=new THREE.Scene();s.add(inst.root);
   const cam=new THREE.OrthographicCamera(-1.8,1.8,2.7,-.9,.1,20);cam.position.set(0,2,7);cam.lookAt(0,1,0);
   const rt=new THREE.WebGLRenderTarget(384,384,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});
   const prev=renderer.getRenderTarget(),color=renderer.getClearColor(new THREE.Color()),alpha=renderer.getClearAlpha(),viewport=renderer.getViewport(new THREE.Vector4()),scissor=renderer.getScissor(new THREE.Vector4()),test=renderer.getScissorTest(),auto=renderer.autoClear;
@@ -65,15 +66,13 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   // first-appearance WebGL readback/render-target dependency which could prevent
   // the timed guest from materializing for an idle player.
   factory ||= createAshFactory(THREE);
-  const def=factory.models.find(d=>d.id==='scavenger');
-  if(!def)throw new Error('Original Ash scavenger model missing');
-  const inst=factory.instance(def);
+  const {inst,ref,sourceVoxels,sourceParts}=instantiateOriginalGuest(factory);
   const target=spot||event.state.spot||{x:player.pos.x+2.6,z:player.pos.z};
   const x=target.x,z=target.z;
-  const m=inst.root;m.position.set(x,height(x,z)+1.6,z);m.scale.setScalar(1.6);scene.add(m);
+  const m=inst.root;m.position.set(x,height(x,z)+1.6,z);m.scale.setScalar(0.92);scene.add(m);
   guestRift.position.set(x,height(x,z)+2.3,z);guestRift.visible=true;
   riftLight.position.copy(guestRift.position);riftAge=0;
-  guest={mesh:m,inst,brain:createBrain('original-scavenger',{x,z},seed),home:guestHomeFor(getWorldId()),landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:getWorldId()};
+  guest={mesh:m,inst,brain:createBrain('original-strider_m',{x,z},seed),origin:ref.origin,originalId:ref.sourceModel,sourceVoxels,sourceParts,home:guestHomeFor(getWorldId()),landed:false,fall:0,help:0,age:0,talk:-99,damageClock:0,rewarded:false,sourceWorld:getWorldId()};
   // The guest is revealed from the depth of the original rift, without ballistic fall.
   m.visible=false;
   return true;
