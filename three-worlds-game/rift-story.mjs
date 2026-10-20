@@ -14,19 +14,19 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
  const dialogue=new DialogueGenerator(snapshot);
  function line(g,state){const text=dialogue.next({home:g.home,world:getWorldId(),state,night:clock%120>60});try{localStorage.setItem('three-worlds-dialogue',JSON.stringify(dialogue.serialize()))}catch{}return text}
  const portals=[{x:-22,z:32,to:{x:-82,z:32}},{x:-126,z:32,to:{x:100,z:34}},{x:102,z:40,to:{x:46,z:32}}],meshes=[];
- let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99,mission=null,bossState=null;
+ let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99,mission=null,bossState=null,dialogFull='',dialogTyped=0;
  const event=createRiftEvent(seed,{initial:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
  let previousPhase='idle';
  const choiceUI=document.createElement('dialog');choiceUI.id='threeWorldsGuestChoice';
  choiceUI.setAttribute('aria-label','Разрыв: гость из другого мира');
  choiceUI.style.cssText='max-width:min(560px,92vw);background:#171628;color:#f7e9cf;border:2px solid #6ffff0;border-radius:13px;padding:22px;box-shadow:0 15px 75px #000b;font:17px/1.5 Georgia,serif;touch-action:pan-y;z-index:99';
  const speech=document.createElement('p');speech.textContent=RIFT_WORDS;
- const question=document.createElement('p');question.id='guestStoryText';
+ const question=document.createElement('p');question.id='guestStoryText';question.setAttribute('aria-live','polite');
  const controls=document.createElement('div');controls.style.cssText='display:flex;gap:12px;justify-content:center;flex-wrap:wrap';
  const help=document.createElement('button');help.textContent='Помочь';help.type='button';
  const refuse=document.createElement('button');refuse.textContent='Отказаться';refuse.type='button';
  for(const btn of [help,refuse])btn.style.cssText='min-width:125px;min-height:48px;border-radius:8px;border:1px solid #aafff4;background:#283945;color:white;font:17px Georgia,serif';
- controls.append(help,refuse);choiceUI.append(speech,question,controls);document.body.appendChild(choiceUI);
+ controls.append(help,refuse);controls.hidden=true;choiceUI.append(speech,question,controls);document.body.appendChild(choiceUI);
  choiceUI.addEventListener('cancel',e=>e.preventDefault());
  function selectChoice(value){if(!event.choose(value))return;choiceUI.close();onFreeze(false);if(guest){guest.brain.relation=value==='help'?'friend':'hostile';guest.brain.state=value==='help'?'follow':'attack';toast(value==='help'?'Пойдём со мной.':'Жаль, что ты выбрал быть моим врагом.',3600)}if(value==='refuse'&&guest){guest.brain.hp=180;bossState={hp:180,maxHp:180,phase:1};onEventFX('boss');}else onEventFX('closing')}
  help.addEventListener('click',()=>selectChoice('help'));
@@ -103,6 +103,9 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
   }
   event.step(dt,{land:true,battle:false,occupied:!!guest,pos:player.pos,look:player.look});
   const phase=event.state.phase,spot=event.state.spot;
+  const glitch=phase==='warning'?clamp(event.state.elapsed/5,0,1):
+    ['opening','emerging','closing'].includes(phase)?1:0;
+  onEventFX('intensity',glitch);
   if(phase!==previousPhase){
     previousPhase=phase;onEventFX(phase);
     if(phase==='warning'){
@@ -116,7 +119,8 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
     if(phase==='dialogue'){
       if(!guest)spawnGuest(spot);
       onFreeze(false);
-      question.textContent=guest?line(guest,'neutral'):'Гость из другого мира просит помощи.';
+      dialogFull=guest?line(guest,'neutral'):'Гость из другого мира просит помощи.';
+      dialogTyped=0;question.textContent='';controls.hidden=true;
       if(!choiceUI.open)choiceUI.showModal();
     }
     if(phase==='closing'){
@@ -139,6 +143,11 @@ export function createRiftStory({THREE,scene,renderer,camera,player,height,seed,
       event.finishArc(mission);
     }
     if(phase==='idle'){onFreeze(false);onEventFX('idle');}
+  }
+  if(phase==='dialogue'){
+    dialogTyped=Math.min(dialogFull.length,dialogTyped+dt*30);
+    question.textContent=dialogFull.slice(0,Math.floor(dialogTyped));
+    controls.hidden=dialogTyped<dialogFull.length;
   }
   guestRift.visible=['warning','opening','emerging','dialogue','closing'].includes(phase);
   if(guestRift.visible&&spot){
