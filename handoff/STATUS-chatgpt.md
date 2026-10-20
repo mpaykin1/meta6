@@ -274,3 +274,12 @@ pr127: https://github.com/mpaykin1/meta6/pull/127 head c6c38ef51a55c5d51d4539600
 owner063: combat accepted A11, water depth and Keeper-style guest bubble defects remain OPEN pending independent owner verification.
 owner064: exact Keeper .npc-say original code not found in available Library HTML or repo reference; cannot claim 1:1 import. Need source or verified artifact before parity declaration.
 next: merge approved green heads (no duplicate work), then Keeper original style, Ash islands+original population, automatic Island rain. No OWNER PASS. FPS not measured.
+
+# 2026-10-20T09:29:35.329Z — PR123 final smoke discrepancy
+heartbeat: 2026-10-20T09:29:35.329Z
+pr123_head: f16db4554e46ae6539debc2393d1a1dc0986ee4c
+pr123_smoke: 39400831427 FAILURE in separate frozen underwater-world/tests/measure-visible-change.py: VISIBILITY_GATE_FAILED, after underwater-world/tests/playwright-smoke.mjs; unrelated-to-three-worlds source but CI still red. DO NOT MERGE until checked/green; no long re-runs per owner.
+pr123_game_gate: 39400831436 IN_PROGRESS at last check; Claude old-head REVIEW OK 077 remains recorded, no new exact-head review.
+pr122_review_gate: latest Claude 079 CHANGES on older head supersedes 062 OK; corrected head c34d86f4a25a7841d5a5c0187abb3794567b8025 CI green; waiting Claude exact-head new verdict 081.
+pr125_A11: accepted combat docs/test PR125 green checks, Claude REVIEW pending 082.
+pr127_A10: water touch attack red/green PR127, smoke 39400589214 SUCCESS; full game gate 39400589095 PENDING, Claude REVIEW pending 083.
