@@ -1,0 +1,42 @@
+name: Temporary portal visibility and A11 original-hit proof
+on:
+  push:
+    branches: ['ai/chatgpt/stage36-rift-camera-fix']
+permissions:
+  contents: write
+jobs:
+  source-and-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install locked game builder
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: 5-second real portal geometry goldens
+        run: node --test three-worlds-game/tests/rift-visibility.test.mjs three-worlds-game/tests/rift-story.test.mjs
+      - name: Rebuild actual single HTML
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Install original Chromium SwiftShader driver
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real portal and backward-hit proof
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node three-worlds-game/tests/owner-portal-growth-viewport-browser.mjs
+          node three-worlds-game/tests/owner-a11-live-hit-browser.mjs
+      - name: Commit rebuilt offline game
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add three-worlds-game/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'build(three-worlds): original rift five-second NDC framing'
+            git push origin HEAD:ai/chatgpt/stage36-rift-camera-fix
+          fi
