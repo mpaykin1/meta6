@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {guestLine,guestHomeFor,riftCountdownAllowed,guestDialogueLines,RIFT_PORTALS,WORLD_OBJECTS,missionTargetFor} from '../rift-story.mjs';
@@ -61,14 +62,21 @@ test('audit 055: original guest is never deleted by timer before finishing the a
  guest.alive=false;step(65,false);assert.equal(e.state.phase,'warning');
 });
 
-test('audit044: exactly four source-authentic, manually gated guest lines',()=>{
- const lines=guestDialogueLines('ash');
- assert.equal(lines.length,4);
- for(const phrase of lines)assert(phrase.length<=160);
- assert.match(lines[0],/герой/);assert.match(lines[1],/Страж Пепла/);
- assert.match(lines[2],/разлом/);assert.match(lines[3],/Поможешь мне/);
- assert.throws(()=>guestDialogueLines('unknown'),/approved/);
+test('§21.25: all 12 sentences exactly match QUEST_RULES, independent markdown source',()=>{
+ const md=readFileSync(new URL('../../../docs/QUEST_RULES_RU.md',import.meta.url),'utf8');
+ const owners=[['ash','Страж Пепла'],['island','Хранитель Огня (Остров)'],['sunken','Страж Бездны (Затонувший город)']];
+ for(const [origin,label] of owners){
+  const row=md.split('\n').find(l=>l.startsWith(label+': '));
+  assert(row,'canonical source missing '+label);
+  const approved=[...row.matchAll(/«([^»]+)»/g)].map(m=>m[1]);
+  assert.equal(approved.length,4);
+  const game=guestDialogueLines(origin);
+  assert.deepEqual(game,approved,'game deviates from owner original '+label);
+  for(const phrase of game)assert(phrase.length<=160);
+ }
+ assert.throws(()=>guestDialogueLines('unknown'),/origin not connected/);
 });
+
 test('audit079: mission targets reuse the actual drawn/traversable portal registry',()=>{
  assert.equal(RIFT_PORTALS.length,3);
  assert.equal(new Set(RIFT_PORTALS.map(p=>p.id)).size,3);
@@ -81,8 +89,6 @@ test('audit079: mission targets reuse the actual drawn/traversable portal regist
   assert(portal.to&&Number.isFinite(portal.to.x)&&Number.isFinite(portal.to.z));
  }
  assert.equal(WORLD_OBJECTS.rift.kind,'terrain-portal');
- for(const line of guestDialogueLines('ash')){
-  if(/разлом/i.test(line))assert(WORLD_OBJECTS.rift);
- }
+ assert.equal(WORLD_OBJECTS.rift.source,'rift-story.mjs');
  assert.throws(()=>missionTargetFor('ash',[RIFT_PORTALS[0]]),/missing/);
 });
