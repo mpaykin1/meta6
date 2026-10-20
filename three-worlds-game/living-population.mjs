@@ -56,7 +56,7 @@ export function createLivingPopulation({THREE,scene,camera,heroTex,player,height
   }
   for(let i=0;i<plan.npcs.length;i++){
    const q=plan.npcs[i],brain=createBrain(q.id+'-'+key+'-'+i,{x:q.x,z:q.z},seed+i);
-   if(q.id==='companion'){
+   if(q.id==='companion'&&plan.region!=='ash'){
     // The second role is directly the owner's original Island NPC catalog,
     // with the already accepted 6-frame hero sprite, not a new character.
     const visual=catalog.createMesh({THREE,heroTex},'companion',new THREE.Vector3(q.x,q.y,q.z));
@@ -65,7 +65,13 @@ export function createLivingPopulation({THREE,scene,camera,heroTex,player,height
      state:'idle',facing:1,x:q.x,y:q.y,z:q.z};
     active.push({originalRole:true,entity,brain,pos:visual.mesh.position});
    }else{
-    const inst=factory.instance(def);inst.root.position.set(q.x,q.y,q.z);scene.add(inst.root);
+    // Keep the owner's accepted companion ROLE and AI while on Ash use the
+    // original Ash nomad body; Island companion texture remains canonical on Island.
+    const modelId=q.id==='companion'?'nomad':q.id;
+    const original=factory.models.find(model=>model.id===modelId);
+    if(!original||typeof original.stats!=='function'||original.stats().voxels<100)
+     throw Error('original Ash character asset missing '+modelId);
+    const inst=factory.instance(original);inst.root.position.set(q.x,q.y,q.z);scene.add(inst.root);
     active.push({inst,brain,pos:inst.root.position});
    }
   }
