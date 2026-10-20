@@ -61,7 +61,7 @@ try{
  // the original rig is advanced via the real game code, not a fake formula.
  const immersionCamera=await page.evaluate(()=>{
   const i=__isle,p=i.player,sea=i.SEA;
-  const x=116,z=108,floor=i.terrainTop(x,z);
+  const x=80.5,z=16.5,floor=i.terrainTop(x,z);
   if(floor>sea-4)throw Error('midwater fixture is not deep: '+floor);
   p.pos.set(x,sea-2.35,z);p.vis.copy(p.pos);p.vel.set(0,0,0);p.onGround=false;
   i.clearInput();
