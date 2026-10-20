@@ -151,13 +151,18 @@ try{
  assert.equal(fourLines.length,4);assert.equal(new Set(fourLines).size,4);
  await page.locator('#threeWorldsGuestChoice button').first().click();
  const waitingAtRift=await page.evaluate(()=>{
-  const i=__isle,old=i.player.pos.clone();
+  const i=__isle,old=i.player.pos.clone(),spot=i.rifts.event.spot;
   i.rifts.update(5);
-  return {phase:i.rifts.event.phase,mission:i.rifts.mission,moved:i.player.pos.distanceTo(old)};
+  // Negative test: a character directly ABOVE the same portal XZ must not travel.
+  i.player.pos.set(spot.x,i.terrainTop(spot.x,spot.z)+10,spot.z);
+  i.rifts.update(.1);
+  return {phase:i.rifts.event.phase,mission:i.rifts.mission,
+    moved:old.distanceTo(i.player.pos),altitude:i.player.pos.y,
+    expectedWorld: i.rifts.event.phase};
  });
  assert.equal(waitingAtRift.phase,'escort','closing should wait for actual portal entry');
- assert.equal(waitingAtRift.mission,null,'standing outside rift cannot teleport');
- assert.equal(waitingAtRift.moved,0);
+ assert.equal(waitingAtRift.mission,null,'same XZ at +10m must not teleport');
+ assert(waitingAtRift.moved>0,'altitude-negative fixture failed to move the player');
  const complete=await page.evaluate(()=>{
   const i=__isle,from=i.worlds.active,s=i.rifts.event.spot;
   i.player.pos.set(s.x,i.terrainTop(s.x,s.z)+.3,s.z);
@@ -185,6 +190,9 @@ try{
   i.rifts.update(26);
   if(!i.rifts.guest)throw Error('guest despawned without a completed objective');
   const target=i.rifts.mission.target;
+  i.player.pos.set(target.x,i.terrainTop(target.x,target.z)+10,target.z);
+  i.rifts.update(.1);
+  if(i.rifts.mission.completed||!i.rifts.guest)throw Error('altitude-only location illegally completed quest');
   i.player.pos.set(target.x,i.terrainTop(target.x,target.z)+.3,target.z);
   i.rifts.update(.1);
   if(i.rifts.guest)throw Error('guest did not finish after reaching registered quest target');
