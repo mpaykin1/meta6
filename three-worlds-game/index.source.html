@@ -497,6 +497,7 @@ import {createIslandEnvironment} from './island-environment.mjs';
 import {createIslandWeatherFX} from './island-weather-fx.mjs';
 import {voxelSample,buildGreedyVoxelChunk} from './voxel-terrain.mjs';
 import {createAshWorld,ashWeight} from './ash-world.mjs';
+import {ashArchipelagoHeight} from './ash-archipelago.mjs';
 import { lootPlacement } from './creature-brain.mjs';
 import { createHeightSource, ChunkWindow, WorldManager } from './world-core.mjs';
 import { createUnderwaterWorld } from './underwater-runtime.js';
@@ -1885,7 +1886,7 @@ function terrainHeightRaw(px,pz){
  const ax=Math.floor(px),az=Math.floor(pz),u=px-ax,v=pz-az;
  const h00=heightSource(ax,az),h10=heightSource(ax+1,az),h01=heightSource(ax,az+1),h11=heightSource(ax+1,az+1);
  const base=u+v<=1?h00+(h10-h00)*u+(h01-h00)*v:h11+(h01-h11)*(1-u)+(h10-h11)*(1-v);
- return coastalBeachHeight(px,pz,seed,edge48,base);
+ return ashArchipelagoHeight(px,pz,seed,coastalBeachHeight(px,pz,seed,edge48,base));
 }
 // The same integer-cell sample is consumed by collision, geometry, AI and camera.
 function terrainTop(px,pz){return voxelSample(terrainHeightRaw,px,pz)}
