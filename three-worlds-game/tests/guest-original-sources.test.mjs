@@ -13,7 +13,7 @@ test('§21.25 original visitor models from three source artifacts, never same-wo
  assert.match(sunken,/__threeWorldsModels\?\.\[ref\.sourceModel\]/);
  assert.match(sunken,/new THREE\.AnimationMixer\(root\)/);
  assert(!/SphereGeometry|BoxGeometry|PlaneGeometry/.test(sunken),'fabricated visitor geometry');
- assert(ash.includes("humanoid('strider_m'"));
+ assert(ash.includes("strider('strider_m'"));
  assert.deepEqual(GUEST_ROSTER.map(v=>v.origin),['ash','island','sunken']);
  assert.equal(guestSourceFor('island').catalog,'npc-catalog.js');
  assert.equal(guestSourceFor('sunken').sourceModel,'angler');
