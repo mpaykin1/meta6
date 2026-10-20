@@ -5,6 +5,7 @@ import {instantiateOriginalGuest} from './guest-roster.mjs';
 import {createBrain,stepBrain} from './creature-brain.mjs';
 import {clamp} from './world-core.mjs';
 import {createRiftEvent,RIFT_WORDS} from './rift-event.mjs';
+import {createKeeperBubble} from './keeper-bubble.mjs';
 export function riftCountdownAllowed(_land,guest){return !guest;}
 export function guestHomeFor(world){return world==='ash'?'island':world==='water'?'ash':'water';}
 // Only an approved original Ash guest is currently connected; never invent a source.
@@ -63,17 +64,16 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
  let clock=0,cooldown=0,guest=null,factory=null,sheet=null,riftAge=99,mission=null,bossState=null,dialogFull='',dialogTyped=0,dialogIndex=0,dialogLines=[];
  const event=createRiftEvent(seed,{initial:typeof location!=='undefined'&&new URLSearchParams(location.search).get('guestDebug')==='1'?5:50});
  let previousPhase='idle';
- const choiceUI=document.createElement('dialog');choiceUI.id='threeWorldsGuestChoice';
+ const keeperBubble=createKeeperBubble({THREE,camera});
+ const choiceUI=keeperBubble.root;choiceUI.id='threeWorldsGuestChoice';
  choiceUI.setAttribute('aria-label','Разрыв: гость из другого мира');
- choiceUI.style.cssText='max-width:min(560px,92vw);background:#171628;color:#f7e9cf;border:2px solid #6ffff0;border-radius:13px;padding:22px;box-shadow:0 15px 75px #000b;font:17px/1.5 Georgia,serif;touch-action:pan-y;z-index:99';
- const speech=document.createElement('p');speech.textContent=RIFT_WORDS;
- const question=document.createElement('p');question.id='guestStoryText';question.setAttribute('aria-live','polite');
- const controls=document.createElement('div');controls.style.cssText='display:flex;gap:12px;justify-content:center;flex-wrap:wrap';
- const help=document.createElement('button');help.textContent='Помочь';help.type='button';
- const refuse=document.createElement('button');refuse.textContent='Отказаться';refuse.type='button';
- for(const btn of [help,refuse])btn.style.cssText='min-width:125px;min-height:48px;border-radius:8px;border:1px solid #aafff4;background:#283945;color:white;font:17px Georgia,serif';
- controls.append(help,refuse);controls.hidden=true;choiceUI.append(speech,question,controls);document.body.appendChild(choiceUI);
- choiceUI.addEventListener('cancel',e=>e.preventDefault());
+ const question=keeperBubble.text;question.id='guestStoryText';
+ const controls=document.createElement('div');controls.className='npc-say-choices';
+ const help=document.createElement('button');help.textContent='Помочь';help.type='button';help.className='btn';
+ const refuse=document.createElement('button');refuse.textContent='Отказаться';refuse.type='button';refuse.className='btn';
+ controls.append(help,refuse);controls.hidden=true;choiceUI.append(controls);
+ const GUEST_TITLES=Object.freeze({ash:'СТРАЖ ПЕПЛА',island:'ХРАНИТЕЛЬ ОГНЯ',sunken:'СТРАЖ БЕЗДНЫ'});
+ let heroTyped=0;
  function nextDialogueLine(){
   if(event.state.phase!=='dialogue'||!choiceUI.open||!controls.hidden)return false;
   if(dialogTyped<dialogFull.length){dialogTyped=dialogFull.length;question.textContent=dialogFull;return true}
@@ -85,9 +85,13 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   if(['Shift','Control','Alt','Meta'].includes(e.key))return;
   if(controls.hidden){e.preventDefault();e.stopPropagation();nextDialogueLine();}
  }
- function onDialogClick(e){if(e.target.closest('button'))return;nextDialogueLine()}
+ function onDialogTouch(e){
+  if(event.state.phase!=='dialogue'||!choiceUI.open||!controls.hidden)return;
+  if(e.target?.closest?.('button'))return;
+  e.preventDefault();e.stopPropagation();nextDialogueLine();
+ }
  document.addEventListener('keydown',onDialogKey,true);
- choiceUI.addEventListener('click',onDialogClick);
+ document.addEventListener('pointerdown',onDialogTouch,true);
  function selectChoice(value){if(controls.hidden||!event.choose(value))return;choiceUI.close();onFreeze(false);if(guest){guest.brain.relation=value==='help'?'friend':'hostile';guest.brain.state=value==='help'?'follow':'attack';toast(value==='help'?'Пойдём со мной.':'Жаль, что ты выбрал быть моим врагом.',3600)}if(value==='refuse'&&guest){guest.brain.hp=180;bossState={hp:180,maxHp:180,phase:1};onEventFX('boss');}else onEventFX('closing')}
  help.addEventListener('click',()=>selectChoice('help'));
  refuse.addEventListener('click',()=>selectChoice('refuse'));
@@ -223,34 +227,41 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   if(phase!==previousPhase){
     previousPhase=phase;onEventFX(phase);
     if(phase==='warning'){
-      onFreeze(true);
+      onFreeze(true);heroTyped=0;
+      keeperBubble.show('ГЕРОЙ','');controls.hidden=true;
       guestRift.position.set(spot.x,height(spot.x,spot.z)+2.3,spot.z);
       guestRift.visible=true;
       riftLight.position.copy(guestRift.position);
     }
-    if(phase==='opening')toast(RIFT_WORDS,5000,true);
+    if(phase==='opening')keeperBubble.hide();
     if(phase==='emerging')spawnGuest(spot);
     if(phase==='dialogue'){
       if(!guest)spawnGuest(spot);
-      onFreeze(false);
+      onFreeze(true);
       dialogLines=guest?guestDialogueLines(guest.origin):[];
       if(dialogLines.length!==4)throw Error('Four approved guest lines missing');
       dialogIndex=0;dialogFull=dialogLines[0];
       dialogTyped=0;question.textContent='';controls.hidden=true;
-      if(!choiceUI.open)choiceUI.showModal();
+      keeperBubble.show(GUEST_TITLES[guest.origin]||'ГОСТЬ','');
     }
     if(phase==='closing'){
-      if(choiceUI.open)choiceUI.close();
-      onFreeze(false);
+      keeperBubble.hide();onFreeze(true);
     }
     if(phase==='escort'&&guest){
+      onFreeze(false);
       // Travel requires physical collision with the rift after the five-second reopening.
       toast('Пойдём со мной. Войди в разлом перед тобой.',4000);
     }
     if(phase==='idle'){onFreeze(false);onEventFX('idle');}
   }
+  if(phase==='warning'){
+    heroTyped=Math.min(RIFT_WORDS.length,heroTyped+dt/.055);
+    question.textContent=RIFT_WORDS.slice(0,Math.floor(heroTyped));
+    keeperBubble.place(player.pos.x,player.pos.y+2.6,player.pos.z);
+  }
   if(phase==='dialogue'){
-    dialogTyped=Math.min(dialogFull.length,dialogTyped+dt*30);
+    keeperBubble.place(guest.mesh.position.x,guest.mesh.position.y+1.6,guest.mesh.position.z);
+    dialogTyped=Math.min(dialogFull.length,dialogTyped+dt/.055);
     question.textContent=dialogFull.slice(0,Math.floor(dialogTyped));
     controls.hidden=dialogIndex!==dialogLines.length-1||dialogTyped<dialogFull.length;
   }
@@ -319,6 +330,6 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
     factory.animate(g.inst,clock,{mode:g.landed?'walk':'idle',sp:g.landed?.7:0});
   }
  }
- function dispose(){ashQuest.dispose();document.removeEventListener('keydown',onDialogKey,true);onFreeze(false);if(choiceUI.open)choiceUI.close();choiceUI.remove();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);if(guest.heart){guest.heart.geometry.dispose();guest.heart.material.dispose()}guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
+ function dispose(){ashQuest.dispose();document.removeEventListener('keydown',onDialogKey,true);document.removeEventListener('pointerdown',onDialogTouch,true);onFreeze(false);keeperBubble.dispose();for(const m of meshes)scene.remove(m);scene.remove(guestRift,riftLight);geometry.dispose();material.dispose();if(guest){scene.remove(guest.mesh);if(guest.heart){guest.heart.geometry.dispose();guest.heart.material.dispose()}guest.inst.mat.dispose()}sheet?.dispose();factory?.dispose()}
  return {update,dispose,travel,portals,ashQuest,spawnGuest,choose:selectChoice,get locked(){return event.blocked},get event(){return {...event.state}},get riftMesh(){return guestRift},get guest(){return guest},get mission(){return mission},get boss(){return bossState?{...bossState}:null},get eventTimer(){return {...event.state,remaining:event.state.remaining}}};
 }
