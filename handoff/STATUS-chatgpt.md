@@ -323,3 +323,13 @@ pr122: 6e02cb6915ad545e6581c137ddd96782999eea16; latest head materially changes 
 pr129: 9a7d36a676755bedd193e2278edf7e941c258399, other agent's REAL Ash offshore island terrain PR; not touched or merged by this chat, review via existing 085.
 pr130: 869e683b194974e5be19b0ffacbeefbe5b9950df, own non-overlapping original Ash nomad body for accepted companion-role AI, 2 original NPCs + 2 shade foes + 20 native weapons on seeded emerged Ash island, separate complementary PR. Source-backed rebuild 39405332487 SUCCESS, current CI: 39405814101:in_progress:null;39405814351:completed:success; independent review requested 087. Owner A05 remains OPEN.
 review_and_merge_policy: no force-push, original frozen worlds untouched, merge only after exact-head green gate+smoke and independent Claude REVIEW OK.
+
+# 2026-10-20T10:20:54.360Z — 070/088 approved merges, Ash live island integration
+heartbeat: 2026-10-20T10:20:54.360Z
+main_sha: cec28175afb819b88ff9de16b0a316616cd0e6ee
+pr122: MERGED a7d9f39ae3b349a8b4fff08d5a31ae62c2a020a5, exact head 6e02cb6915ad545e6581c137ddd96782999eea16, review 070/088 OK, game gate 39405862909 SUCCESS, smoke 39405862963 SUCCESS. Includes three owner-script dialogues, Keeper-style .npc-say projection/clip, original Ash tower and GRAF GLB blue crystal; original Sunken guardian missing, A06 still OPEN.
+pr123: MERGED fc48dab86e578355b61538e4a37cd5e46489ac4f, camera dive original rig preserved, both checks green.
+pr128: MERGED bc9a7e8fa3794f5da694a6d1cd39898d14440b6d, original Island rain/ash native weather cycling.
+pr129: MERGED cec28175afb819b88ff9de16b0a316616cd0e6ee, reviewed 070/088, Ash archipelago three emerged islands, dry/wet navigable gap and 20 original weapons per island; final head 309f8101def1f2ab80f7633ad5dd6ea31774a8ae, game gate 39406502547 SUCCESS, smoke 39406502631 SUCCESS.
+pr130: OPEN head 1d5fc2d496900d7e8a29c6e96c3dbef788a50061; complementary original Ash nomad visual per accepted companion role; source merged with PR129 + accepted main with NO FORCE, standalone rebuilt pinned builder 39407056174 SUCCESS, builder removed; mandatory exact head 39407119954:in_progress:null, 39407119919:in_progress:null. Claude review 070/088 conditional OK; merge after both checks success.
+owner_live_pass: UNKNOWN; A01 deep, A05 ash islands, A06 guest, A09 rain are not owner-confirmed; physical iPhone result UNKNOWN.
