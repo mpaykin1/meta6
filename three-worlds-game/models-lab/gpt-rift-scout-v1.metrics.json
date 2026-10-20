@@ -30,20 +30,22 @@
       "viewDirections": 8,
       "triangles": 2,
       "drawCalls": 1,
-      "fileBytes": 140847
+      "fileBytes": 148191
     },
     "improvements": [
       "15 named visual layers versus the reference model's 8 articulated parts",
       "independent counter-swinging limbs across 8 walk frames",
       "secondary cloak and scarf motion",
       "armor seams, stitches, pack, emissive visor and antenna beacon",
-      "brass shoulder rivet and verdigris status light close the measured 14-color reference palette gap"
+      "brass shoulder rivet and verdigris status light close the measured 14-color reference palette gap",
+      "eight authored facing cues (front plastron, asymmetric pauldrons/profiles, rear harness and pack panel) replace scale-only directional evidence"
     ],
     "performanceEvidence": {
       "labPreviewFrameTimeP50P95": "measured on 179 requestAnimationFrame intervals while cycling 64 atlas cells; see CI scout-render.json",
       "labPreviewFpsP50P95": "measured in the same Playwright Chromium / SwiftShader run",
       "gameFpsP50P95": "UNKNOWN (candidate is not integrated into the game)"
-    }
+    },
+    "directionEvidence": "64 cells contain one authored facing cue each; 8 unique cue types, each repeated for all 8 animation frames"
   },
   "promotionGate": {
     "claudeReviewRequired": true,
