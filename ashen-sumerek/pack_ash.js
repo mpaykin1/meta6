@@ -39,8 +39,8 @@ defineBiome('ashen', {
   terrain: { height: 8.8, base: 0.4, hills: 1.0 },
   flora: [],
   rocks: 9, ruins: 3, piers: 2, shrines: 3,
+  foes: { imp: 0.6, shade: 0.7, frost_imp: 0.5, lantern_jelly: 0.7, rose_jelly: 0.7 },      // the Island's own creatures, thinned so the Ashen roster still shows
   guardian: 'ash_colossus',
-  foes: { imp: 0, shade: 0, frost_imp: 0, lantern_jelly: 0, rose_jelly: 0 },
   leafColors: ['#6b6870', '#4a4852', '#8a8590'],
   weather: { kind: 'ash', density: 0.85, wind: [1.3, 0.5] },
   ambience: { wind: 1.1, waves: 1 },

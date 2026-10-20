@@ -86,6 +86,17 @@ rep("    toast: 'Звездопад! Загадай желание',\n    biomes
 rep("name: 'Рыбак', art: 'fisher', biomes: ['dusk'],","name: 'Рыбак', art: 'fisher', biomes: ['dusk', 'ashen'],")
 rep("biomes: ['dusk'],                       // storms only gather over the dusk island","biomes: ['dusk', 'ashen'],")
 
+
+# the Island's shades, imps, lantern and rose jellies, the Morok fog, and the frost foes, blizzard and aurora also visit the Ashen island (the fog, blizzard and aurora about once a minute)
+rep("  warn: true,\n  biomes: ['dusk'],\n  chance: 0.25, duration: [30, 45], cooldown: 80,","  warn: true,\n  biomes: ['dusk', 'ashen'],\n  chance: 0.25, duration: [30, 45], cooldown: 80, ashChance: 0.7, ashCool: 30,")
+rep("  biomes: ['frost'],\n  chance: 0.35, duration: [35, 50], cooldown: 70,","  biomes: ['frost', 'ashen'],\n  chance: 0.35, duration: [35, 50], cooldown: 70, ashChance: 0.7, ashCool: 30,")
+rep("  biomes: ['frost'],\n  chance: 0.3, duration: [30, 40], cooldown: 60,","  biomes: ['frost', 'ashen'],\n  chance: 0.3, duration: [30, 40], cooldown: 60, ashChance: 0.7, ashCool: 30,")
+rep("icon: 'rime_charm', rar: 'epic', biomes: ['frost'] }","icon: 'rime_charm', rar: 'epic', biomes: ['frost', 'ashen'] }")
+rep("spawn: Object.assign({}, IMP.spawn, { biomes: ['frost'] })","spawn: Object.assign({}, IMP.spawn, { biomes: ['frost', 'ashen'] })")
+rep("spawn: { from: 'sea', priority: 4, every: 6, dist: [9, 20], biomes: ['dusk'],","spawn: { from: 'sea', priority: 4, every: 6, dist: [9, 20], biomes: ['dusk', 'ashen'],")
+rep("Math.random() < (ev.chance ?? 0.2)","Math.random() < ((DRY && ev.ashChance) || (ev.chance ?? 0.2))")
+rep("EVT.cool = ev.cooldown ?? 60;","EVT.cool = (DRY && ev.ashCool) || (ev.cooldown ?? 60);")
+
 rep('  bloom.strength = pal.bloom + beacon.flare * 0.45 + G.hurt * 0.25;','  bloom.strength = (pal.bloom + beacon.flare * 0.45 + G.hurt * 0.25) * 0.12;')
 open('index.html','w').write(s)
 print(len(s))

@@ -1037,8 +1037,8 @@ defineEvent('sea_fog', {
   name: 'Морок',
   toast: 'С моря наползает морок — тени смелеют',
   warn: true,
-  biomes: ['dusk'],
-  chance: 0.25, duration: [30, 45], cooldown: 80,
+  biomes: ['dusk', 'ashen'],
+  chance: 0.25, duration: [30, 45], cooldown: 80, ashChance: 0.7, ashCool: 30,
   when: (c) => c.prog > 0.3,
   weather: { kind: 'sea_mist', density: 0.8, wind: [0.9, 0.3] },
   palette: { fogD: 0.05, fog: '#7d6f98', skyHor: '#a483a4', mist: 0.55, mistCol: '#b0a2cf', motes: 0.2, vig: 0.52, grain: 0.06, sunVis: 0.4 },
@@ -1503,7 +1503,7 @@ const IMP = REG.enemies.get('imp'), WARDEN = REG.enemies.get('warden');
 defineEnemy('frost_imp', Object.assign({}, IMP, {
   name: 'Ледяной бесёнок', hp: 30, chase: 3.6,
   look: { core: '#040812', rim: [0.12, 0.34, 0.6], aura: [0.45, 0.85, 1.0], eye: [0.7, 1, 1, 4], eyeGlow: [0.2, 0.6, 1, 1.3], death: [0.6, 0.9, 1, 2.6] },
-  spawn: Object.assign({}, IMP.spawn, { biomes: ['frost'] }),
+  spawn: Object.assign({}, IMP.spawn, { biomes: ['frost', 'ashen'] }),
 }));
 defineEnemy('frost_warden', Object.assign({}, WARDEN, {
   name: 'Ледяной страж', hp: 760,
@@ -1531,8 +1531,8 @@ defineEvent('blizzard', {
   name: 'Метель',
   toast: 'Начинается метель — ветер сбивает с ног',
   warn: true,
-  biomes: ['frost'],
-  chance: 0.35, duration: [35, 50], cooldown: 70,
+  biomes: ['frost', 'ashen'],
+  chance: 0.35, duration: [35, 50], cooldown: 70, ashChance: 0.7, ashCool: 30,
   when: (c) => c.play > 25,
   weather: { kind: 'snow', density: 1, wind: [4.5, 1.6] },
   palette: { fogD: 0.048, fog: '#c9d3ea', skyHor: '#d7def0', skyTop: '#7d8bb5', keyI: 1.2, sunVis: 0.2, mist: 0.45, mistCol: '#eef2fb', grain: 0.06, vig: 0.5, exposure: 1.04, stars: 0, aurora: 0 },
@@ -1547,8 +1547,8 @@ defineEvent('blizzard', {
 defineEvent('aurora', {
   name: 'Северное сияние',
   toast: 'Над фьордом разгорается сияние',
-  biomes: ['frost'],
-  chance: 0.3, duration: [30, 40], cooldown: 60,
+  biomes: ['frost', 'ashen'],
+  chance: 0.3, duration: [30, 40], cooldown: 60, ashChance: 0.7, ashCool: 30,
   when: (c) => c.tod > 0.25 && c.tod < 0.7,
   weather: { kind: 'snow', density: 0.12, wind: [0.2, 0.1] },
   palette: { aurora: 1, stars: 0.8, skyTop: '#06102a', bloom: 0.9, coinGlow: 2.2, auroraA: '#3dffa8', auroraB: '#7a6bff' },
@@ -1585,7 +1585,7 @@ defineFlora('pine', {
 /* --- packs/frost/relics.js --- */
 {
 /* «Иней» — a frost-only relic that works through a hook: every blow from the hero chills the foe. */
-defineRelic('rime_charm', { name: 'Иней', desc: 'Каждый твой удар примораживает врага.', icon: 'rime_charm', rar: 'epic', biomes: ['frost'] });
+defineRelic('rime_charm', { name: 'Иней', desc: 'Каждый твой удар примораживает врага.', icon: 'rime_charm', rar: 'epic', biomes: ['frost', 'ashen'] });
 on('hit', (foe, dmg, o) => {
   if (!o.w || !heldRelics().some((r) => r.id === 'rime_charm')) return;
   foe.slow = Math.max(foe.slow, 1.4);
@@ -1742,7 +1742,7 @@ defineEnemy('rose_jelly', {
   seg: 1, rad: 0.45, hover: 0.75, hp: 28, dmg: 1, wander: 1.5, chase: 2.8, chaseR: 7,
   soul: 0.3, danger: 0.6, tentacles: 5, tentLen: 7, tentSeg: 0.18, riseY: () => SEA + 0.8,
   look: { core: [0.12, 0.02, 0.08], rim: [1.0, 0.35, 0.7], aura: [1.0, 0.3, 0.75], style: 1, pixels: 16, auraGain: 0.8, tent: [1.0, 0.45, 0.8, 1.6], death: [1, 0.5, 0.85, 2.6] },
-  spawn: { from: 'sea', priority: 4, every: 6, dist: [9, 20], biomes: ['dusk'], max: (c) => (c.night ? 2 : 0) },
+  spawn: { from: 'sea', priority: 4, every: 6, dist: [9, 20], biomes: ['dusk', 'ashen'], max: (c) => (c.night ? 2 : 0) },
 });
 
 }
@@ -1896,8 +1896,8 @@ defineBiome('ashen', {
   terrain: { height: 8.8, base: 0.4, hills: 1.0 },
   flora: [],
   rocks: 9, ruins: 3, piers: 2, shrines: 3,
+  foes: { imp: 0.6, shade: 0.7, frost_imp: 0.5, lantern_jelly: 0.7, rose_jelly: 0.7 },      // the Island's own creatures, thinned so the Ashen roster still shows
   guardian: 'ash_colossus',
-  foes: { imp: 0, shade: 0, frost_imp: 0, lantern_jelly: 0, rose_jelly: 0 },
   leafColors: ['#6b6870', '#4a4852', '#8a8590'],
   weather: { kind: 'ash', density: 0.85, wind: [1.3, 0.5] },
   ambience: { wind: 1.1, waves: 1 },
@@ -8728,7 +8728,7 @@ function endEvent() {
   if (!ev) return;
   if (ev.onEnd) ev.onEnd();
   emit('event', ev, false);
-  EVT.cur = null; EVT.cool = ev.cooldown ?? 60; EVT.k = EVT.lin = 0;
+  EVT.cur = null; EVT.cool = (DRY && ev.ashCool) || (ev.cooldown ?? 60); EVT.k = EVT.lin = 0;
 }
 function eventAllowed(ev) {
   if (ev.biomes && !ev.biomes.includes(G.biome)) return false;
@@ -8792,7 +8792,7 @@ function updateEvents(dt) {
     if (EVT.cool <= 0 && EVT.checkT <= 0 && !G.noEvents) {
       EVT.checkT = 20;
       for (const ev of REG.events.values()) {
-        if (eventAllowed(ev) && Math.random() < (ev.chance ?? 0.2)) { startEvent(ev); break; }
+        if (eventAllowed(ev) && Math.random() < ((DRY && ev.ashChance) || (ev.chance ?? 0.2))) { startEvent(ev); break; }
       }
     }
   }
