@@ -13,10 +13,11 @@ try{
  await page.evaluate(()=>{if(__isle.G.state==='title')__isle.startGame();__isle.killFoes()});
  const result=[];
  for(const island of ASH_ARCHIPELAGO){
-  const site=await page.evaluate(({x,z})=>{
+  const site=await page.evaluate(async ({x,z})=>{
    const i=__isle,y=i.terrainTop(x,z),p=i.player;
    p.pos.set(x,y+.3,z);p.vis.copy(p.pos);p.vel.set(0,0,0);i.killFoes();
-   for(let n=0;n<4;n++)i.sim(1/60,0,0,false,true);
+   // worldLife.update() runs in the renderer frame, NOT in test-only i.sim().
+   await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);
    const plan=i.worldLife.plan,near=i.foes.filter(f=>f.hp>0&&
     Math.hypot(f.segs[0].x-x,f.segs[0].z-z)<45);
    const pickups=i.loot.filter(w=>w.alive&&Math.hypot(w.x-x,w.z-z)<45);
@@ -27,7 +28,6 @@ try{
   assert(site.y>site.sea+.2,'true island is not dry '+JSON.stringify(site));
   assert.equal(site.region,'ash');assert(site.npc>=2,'original NPC instances absent');
   assert(site.foes.filter(f=>f.type==='shade'&&f.renderable&&f.parts>0).length>=2,'live original shade enemies absent');
-  const actual=new Set([...site.weapons,...LAND_ARMORY_IDS.filter(x=>!site.worldWeaponIds?.includes(x))]);
   for(const id of LAND_ARMORY_IDS)assert(site.weapons.includes(id),
     'original world pickup '+id+' missing on island '+site.x);
   assert.equal(new Set(site.worldWeaponIds).size,20);
