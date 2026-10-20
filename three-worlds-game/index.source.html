@@ -492,6 +492,7 @@ import {landBiomeAt} from './living-land.mjs';
 import {createLivingIsland} from './living-island-runtime.mjs';
 import {createLivingPopulation,LAND_ARMORY_IDS} from './living-population.mjs';
 import {createCameraRig} from './camera-rig.mjs';
+import {waterCameraShift} from './water-dive-camera.mjs';
 import {createIslandInput,createIslandHero,createIslandGroundGrip} from './hero-controls.mjs';
 import {createIslandEnvironment} from './island-environment.mjs';
 import {createIslandWeatherFX} from './island-weather-fx.mjs';
@@ -2676,6 +2677,17 @@ const updateCamera = createCameraRig({
  world:{get beacon(){return world.beacon}},
  tmpA,tmpB,tmpD,camera,U,sky,cutU,rayFree,clamp,damp,lerp,smooth,angDiff,REDUCED
 });
+// Deep water shifts only the eye height, never the canonical Island camera rig.
+let underwaterEyeShift=0;
+function updateDivingCamera(dt){
+ underwaterEyeShift=waterCameraShift(underwaterEyeShift,camera.position.y,
+  player.vis.y,terrainTop(player.pos.x,player.pos.z),SEA,UW.immersionAt(),dt);
+ if(underwaterEyeShift<1e-5)return;
+ camera.position.y-=underwaterEyeShift;
+ camera.updateMatrixWorld();
+ sky.position.copy(camera.position);
+ cutU.uCutB.value.copy(camera.position);
+}
 
 /* -----------------------------------------------------------------------------
    20 · Post levers + environment
@@ -4857,6 +4869,7 @@ function frame(now) {
   updateEnvironment(raw);
   updateBeacon(raw);
   updateCamera(raw);
+  updateDivingCamera(raw);
   updateHeroMesh(raw);
   const worldId=UW.isSubmerged()?'water':landBiomeAt(player.pos.x,player.pos.z,G.seed);
   if(worlds.active!==worldId&&!worlds.transition)void worlds.enter(worldId);
@@ -4996,7 +5009,7 @@ window.__isle = {
     updatePlayer(dt);
     if (fight) {
       updateCombat(dt);
-      updateCamera(dt); updateHeroMesh(dt);
+      updateCamera(dt); updateDivingCamera(dt); updateHeroMesh(dt);
       sprites.begin(); ribbons.begin(); renderHeld();       // keeps the muzzle where the hand is
     }
     updatePickups(dt); updateLoot(); updateProjectiles(dt); updateFoes(dt); updateSouls(dt); updateFx(dt); updateBeacon(dt);
