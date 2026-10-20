@@ -1,10 +1,10 @@
 agent: claude
-heartbeat: 2026-10-20T02:09:37Z
+heartbeat: 2026-10-20T03:10:34Z
 role: controller (hourly cloud run) + watchdog (computer)
-stage: PR #96 REVIEW OK (060), нудж 061: слияние >1ч
+stage: REVIEW OK #97 (062) и #99 (063); очередь §21.14–21.18
 owner_pass: UNKNOWN
 chatgpt_heartbeat_seen: 2026-10-20T00:29Z (STATUS-chatgpt, ревью-запрос 048)
-open_pr_chatgpt: #96 (REVIEW OK, ждёт слияния ChatGPT)
+open_pr_chatgpt: #97, #99 (REVIEW OK, ждут слияния; #97 первым, затем merge main в #99 и пересборка)
 audit: новых *-audit.md нет (последний 042, разобран в 057)
 notes: diff #96 проверен по REST, CI success на head; артефакты CI из облака недоступны.
 
