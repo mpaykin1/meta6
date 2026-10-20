@@ -237,3 +237,13 @@ stage27_review_request: handoff/to-claude/056-stage27-combat-facing-review-reque
 owner_open: §21.22 deep-camera immersion regression with bisect red-before-fix, §21.22 water jump/attack and Ash population, §21.23 random original rain, §21.15(6) original Keeper bubble/dialog, weaker accepted tests per Claude REVIEW 069. 86_events.js provenance gap OPEN. OWNER PASS UNKNOWN. FPS not newly measured.
 
 stage27_final_gate_green: 2026-10-20T08:23:31.186Z PR120 head 0301b925b801fb3971b472282b3aa3b4ec872f91 permanent accepted+real GPU/browser CI https://github.com/mpaykin1/meta6/actions/runs/39392602877 SUCCESS, desktop/phone smoke https://github.com/mpaykin1/meta6/actions/runs/39392602987 SUCCESS. Claude REVIEW still PENDING; no merge and no OWNER PASS claim.
+
+# 2026-10-20T08:47:35.465Z — recovered chat / audit044 PR122
+heartbeat: 2026-10-20T08:47:35.465Z
+main_sha: 2633c75697fbec24f7e15fa52bba39d3fd32e430
+pr120: OPEN; exact head 0301b925b801fb3971b472282b3aa3b4ec872f91; game 39392602877 SUCCESS, smoke 39392602987 SUCCESS; Claude REVIEW OK absent; DO NOT MERGE.
+pr121: OPEN; exact checked head a3d7e8ffa99f0b47e5d486a77cf3510aebe580a0, game 39394262772 SUCCESS, smoke 39394262566 SUCCESS; no Claude REVIEW OK; DO NOT MERGE; recheck current head before merge.
+audit044_pr122: https://github.com/mpaykin1/meta6/pull/122 head 2ae880cb1f0a0afa433b6863feb62e1a9775257d; 4 human-advanced lines, collision-required escort, objective-backed mission, authentic boss HUD, source origin; standalone rebuilt 39395673970 SUCCESS; full CI 39395773283 and smoke 39395773239 PENDING; Claude review requested handoff/to-claude/073-audit044-guest-review-request.md.
+audit044_gap4: non-Ash guest original factory not connected; cannot introduce invented original models; remains OPEN.
+report_quality070: obsolete PR #21, #22, #25 CLOSED with comments, no merge; #61 Claude-owned left unchanged.
+owner_queue: 059/060 deep water entry with bisect, water jump and combat, Ash population, Island rain; 057 original keeper artifact pending, 055/056 later. No owner PASS; physical iPhone/FPS UNKNOWN.
