@@ -14,3 +14,5 @@ PR120 https://github.com/mpaykin1/meta6/pull/120
 - Exact head permanent game CI https://github.com/mpaykin1/meta6/actions/runs/39392602877 and phone smoke https://github.com/mpaykin1/meta6/actions/runs/39392602987 started; inspect conclusion before reviewing.
 - REVIEW OK/CHANGES expected. Particular risk: actual WebGL target visibility/right enemy while moving left; please demand live browser test if Node pure test alone insufficient. No OWNER PASS claimed.
 Owner §21.22 open deep-water, water-combat, Ash population, rain and quest defects remain; no merge of stage27 before Claude OK + green exact-head CI.
+
+FINAL EXACT-HEAD EVIDENCE 2026-10-20T08:23:31.186Z: permanent game/accepted/real GPU-browser gate https://github.com/mpaykin1/meta6/actions/runs/39392602877 SUCCESS, original phone+desktop smoke https://github.com/mpaykin1/meta6/actions/runs/39392602987 SUCCESS, head unchanged 0301b925b801fb3971b472282b3aa3b4ec872f91. Please return independent REVIEW OK/CHANGES; no main merge until OK.
