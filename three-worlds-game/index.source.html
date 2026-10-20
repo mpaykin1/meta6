@@ -2750,7 +2750,7 @@ function buildWorld(seed) {
   buildChunks();
   rebuildBeachPatch();
   riftStory?.dispose();
-  riftStory=createRiftStory({THREE,scene,renderer,camera,player,height:terrainTop,seed,toast,
+  riftStory=createRiftStory({THREE,scene,renderer,camera,player,heroTex,height:terrainTop,seed,toast,
     prepare:(x,z)=>terrainWindow.update(x,z),onTransition:(amount=1)=>{G.fade=Math.max(0,1-amount);G.blip=.35*amount},
     attacking:()=>combat.atk,onAttack:()=>hurt(1,player.pos.x,player.pos.z),
     canStart:()=>G.state==='play', // §21.15 accepts combat and underwater encounters
@@ -4791,6 +4791,8 @@ function updateCombatHud(dt) {
   }
   for (; i < BARS.length; i++) if (BARS[i].el.style.opacity !== '0') BARS[i].el.style.opacity = '0';
   const boss = riftStory?.boss || (G.warden && foeAlive(G.warden) ? G.warden : null);
+  const bossCaption=whud.boss.querySelector('span');
+  if(bossCaption)bossCaption.textContent=riftStory?.boss?'Страж Пепла':'Страж маяка';
   if (whud.boss.hidden === !!boss) { whud.boss.hidden = !boss; hud.root.classList.toggle('boss-on', !!boss); whud.lag = 1; }
   if (boss) {
     // the white "lag" bar trails the health, so each blow reads as a chunk bitten out of the bar

@@ -1,6 +1,7 @@
+import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {guestLine,guestHomeFor,riftCountdownAllowed} from '../rift-story.mjs';
+import {guestLine,guestHomeFor,riftCountdownAllowed,guestDialogueLines,RIFT_PORTALS,WORLD_OBJECTS,missionTargetFor} from '../rift-story.mjs';
 import {createRiftEvent,RIFT_TIMING,frontOfHero} from '../rift-event.mjs';
 test('guest dialogue reflects source world, predicament and relationship',()=>{
  assert.match(guestLine('water','island','neutral'),/вода/);
@@ -59,4 +60,47 @@ test('audit 055: original guest is never deleted by timer before finishing the a
  for(let j=0;j<130;j++)step(1,true);
  assert.equal(e.state.remaining,remaining,'live guest suspends next countdown');
  guest.alive=false;step(65,false);assert.equal(e.state.phase,'warning');
+});
+
+test('§21.25: all 12 sentences exactly match QUEST_RULES, independent markdown source',()=>{
+ const md=readFileSync(new URL('../../docs/QUEST_RULES_RU.md',import.meta.url),'utf8');
+ const owners=[['ash','Страж Пепла'],['island','Хранитель Огня (Остров)'],['sunken','Страж Бездны (Затонувший город)']];
+ for(const [origin,label] of owners){
+  const row=md.split('\n').find(l=>l.startsWith(label+': '));
+  assert(row,'canonical source missing '+label);
+  const approved=[...row.matchAll(/«([^»]+)»/g)].map(m=>m[1]);
+  assert.equal(approved.length,4);
+  const game=guestDialogueLines(origin);
+  assert.deepEqual(game,approved,'game deviates from owner original '+label);
+  for(const phrase of game)assert(phrase.length<=160);
+ }
+ assert.throws(()=>guestDialogueLines('unknown'),/origin not connected/);
+});
+
+test('§21.25: all named Ash props resolve to real original shipped assets',()=>{
+ const tower=WORLD_OBJECTS.rusty_tower,crystal=WORLD_OBJECTS.blue_crystal;
+ assert(tower&&crystal);assert.equal(tower.model,'water_tower');
+ assert.equal(crystal.model,'weather_storm_crystal');
+ const models=JSON.parse(readFileSync(new URL('../models/MANIFEST.json',import.meta.url),'utf8'));
+ assert(models.models.includes(crystal.model),'original GRAF GLB missing');
+ assert(models.grafOfflineModels.includes(crystal.model));
+ const ash=readFileSync(new URL('../ash-assets.mjs',import.meta.url),'utf8');
+ assert(ash.includes("S('water_tower'"),'owner tower geometry source missing');
+ const originalIsland=readFileSync(new URL('../npc-catalog.js',import.meta.url),'utf8');
+ assert(originalIsland.includes('companion:{name:'),'original Island guest role missing');
+});
+test('audit079: mission targets reuse the actual drawn/traversable portal registry',()=>{
+ assert.equal(RIFT_PORTALS.length,3);
+ assert.equal(new Set(RIFT_PORTALS.map(p=>p.id)).size,3);
+ for(const world of ['island','ash','water']){
+  const matched=RIFT_PORTALS.filter(p=>p.world===world);
+  assert.equal(matched.length,1);
+  const portal=missionTargetFor(world);
+  assert.strictEqual(portal,matched[0]);
+  assert(Number.isFinite(portal.x)&&Number.isFinite(portal.z));
+  assert(portal.to&&Number.isFinite(portal.to.x)&&Number.isFinite(portal.to.z));
+ }
+ assert.equal(WORLD_OBJECTS.rift.kind,'terrain-portal');
+ assert.equal(WORLD_OBJECTS.rift.source,'rift-story.mjs');
+ assert.throws(()=>missionTargetFor('ash',[RIFT_PORTALS[0]]),/missing/);
 });
