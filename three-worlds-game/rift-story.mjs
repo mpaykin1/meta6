@@ -150,7 +150,7 @@ export function createRiftStory({THREE,scene,renderer,camera,player,heroTex,heig
   }else if(sunkenGuest){
     sunken=createSunkenOriginalGuest({THREE,scene});
     inst={root:sunken.root,mat:{dispose:()=>sunken.dispose()}};
-    ref=source;sourceVoxels=null;sourceParts:null;
+    ref=source;sourceVoxels=null;sourceParts=1;
   }else{
     factory ||= createAshFactory(THREE);
     const original=instantiateOriginalGuest(factory);
