@@ -48,5 +48,22 @@ try{
  assert.equal(proof.canvas,1);
  assert.equal(proof.stickDisplay,'none','original invisible mobile stick became visible');
  assert.deepEqual(errors,[],'browser errors '+errors.join(' | '));
- console.log('OWNER_2114_INPUT_LIVE_PASS '+JSON.stringify(proof));
+ // Claude REVIEW 065: test the actual integration, not an index.source regex.
+ const guard=await page.evaluate(()=>{
+  const i=__isle,g=i.riftInputGuard;
+  if(!g)throw Error('runtime guard not exposed');
+  g.set(true);
+  for(let j=0;j<1500;j++)g.tick(1/60);
+  const unlocked=!i.G.riftFrozen&&g.expired;
+  g.set(false);
+  const before=i.player.pos.clone();
+  i.mobileMove(.8,0);
+  for(let j=0;j<60;j++)i.stepKeyboard(1/60);
+  const moved=Math.hypot(i.player.pos.x-before.x,i.player.pos.z-before.z);
+  i.mobileRelease();
+  return {unlocked,moved};
+ });
+ assert(guard.unlocked,'runtime input did not unlock after 1500 steps / 25s');
+ assert(guard.moved>.1,'touch movement ignored after actual runtime guard timeout: '+JSON.stringify(guard));
+ console.log('OWNER_2114_INPUT_LIVE_PASS '+JSON.stringify({proof,guard}));
 }finally{await browser.close();}

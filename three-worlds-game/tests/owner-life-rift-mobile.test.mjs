@@ -30,7 +30,7 @@ test('owner §21.5: portal placement is checked against the actual hero-to-porta
  for(const look of [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:2,z:-3}]){
   const p=frontOfHero(hero,look),sx=p.x-hero.x,sz=p.z-hero.z;
   const distance=Math.hypot(sx,sz),lookLength=Math.hypot(look.x,look.z);
-  assert(Math.abs(distance-2.6)<.05,'portal distance '+distance);
+  assert(Math.abs(distance-3.2)<.05,'portal distance '+distance);
   const independentlyMeasured=independentAlignment(hero,look,p);
   assert(Math.abs(p.alignment-independentlyMeasured)<1e-9,'reported alignment differs from actual geometry');
   assert(independentlyMeasured>.99999,'portal is not in front of the hero');
@@ -40,26 +40,30 @@ test('owner §21.5: portal placement is checked against the actual hero-to-porta
   assert(Math.abs(independentAlignment(hero,look,side))<1e-9,'alignment measurement accepted a lateral point');
  }
 });
-for(const choice of ['help','refuse'])test('owner §21.5: ordered warning > portal > guest > '+choice+' > closing, lock releases',()=>{
+for(const choice of ['help','refuse'])test('owner §21.15: ordered 5+5+5 event and real '+choice+' arc',()=>{
  const e=createRiftEvent(1337,{initial:50,interval:58});
  const args={land:true,battle:false,pos:{x:145,z:32},look:{x:1,z:0}};
- for(let i=0;i<1800&&e.state.phase!=='dialogue';i++)e.step(1/30,args);
+ for(let i=0;i<1800&&e.state.phase!=='dialogue';i++)e.step(.1,args);
  assert.equal(e.state.phase,'dialogue');assert(e.blocked);
  assert.deepEqual(e.state.history.slice(0,4),['warning','opening','emerging','dialogue']);
  assert.equal(RIFT_WORDS,'Что происходит?!!!');
- assert(e.choose(choice));assert(e.blocked);assert.equal(e.state.choice,choice);
- e.step(.6,args);assert.equal(e.state.phase,'idle');assert.equal(e.blocked,false);
- assert.deepEqual(e.state.history.slice(0,6),['warning','opening','emerging','dialogue','closing','idle']);
- // Independent fast second-cycle test, not another long 1800-step wait.
+ assert(e.choose(choice));assert.equal(e.state.choice,choice);
+ if(choice==='help'){assert.equal(e.state.phase,'closing');e.step(5,args);assert.equal(e.state.phase,'escort');}
+ else assert.equal(e.state.phase,'boss');
+ assert(e.finishArc({kind:choice,world:'ash'}));assert.equal(e.blocked,false);
+ assert.equal(e.state.phase,'idle');
+ assert.deepEqual(e.state.history.slice(0,6),choice==='help'?
+  ['warning','opening','emerging','dialogue','closing','escort']:
+  ['warning','opening','emerging','dialogue','boss','idle']);
  e.step(65,args);assert.equal(e.state.phase,'warning');assert.equal(e.state.cycle,1);
 });
-test('owner §21.5: event suspends countdown underwater/in battle',()=>{
- const e=createRiftEvent(9);
- const args={pos:{x:0,z:0},look:{x:0,z:1}};
- e.step(60,{...args,land:false});assert.equal(e.state.phase,'idle');
- e.step(60,{...args,battle:true});assert.equal(e.state.phase,'idle');
- e.step(50,args);assert.equal(e.state.phase,'warning');
- assert.equal(RIFT_PHASES.length,6);
+test('owner §21.15 supersedes §21.5: event starts in battle and underwater',()=>{
+ for(const [land,battle] of [[false,false],[true,true],[false,true]]){
+  const e=createRiftEvent(9);
+  const args={pos:{x:0,z:0},look:{x:0,z:1},land,battle};
+  e.step(60,args);assert.equal(e.state.phase,'warning');
+ }
+ assert.equal(RIFT_PHASES.length,8);
 });
 test('owner §21.7: canonical single camera module replaces canceled phone deadzone',()=>{
  assert.equal(typeof createCameraRig,'function');

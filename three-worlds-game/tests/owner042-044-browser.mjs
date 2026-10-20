@@ -108,17 +108,19 @@ try{
  });
  assert(focus.steps<600,'original Island camera never settled after teleport: '+JSON.stringify(focus));
  const event=await page.evaluate(()=>{
-  const i=__isle;for(let j=0;j<1800&&i.rifts.event.phase!=='dialogue';j++)i.rifts.update(1/30);
+  const i=__isle;for(let j=0;j<1800&&i.rifts.event.phase!=='dialogue';j++)i.rifts.update(1/20);
   const g=i.rifts.guest,st=i.rifts.event,dx=st.spot?.x-i.player.pos.x,dz=st.spot?.z-i.player.pos.z;
   const facing=i.player.look;
   return {phase:st.phase,history:st.history,locked:i.G.riftFrozen,visible:!!g&&i.scene.children.includes(g.mesh),
-    parts:g?.mesh.children.length||0,distance:Math.hypot(dx,dz),alignment:(dx*facing.x+dz*facing.z)/(Math.hypot(dx,dz)*Math.hypot(facing.x,facing.z)),
+    parts:g?.mesh.children.length||0,distance:Math.hypot(dx,dz),
+    alignment:(dx*facing.x+dz*facing.z)/(Math.hypot(dx,dz)*Math.hypot(facing.x,facing.z)),
     modal:!!document.querySelector('#threeWorldsGuestChoice')?.open,
     labels:[...document.querySelectorAll('#threeWorldsGuestChoice button')].map(b=>b.textContent)};
  });
  assert.deepEqual(event.history.slice(0,4),['warning','opening','emerging','dialogue']);
- assert(event.visible&&event.parts>0&&event.modal&&event.locked,'guest or dialog missing');
- assert(Math.abs(event.distance-2.6)<.1&&event.alignment>.99,'portal not facing hero');
+ assert(event.visible&&event.parts>0&&event.modal,'guest or dialogue missing after 5+5+5');
+ assert.equal(event.locked,false,'movement must release at dialogue');
+ assert(Math.abs(event.distance-3.2)<.1&&event.alignment>.99,'terrain portal not in front of hero');
  const riftInFrame=await page.evaluate(()=>{
   const i=__isle,p=i.rifts.riftMesh.position.clone().project(i.camera);
   return {x:p.x,y:p.y,z:p.z,visible:i.rifts.riftMesh.visible};
@@ -126,34 +128,47 @@ try{
  assert(riftInFrame.visible&&Math.abs(riftInFrame.x)<1&&Math.abs(riftInFrame.y)<1,
   'actual portal outside camera frame: '+JSON.stringify(riftInFrame));
  assert.deepEqual(event.labels,['Помочь','Отказаться']);
+ await page.evaluate(()=>__isle.rifts.update(10)); // Wait for original-text-style typewriter to finish.
  await page.locator('#threeWorldsGuestChoice button').first().click();
- const complete=await page.evaluate(()=>{const i=__isle;i.rifts.update(.7);return {locked:i.G.riftFrozen,phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation}});
- assert.equal(complete.locked,false);assert.equal(complete.phase,'idle');assert.equal(complete.relation,'friend');
- // A helped guest must not disappear merely because the event clock expires.
- const waiting=await page.evaluate(()=>{
-  const i=__isle,g=i.rifts.guest,initial=i.rifts.event.remaining;
-  for(let t=0;t<130;t++)i.rifts.update(1);
-  return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,alive:i.rifts.guest===g,
-    relation:i.rifts.guest?.brain.relation,remaining:i.rifts.event.remaining,initial};
+ const complete=await page.evaluate(()=>{
+  const i=__isle,from=i.rifts.guest.sourceWorld;
+  i.rifts.update(5);
+  return {locked:i.G.riftFrozen,phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation,
+    from,mission:i.rifts.mission,worldPosition:i.player.pos.x,cycle:i.rifts.event.cycle};
  });
- assert.equal(waiting.phase,'idle','a living guest must defer the next warning');
- assert.equal(waiting.alive,true,'helped guest vanished while waiting for a route home');
- assert.equal(waiting.remaining,waiting.initial,'rift clock moved while guest alive');
- // Complete the existing guest through the production death/finishGuest lifecycle.
- // Only then may the next timed visitor appear and choose Refuse.
+ assert.equal(complete.locked,false);
+ assert.equal(complete.phase,'idle');
+ assert.equal(complete.relation,'friend');
+ assert(complete.mission?.text&&complete.mission.world!==complete.from,'help must change world and issue mission');
+ assert.equal(complete.cycle,1);
+ // The guest accompanies hero at the destination; only after finishing its
+ // mission it may leave, allowing the next encounter and independent boss choice.
+ const waiting=await page.evaluate(()=>{
+  const i=__isle,g=i.rifts.guest;
+  i.rifts.update(1);
+  return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,alive:i.rifts.guest===g,
+    relation:i.rifts.guest?.brain.relation};
+ });
+ assert.equal(waiting.phase,'idle');
+ assert.equal(waiting.alive,true,'helped guest vanished before explaining mission');
  const second=await page.evaluate(()=>{
   const i=__isle;
-  i.rifts.guest.brain.hp=0;
-  i.rifts.update(1/30);
-  if(i.rifts.guest)throw Error('guest must have completed before the next rift');
-  i.rifts.update(65);i.rifts.update(.65);i.rifts.update(1.25);i.rifts.update(1);
+  i.rifts.update(26); // End escort AFTER delivering the mission.
+  if(i.rifts.guest)throw Error('guest did not finish scripted escort');
+  i.rifts.update(65);i.rifts.update(5);i.rifts.update(5);i.rifts.update(5);
   return {phase:i.rifts.event.phase,cycle:i.rifts.event.cycle,visible:!!i.rifts.guest};
  });
  assert.equal(second.phase,'dialogue');assert(second.visible);
+ await page.evaluate(()=>__isle.rifts.update(10)); // Second visitor finishes speaking before choice.
  await page.locator('#threeWorldsGuestChoice button').last().click();
- const refusal=await page.evaluate(()=>{const i=__isle;i.rifts.update(.7);
-  return {phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation,locked:i.G.riftFrozen}});
+ const refusal=await page.evaluate(()=>{
+  const i=__isle;i.rifts.update(.7);
+  return {phase:i.rifts.event.phase,relation:i.rifts.guest?.brain.relation,locked:i.G.riftFrozen,
+   boss:i.rifts.boss};
+ });
+ assert.equal(refusal.phase,'boss');
  assert.equal(refusal.relation,'hostile');assert.equal(refusal.locked,false);
+ assert(refusal.boss?.hp===180,'refuse did not launch real boss encounter');
  checks.riftPass=true;
  assert.deepEqual(errors,[]);
  checks.proof={before,during,after,worldSamples,event,riftInFrame,complete,waiting,second,refusal};
