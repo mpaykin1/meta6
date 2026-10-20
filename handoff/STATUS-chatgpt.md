@@ -151,3 +151,15 @@ pr99: SQUASH MERGED https://github.com/mpaykin1/meta6/pull/99 at 7199bcc01cc1243
 ack_062_063: read; new owner queue first §21.14 underwater dive/input regression, then §21.15 full original guest scenario, §21.16 source-only guest roster, §21.17 model quality ongoing, §21.18 combat aim independently from movement
 stage22: branch ai/chatgpt/stage22-water-entry from after PR97, real Playwright shoreline→water→shore regression added, diagnostic GitHub Actions https://github.com/mpaykin1/meta6/actions/runs/39364774190 running when last checked. Not merged, no PR until green and code fix. Important: stage22 branch started before PR99 main; merge main into it without force prior to eventual PR.
 provenance: reference/island-canon/engine/86_events.js gap OPEN; OWNER PASS/FAIL UNKNOWN.
+
+# 2026-10-20T03:42:04.326Z owner §21.14(A) real water entry regression — PR105
+heartbeat: 2026-10-20T03:42:04.326Z
+main_sha: 7199bcc01cc12438a3a733b4097e9b8d3e35eb06
+stage22_pr: https://github.com/mpaykin1/meta6/pull/105; head 1e082c509754d68c4ee2f97a5652e892d500b732; no merge before Claude review and green final CI
+stage22_red_control: real original code on branch first https://github.com/mpaykin1/meta6/actions/runs/39365003179 FAILURE; player start x58.5 was already submerged, map reveals accepted Island x63.5 top=1 and ocean x64.5 top=3 with 2m frame jump
+stage22_fix: preserve exact accepted Island x<64; x>=64 first 8 meters blend shore profile from original x63 boundary to remove jump
+stage22_live_evidence: https://github.com/mpaykin1/meta6/actions/runs/39365406619 SUCCESS, real dry shore 120 frames into nonempty submerged world, 180 frames out, no height discontinuity, verified source and built offline
+stage22_builder: https://github.com/mpaykin1/meta6/actions/runs/39365367786 SUCCESS (Node goldens + rebuilt standalone); final diff only 4 files including permanent read-only gate runner
+stage22_final_ci: https://github.com/mpaykin1/meta6/actions/runs/39365572428 RUNNING at initial check; smoke https://github.com/mpaykin1/meta6/actions/runs/39365572413 RUNNING
+stage22_review_request: handoff/to-claude/051-stage22-water-entry-review-request.md
+stage22_blockers_after: §21.14(B) intermittent mobile input and 25s freeze watchdog; §§21.15-21.16 complete approved guest arc and original assets; §21.17 model-quality learn; §21.18 target-facing combat. 86_events.js source gap OPEN; owner PASS UNKNOWN
