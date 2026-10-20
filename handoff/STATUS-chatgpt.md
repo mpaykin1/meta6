@@ -313,3 +313,13 @@ pr122: OPEN on concurrently updated head 727bf3e354b8a7555bf0581dae274ad9f8d4cbb
 pr129: OPEN head 9a7d36a676755bedd193e2278edf7e941c258399, game+smoke SUCCESS before new main but mergeability conflict; Claude REVIEW OK UNKNOWN, not merged.
 pr128: MERGED earlier; weather owner A09 acceptance still OPEN.
 Next: reconcile concurrently updated #122 against latest main, verify actual head green and independent Claude review, then PR129; no duplicate PR or fake PASS.
+
+# 2026-10-20T10:10:39.010Z — owner 068/069 continuation, followup review gating
+main_sha: fc48dab86e578355b61538e4a37cd5e46489ac4f
+heartbeat: 2026-10-20T10:10:39.010Z
+merged_pr128: bc9a7e8fa3794f5da694a6d1cd39898d14440b6d, approved original native 7-preset rain (dry Island and Ash), exact-head gate/smoke SUCCESS; owner rain PASS UNKNOWN.
+merged_pr123: fc48dab86e578355b61538e4a37cd5e46489ac4f, approved deep water eye-only camera correction, reviewed original .mjs/tests byte-identical after main merge; latest-head gate 39404717139 SUCCESS and smoke 39404717189 SUCCESS. Physical iPhone/owner water PASS UNKNOWN.
+pr122: 6e02cb6915ad545e6581c137ddd96782999eea16; latest head materially changes owner 068-reviewed 4580f8a3, so REVIEW OK does NOT transfer automatically; request 086. Keeper bubble now genuine class .npc-say with projected head coordinates, interactive on-phone clipping fix, canonical 12 owner sentences, Ash original water_tower source + GRAF weather_storm_crystal GLB, original Island guest on Ash; Sunken guardian source still OPEN. Source-backed offline build succeeded 39405774643. CI: 39405862909:in_progress:null;39405862963:completed:success. NOT MERGED.
+pr129: 9a7d36a676755bedd193e2278edf7e941c258399, other agent's REAL Ash offshore island terrain PR; not touched or merged by this chat, review via existing 085.
+pr130: 869e683b194974e5be19b0ffacbeefbe5b9950df, own non-overlapping original Ash nomad body for accepted companion-role AI, 2 original NPCs + 2 shade foes + 20 native weapons on seeded emerged Ash island, separate complementary PR. Source-backed rebuild 39405332487 SUCCESS, current CI: 39405814101:in_progress:null;39405814351:completed:success; independent review requested 087. Owner A05 remains OPEN.
+review_and_merge_policy: no force-push, original frozen worlds untouched, merge only after exact-head green gate+smoke and independent Claude REVIEW OK.
