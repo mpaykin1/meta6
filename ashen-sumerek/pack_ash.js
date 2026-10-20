@@ -31,19 +31,19 @@ defineBiome('ashen', {
   short: 'серые кубы, руины, пепел',
   desc: 'Серый кубический край с холмами и скалами, руины бункеров, шагоходы, дроны и пепел в воздухе. Герой, оружие и погода — из Острова сумерек.',
   lede: 'Собери монеты среди руин, переживи пепельную бурю и одолей Колосса. Каждый раз пустошь населяют другие твари.',
-  dry: true,
+  dry: true,                  // = the Ashen mode (engine + models); the sea is the Island's own
   blocks: {
-    top: 'stone', soil: 'ash_dark', deep: 'ash_dark', beach: 'ash_dark', path: 'frost_brick', plaza: 'frost_brick',
+    top: 'stone', soil: 'ash_dark', deep: 'ash_dark', beach: 'ash_pale', path: 'frost_brick', plaza: 'frost_brick',
     wall: 'frost_brick', pier: 'plank', post: 'bark', rock: 'ash_pale', tower: 'frost_brick', towerCap: 'frost_brick', towerTop: 'ash_pale', door: 'plank',
   },
-  terrain: { height: 9.0, base: 0.3, hills: 1.05, plain: 0.82, rim: 6.5 },
+  terrain: { height: 8.8, base: 0.4, hills: 1.0 },
   flora: [],
-  rocks: 9, ruins: 3, piers: 0, shrines: 3,
+  rocks: 9, ruins: 3, piers: 2, shrines: 3,
   guardian: 'ash_colossus',
   foes: { imp: 0, shade: 0, frost_imp: 0, lantern_jelly: 0, rose_jelly: 0 },
   leafColors: ['#6b6870', '#4a4852', '#8a8590'],
   weather: { kind: 'ash', density: 0.85, wind: [1.3, 0.5] },
-  ambience: { wind: 1.1, waves: 0 },
+  ambience: { wind: 1.1, waves: 1 },
   onTerrain(g) {      // grey patches break the plain up: pale rock, dark rock, brownish dust
     const { hgt, kind, vox, at, ci, W, D, role } = g;
     const pale = g.block('ash_pale'), dark = g.block('ash_dark'), dirt = g.block('frozen_dirt'), stone = g.block('stone');
@@ -176,7 +176,7 @@ defineBiome('ashen', {
   palette: {
     dusk: {
       skyTop: '#383b4a', skyHor: '#9c9aa2', fog: '#8a8c95', fogD: 0.021, keyCol: '#d3cde6', keyI: 2.7, sunEl: 0.5, sunVis: 0.2, moonMix: 0,
-      hemiSky: '#aeb0be', hemiGnd: '#3c3c46', hemiI: 2.1, deep: '#222534', shallow: '#3d4256', foam: '#9a9aa6', wSky: '#6e707c',
+      hemiSky: '#aeb0be', hemiGnd: '#3c3c46', hemiI: 2.1, 
       mist: 0, mistCol: '#7d7f8c', motes: 0.55, flies: 0, stars: 0.0, wisp: 0.25,
       gain: [1.0, 0.99, 1.02], lift: [0.015, 0.012, 0.025], bloom: 0.78, grain: 0.07, vig: 0.5,
     },
