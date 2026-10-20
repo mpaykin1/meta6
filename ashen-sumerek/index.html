@@ -7894,7 +7894,7 @@ const tmpCol = new THREE.Color();
         rebuilds the world under the title camera (a short dip to dark).
 ============================================================================= */
 const menu = { box: $('picks'), biome: $('pickBiome'), hero: $('pickHero') };
-function readBiome() { try { return localStorage.getItem('isle.biome') || DEFAULT_BIOME; } catch (e) { return DEFAULT_BIOME; } }
+function readBiome() { try { return localStorage.getItem('ashisle.biome') || 'ashen'; } catch (e) { return 'ashen'; } }
 function menuChip(label, sub, pressed, onPick, deco, tip) {
   const b = document.createElement('button');
   b.type = 'button'; b.className = 'chip';
@@ -7946,7 +7946,7 @@ function pickBiome(id) {
   G.fade = Math.min(G.fade, 0.3);               // a dip to dark while the new island rises
   buildWorld(G.seed, id);
   resetRun();
-  try { localStorage.setItem('isle.biome', id); } catch (e) { /* storage may be blocked */ }
+  try { localStorage.setItem('ashisle.biome', id); } catch (e) { /* storage may be blocked */ }
   renderMenu();
   focusChip(menu.biome);
 }

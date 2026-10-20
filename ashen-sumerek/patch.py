@@ -36,6 +36,9 @@ function buildWorld(seed, biomeId = G.biome) {""")
 rep("  get coins() { return coins; },","  get coins() { return coins; },\n  ASH, ashFoes, ashFx, scene, camera,\n  get ash() { return { DRY, roster: [...ashRoster.on], foeModels: ashFoes.size, pos: [...ashFoes.values()].map((m) => [+m.root.position.x.toFixed(1), +m.root.position.y.toFixed(1), +m.root.position.z.toFixed(1), +m.inst.root.scale.x.toFixed(2), m.root.visible]), props: ashGroup.children.length, structs: world.structures.length, anim: ashAnim.length, rover: !!ashFx.rover, fire: !!ashFx.fire }; },")
 # title
 rep("<title>Остров сумерек</title>","<title>Сумерки и пепел</title>")
+# this game opens on the Ashen island (own storage key, so an earlier saved choice of the dusk island does not hide it)
+rep("return localStorage.getItem('isle.biome') || DEFAULT_BIOME; } catch (e) { return DEFAULT_BIOME; }","return localStorage.getItem('ashisle.biome') || 'ashen'; } catch (e) { return 'ashen'; }")
+rep("localStorage.setItem('isle.biome', id);","localStorage.setItem('ashisle.biome', id);")
 # pixel icons instead of text on the action buttons
 j=open('ico_jump.svg').read();a=open('ico_atk.svg').read()
 rep('<button class="tbtn atk" id="btnAtk" aria-label="Удар">УДАР</button>','<button class="tbtn atk" id="btnAtk" aria-label="Удар">'+a+'</button>')
