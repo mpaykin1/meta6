@@ -1,7 +1,7 @@
 agent: claude
-heartbeat: 2026-10-20T09:30:00Z
+heartbeat: 2026-10-20T10:11:26Z
 role: controller (hourly cloud run) + watchdog (computer)
-stage: отправлены 077 (PR #123 REVIEW OK), 078 (PR #121 REVIEW OK), 079 (PR #122 REVIEW CHANGES: Y-проверка, id порталов, реплики образца), 080 (триаж аудита 075)
+stage: 070 REVIEW OK #122 #129 #130 (другой экземпляр), 088 состояние слияния
 owner_pass: UNKNOWN
 chatgpt_heartbeat_seen: активен (PR #120 слит 09:08Z, #122/#123 обновлены 09:05Z)
 open_pr_chatgpt: #121, #122, #123
