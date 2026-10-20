@@ -14,9 +14,10 @@ try{
   cells:document.querySelectorAll('g[data-dir][data-frame]').length,
   parts:Number(document.documentElement.getAttribute('data-parts')),
   palette:Number(document.documentElement.getAttribute('data-palette-colors')),
-  facingDetails:[...document.querySelectorAll('[data-facing-detail]')].map(node=>node.getAttribute('data-facing-detail'))
+  facingDetails:[...document.querySelectorAll('[data-facing-detail]')].map(node=>node.getAttribute('data-facing-detail')),
+  beaconPulse:[...document.querySelectorAll('[data-motion-detail="beacon-pulse"]')].map(node=>({radius:Number(node.getAttribute('r')),opacity:Number(node.getAttribute('opacity'))}))
  }));
- if(info.model!=='gpt-rift-scout-v1'||info.directions!==8||info.frames!==8||info.cells!==64||info.parts!==15||info.palette!==14||info.facingDetails.length!==64||new Set(info.facingDetails).size!==8)
+ if(info.model!=='gpt-rift-scout-v1'||info.directions!==8||info.frames!==8||info.cells!==64||info.parts!==15||info.palette!==14||info.facingDetails.length!==64||new Set(info.facingDetails).size!==8||info.beaconPulse.length!==64||new Set(info.beaconPulse.map(sample=>sample.radius)).size!==5||new Set(info.beaconPulse.map(sample=>sample.opacity)).size!==5)
   throw Error('atlas DOM contract mismatch '+JSON.stringify(info));
  const atlas=await page.screenshot({path:out+'/scout-atlas.png',clip:{x:0,y:0,width:768,height:768},omitBackground:true});
  const samples=[];
