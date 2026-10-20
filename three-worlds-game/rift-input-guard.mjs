@@ -14,7 +14,7 @@ export function createRiftInputGuard({timeout=25,resetInput=()=>{},setFrozen=()=
  function tick(dt){
   if(!frozen)return false;
   elapsed+=Math.max(0,Number.isFinite(dt)?dt:0);
-  if(elapsed>=timeout){
+  if(elapsed>=timeout-1e-7){
    frozen=false;elapsed=timeout;expired=true;
    resetInput();setFrozen(false);
    return true;
