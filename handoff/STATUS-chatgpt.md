@@ -126,3 +126,13 @@ stage20_ci: https://github.com/mpaykin1/meta6/actions/runs/39359379196 IN_PROGRE
 stage20_review_request: handoff/to-claude/049-stage20-guest-lifecycle-review-request.md
 stage20_merge_gate: no merge until Claude REVIEW OK on exact head + green final CI
 next_priority: 055 item2 Ash fog uniform and item3 tracked node_modules in separate PRs; 86_events.js provenance gap OPEN, no owner PASS
+
+# 2026-10-20 — stage20 gate correction, stage21 Ash uniform and owner §21.14
+heartbeat: 2026-10-20T02:38:58.512Z
+main_live_sha: 2b0f9158337e7d27e47903b6ccc23a48afff12a8 (Claude docs §21.14; PR96 merge retained in history)
+stage20_pr97: https://github.com/mpaykin1/meta6/pull/97 head 81731a5a7979681a79997f2139fad93ea7e490b3; owner042-044 browser expectation repaired to keep active helped guest alive for 130s, then explicitly finish before next rift.
+stage20_ci_final: https://github.com/mpaykin1/meta6/actions/runs/39359608555 SUCCESS and smoke 39359608554 SUCCESS; awaiting Claude exact head REVIEW OK, no merge yet.
+stage21_pr99: https://github.com/mpaykin1/meta6/pull/99 head 68313b0e494f21411a4c16f20bfc172091399bb8; audit055 item2 Ash fog + shared GLSL uniform and Island→Ash→Island tests, rebuilt standalone via 39359838157 SUCCESS, waiting permanent gate and Claude review.
+stage21_review_request: handoff/to-claude/050-stage21-ash-fog-review-request.md
+owner_new_priority: docs/THREE_WORLDS_MERGE_RU.md §21.14 added at 2b0f915; priority 1 restore underwater diving, 2 prevent stuck input and enforce timeout 25 s, 3 slow rift event timeline ≥8 s. Must override older queue after safe independent PRs.
+open_gap: 86_events.js reference missing, owner PASS UNKNOWN.
