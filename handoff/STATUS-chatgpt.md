@@ -220,3 +220,18 @@ main_sha: 2633c75697fbec24f7e15fa52bba39d3fd32e430
 pr118: SQUASH MERGED https://github.com/mpaykin1/meta6/pull/118 at 2633c75697fbec24f7e15fa52bba39d3fd32e430; exact reviewed head 8c32f37277b7e0cea50ddb376d44c3b6f47b510d
 evidence: accepted tests LOCAL_PASS 10/10; permanent gate 39392076719 SUCCESS; desktop/phone smoke 39392076737 SUCCESS
 next: §21.22 p.1 deep immersion bisect/fix in a new PR; 069 weak-test upgrades remain separate and must not claim live defect closure
+
+# 2026-10-20T08:22:09.541Z — Claude 066/067 merges, accepted registry 058, keeper 057 source gap, combat §21.18 PR120
+heartbeat: 2026-10-20T08:22:09.541Z
+main_sha: 2633c75697fbec24f7e15fa52bba39d3fd32e430 (PR118 landed; recheck exact main on next run)
+review066: Claude REVIEW OK #108 exact head 9c2ca67b3faf81d997a8f9b4b7a7e22df5df02b4; game 39376026439 SUCCESS, smoke 39376026331 SUCCESS
+pr108: SQUASH MERGED https://github.com/mpaykin1/meta6/pull/108 at fb621988a44c75bffa557ada4ef810d20ee348ea
+review067: Claude REVIEW OK #109 old head 207aadf74790e02c3e6d9170d6f3d531f9882aa3 conditional on merging main and rebuilding
+pr109: merged latest main into ai/chatgpt/stage25-approved-guest-roster without force, changed only five approved asset-related files, rebuilt standalone with pinned deps run 39390530899 SUCCESS, removed temp workflow; final exact head b647b7bfd0c4f7587b2fb1a65cc0fcd31a0063e5, game 39390611724 SUCCESS, phone/desktop 39390611688 SUCCESS; SQUASH MERGED https://github.com/mpaykin1/meta6/pull/109 at fe1b721a325cc749d4907e3c9c2577a9500aeaa6
+acks: handoff/to-chatgpt/ack-066.md and ack-067.md read
+queue058: PR118 https://github.com/mpaykin1/meta6/pull/118 accepted behavior registry 10 short tests and mandatory CI step; REVIEW 069 CHANGES (accepted/defect status mismatch) resolved in head 8c32f37277b7e0cea50ddb376d44c3b6f47b510d; Claude/another worker SQUASH MERGED at 2633c75697fbec24f7e15fa52bba39d3fd32e430 with gate 39392076719 SUCCESS and phone smoke 39392076737 SUCCESS; no OWNER PASS claim, A05/A06/A09/A10/deep A01/A08 still OPEN DEFECT
+queue057: exact lighthouse NPC .npc-say CSS/JS source not in repository reference/island-canon, island-sumerek-biomes/index.html, or inspected Library copy 'Остров сумерек (1)(2).html'; do not invent 1:1 import; requested Claude to provide original artifact or verified path at handoff/to-claude/057-keeper-original-source-blocker.md; §21.15(6) stays OPEN
+stage27: PR120 https://github.com/mpaykin1/meta6/pull/120; branch ai/chatgpt/stage27-combat-facing final head 0301b925b801fb3971b472282b3aa3b4ec872f91 based on merged main with accepted behavior tests; source-backed standalone build 39392178573 SUCCESS, current phone smoke https://github.com/mpaykin1/meta6/actions/runs/39392602987 SUCCESS, permanent game gate https://github.com/mpaykin1/meta6/actions/runs/39392602877 PENDING at report
+stage27_changes: nearest living screen-visible enemy retargeting with existing target priority; slow aim angular inertia while retreating, original keyboard/touch motion and mouse cursor preserved; 600-step Node golden verifies <15deg, target death, smooth disengage. No frozen game/hero-controls/camera rewrite.
+stage27_review_request: handoff/to-claude/056-stage27-combat-facing-review-request.md; DO NOT MERGE without Claude exact head REVIEW OK AND green complete game gate.
+owner_open: §21.22 deep-camera immersion regression with bisect red-before-fix, §21.22 water jump/attack and Ash population, §21.23 random original rain, §21.15(6) original Keeper bubble/dialog, weaker accepted tests per Claude REVIEW 069. 86_events.js provenance gap OPEN. OWNER PASS UNKNOWN. FPS not newly measured.
