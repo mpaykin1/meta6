@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {guestLine,guestHomeFor,riftCountdownAllowed,guestDialogueLines,MISSION_RIFT_TARGETS} from '../rift-story.mjs';
+import {guestLine,guestHomeFor,riftCountdownAllowed,guestDialogueLines,RIFT_PORTALS,WORLD_OBJECTS,missionTargetFor} from '../rift-story.mjs';
 import {createRiftEvent,RIFT_TIMING,frontOfHero} from '../rift-event.mjs';
 test('guest dialogue reflects source world, predicament and relationship',()=>{
  assert.match(guestLine('water','island','neutral'),/вода/);
@@ -69,12 +69,20 @@ test('audit044: exactly four source-authentic, manually gated guest lines',()=>{
  assert.match(lines[2],/разлом/);assert.match(lines[3],/Поможешь мне/);
  assert.throws(()=>guestDialogueLines('unknown'),/approved/);
 });
-test('audit044: explicit, uniquely identified in-world mission targets',()=>{
- const expected={island:[-22,32],ash:[-126,32],water:[102,40]};
- assert.equal(new Set(Object.values(MISSION_RIFT_TARGETS).map(t=>t.id)).size,3);
- for(const [world,[x,z]] of Object.entries(expected)){
-  const t=MISSION_RIFT_TARGETS[world];
-  assert(t.id&&Number.isFinite(t.x)&&Number.isFinite(t.z));
-  assert.equal(t.x,x);assert.equal(t.z,z);
+test('audit079: mission targets reuse the actual drawn/traversable portal registry',()=>{
+ assert.equal(RIFT_PORTALS.length,3);
+ assert.equal(new Set(RIFT_PORTALS.map(p=>p.id)).size,3);
+ for(const world of ['island','ash','water']){
+  const matched=RIFT_PORTALS.filter(p=>p.world===world);
+  assert.equal(matched.length,1);
+  const portal=missionTargetFor(world);
+  assert.strictEqual(portal,matched[0]);
+  assert(Number.isFinite(portal.x)&&Number.isFinite(portal.z));
+  assert(portal.to&&Number.isFinite(portal.to.x)&&Number.isFinite(portal.to.z));
  }
+ assert.equal(WORLD_OBJECTS.rift.kind,'terrain-portal');
+ for(const line of guestDialogueLines('ash')){
+  if(/разлом/i.test(line))assert(WORLD_OBJECTS.rift);
+ }
+ assert.throws(()=>missionTargetFor('ash',[RIFT_PORTALS[0]]),/missing/);
 });
