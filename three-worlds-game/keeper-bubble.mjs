@@ -23,6 +23,16 @@ export const KEEPER_BUBBLE_CSS=`
  border-radius:0;padding:7px 9px;min-width:85px;min-height:34px;cursor:pointer;}
 .npc-say .btn:focus-visible{outline:2px solid #9fe8ff;outline-offset:3px;}
 `;
+// Keep real 3D world anchoring, but never put the usable choice buttons
+// outside a narrow phone viewport while the cinematic camera eases into place.
+export function keeperBubbleScreenPoint(ndcX,ndcY,width,height,bubbleWidth,bubbleHeight){
+ const bound=(v,a,b)=>Math.min(Math.max(v,a),Math.max(a,b));
+ const x=(ndcX*.5+.5)*width,y=(-ndcY*.5+.5)*height;
+ return {
+  x:bound(x,bubbleWidth/2+6,width-bubbleWidth/2-6),
+  y:bound(y,bubbleHeight+16,height-14)
+ };
+}
 export function createKeeperBubble({THREE,camera}){
  const style=document.createElement('style');style.dataset.originalKeeperBubble='npc-say';
  style.textContent=KEEPER_BUBBLE_CSS;document.head.append(style);
@@ -50,8 +60,10 @@ export function createKeeperBubble({THREE,camera}){
   if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<=-1||v.z>=1){
    root.style.opacity='0';return false;
   }
-  root.style.left=((v.x*.5+.5)*window.innerWidth).toFixed(1)+'px';
-  root.style.top=((-v.y*.5+.5)*window.innerHeight).toFixed(1)+'px';
+  const point=keeperBubbleScreenPoint(v.x,v.y,window.innerWidth,window.innerHeight,
+    root.offsetWidth||240,root.offsetHeight||115);
+  root.style.left=point.x.toFixed(1)+'px';
+  root.style.top=point.y.toFixed(1)+'px';
   root.style.opacity='1';return true;
  }
  function dispose(){if(fadeTimer!==null)clearTimeout(fadeTimer);root.remove();style.remove()}
