@@ -1,0 +1,61 @@
+name: Three Worlds permanent PR and main regression gate
+on:
+  pull_request:
+    paths:
+      - 'three-worlds-game/**'
+      - '.github/workflows/three-worlds-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'three-worlds-game/**'
+      - '.github/workflows/three-worlds-gate.yml'
+permissions:
+  contents: read
+jobs:
+  three-worlds-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned game build dependencies
+        working-directory: three-worlds-game/tools
+        run: npm ci --no-audit --no-fund
+      - name: Rebuild current PR or main standalone
+        working-directory: three-worlds-game/tools
+        run: npm run build
+      - name: Node goldens from actual current revision
+        run: node --test three-worlds-game/tests/*.test.mjs
+      - name: Original accepted offline game must match source
+        run: git diff --exit-code -- three-worlds-game/index.html
+      - name: Install pinned Playwright Chromium / SwiftShader
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run live owner controls, guests, shoreline, weather GPU and mutation gates
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node three-worlds-game/tests/owner042-044-browser.mjs
+          if test -f three-worlds-game/tests/owner-2111-shore-raycast-browser.mjs; then
+            node three-worlds-game/tests/owner-2111-shore-raycast-browser.mjs
+          else
+            echo 'SHORE_RAYCAST_NOT_PRESENT_IN_THIS_REVISION (PR #94 awaiting merge)'
+          fi
+          node three-worlds-game/tests/owner-218-weather-visual-browser.mjs
+          node three-worlds-game/tests/owner-2111-touch-mutation-browser.mjs
+      - name: Preserve real browser screenshots and diagnostic proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: three-worlds-gate-${{ github.sha }}
+          path: |
+            three-worlds-game/evidence/weather-visual/
+            three-worlds-game/evidence/owner042-044-code.json
+          if-no-files-found: warn
+          retention-days: 7
