@@ -1016,7 +1016,7 @@ defineEnemy('warden', {
 defineEvent('storm', {
   name: 'Гроза',
   toast: 'Над островом собирается гроза',
-  biomes: ['dusk'],
+  biomes: ['dusk', 'ashen'],
   chance: 0.3, duration: [40, 60], cooldown: 70,
   when: (c) => c.play > 30,
   weather: { kind: 'rain', density: 1, wind: [1.8, 0.8] },
@@ -1072,7 +1072,7 @@ defineEvent('sea_fog', {
   defineEvent('starfall', {
     name: 'Звездопад',
     toast: 'Звездопад! Загадай желание',
-    biomes: ['dusk'],
+    biomes: ['dusk', 'ashen'],
     chance: 0.35, duration: [25, 35], cooldown: 60,
     when: (c) => c.night,
     weather: { kind: 'stardust', density: 0.6, wind: [0.2, 0.1] },
@@ -1178,7 +1178,7 @@ defineNPC('keeper_ghost', {
   ],
 });
 defineNPC('fisher', {
-  name: 'Рыбак', art: 'fisher', biomes: ['dusk'], radius: 3.2, voice: 'fisher_voice',
+  name: 'Рыбак', art: 'fisher', biomes: ['dusk', 'ashen'], radius: 3.2, voice: 'fisher_voice',
   // on the first pier, two planks out from the shore
   place: (w) => (w.piers.length ? { x: w.piers[0].lx + w.piers[0].dx * 2 + 0.5, z: w.piers[0].lz + w.piers[0].dz * 2 + 0.5 } : null),
   lines: [
@@ -1265,7 +1265,7 @@ defineRelic('heart_seed', { name: 'Семя сердца', desc: 'Ещё одн�
 defineRelic('lantern_shard', { name: 'Осколок маяка', desc: 'Огонёк светит ярче, а раны понемногу затягиваются.', icon: 'lantern_shard', rar: 'legend', stats: { wisp: 1.6, regen: 18 } });
 defineRelic('storm_glass', {
   name: 'Штормовое стекло', desc: 'В грозу молнии сами находят твоих врагов.', icon: 'storm_glass', rar: 'legend',
-  biomes: ['dusk'],                       // storms only gather over the dusk island
+  biomes: ['dusk', 'ashen'],
   onPickup() { this.cd = 1; },
   onTick(dt) {
     if (!EVT.cur || EVT.cur.id !== 'storm' || EVT.k < 0.4) return;
@@ -1888,19 +1888,19 @@ defineBiome('ashen', {
   short: 'серые кубы, руины, пепел',
   desc: 'Серый кубический край с холмами и скалами, руины бункеров, шагоходы, дроны и пепел в воздухе. Герой, оружие и погода — из Острова сумерек.',
   lede: 'Собери монеты среди руин, переживи пепельную бурю и одолей Колосса. Каждый раз пустошь населяют другие твари.',
-  dry: true,
+  dry: true,                  // = the Ashen mode (engine + models); the sea is the Island's own
   blocks: {
-    top: 'stone', soil: 'ash_dark', deep: 'ash_dark', beach: 'ash_dark', path: 'frost_brick', plaza: 'frost_brick',
+    top: 'stone', soil: 'ash_dark', deep: 'ash_dark', beach: 'ash_pale', path: 'frost_brick', plaza: 'frost_brick',
     wall: 'frost_brick', pier: 'plank', post: 'bark', rock: 'ash_pale', tower: 'frost_brick', towerCap: 'frost_brick', towerTop: 'ash_pale', door: 'plank',
   },
-  terrain: { height: 9.0, base: 0.3, hills: 1.05, plain: 0.82, rim: 6.5 },
+  terrain: { height: 8.8, base: 0.4, hills: 1.0 },
   flora: [],
-  rocks: 9, ruins: 3, piers: 0, shrines: 3,
+  rocks: 9, ruins: 3, piers: 2, shrines: 3,
   guardian: 'ash_colossus',
   foes: { imp: 0, shade: 0, frost_imp: 0, lantern_jelly: 0, rose_jelly: 0 },
   leafColors: ['#6b6870', '#4a4852', '#8a8590'],
   weather: { kind: 'ash', density: 0.85, wind: [1.3, 0.5] },
-  ambience: { wind: 1.1, waves: 0 },
+  ambience: { wind: 1.1, waves: 1 },
   onTerrain(g) {      // grey patches break the plain up: pale rock, dark rock, brownish dust
     const { hgt, kind, vox, at, ci, W, D, role } = g;
     const pale = g.block('ash_pale'), dark = g.block('ash_dark'), dirt = g.block('frozen_dirt'), stone = g.block('stone');
@@ -2033,7 +2033,7 @@ defineBiome('ashen', {
   palette: {
     dusk: {
       skyTop: '#383b4a', skyHor: '#9c9aa2', fog: '#8a8c95', fogD: 0.021, keyCol: '#d3cde6', keyI: 2.7, sunEl: 0.5, sunVis: 0.2, moonMix: 0,
-      hemiSky: '#aeb0be', hemiGnd: '#3c3c46', hemiI: 2.1, deep: '#222534', shallow: '#3d4256', foam: '#9a9aa6', wSky: '#6e707c',
+      hemiSky: '#aeb0be', hemiGnd: '#3c3c46', hemiI: 2.1, 
       mist: 0, mistCol: '#7d7f8c', motes: 0.55, flies: 0, stars: 0.0, wisp: 0.25,
       gain: [1.0, 0.99, 1.02], lift: [0.015, 0.012, 0.025], bloom: 0.78, grain: 0.07, vig: 0.5,
     },
@@ -4197,7 +4197,6 @@ function updatePlayer(dt) {
   let landV = 0;
   for (let s = 0; s < steps; s++) landV = Math.max(landV, physicsStep(h));
   if (player.onGround && !was) onLand(landV);
-  if (DRY) { p.x = clamp(p.x, 1.3, W - 1.3); p.z = clamp(p.z, 1.3, D - 1.3); }
   player.inWater = p.y < SEA - 0.05;
   if (player.onGround && !player.inWater) { player.safeT += dt; if (player.safeT > 0.3) { player.safe.copy(p); player.safeT = 0; } }
   if (p.y < SEA - 1.25 && G.state === 'play') { drown(); return; }
@@ -4587,7 +4586,7 @@ function placeFlies() {
 const bestKey = () => (G.biome === DEFAULT_BIOME ? `isle.best.${G.seed}` : `isle.best.${G.biome}.${G.seed}`);
 function readBest() { try { const v = parseFloat(localStorage.getItem(bestKey())); return Number.isFinite(v) ? v : null; } catch (e) { return null; } }
 function setBiomeMode(dry) {
-  DRY = dry; SEA = DRY ? -200 : 3.8; waterU.uSea.value = SEA; water.visible = !DRY; water.position.y = SEA;
+  DRY = dry; SEA = 3.8; waterU.uSea.value = SEA; water.visible = true; water.position.y = SEA;      // the Ashen island floats in the Island's own sea
   for (const m of mists) m.visible = !DRY;
   const ac = document.getElementById('ashCat'); if (ac) ac.hidden = !DRY;
 }
@@ -7498,7 +7497,7 @@ function buildAsh() {
   }
   agBuild();
   for (const [inst, st] of lodList) agRegisterLod(inst, st);   // far props swap to baked flat pictures in the haze
-  ashFloor.visible = true;
+  ashFloor.visible = false;
 }
 const ashV = new THREE.Vector3(), ashQ = new THREE.Quaternion(), ashUp = new THREE.Vector3(0, 1, 0);
 let ashLast = 0, ashDt = 0.016;

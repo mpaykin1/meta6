@@ -271,7 +271,7 @@ function buildAsh() {
   }
   agBuild();
   for (const [inst, st] of lodList) agRegisterLod(inst, st);   // far props swap to baked flat pictures in the haze
-  ashFloor.visible = true;
+  ashFloor.visible = false;
 }
 const ashV = new THREE.Vector3(), ashQ = new THREE.Quaternion(), ashUp = new THREE.Vector3(0, 1, 0);
 let ashLast = 0, ashDt = 0.016;

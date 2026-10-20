@@ -16,7 +16,6 @@ rep("hgt[ci(x, z)] = Math.max(1, Math.round(1 + mask * (TER.base + TER.hills * h
     "const mk = Math.max(mask, TER.plain || 0), rim = TER.rim ? TER.rim * smooth(0.74, 1.0, Math.max(Math.abs(nx), Math.abs(nz))) : 0;\n    hgt[ci(x, z)] = Math.max(1, Math.round(1 + mk * (TER.base + TER.hills * hills) * TER.height + rim));")
 rep("flyBase[i * 3 + 1] = rr(SEA + 1.5, 13);","flyBase[i * 3 + 1] = rr(Math.max(SEA + 1.5, 2), 13);")
 # the dry world is bounded by its cliffs
-rep("  player.inWater = p.y < SEA - 0.05;","  if (DRY) { p.x = clamp(p.x, 1.3, W - 1.3); p.z = clamp(p.z, 1.3, D - 1.3); }\n  player.inWater = p.y < SEA - 0.05;")
 # render hook
 rep("function renderFoes() {\n  foeN = 0;","function renderFoes() {\n  foeN = 0;\n  if (DRY) ashFrame();")
 # engine
@@ -29,8 +28,7 @@ rep("  const biome = REG.biomes.get(biomeId);\n  world = generateWorld(seed, bio
   world = generateWorld(seed, biomeId);""")
 rep("  drawMinimapBase();\n  G.best = readBest();\n}","  drawMinimapBase();\n  G.best = readBest();\n  if (DRY) { ashRollRoster(); buildAsh(); } else clearAsh();\n}")
 rep("function buildWorld(seed, biomeId = G.biome) {","""function setBiomeMode(dry) {
-  DRY = dry; SEA = DRY ? -200 : 3.8; waterU.uSea.value = SEA; water.visible = !DRY; water.position.y = SEA;
-  for (const m of mists) m.visible = !DRY;
+  DRY = dry; SEA = 3.8; waterU.uSea.value = SEA; water.visible = true; water.position.y = SEA;      // the Ashen island floats in the Island's own sea\n  for (const m of mists) m.visible = true;
 }
 function buildWorld(seed, biomeId = G.biome) {""")
 rep("  get coins() { return coins; },","  get coins() { return coins; },\n  ASH, ashFoes, ashFx, scene, camera, ag, AG, agCatalog, EVT,\n  get ash() { return { DRY, roster: [...ashRoster.on], foeModels: ashFoes.size, pos: [...ashFoes.values()].map((m) => [+m.root.position.x.toFixed(1), +m.root.position.y.toFixed(1), +m.root.position.z.toFixed(1), +m.inst.root.scale.x.toFixed(2), m.root.visible]), props: ashGroup.children.length, structs: world.structures.length, anim: ashAnim.length, rover: !!ashFx.rover, fire: !!ashFx.fire }; },")
@@ -76,11 +74,18 @@ rep(old, old + ',"ash_rifle":{"cell":[0,128,32,32],"grip":[10,19],"tip":[30,16],
 rep('<p class="eyebrow" id="eyebrow">', '<canvas id="ashLogo" hidden style="image-rendering:pixelated;height:34px;width:auto;margin-bottom:-6px"></canvas>\n  <p class="eyebrow" id="eyebrow">')
 rep('<div class="arsenal" id="arsenal"></div>', '<div class="arsenal" id="arsenal"></div>\n  <details class="agcat" id="ashCat" hidden><summary>Каталог Пепельного пути</summary><div id="ashCatBody"></div></details>')
 rep('.loading { position: fixed;', '.agcat { width: min(92vw, 1000px); text-align: left; }\n.agcat summary { cursor: pointer; font-size: 15px; letter-spacing: .2em; text-transform: uppercase; color: var(--paper-dim); padding: 8px 0; pointer-events: auto; }\n#ashCatBody { max-height: 36vh; overflow-y: auto; pointer-events: auto; }\n.agrow { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 12px; }\n.agrow figure { margin: 0; display: flex; flex-direction: column; gap: 4px; max-width: 360px; }\n.agrow canvas { image-rendering: pixelated; background: #1a1a22; max-width: 100%; }\n.agrow figcaption { font-size: 12px; color: var(--paper-dim); }\n.loading { position: fixed;')
-rep("  for (const m of mists) m.visible = !DRY;\n}", "  for (const m of mists) m.visible = !DRY;\n  const ac = document.getElementById('ashCat'); if (ac) ac.hidden = !DRY;\n}\ndocument.getElementById('ashCat').addEventListener('toggle', () => agCatalog());")
+rep("  for (const m of mists) m.visible = true;\n}", "  for (const m of mists) m.visible = !DRY;\n  const ac = document.getElementById('ashCat'); if (ac) ac.hidden = !DRY;\n}\ndocument.getElementById('ashCat').addEventListener('toggle', () => agCatalog());")
 
 rep('uniform float uTime; uniform vec3 uCoreK[16]; uniform vec3 uRimK[16]; uniform vec4 uShapeK[16];','uniform float uTime; uniform vec3 uCoreK[24]; uniform vec3 uRimK[24]; uniform vec4 uShapeK[24];')
 rep('uniform float uTime; uniform vec3 uAuraK[16]; uniform vec4 uShapeK[16];','uniform float uTime; uniform vec3 uAuraK[24]; uniform vec4 uShapeK[24];')
 rep('const MAX_KINDS = 16;','const MAX_KINDS = 24;')
+
+# Island weather and folk also visit the Ashen island: thunderstorm, starfall, the fisher, the storm glass
+rep("  toast: 'Над островом собирается гроза',\n  biomes: ['dusk'],","  toast: 'Над островом собирается гроза',\n  biomes: ['dusk', 'ashen'],")
+rep("    toast: 'Звездопад! Загадай желание',\n    biomes: ['dusk'],","    toast: 'Звездопад! Загадай желание',\n    biomes: ['dusk', 'ashen'],")
+rep("name: 'Рыбак', art: 'fisher', biomes: ['dusk'],","name: 'Рыбак', art: 'fisher', biomes: ['dusk', 'ashen'],")
+rep("biomes: ['dusk'],                       // storms only gather over the dusk island","biomes: ['dusk', 'ashen'],")
+
 rep('  bloom.strength = pal.bloom + beacon.flare * 0.45 + G.hurt * 0.25;','  bloom.strength = (pal.bloom + beacon.flare * 0.45 + G.hurt * 0.25) * 0.12;')
 open('index.html','w').write(s)
 print(len(s))
