@@ -13,4 +13,6 @@
 
 | 2026-10-20T14:07Z | gpt-rift-scout-v1 | ash-assets.mjs: scavenger | 15 против 8 | 14 против 14 | 8×8 против 8×8 | 2 / 1 против 1672 / 8 | 148191 B против 62011 B общего исходника | Устранена ложная проверка ракурсов только по разным PNG: во все 64 клетки добавлено по одному художественному directional cue; 8 уникальных видов × 8 кадров проверяются кодом | visual parity с оригиналом UNKNOWN / lab FPS прежний зелёный |
 
+| 2026-10-20T14:30Z | gpt-rift-scout-v1 | ash-assets.mjs: scavenger | 15 против 8 | 14 против 14 | 8×8 против 8×8 | 2 / 1 против 1672 / 8 | 151303 B против 62011 B общего исходника | Во все 64 клетки добавлена вторичная анимация маяка: 5 радиусов и 5 уровней прозрачности; Node и Playwright валят статическую подмену | visual parity с оригиналом UNKNOWN / game FPS UNKNOWN |
+
 Точные причины оставшихся `UNKNOWN` записаны в `three-worlds-game/models-lab/gpt-rift-scout-v1.metrics.json`. SVG — только изолированный предпросмотр атласа; в `index.source.html`, standalone `index.html` и `models/MANIFEST.json` он не подключён. Метрики эталона фиксирует `three-worlds-game/tests/model-lab-reference-metrics.test.mjs`.
