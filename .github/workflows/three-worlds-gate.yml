@@ -42,11 +42,7 @@ jobs:
           python3 -m http.server 8765 --bind 127.0.0.1 &
           sleep 2
           node three-worlds-game/tests/owner042-044-browser.mjs
-          if test -f three-worlds-game/tests/owner-2111-shore-raycast-browser.mjs; then
-            node three-worlds-game/tests/owner-2111-shore-raycast-browser.mjs
-          else
-            echo 'SHORE_RAYCAST_NOT_PRESENT_IN_THIS_REVISION (PR #94 awaiting merge)'
-          fi
+          node three-worlds-game/tests/owner-2111-shore-raycast-browser.mjs
           node three-worlds-game/tests/owner-218-weather-visual-browser.mjs
           node three-worlds-game/tests/owner-2111-touch-mutation-browser.mjs
       - name: Preserve real browser screenshots and diagnostic proof
