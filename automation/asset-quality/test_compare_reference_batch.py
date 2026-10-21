@@ -36,4 +36,24 @@ class BatchReferenceTests(unittest.TestCase):
             assets.mkdir();refs.mkdir()
             (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"missing","candidate":"x.png","reference":"x.png"}]}))
             self.assertEqual(audit(assets,refs)["status"],"FAIL")
+    def test_missing_asset_coverage_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);assets=root/"assets";refs=root/"refs"
+            assets.mkdir();refs.mkdir()
+            for name in ("a.png","b.png"):
+                Image.new("RGBA",(2,2)).save(assets/name)
+            Image.new("RGBA",(2,2)).save(refs/"a.png")
+            (assets/"manifest.json").write_text(json.dumps({"sprites":[{"file":"a.png"},{"file":"b.png"}]}))
+            (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"a","candidate":"a.png","reference":"a.png"}]}))
+            report=audit(assets,refs)
+            self.assertEqual(report["status"],"FAIL")
+            self.assertEqual(report["results"][-1]["missing_count"],1)
+    def test_duplicate_candidate_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);assets=root/"assets";refs=root/"refs"
+            assets.mkdir();refs.mkdir()
+            Image.new("RGBA",(2,2)).save(assets/"a.png")
+            Image.new("RGBA",(2,2)).save(refs/"a.png")
+            (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"a","candidate":"a.png","reference":"a.png"},{"id":"b","candidate":"a.png","reference":"a.png"}]}))
+            self.assertEqual(audit(assets,refs)["status"],"FAIL")
 if __name__=="__main__":unittest.main()
