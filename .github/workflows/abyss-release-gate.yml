@@ -18,9 +18,16 @@ jobs:
           python automation/asset-quality/validate.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json
           python automation/asset-quality/check_animation.py --manifest abyss-glow/assets/manifest.json --output asset-animation-report.json
           python automation/asset-quality/audit_pack.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --requirements automation/asset-quality/abyss-requirements.json --output asset-quality-audit.json
-      - name: Require approved image references
+      - name: Require matching image references
         run: |
           python automation/asset-quality/compare_reference_batch.py --root abyss-glow/assets --references abyss-glow/references --output asset-visual-report.json --require-assets
+      - name: Require recorded owner approval for exact asset manifests
+        run: |
+          python automation/asset-quality/check_owner_approval.py \\
+            --approval abyss-glow/owner-approval.json \\
+            --asset-manifest abyss-glow/assets/manifest.json \\
+            --reference-manifest abyss-glow/references/manifest.json \\
+            --output asset-owner-approval-report.json
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -30,4 +37,5 @@ jobs:
             asset-quality-audit.json
             asset-animation-report.json
             asset-visual-report.json
+            asset-owner-approval-report.json
           if-no-files-found: warn
