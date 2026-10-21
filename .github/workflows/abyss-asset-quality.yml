@@ -6,6 +6,7 @@ on:
       - 'abyss-glow/references/**'
       - 'automation/asset-quality/**'
       - '.github/workflows/abyss-asset-quality.yml'
+      - '.github/workflows/abyss-release-gate.yml'
 jobs:
   validate:
     runs-on: ubuntu-latest
