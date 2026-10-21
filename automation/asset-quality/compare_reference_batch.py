@@ -23,6 +23,8 @@ def audit(root, references):
     declared_candidates=set()
     expected_assets=set()
     assets_manifest=root/"manifest.json"
+    if not assets_manifest.is_file():
+        return {"status":"UNKNOWN","checked":0,"reason":"asset_manifest_missing","results":[]}
     if assets_manifest.is_file():
         try:
             sprites=json.loads(assets_manifest.read_text(encoding="utf8"))["sprites"]
