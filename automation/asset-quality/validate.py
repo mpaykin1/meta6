@@ -15,6 +15,8 @@ def inspect(root, manifest):
     for entry in entries:
         if not isinstance(entry,dict): issues.append({"rule":"entry_object"}); continue
         name=entry.get("id","?")
+        if not isinstance(name,str) or not name.strip():
+            issues.append({"rule":"invalid_id"}); name=str(name)
         if name in ids: issues.append({"id":name,"rule":"unique_id"})
         ids.add(name)
         for field in ("id","file","kind","type","stage","anim","frame","frames","fps","sizeArt","pivot","hitbox","atlas","rect","source"):
@@ -50,12 +52,12 @@ def inspect(root, manifest):
         rect=entry.get("rect")
         if isinstance(rect,list) and len(rect)==4 and all(isinstance(x,int) for x in rect) and (rect[2]<=0 or rect[3]<=0 or any(x<0 for x in rect)):
             issues.append({"id":name,"rule":"rect_geometry"})
-        if entry.get("stage") not in range(5): issues.append({"id":name,"rule":"stage_0_4"})
-        if not isinstance(entry.get("frames"),int) or entry.get("frames",0)<1: issues.append({"id":name,"rule":"frames"})
+        if type(entry.get("stage")) is not int or entry["stage"] not in range(5): issues.append({"id":name,"rule":"stage_0_4"})
+        if type(entry.get("frames")) is not int or entry.get("frames",0)<1: issues.append({"id":name,"rule":"frames"})
         for layer in ("body","detail","normal","emissive"):
             layers=entry.get("layers")
             layerfile=layers.get(layer) if isinstance(layers,dict) else None
-            if not isinstance(layerfile,str) or pathlib.PurePosixPath(layerfile).is_absolute() or ".." in pathlib.PurePosixPath(layerfile).parts or not (pathlib.Path(root)/layerfile).is_file():
+            if not isinstance(layerfile,str) or pathlib.PurePosixPath(layerfile).is_absolute() or ".." in pathlib.PurePosixPath(layerfile).parts or not (pathlib.Path(root)/layerfile).resolve().is_relative_to(pathlib.Path(root).resolve()) or not (pathlib.Path(root)/layerfile).is_file():
                 issues.append({"id":name,"rule":"layer_"+layer})
     return {"status":"FAIL" if issues else "STATIC_PASS_RUNTIME_UNKNOWN","checked":checked,"issues":issues,
             "runtime_unknown":["animated pivots/loops","dynamic light 8 directions","3D geometry and collisions","touch movement","FPS on device","visual owner approval"]}
