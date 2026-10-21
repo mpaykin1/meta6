@@ -20,13 +20,25 @@ def audit(root, references):
         return {"status":"FAIL","checked":0,"reason":str(error),"results":[]}
     results=[]
     seen=set()
+    declared_candidates=set()
+    expected_assets=set()
+    assets_manifest=root/"manifest.json"
+    if assets_manifest.is_file():
+        try:
+            sprites=json.loads(assets_manifest.read_text(encoding="utf8"))["sprites"]
+            expected_assets={str(sprite["file"]) for sprite in sprites}
+        except (OSError,ValueError,KeyError,TypeError):
+            return {"status":"FAIL","checked":0,"reason":"invalid_asset_manifest","results":[]}
     for record in records:
         try:
             ident=record["id"]
             if not isinstance(ident,str) or not ident.strip() or ident in seen:
                 raise ValueError("missing_or_duplicate_id")
             seen.add(ident)
-            candidate=(root/record["candidate"]).resolve()
+            candidate_name=record["candidate"]
+            if candidate_name in declared_candidates: raise ValueError("duplicate_candidate")
+            declared_candidates.add(candidate_name)
+            candidate=(root/candidate_name).resolve()
             reference=(references/record["reference"]).resolve()
             if not candidate.is_relative_to(root) or not reference.is_relative_to(references):
                 raise ValueError("path_escape")
@@ -37,6 +49,9 @@ def audit(root, references):
         except (OSError,ValueError,KeyError,TypeError) as error:
             result={"status":"FAIL","id":record.get("id") if isinstance(record,dict) else None,"reason":str(error)}
         results.append(result)
+    missing=sorted(expected_assets-declared_candidates)
+    if missing:
+        results.append({"status":"FAIL","reason":"uncovered_asset_manifest_sprites","missing":missing[:100],"missing_count":len(missing)})
     return {"status":"FAIL" if any(x["status"]=="FAIL" for x in results) else "PIXEL_PASS_ART_REVIEW_UNKNOWN",
             "checked":len(results),"results":results,"artistic_approval":"UNKNOWN"}
 
