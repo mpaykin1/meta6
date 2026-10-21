@@ -27,6 +27,7 @@ def enrich(repo, state, limit=5, request=fetch):
                        and not c.get("files_inspected")), key=lambda c: c["pr"])[:limit]
     for item in selected:
         files = []
+        complete = False
         for page in range(1, 11):
             url = "https://api.github.com/repos/" + repo + "/pulls/" + str(item["pr"]) + "/files?per_page=100&page=" + str(page)
             batch = request(url)
@@ -37,7 +38,10 @@ def enrich(repo, state, limit=5, request=fetch):
                               "additions": f["additions"], "deletions": f["deletions"],
                               "blob_sha": f["sha"]})
             if len(batch) < 100:
+                complete = True
                 break
+        if not complete:
+            raise ValueError("PR file list exceeds 1000 entries; incomplete evidence must not be marked inspected")
         item = dict(item)
         item["changed_files"] = files
         item["files_inspected"] = True
@@ -61,6 +65,7 @@ def main():
         if len(repo.split("/")) != 2:
             p.error("Expected owner/repo")
         updated = enrich(repo, updated, args.limit)
+    args.state.parent.mkdir(parents=True, exist_ok=True)
     temp = args.state.with_suffix(".tmp")
     temp.write_text(json.dumps(updated, indent=2, sort_keys=True, ensure_ascii=False)+"\n", encoding="utf-8")
     temp.replace(args.state)
