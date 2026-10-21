@@ -22,7 +22,7 @@ def inspect(root, manifest):
         for field in ("id","file","kind","type","stage","anim","frame","frames","fps","sizeArt","pivot","hitbox","atlas","rect","source"):
             if field not in entry: issues.append({"id":name,"rule":"manifest","detail":"missing "+field})
         file=entry.get("file")
-        if not isinstance(file,str) or pathlib.PurePosixPath(file).is_absolute() or ".." in pathlib.PurePosixPath(file).parts:
+        if not isinstance(file,str) or not file or pathlib.PurePosixPath(file).is_absolute() or ".." in pathlib.PurePosixPath(file).parts:
             issues.append({"id":name,"rule":"file_path"}); continue
         path=pathlib.Path(root)/file
         if not path.resolve().is_relative_to(pathlib.Path(root).resolve()): issues.append({"id":name,"rule":"file_escape"}); continue
@@ -57,7 +57,7 @@ def inspect(root, manifest):
         for layer in ("body","detail","normal","emissive"):
             layers=entry.get("layers")
             layerfile=layers.get(layer) if isinstance(layers,dict) else None
-            if not isinstance(layerfile,str) or pathlib.PurePosixPath(layerfile).is_absolute() or ".." in pathlib.PurePosixPath(layerfile).parts or not (pathlib.Path(root)/layerfile).resolve().is_relative_to(pathlib.Path(root).resolve()) or not (pathlib.Path(root)/layerfile).is_file():
+            if not isinstance(layerfile,str) or not layerfile or pathlib.PurePosixPath(layerfile).is_absolute() or ".." in pathlib.PurePosixPath(layerfile).parts or not (pathlib.Path(root)/layerfile).resolve().is_relative_to(pathlib.Path(root).resolve()) or not (pathlib.Path(root)/layerfile).is_file():
                 issues.append({"id":name,"rule":"layer_"+layer})
     return {"status":"FAIL" if issues else "STATIC_PASS_RUNTIME_UNKNOWN","checked":checked,"issues":issues,
             "runtime_unknown":["animated pivots/loops","dynamic light 8 directions","3D geometry and collisions","touch movement","FPS on device","visual owner approval"]}
