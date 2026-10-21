@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'abyss-glow/assets/**'
+      - 'abyss-glow/references/**'
       - 'automation/asset-quality/**'
       - '.github/workflows/abyss-asset-quality.yml'
 jobs:
@@ -26,6 +27,13 @@ jobs:
             echo '{"status":"UNKNOWN","reason":"source assets not installed"}' > asset-quality-audit.json
           fi
 
+      - name: Compare reference sprites
+        run: |
+          python automation/asset-quality/compare_reference_batch.py \
+            --root abyss-glow/assets \
+            --references abyss-glow/references \
+            --output asset-visual-report.json
+
       - name: Upload quality evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -34,4 +42,5 @@ jobs:
           path: |
             asset-quality-audit.json
             asset-animation-report.json
+            asset-visual-report.json
           if-no-files-found: warn
