@@ -8,8 +8,12 @@ on:
 jobs:
   guard:
     runs-on: ubuntu-latest
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Golden references unchanged
         run: cd reference/sumerek-golden && sha256sum -c SHA256SUMS
       - name: ashen-sumerek/index.html reproduces from sources
@@ -39,3 +43,21 @@ jobs:
           PY
           cd underwater-sumerek && cp index.html /tmp/underwater-before.html && python3 patch.py >/dev/null
           cmp index.html /tmp/underwater-before.html || { echo "index.html не воспроизводится из исходников underwater-sumerek: правь исходники и пересобери patch.py"; exit 1; }
+      - name: Install pinned Playwright Chromium / SwiftShader
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Live underwater fish animation smoke
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 2
+          node underwater-sumerek/tests/fish-tail-browser.mjs
+      - name: Preserve underwater live evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: underwater-fish-tail-${{ github.sha }}
+          path: underwater-sumerek/evidence/fish-tail/
+          if-no-files-found: warn
+          retention-days: 7
