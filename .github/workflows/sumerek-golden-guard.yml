@@ -17,3 +17,25 @@ jobs:
           pip install pillow
           cd ashen-sumerek && cp index.html /tmp/before.html && python3 patch_ash.py >/dev/null
           cmp index.html /tmp/before.html || { echo "index.html не воспроизводится из ash_*.js: правь исходники и пересобери patch_ash.py"; exit 1; }
+      - name: underwater-sumerek shader and build reproduce from sources
+        run: |
+          ! grep -R 'smoothstep(0.15, -0.3' underwater-sumerek/city.js underwater-sumerek/index.html
+          grep -Fq 'float tailWeight = 1.0 - smoothstep(-0.3, 0.15, position.x);' underwater-sumerek/city.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import math, re
+          source = Path('underwater-sumerek/city.js').read_text()
+          match = re.search(r'tailWeight = 1\.0 - smoothstep\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), position\.x\)', source)
+          assert match, 'tailWeight shader expression missing'
+          edge0, edge1 = map(float, match.groups())
+          assert edge0 < edge1, (edge0, edge1)
+          def smoothstep(a, b, x):
+            t = min(1.0, max(0.0, (x - a) / (b - a)))
+            return t * t * (3.0 - 2.0 * t)
+          weights = [1.0 - smoothstep(edge0, edge1, edge0 + (edge1 - edge0) * i / 32) for i in range(33)]
+          assert all(math.isfinite(v) and 0.0 <= v <= 1.0 for v in weights)
+          assert abs(weights[0] - 1.0) < 1e-12 and abs(weights[-1]) < 1e-12
+          assert all(a >= b for a, b in zip(weights, weights[1:])), weights
+          PY
+          cd underwater-sumerek && cp index.html /tmp/underwater-before.html && python3 patch.py >/dev/null
+          cmp index.html /tmp/underwater-before.html || { echo "index.html не воспроизводится из исходников underwater-sumerek: правь исходники и пересобери patch.py"; exit 1; }
