@@ -72,11 +72,12 @@ try{
  const atlas=await page.screenshot({path:out+'/scout-atlas.png',clip:{x:0,y:0,width:768,height:768},omitBackground:true});
  const atlasHash=createHash('sha256').update(atlas).digest('hex');
  if(atlasHash!=='69946980330e5e15d640badf5e59584ef0ebb0e91aed48276ef318491c8cec6b')throw Error('SVG reuse changed the rendered atlas '+atlasHash);
- const samples=[];
+ const samples=[],sampleImages=[];
  for(const [name,direction,frame] of [['front-idle',0,0],['right-idle',2,0],['rear-idle',4,0],['left-idle',6,0]]){
   const x=frame*96,y=direction*96;
   const png=await page.screenshot({path:`${out}/scout-${name}.png`,clip:{x,y,width:96,height:96},omitBackground:true});
   samples.push({name,direction,frame,cell:{x,y},sha256:createHash('sha256').update(png).digest('hex'),bytes:png.length});
+  sampleImages.push({name,direction,data:'data:image/png;base64,'+png.toString('base64')});
  }
  if(new Set(samples.map(x=>x.sha256)).size!==samples.length)throw Error('rendered direction/frame samples are identical');
  const labPreviewPerformance=await page.evaluate(async()=>{
@@ -117,8 +118,17 @@ try{
   renderer:'deterministic isometric projection of actual scavenger voxel grids and source palette'};
  if(samples.map(sample=>sample.direction).join(',')!==reference.directions.join(',')||samples.some(sample=>sample.frame!==0))
   throw Error('candidate/reference cardinal directions are not directly comparable '+JSON.stringify({samples,reference:reference.directions}));
- const comparison={reference:referenceProjection,candidate:{atlasSha256:atlasHash,samples},visualParity:'UNKNOWN',
-  reviewNote:'Reference and candidate now expose matching cardinal directions 0/2/4/6 at candidate idle frame 0; only Claude review may decide parity.'};
+ const sheetPage=await browser.newPage({viewport:{width:768,height:448},deviceScaleFactor:1});
+ const sourceData='data:image/png;base64,'+referencePng.toString('base64');
+ const candidateRow=sampleImages.map(sample=>'<figure><figcaption>candidate d'+sample.direction+' idle</figcaption><img src="'+sample.data+'"></figure>').join('');
+ await sheetPage.setContent('<style>*{box-sizing:border-box}body{margin:0;width:768px;height:448px;background:#101018;color:#b0aea8;font:12px monospace}.source{display:block;width:768px;height:224px}.candidates{display:grid;grid-template-columns:repeat(4,192px);height:224px}.candidates figure{margin:0;border-top:1px solid #353544;text-align:center}.candidates figcaption{height:24px;padding:5px}.candidates img{width:192px;height:192px;object-fit:contain;image-rendering:pixelated}</style><img class="source" src="'+sourceData+'"><div class="candidates">'+candidateRow+'</div>',{waitUntil:'load'});
+ const sheetPng=await sheetPage.screenshot({path:out+'/scout-side-by-side.png',clip:{x:0,y:0,width:768,height:448}});
+ await sheetPage.close();
+ if(sheetPng.length<20000)throw Error('side-by-side comparison sheet is unexpectedly empty '+sheetPng.length);
+ const contactSheet={path:'scout-side-by-side.png',layout:'original source top; candidate idle bottom; directions 0/2/4/6 left-to-right',
+  sha256:createHash('sha256').update(sheetPng).digest('hex'),bytes:sheetPng.length};
+ const comparison={reference:referenceProjection,candidate:{atlasSha256:atlasHash,samples},contactSheet,visualParity:'UNKNOWN',
+  reviewNote:'One artifact now exposes matching source and candidate directions 0/2/4/6; only Claude review may decide parity.'};
  await writeFile(out+'/scout-comparison.json',JSON.stringify(comparison,null,2)+'\n');
  const evidence={...info,atlas:{sha256:atlasHash,bytes:atlas.length},samples,referenceProjection,
   browser:'Playwright Chromium 1.56.1 / SwiftShader',resolution:'800x800 DPR1',labPreviewPerformance,visualParity:'UNKNOWN',gameFpsP50P95:'UNKNOWN',gameIntegration:false};
