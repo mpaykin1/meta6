@@ -60,9 +60,9 @@ def main():
     except RuntimeError as error:
         print(json.dumps({"status":"BLOCKED", "coverage":"PARTIAL", "reason":str(error)}))
         raise SystemExit(3)
-    print(json.dumps({"status": "PASS" if all(r["returncode"] == 0 for r in results) else "INCOMPLETE",
+    print(json.dumps({"status": "PARTIAL_SUCCESS" if all(r["returncode"] == 0 for r in results) else "INCOMPLETE",
                       "coverage": "PARTIAL", "results": results}, ensure_ascii=False, indent=2))
-    if any(r["returncode"] for r in results):
+    if len(results) != len(commands) or any(r["returncode"] for r in results):
         raise SystemExit(2)
 if __name__ == "__main__":
     main()

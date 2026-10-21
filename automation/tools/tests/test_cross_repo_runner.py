@@ -21,6 +21,11 @@ class RunnerTests(unittest.TestCase):
         import inspect
         source=inspect.getsource(mod.main)
         self.assertIn('with lease(ROOT / ".cross-repo-memory.lock")',source)
+    def test_partial_success_is_not_pass(self):
+        import inspect
+        source=inspect.getsource(mod.main)
+        self.assertIn('"PARTIAL_SUCCESS"',source)
+        self.assertNotIn('"status": "PASS"',source)
     def test_fail_fast(self):
         calls = []
         def fake(command, **kwargs):
