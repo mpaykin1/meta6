@@ -22,11 +22,15 @@ on:
       - 'docs/development-memory/events.jsonl'
       - 'automation/prompts/chatgpt-autotask.md'
       - '.github/workflows/cross-repo-memory.yml'
+concurrency:
+  group: cross-repo-memory-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
