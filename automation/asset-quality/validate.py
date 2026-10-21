@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ABYSS asset production gate. stdlib + Pillow. UNKNOWN is never PASS."""
-import argparse, json, pathlib, sys
+import argparse, json, pathlib, sys, math
 from PIL import Image
 
 PALETTE={(0,0,0),(62,21,0),(112,39,0),(173,66,1),(229,120,7),(249,189,43),(253,231,102)}
@@ -13,6 +13,7 @@ def inspect(root, manifest):
         return {"status":"FAIL","checked":0,"issues":[{"rule":"manifest","detail":"empty or invalid sprites array"}]}
     ids=set()
     for entry in entries:
+        if not isinstance(entry,dict): issues.append({"rule":"entry_object"}); continue
         name=entry.get("id","?")
         if name in ids: issues.append({"id":name,"rule":"unique_id"})
         ids.add(name)
@@ -22,6 +23,7 @@ def inspect(root, manifest):
         if not isinstance(file,str) or pathlib.PurePosixPath(file).is_absolute() or ".." in pathlib.PurePosixPath(file).parts:
             issues.append({"id":name,"rule":"file_path"}); continue
         path=pathlib.Path(root)/file
+        if not path.resolve().is_relative_to(pathlib.Path(root).resolve()): issues.append({"id":name,"rule":"file_escape"}); continue
         if not path.is_file(): issues.append({"id":name,"rule":"missing_file"}); continue
         try:
             im=Image.open(path).convert("RGBA")
@@ -41,11 +43,19 @@ def inspect(root, manifest):
             issues.append({"id":name,"rule":"seven_color_palette"})
         if colored and sum(p[3]==255 for p in colored)/len(colored)<.95:
             issues.append({"id":name,"rule":"opaque_body_95pct"})
+        for field, n in (("sizeArt",2),("pivot",2),("rect",4)):
+            val=entry.get(field)
+            if not isinstance(val,list) or len(val)!=n or any(not isinstance(x,(int,float)) or not math.isfinite(x) for x in val):
+                issues.append({"id":name,"rule":"invalid_"+field})
+        rect=entry.get("rect")
+        if isinstance(rect,list) and len(rect)==4 and all(isinstance(x,int) for x in rect) and (rect[2]<=0 or rect[3]<=0 or any(x<0 for x in rect)):
+            issues.append({"id":name,"rule":"rect_geometry"})
         if entry.get("stage") not in range(5): issues.append({"id":name,"rule":"stage_0_4"})
-        if entry.get("frames",0)<1: issues.append({"id":name,"rule":"frames"})
+        if not isinstance(entry.get("frames"),int) or entry.get("frames",0)<1: issues.append({"id":name,"rule":"frames"})
         for layer in ("body","detail","normal","emissive"):
-            layerfile=entry.get("layers",{}).get(layer)
-            if not layerfile or not (pathlib.Path(root)/layerfile).is_file():
+            layers=entry.get("layers")
+            layerfile=layers.get(layer) if isinstance(layers,dict) else None
+            if not isinstance(layerfile,str) or pathlib.PurePosixPath(layerfile).is_absolute() or ".." in pathlib.PurePosixPath(layerfile).parts or not (pathlib.Path(root)/layerfile).is_file():
                 issues.append({"id":name,"rule":"layer_"+layer})
     return {"status":"FAIL" if issues else "STATIC_PASS_RUNTIME_UNKNOWN","checked":checked,"issues":issues,
             "runtime_unknown":["animated pivots/loops","dynamic light 8 directions","3D geometry and collisions","touch movement","FPS on device","visual owner approval"]}
