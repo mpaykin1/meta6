@@ -56,4 +56,21 @@ class BatchReferenceTests(unittest.TestCase):
             Image.new("RGBA",(2,2)).save(refs/"a.png")
             (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"a","candidate":"a.png","reference":"a.png"},{"id":"b","candidate":"a.png","reference":"a.png"}]}))
             self.assertEqual(audit(assets,refs)["status"],"FAIL")
+    def test_undeclared_candidate_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);assets=root/"assets";refs=root/"refs"
+            assets.mkdir();refs.mkdir()
+            for name in ("a.png","b.png"):
+                Image.new("RGBA",(2,2)).save(assets/name)
+                Image.new("RGBA",(2,2)).save(refs/name)
+            (assets/"manifest.json").write_text(json.dumps({"sprites":[{"file":"a.png"}]}))
+            (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"a","candidate":"a.png","reference":"a.png"},{"id":"b","candidate":"b.png","reference":"b.png"}]}))
+            self.assertEqual(audit(assets,refs)["status"],"FAIL")
+    def test_empty_asset_manifest_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);assets=root/"assets";refs=root/"refs"
+            assets.mkdir();refs.mkdir()
+            (assets/"manifest.json").write_text(json.dumps({"sprites":[]}))
+            (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"a","candidate":"a.png","reference":"a.png"}]}))
+            self.assertEqual(audit(assets,refs)["reason"],"invalid_asset_manifest")
 if __name__=="__main__":unittest.main()

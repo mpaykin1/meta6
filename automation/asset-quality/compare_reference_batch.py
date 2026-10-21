@@ -26,6 +26,7 @@ def audit(root, references):
     if assets_manifest.is_file():
         try:
             sprites=json.loads(assets_manifest.read_text(encoding="utf8"))["sprites"]
+            if not isinstance(sprites,list) or not sprites: raise ValueError("empty asset manifest")
             expected_assets={str(sprite["file"]) for sprite in sprites}
         except (OSError,ValueError,KeyError,TypeError):
             return {"status":"FAIL","checked":0,"reason":"invalid_asset_manifest","results":[]}
@@ -50,8 +51,11 @@ def audit(root, references):
             result={"status":"FAIL","id":record.get("id") if isinstance(record,dict) else None,"reason":str(error)}
         results.append(result)
     missing=sorted(expected_assets-declared_candidates)
+    extra=sorted(declared_candidates-expected_assets) if expected_assets else []
     if missing:
         results.append({"status":"FAIL","reason":"uncovered_asset_manifest_sprites","missing":missing[:100],"missing_count":len(missing)})
+    if extra:
+        results.append({"status":"FAIL","reason":"undeclared_candidate_sprites","extra":extra[:100],"extra_count":len(extra)})
     return {"status":"FAIL" if any(x["status"]=="FAIL" for x in results) else "PIXEL_PASS_ART_REVIEW_UNKNOWN",
             "checked":len(results),"results":results,"artistic_approval":"UNKNOWN"}
 
