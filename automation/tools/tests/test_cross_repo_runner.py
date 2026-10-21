@@ -16,6 +16,11 @@ class RunnerTests(unittest.TestCase):
                           "cross_repo_pr_files.py", "cross_repo_recall.py", "memory_preflight.py",
                           "cross_repo_components.py", "cross_repo_regressions.py", "cross_repo_metrics.py"])
         self.assertEqual(len(mod.plan([], "camera", True)), 5)
+
+    def test_runner_uses_lease(self):
+        import inspect
+        source=inspect.getsource(mod.main)
+        self.assertIn('with lease(ROOT / ".cross-repo-memory.lock")',source)
     def test_fail_fast(self):
         calls = []
         def fake(command, **kwargs):
