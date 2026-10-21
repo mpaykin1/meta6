@@ -23,7 +23,7 @@ def analyze(manifest, min_directions=8, min_frames=8, max_pivot_drift=1):
         for direction in range(min_directions):
             items=directions.get(direction,[])
             indexes=[e.get("frame") for e in items]
-            if len(items)<min_frames or sorted(set(i for i in indexes if isinstance(i,int)))!=list(range(min_frames)):
+            if (len(items)<min_frames or any(not isinstance(i,int) or isinstance(i,bool) for i in indexes) or sorted(indexes)!=list(range(len(items)))):
                 issues.append({"rule":"frame_sequence","group":key,"direction":direction,"actual":len(items)})
             if len(indexes)!=len(set(str(i) for i in indexes)):
                 issues.append({"rule":"duplicate_frames","group":key,"direction":direction})
