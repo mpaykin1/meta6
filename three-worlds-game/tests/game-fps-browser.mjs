@@ -33,7 +33,7 @@ await mkdir(root,{recursive:true});
 // Expose existing production pass instances only inside this disposable test page.
 // The shipped index remains byte-identical to the pinned offline build.
 const instrumentedPath=path.join(root,'postfx-instrumented.html');
-const marker='window.__isle = {';
+const marker='window.__isle={';
 const productionHtml=await readFile('three-worlds-game/index.html','utf8');
 assert.equal(productionHtml.split(marker).length,2,'post-FX instrumentation marker must be unique');
 await writeFile(instrumentedPath,productionHtml.replace(marker,
