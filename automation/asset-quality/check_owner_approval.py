@@ -18,7 +18,11 @@ def verify(approval_path, asset_manifest, reference_manifest):
                 return {"status":"FAIL","reason":"approval_digest_mismatch","field":key}
         if not isinstance(record.get("reviewer"),str) or not record["reviewer"].strip():
             return {"status":"FAIL","reason":"reviewer_missing"}
-        return {"status":"PASS","reviewer":record["reviewer"]}
+        if not isinstance(record.get("reviewed_at"),str) or not record["reviewed_at"].strip():
+            return {"status":"FAIL","reason":"review_timestamp_missing"}
+        if not isinstance(record.get("evidence"),list) or not record["evidence"] or any(not isinstance(x,str) or not x.strip() for x in record["evidence"]):
+            return {"status":"FAIL","reason":"review_evidence_missing"}
+        return {"status":"PASS","reviewer":record["reviewer"],"reviewed_at":record["reviewed_at"],"evidence_count":len(record["evidence"])}
     except (OSError,ValueError,TypeError) as error:
         return {"status":"FAIL","reason":"invalid_approval","detail":str(error)}
 
