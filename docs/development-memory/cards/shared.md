@@ -9,6 +9,12 @@
 - **Применять:** Гасить скорость плавно и проверять покадровые скачки; отсутствие данных в тесте — ошибка.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stage7-surface-velocity-snap.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## atmosphere/depth-gradient
+- 2026-10-21 · baseline · technical · 2026-10-21-world-lesson-7
+- **Наблюдение:** Стандарт атмосферы World_server: ближний план более читаем, дальний смягчён туманом и менее контрастен.
+- **Применять:** Сохранять глубину через fog/aerial perspective, применять технику только без изменения замороженного стиля и цикла игры.
+- **Источник:** [доказательство](https://github.com/mpaykin1/World_server/blob/567a48442ed1dee39e2baad87df2df998b231f95/docs/GOLDEN_PAINTING_ATMOSPHERE_STANDARD.md) · SHA 567a48442ed1dee39e2baad87df2df998b231f95
+
 ## baseline/golden-readonly
 - 2026-10-21 · baseline · technical · 2026-10-21-golden-no-touch
 - **Наблюдение:** Три эталона в reference/sumerek-golden защищены SHA-256; изменения эталона ломают проверку.
@@ -44,6 +50,12 @@
 - **Наблюдение:** Зависимые PR с устаревшей веткой теряли исправление simDir и ломали golden.
 - **Применять:** Перед ревью проверять ancestry актуального родителя и запускать тесты на head ветки.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stacked-prs-stale-base.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
+
+## light/animate-volume
+- 2026-10-21 · solution · technical · 2026-10-21-world-lesson-6
+- **Наблюдение:** LIGHT использует реальную 3D-геометрию и normal/depth-aware screen-space контур после позы и проекции.
+- **Применять:** Если нужен объёмный светящийся силуэт, изучить shared/light; не заменять геометрию плоской линией и не копировать чужой bloom без теста.
+- **Источник:** [доказательство](https://github.com/mpaykin1/World_server/blob/567a48442ed1dee39e2baad87df2df998b231f95/docs/LIGHT_SYSTEM.md) · SHA 567a48442ed1dee39e2baad87df2df998b231f95
 
 ## regression/accepted-actions
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-owner-test4-regressions
