@@ -31,6 +31,14 @@ class InventoryTests(unittest.TestCase):
         with patch.object(mod, "pages", side_effect=lambda path, _: iter(repos if "/users/" in path else branches)):
             result = mod.scan("mpaykin1", 1, 10, prev)
         self.assertEqual(result["repositories"]["mpaykin1/meta6"]["branches"]["main"]["head_sha"], "b"*40)
+        self.assertIsNone(result["repositories"]["mpaykin1/meta6"]["branches"]["main"]["indexed_sha"])
+    def test_unchanged_sha_keeps_review_checkpoint(self):
+        repos = [{"full_name": "mpaykin1/meta6", "default_branch": "main"}]
+        branches = [{"name": "main", "commit": {"sha": "a"*40}}]
+        prev = {"repositories": {"mpaykin1/meta6": {"branches": {
+            "main": {"head_sha": "a"*40, "indexed_sha": "a"*40}}, "next_branch": 0}}}
+        with patch.object(mod, "pages", side_effect=lambda path, _: iter(repos if "/users/" in path else branches)):
+            result = mod.scan("mpaykin1", 1, 10, prev)
         self.assertEqual(result["repositories"]["mpaykin1/meta6"]["branches"]["main"]["indexed_sha"], "a"*40)
 if __name__ == "__main__":
     unittest.main()
