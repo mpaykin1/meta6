@@ -76,7 +76,18 @@ def main():
         print("Recall index OK")
         return
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(serialized, encoding="utf-8")
+    import os
+    import tempfile
+    fd, temp_name = tempfile.mkstemp(prefix=args.output.name + ".", suffix=".tmp", dir=args.output.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as out:
+            out.write(serialized)
+            out.flush()
+            os.fsync(out.fileno())
+        os.replace(temp_name, args.output)
+    finally:
+        if os.path.exists(temp_name):
+            os.unlink(temp_name)
     print(f"Indexed {len(index['entries'])} signatures; coverage PARTIAL")
 if __name__ == "__main__":
     main()
