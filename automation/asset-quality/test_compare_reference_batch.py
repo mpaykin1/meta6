@@ -21,4 +21,19 @@ class BatchReferenceTests(unittest.TestCase):
             assets.mkdir();refs.mkdir()
             (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"x","candidate":"../escape.png","reference":"a.png"}]}))
             self.assertEqual(audit(assets,refs)["status"],"FAIL")
+    def test_duplicate_ids_fail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);assets=root/"assets";refs=root/"refs"
+            assets.mkdir();refs.mkdir()
+            Image.new("RGBA",(2,2)).save(assets/"a.png")
+            Image.new("RGBA",(2,2)).save(refs/"a.png")
+            item={"id":"same","candidate":"a.png","reference":"a.png"}
+            (refs/"manifest.json").write_text(json.dumps({"comparisons":[item,item]}))
+            self.assertEqual(audit(assets,refs)["status"],"FAIL")
+    def test_missing_reference_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);assets=root/"assets";refs=root/"refs"
+            assets.mkdir();refs.mkdir()
+            (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"missing","candidate":"x.png","reference":"x.png"}]}))
+            self.assertEqual(audit(assets,refs)["status"],"FAIL")
 if __name__=="__main__":unittest.main()

@@ -19,12 +19,19 @@ def audit(root, references):
     except (OSError,ValueError,KeyError,TypeError) as error:
         return {"status":"FAIL","checked":0,"reason":str(error),"results":[]}
     results=[]
+    seen=set()
     for record in records:
         try:
+            ident=record["id"]
+            if not isinstance(ident,str) or not ident.strip() or ident in seen:
+                raise ValueError("missing_or_duplicate_id")
+            seen.add(ident)
             candidate=(root/record["candidate"]).resolve()
             reference=(references/record["reference"]).resolve()
             if not candidate.is_relative_to(root) or not reference.is_relative_to(references):
                 raise ValueError("path_escape")
+            if not candidate.is_file() or not reference.is_file():
+                raise ValueError("missing_reference_or_candidate")
             result=compare(reference,candidate,record.get("max_mismatch",0))
             result["id"]=record.get("id")
         except (OSError,ValueError,KeyError,TypeError) as error:
