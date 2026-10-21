@@ -24,5 +24,10 @@ class RecallTests(unittest.TestCase):
                  observation="Camera", action="use lerp")
         b = dict(a, id="b", action="do not use lerp")
         self.assertTrue(mod.build([a,b], {})["entries"][0]["conflict"])
+    def test_atomic_write_uses_replace(self):
+        import inspect
+        source=inspect.getsource(mod.main)
+        self.assertIn("os.replace(temp_name, args.output)",source)
+        self.assertIn("os.fsync(out.fileno())",source)
 if __name__ == "__main__":
     unittest.main()
