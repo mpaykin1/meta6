@@ -17,8 +17,13 @@ def plan(repos, topic, skip_network):
         commands.append([sys.executable, str(TOOLS/"cross_repo_inventory.py"), "--max-repos", "2", "--max-branches", "40"])
         commands.append([sys.executable, str(TOOLS/"cross_repo_pr_evidence.py"),
                          *[arg for repo in repos for arg in ("--repo", repo)], "--limit", "10"])
+        commands.append([sys.executable, str(TOOLS/"cross_repo_pr_files.py"),
+                         *[arg for repo in repos for arg in ("--repo", repo)], "--limit", "5"])
     commands.append([sys.executable, str(TOOLS/"cross_repo_recall.py")])
     commands.append([sys.executable, str(TOOLS/"memory_preflight.py"), "--topic", topic])
+    commands.append([sys.executable, str(TOOLS/"cross_repo_components.py"), "--check"])
+    commands.append([sys.executable, str(TOOLS/"cross_repo_regressions.py")])
+    commands.append([sys.executable, str(TOOLS/"cross_repo_metrics.py")])
     return commands
 
 def run(commands, executor=subprocess.run):
