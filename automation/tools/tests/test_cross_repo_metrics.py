@@ -16,9 +16,18 @@ class MetricsTests(unittest.TestCase):
                              [{"signature": "camera"}, {"signature": "camera"}])
         self.assertEqual(result["branches_discovered"], 2)
         self.assertEqual(result["branches_verified_at_current_sha"], 1)
+        self.assertEqual(result["branches_not_verified_at_current_sha"], 1)
+        self.assertEqual(result["stale_indexed_sha_markers"], 0)
         self.assertEqual(result["branches_discovery_ratio_in_seen_repositories"], 0.5)
         self.assertEqual(result["merged_pr_candidates_unverified"], 1)
         self.assertIsNone(result["prevented_regressions_measured"])
         self.assertFalse(result["all_repositories_scanned"])
+    def test_stale_marker_is_not_counted_as_verified(self):
+        inventory={"repositories":{"mpaykin1/meta6":{"branch_count":1,"branches":{
+            "main":{"head_sha":"b"*40,"indexed_sha":"a"*40}}}}}
+        result=mod.compute(inventory,{},[])
+        self.assertEqual(result["branches_verified_at_current_sha"],0)
+        self.assertEqual(result["branches_not_verified_at_current_sha"],1)
+        self.assertEqual(result["stale_indexed_sha_markers"],1)
 if __name__ == "__main__":
     unittest.main()

@@ -14,6 +14,9 @@ def compute(inventory, prs, events):
     total = sum(r.get("branch_count", 0) for r in repos.values())
     indexed = sum(1 for r in repos.values() for b in r.get("branches", {}).values()
                   if b.get("indexed_sha") == b.get("head_sha") and b.get("head_sha"))
+    stale = sum(1 for r in repos.values() for b in r.get("branches", {}).values()
+                if b.get("indexed_sha") and b.get("indexed_sha") != b.get("head_sha"))
+    unreviewed = discovered - indexed
     candidates = sum(len(r.get("candidates", {})) for r in prs.values())
     signatures = len({e["signature"] for e in events})
     return {
@@ -23,6 +26,8 @@ def compute(inventory, prs, events):
         "branches_discovered": discovered,
         "branches_reported_total_in_seen_repositories": total,
         "branches_verified_at_current_sha": indexed,
+        "branches_not_verified_at_current_sha": unreviewed,
+        "stale_indexed_sha_markers": stale,
         "branches_discovery_ratio_in_seen_repositories": round(discovered/total, 4) if total else None,
         "merged_pr_candidates_unverified": candidates,
         "ledger_event_count": len(events),
