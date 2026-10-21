@@ -22,7 +22,7 @@ function agInit() {
 function agClear() {
   while (agRoot.children.length) { const c = agRoot.children[0]; agRoot.remove(c); c.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.dispose && !o.material.userData.keep) o.material.dispose(); }); }
   ag.lod.length = 0; ag.bbs.length = 0; ag.beams.length = 0; ag.skyL.length = 0; ag.bursts.length = 0; ag.loops.length = 0; ag.fxPool = {};
-  ag.fog = ag.rays = ag.par = ag.pts = ag.rain = null;
+  ag.fog = ag.rays = ag.par = ag.pts = ag.rain = ag.cir = null;
   const el = document.getElementById('ashLogo'); if (el) el.hidden = true;
   if (agWarnEl) agWarnEl.style.opacity = '0';
 }
@@ -174,11 +174,13 @@ function agBuild() {
   agBuildGround(w);
   // atmosphere layers
   ag.fog = AG.makeFogLayers(4); agRoot.add(ag.fog);
+  ag.cir = AG.makeCirrusLayers(3); agRoot.add(ag.cir);
   ag.rays = AG.makeGodRays(3); ag.rays.position.set(cx, 0, cz); agRoot.add(ag.rays);
   ag.par = [AG.makeParallax(190, 3.1, 0, 5.2), AG.makeParallax(150, 7.7, 0.45, 4.4), AG.makeParallax(112, 1.3, 0.9, 3.6)]; ag.par.forEach((p) => agRoot.add(p));
   ag.sky = AG.makeSky(); agRoot.add(ag.sky);
   ag.pts = {
     ash: AG.makeAmbientPoints(700, { area: [60, 22, 60], size: 0.075, vel: [0.55, -0.22, 0.2], col: [0.7, 0.68, 0.66], seed: 5, far: 55, patch: 1 }),
+    black: AG.makeAmbientPoints(900, { area: [36, 14, 36], size: 0.3, maxPx: 16, solid: 1, vel: [0.9, -1.35, 0.35], col: [0.035, 0.03, 0.04], seed: 21, far: 38, patch: 1 }),
     dust: AG.makeAmbientPoints(420, { area: [46, 8, 46], size: 0.06, vel: [0.9, 0.05, 0.3], col: [0.5, 0.46, 0.42], seed: 6, far: 40, patch: 1 }),
     embers: AG.makeAmbientPoints(150, { area: [3.2, 7, 3.2], size: 0.06, vel: [0.15, 1.3, 0.1], col: [1.5, 0.6, 0.18], seed: 8, add: true, tw: 1, far: 30 })
   };
@@ -231,7 +233,8 @@ function agFrame(dt, T) {
   ag.sky.position.copy(cp);
   ag.par.forEach((p) => p.position.set(cp.x, 20, cp.z));
   ag.fog.position.y = agH(pp.x, pp.z) - 1.2; ag.fog.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z));
-  ag.pts.ash.material.uniforms.uCenter.value.set(cp.x, cp.y, cp.z); ag.pts.dust.material.uniforms.uCenter.value.set(cp.x, cp.y - 4, cp.z);
+  ag.pts.ash.material.uniforms.uCenter.value.set(cp.x, cp.y, cp.z); ag.pts.black.material.uniforms.uCenter.value.set(cp.x, cp.y - 3, cp.z);
+  ag.cir.position.y = agH(pp.x, pp.z) - 0.2; ag.cir.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z)); ag.pts.dust.material.uniforms.uCenter.value.set(cp.x, cp.y - 4, cp.z);
   // rain follows the Island's ash_rain event
   const ru = ag.rain.material.uniforms; ru.uCenter.value.copy(cp); ru.uAmt.value = EVT.cur && EVT.cur.id === 'ash_rain' ? EVT.k : 0;
   if (ru.uAmt.value > 0.3) { ag.rainT -= dt; if (ag.rainT <= 0) { ag.rainT = 0.08; const a = Math.random() * TAU, d = 1.5 + Math.random() * 7; const x = pp.x + Math.cos(a) * d, z = pp.z + Math.sin(a) * d; agFx(9, x, agH(x, z) + 0.1, z, 0.7, 0.35, false, 0); } }

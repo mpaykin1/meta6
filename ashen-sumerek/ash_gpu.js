@@ -307,25 +307,53 @@ void main(){
   return g;
 }
 
+
+/* --- низкие рябые облака («чешуя»): полосы барашков у самой земли, герой проходит сквозь них как сквозь туман --- */
+function makeCirrusLayers(n = 3) {
+  const g = new THREE.Group();
+  for (let i = 0; i < n; i++) {
+    const geo = new THREE.PlaneGeometry(220, 220, 1, 1); geo.rotateX(-PI / 2);
+    const m = new SMat({
+      uniforms: uni({ uK: { value: i / n } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      vertexShader: `varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
+      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK;
+void main(){
+  float ang=.55+uK*.35; mat2 R=mat2(cos(ang),-sin(ang),sin(ang),cos(ang));
+  vec2 q=R*(vW.xz+vec2(uTime*.5*(1.+uK*.6),uTime*.1)+uK*37.);
+  float warp=fbm(q*.015+3.)*2.4;
+  float band=.5+.5*sin(q.y*.62+warp*2.2);                       // длинные ряды
+  float cell=fbm(vec2(q.x*.26,q.y*.95)+fbm(q*.09)*.8);          // мелкие барашки внутри рядов
+  float cover=smoothstep(.34,.72,fbm(q*.012+uK*9.));              // где небо закрыто, где просвет
+  float n=smoothstep(.44,.60,cell*(.5+.8*band))*cover;
+  float dist=length(vW.xz-cameraPosition.xz); float fade=1.-smoothstep(40.,105.,dist);
+  float near=smoothstep(.0,1.2,abs(cameraPosition.y-vW.y));
+  float a=n*.62*fade*near; gl_FragColor=vec4(uFogCol*1.5+vec3(.05),a);
+}` });
+    const p = new THREE.Mesh(geo, m); p.position.y = .5 + i * .85; p.frustumCulled = false; p.renderOrder = 12 + i; g.add(p);
+  }
+  return g;
+}
+
 /* --- пепел / пыль: Points, всё считается в вершинном шейдере --- */
 function makeAmbientPoints(count, o) {
   const seeds = new Float32Array(count * 4), pos = new Float32Array(count * 3), r = rng(o.seed || 1);
   for (let i = 0; i < count * 4; i++) seeds[i] = r();
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 4));
   const m = new SMat({
-    uniforms: uni({ uCenter: { value: new THREE.Vector3() }, uArea: { value: new THREE.Vector3(...(o.area || [60, 22, 60])) }, uSize: { value: o.size || .08 }, uVel: { value: new THREE.Vector3(...(o.vel || [.5, -.2, .2])) }, uCol: { value: new THREE.Vector3(...(o.col || [.62, .6, .58])) }, uFar: { value: o.far || 60 }, uTw: { value: o.tw || 0 }, uPatch: { value: o.patch || 0 } }),
+    uniforms: uni({ uCenter: { value: new THREE.Vector3() }, uArea: { value: new THREE.Vector3(...(o.area || [60, 22, 60])) }, uSize: { value: o.size || .08 }, uVel: { value: new THREE.Vector3(...(o.vel || [.5, -.2, .2])) }, uCol: { value: new THREE.Vector3(...(o.col || [.62, .6, .58])) }, uFar: { value: o.far || 60 }, uTw: { value: o.tw || 0 }, uPatch: { value: o.patch || 0 }, uMaxPx: { value: o.maxPx || 7 }, uSolid: { value: o.solid ? 1 : 0 } }),
     transparent: true, depthWrite: false, blending: o.add ? THREE.AdditiveBlending : THREE.NormalBlending,
-    vertexShader: `attribute vec4 aSeed; uniform vec3 uCenter,uArea,uVel; uniform float uSize,uPxH,uTime,uFar,uTw,uPatch; varying float vA;
+    vertexShader: `attribute vec4 aSeed; uniform vec3 uCenter,uArea,uVel; uniform float uSize,uPxH,uTime,uFar,uTw,uPatch,uMaxPx,uSolid; varying float vA; varying float vS;
 float hh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float nz(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hh(i),hh(i+vec2(1,0)),f.x),mix(hh(i+vec2(0,1)),hh(i+vec2(1,1)),f.x),f.y);}
 void main(){
   vec3 A=uArea; vec3 p=aSeed.xyz*A+uVel*uTime+vec3(sin(uTime*.5+aSeed.w*6.28)*.8,sin(uTime*.7+aSeed.x*9.)*.4,cos(uTime*.4+aSeed.y*7.)*.8);
   p=mod(p-uCenter+A*.5,A)+uCenter-A*.5;
   vec4 mv=viewMatrix*vec4(p,1.); gl_Position=projectionMatrix*mv; float d=-mv.z;
-  gl_PointSize=clamp(uSize*(uPxH*.5*projectionMatrix[1][1])/max(d,.1),1.,7.);
+  gl_PointSize=clamp(uSize*(uPxH*.5*projectionMatrix[1][1])/max(d,.1),1.,uMaxPx);
   vA=smoothstep(uFar,uFar*.15,d)*(.35+.65*aSeed.w)*(1.-uTw+uTw*(.5+.5*sin(uTime*(8.+aSeed.z*9.)+aSeed.x*40.)))*mix(1.,smoothstep(.42,.66,nz(p.xz*.045+vec2(uTime*.03,uTime*.012))),uPatch);
+  vS=aSeed.w; if(uSolid>.5) vA=mix(.55,1.,smoothstep(uFar,uFar*.2,d))*(.7+.3*vS);
 }`,
-    fragmentShader: `uniform vec3 uCol; varying float vA; void main(){ gl_FragColor=vec4(uCol,vA); }`
+    fragmentShader: `uniform vec3 uCol; uniform float uSolid; varying float vA; varying float vS; void main(){ float a=vA; if(uSolid>.5){ vec2 c=gl_PointCoord-.5; float r=length(vec2(c.x*(1.+vS*.9),c.y)); float rag=.42-.10*fract(sin(dot(floor(gl_PointCoord*5.),vec2(12.9,78.2)))*437.5); if(r>rag) discard; a=vA; } gl_FragColor=vec4(uCol,a); }`
   });
   const p = new THREE.Points(geo, m); p.frustumCulled = false; p.renderOrder = 20; return p;
 }
@@ -535,5 +563,5 @@ function art2d() {
   { const t = 'ASH ROAD', s = 4, c = cv2(t.length * 6 * s + 8, 5 * s + 10), x = c.getContext('2d'); [...t].forEach((ch, i) => { if (FONT[ch]) { drawGlyph(x, c, FONT[ch], 4 + i * 6 * s + s, 4 + s, s, RAMPS.steel[0]); drawGlyph(x, c, FONT[ch], 4 + i * 6 * s, 4, s, RAMPS.ochre[3]); } }); out.logo = { canvas: c, cols: 1, rows: 1, names: ['логотип'] }; }
   return out;
 }
-return { ATL: () => ATL, TILES, TILES_ANIM, TILES_NAMES, AUTOSETS, FX, DECALS, ICONS, FONT, LOOPS, BAKE_OPT, mkRT, fsDraw, clearRT, rtToCanvas, buildTileAtlases, buildFxAtlases, bakeSheet, makeBillboard, billboardUpdate, makeStack, makeSky, makeFogLayers, makeAmbientPoints, makeRain, makeSpritePool, makeSparks, makeLaser, makeGodRays, makeCards, makeParallax, Burst, makeDecal, art2d, uni, FXU, withNeutral };
+return { makeCirrusLayers, ATL: () => ATL, TILES, TILES_ANIM, TILES_NAMES, AUTOSETS, FX, DECALS, ICONS, FONT, LOOPS, BAKE_OPT, mkRT, fsDraw, clearRT, rtToCanvas, buildTileAtlases, buildFxAtlases, bakeSheet, makeBillboard, billboardUpdate, makeStack, makeSky, makeFogLayers, makeAmbientPoints, makeRain, makeSpritePool, makeSparks, makeLaser, makeGodRays, makeCards, makeParallax, Burst, makeDecal, art2d, uni, FXU, withNeutral };
 }
