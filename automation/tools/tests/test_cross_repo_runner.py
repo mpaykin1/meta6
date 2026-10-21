@@ -26,6 +26,17 @@ class RunnerTests(unittest.TestCase):
         source=inspect.getsource(mod.main)
         self.assertIn('"PARTIAL_SUCCESS"',source)
         self.assertNotIn('"status": "PASS"',source)
+    def test_timeout_is_reported_and_stops(self):
+        import subprocess
+        calls=[]
+        def timeout(command, **kwargs):
+            calls.append(command)
+            raise subprocess.TimeoutExpired(command, 120)
+        result=mod.run(mod.plan([], "camera", True), timeout)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(result[0]["returncode"], 124)
+        self.assertIn("timed out", result[0]["stderr"])
     def test_fail_fast(self):
         calls = []
         def fake(command, **kwargs):
