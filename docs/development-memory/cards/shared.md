@@ -57,6 +57,12 @@
 - **Применять:** Если нужен объёмный светящийся силуэт, изучить shared/light; не заменять геометрию плоской линией и не копировать чужой bloom без теста.
 - **Источник:** [доказательство](https://github.com/mpaykin1/World_server/blob/567a48442ed1dee39e2baad87df2df998b231f95/docs/LIGHT_SYSTEM.md) · SHA 567a48442ed1dee39e2baad87df2df998b231f95
 
+## process/branch-from-fresh-main
+- 2026-10-21 · failure · technical · 2026-10-21-ashen-fresh-main
+- **Наблюдение:** Ветка от устаревшего локального main дала конфликт PR (PR 149 закрыт, переделан как 150).
+- **Применять:** Перед веткой: checkout main; fetch; reset --hard origin/main; после мерджа удалять локальную ветку.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/1590a29ca8094c4d462691ff70592a2699099e21/docs/SUCCESS_SUMERKI_I_PEPEL_2026-10-21.md) · SHA 1590a29ca8094c4d462691ff70592a2699099e21
+
 ## regression/accepted-actions
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-owner-test4-regressions
 - **Наблюдение:** Погружение, прыжок, удар в воде и дождь ломались незаметно при дальнейших этапах.
@@ -110,6 +116,12 @@
 - **Наблюдение:** Число мёртвой зоны отличалось от спеки, а выравнивание портала считалось look·look.
 - **Применять:** Числа брать из действующей спецификации и сравнивать независимые величины в тестах.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stage10-spec-number-and-tautology.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
+
+## tests/swiftshader-fps-relative
+- 2026-10-21 · baseline · technical · 2026-10-21-swiftshader-fps-relative
+- **Наблюдение:** FPS в Chromium на swiftshader (программная графика) годится для сравнения до/после, но не говорит о FPS на телефоне.
+- **Применять:** Сравнивать только на одной сцене, одном seed, разрешении и renderer; iPhone отдельно, не заявлять без теста.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/1590a29ca8094c4d462691ff70592a2699099e21/docs/SUCCESS_SUMERKI_I_PEPEL_2026-10-21.md) · SHA 1590a29ca8094c4d462691ff70592a2699099e21
 
 ## tests/synthetic-vs-real-shore
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-review-contradicted-short-runs
