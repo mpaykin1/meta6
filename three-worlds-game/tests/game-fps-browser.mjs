@@ -3,6 +3,8 @@
 // and intentionally introduces no performance pass/fail threshold.
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import {execFile as execFileCallback} from 'node:child_process';
+import {promisify} from 'node:util';
 import {mkdir,readFile,writeFile,unlink,stat} from 'node:fs/promises';
 import path from 'node:path';
 
@@ -30,14 +32,17 @@ const summarize=deltas=>{
  };
 };
 await mkdir(root,{recursive:true});
-// Expose existing production pass instances only inside this disposable test page.
-// The shipped index remains byte-identical to the pinned offline build.
+// Expose existing production pass instances only inside a disposable build made by
+// the same pinned offline builder. Shipped source/index files remain untouched.
 const instrumentedPath=path.join(root,'postfx-instrumented.html');
-const marker='window.__isle={';
-const productionHtml=await readFile('three-worlds-game/index.html','utf8');
-assert.equal(productionHtml.split(marker).length,2,'post-FX instrumentation marker must be unique');
-await writeFile(instrumentedPath,productionHtml.replace(marker,
+const marker='window.__isle = {';
+const productionSource=await readFile('three-worlds-game/index.source.html','utf8');
+assert.equal(productionSource.split(marker).length,2,'post-FX instrumentation marker must be unique');
+await writeFile(instrumentedPath,productionSource.replace(marker,
  `${marker}\n  postFx: { composer, bloom, dofH, dofV, finalPass },`));
+await promisify(execFileCallback)(process.execPath,['three-worlds-game/tools/build-offline.cjs'],{env:{
+ ...process.env,THREE_WORLDS_SOURCE:instrumentedPath,THREE_WORLDS_OUTPUT:instrumentedPath
+}});
 const testUrl=new URL('evidence/performance/postfx-instrumented.html',base).href;
 const browser=await chromium.launch({headless:true,args:[
  '--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader',
