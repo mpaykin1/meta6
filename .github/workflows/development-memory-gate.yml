@@ -1,0 +1,39 @@
+name: Development memory integrity
+on:
+  pull_request:
+    paths:
+      - 'automation/tools/compact_experience.py'
+      - 'automation/prompts/chatgpt-autotask.md'
+      - 'docs/development-memory/**'
+      - 'docs/weekly-review/**'
+      - 'docs/autotask-reports/**'
+      - '.github/workflows/development-memory-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'automation/tools/compact_experience.py'
+      - 'automation/prompts/chatgpt-autotask.md'
+      - 'docs/development-memory/**'
+      - 'docs/weekly-review/**'
+      - 'docs/autotask-reports/**'
+      - '.github/workflows/development-memory-gate.yml'
+permissions:
+  contents: read
+jobs:
+  memory-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Self-test conflict and dedup rules
+        run: python3 automation/tools/compact_experience.py --self-test
+      - name: Validate evidence ledger and deterministic compaction
+        run: python3 automation/tools/compact_experience.py --check
+      - name: Ensure live task prompt still routes to the memory
+        run: |
+          grep -Fq 'docs/development-memory/INDEX.md' automation/prompts/chatgpt-autotask.md
+          grep -Fq 'ashen-sumerek/' automation/prompts/chatgpt-autotask.md
+          grep -Fq 'underwater-sumerek/' automation/prompts/chatgpt-autotask.md
