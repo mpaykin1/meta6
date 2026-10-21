@@ -5,6 +5,8 @@ on:
       - 'automation/tools/cross_repo_*.py'
       - 'automation/tools/tests/test_cross_repo_*.py'
       - 'docs/development-memory/cross-repo/**'
+      - 'docs/development-memory/events.jsonl'
+      - 'automation/prompts/chatgpt-autotask.md'
       - '.github/workflows/cross-repo-memory.yml'
   push:
     branches: [main]
@@ -12,6 +14,8 @@ on:
       - 'automation/tools/cross_repo_*.py'
       - 'automation/tools/tests/test_cross_repo_*.py'
       - 'docs/development-memory/cross-repo/**'
+      - 'docs/development-memory/events.jsonl'
+      - 'automation/prompts/chatgpt-autotask.md'
       - '.github/workflows/cross-repo-memory.yml'
 permissions:
   contents: read
@@ -23,7 +27,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Test recall
+      - name: Unit tests
         run: python3 -m unittest discover -s automation/tools/tests -p 'test_cross_repo_*.py'
-      - name: Check inventory script syntax
+      - name: Syntax checks
         run: python3 -m py_compile automation/tools/cross_repo_inventory.py automation/tools/cross_repo_recall.py
+      - name: Recall index deterministic regeneration
+        run: |
+          python3 automation/tools/cross_repo_recall.py
+          python3 automation/tools/cross_repo_recall.py --check
+      - name: Legacy memory integrity
+        run: python3 automation/tools/compact_experience.py --check
