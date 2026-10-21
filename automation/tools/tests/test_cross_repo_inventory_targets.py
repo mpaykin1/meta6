@@ -23,6 +23,21 @@ class TargetedInventoryTests(unittest.TestCase):
         self.assertEqual(result["repository_count"], 3)
         self.assertEqual(result["coverage"], "PARTIAL")
 
+    def test_large_repo_does_not_starve_other_targets(self):
+        names = ["mpaykin1/meta6", "mpaykin1/World_server", "mpaykin1/world-server-tech-lab"]
+        def fake_fetch(path):
+            return {"full_name": path.removeprefix("/repos/"), "default_branch": "main"}
+        def fake_pages(path, maximum):
+            count = 100 if path.endswith("/meta6/branches") else 1
+            for i in range(count):
+                yield {"name": f"branch-{i:03d}", "commit": {"sha": f"{i+1:040x}"}}
+        with patch.object(mod, "fetch", side_effect=fake_fetch), patch.object(mod, "pages", side_effect=fake_pages):
+            first = mod.scan("mpaykin1", 3, 10, {}, names)
+            second = mod.scan("mpaykin1", 3, 10, first, names)
+        self.assertEqual(first["next_repo"], 1)
+        self.assertIn("mpaykin1/World_server", second["repositories"])
+        self.assertIn("mpaykin1/world-server-tech-lab", second["repositories"])
+
     def test_reject_other_owner(self):
         with self.assertRaises(ValueError):
             mod.scan("mpaykin1", 3, 75, {}, ["someone/other"])
