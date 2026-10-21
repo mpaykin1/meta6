@@ -6,6 +6,7 @@ import pathlib
 import subprocess
 import sys
 import time
+import contextlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 TOOLS = ROOT / "automation/tools"
@@ -52,7 +53,13 @@ def main():
     if args.plan:
         print(json.dumps({"commands": commands, "coverage": "PARTIAL"}, indent=2))
         return
-    results = run(commands)
+    from cross_repo_lease import lease
+    try:
+        with lease(ROOT / ".cross-repo-memory.lock"):
+            results = run(commands)
+    except RuntimeError as error:
+        print(json.dumps({"status":"BLOCKED", "coverage":"PARTIAL", "reason":str(error)}))
+        raise SystemExit(3)
     print(json.dumps({"status": "PASS" if all(r["returncode"] == 0 for r in results) else "INCOMPLETE",
                       "coverage": "PARTIAL", "results": results}, ensure_ascii=False, indent=2))
     if any(r["returncode"] for r in results):
