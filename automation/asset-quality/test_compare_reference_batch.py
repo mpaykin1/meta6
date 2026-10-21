@@ -85,4 +85,14 @@ class BatchReferenceTests(unittest.TestCase):
             report=audit(assets,refs)
             self.assertEqual(report["coverage"]["ratio"],0.5)
             self.assertFalse(report["coverage"]["complete"])
+    def test_missing_asset_manifest_unknown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);assets=root/"assets";refs=root/"refs"
+            assets.mkdir();refs.mkdir()
+            Image.new("RGBA",(2,2)).save(assets/"a.png")
+            Image.new("RGBA",(2,2)).save(refs/"a.png")
+            (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"a","candidate":"a.png","reference":"a.png"}]}))
+            report=audit(assets,refs)
+            self.assertEqual(report["status"],"UNKNOWN")
+            self.assertEqual(report["reason"],"asset_manifest_missing")
 if __name__=="__main__":unittest.main()
