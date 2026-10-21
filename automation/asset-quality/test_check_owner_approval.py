@@ -18,7 +18,7 @@ class OwnerApprovalTests(unittest.TestCase):
         self.refs.write_text('{"comparisons":[]}',encoding="utf-8")
     def record(self,approved=True,reviewer="owner"):
         record={"approved":approved,"reviewer":reviewer,
-                "reviewed_at":"2026-10-21T00:00:00Z","evidence":["manual-art-review"],
+                "reviewed_at":"2026-10-21T00:00:00Z","evidence":[{"path":"manual-art-review","sha256":hashlib.sha256((self.approval.parent/"manual-art-review").read_bytes()).hexdigest()}],
                 "asset_manifest_sha256":hashlib.sha256(self.assets.read_bytes()).hexdigest(),
                 "reference_manifest_sha256":hashlib.sha256(self.refs.read_bytes()).hexdigest()}
         self.approval.write_text(json.dumps(record),encoding="utf-8")
@@ -60,9 +60,13 @@ class OwnerApprovalTests(unittest.TestCase):
     def test_evidence_path_traversal_fails(self):
         self.record()
         record=json.loads(self.approval.read_text(encoding="utf-8"))
-        record["evidence"]=["../outside"]
+        record["evidence"]=[{"path":"../outside","sha256":"0"*64}]
         self.approval.write_text(json.dumps(record),encoding="utf-8")
         self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"unsafe_evidence_path")
+    def test_modified_evidence_fails(self):
+        self.record()
+        (self.approval.parent/"manual-art-review").write_text("tampered",encoding="utf-8")
+        self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"evidence_digest_mismatch")
     def test_malformed_json_fails(self):
         self.approval.write_text("{",encoding="utf-8")
         self.assertEqual(verify(self.approval,self.assets,self.refs)["status"],"FAIL")
