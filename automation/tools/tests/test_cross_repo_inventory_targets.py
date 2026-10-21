@@ -34,7 +34,7 @@ class TargetedInventoryTests(unittest.TestCase):
         with patch.object(mod, "fetch", side_effect=fake_fetch), patch.object(mod, "pages", side_effect=fake_pages):
             first = mod.scan("mpaykin1", 3, 10, {}, names)
             second = mod.scan("mpaykin1", 3, 10, first, names)
-        self.assertEqual(first["next_repo"], 1)
+        self.assertEqual(first["next_repo"], 2)
         self.assertIn("mpaykin1/World_server", second["repositories"])
         self.assertIn("mpaykin1/world-server-tech-lab", second["repositories"])
 
