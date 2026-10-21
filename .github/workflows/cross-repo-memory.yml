@@ -4,6 +4,7 @@ on:
     paths:
       - 'automation/tools/cross_repo_*.py'
       - 'automation/tools/memory_preflight.py'
+      - 'automation/tools/tests/test_cross_repo_runner.py'
       - 'automation/tools/tests/test_memory_preflight*.py'
       - 'automation/tools/tests/test_cross_repo_*.py'
       - 'docs/development-memory/cross-repo/**'
@@ -49,5 +50,7 @@ jobs:
         run: python3 automation/tools/cross_repo_metrics.py
       - name: Verify bounded runner plan
         run: python3 automation/tools/cross_repo_runner.py --offline --topic "ci memory smoke" --plan
+      - name: Exercise offline runner end to end
+        run: python3 automation/tools/cross_repo_runner.py --offline --topic "ci memory smoke"
       - name: Legacy memory integrity
         run: python3 automation/tools/compact_experience.py --check
