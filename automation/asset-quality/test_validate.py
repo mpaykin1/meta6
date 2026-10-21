@@ -40,4 +40,13 @@ class QualityTests(unittest.TestCase):
     def test_padding(self):
         im=Image.open(self.root/"sprite.png");im.putpixel((0,0),(0,0,0,255));im.save(self.root/"sprite.png")
         self.assertIn("padding_2px",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_boolean_stage_rejected(self):
+        self.entry["stage"]=True
+        self.assertIn("stage_0_4",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_boolean_frames_rejected(self):
+        self.entry["frames"]=True
+        self.assertIn("frames",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_empty_sprite_path_rejected(self):
+        self.entry["file"]=""
+        self.assertIn("file_path",[x["rule"] for x in self.check(self.entry)["issues"]])
 if __name__=="__main__":unittest.main()
