@@ -3,7 +3,7 @@
 // and intentionally introduces no performance pass/fail threshold.
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile,stat} from 'node:fs/promises';
+import {mkdir,readFile,writeFile,unlink,stat} from 'node:fs/promises';
 import path from 'node:path';
 
 const root='three-worlds-game/evidence/performance';
@@ -30,6 +30,15 @@ const summarize=deltas=>{
  };
 };
 await mkdir(root,{recursive:true});
+// Expose existing production pass instances only inside this disposable test page.
+// The shipped index remains byte-identical to the pinned offline build.
+const instrumentedPath=path.join(root,'postfx-instrumented.html');
+const marker='window.__isle = {';
+const productionHtml=await readFile('three-worlds-game/index.html','utf8');
+assert.equal(productionHtml.split(marker).length,2,'post-FX instrumentation marker must be unique');
+await writeFile(instrumentedPath,productionHtml.replace(marker,
+ `${marker}\n  postFx: { composer, bloom, dofH, dofV, finalPass },`));
+const testUrl=new URL('evidence/performance/postfx-instrumented.html',base).href;
 const browser=await chromium.launch({headless:true,args:[
  '--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader',
  '--enable-unsafe-swiftshader'
@@ -49,7 +58,7 @@ try{
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push('PAGE '+e.message));
    page.on('console',m=>{if(m.type()==='error')errors.push('CONSOLE '+m.text());});
-   await page.goto(base,{waitUntil:'domcontentloaded',timeout:30000});
+   await page.goto(testUrl,{waitUntil:'domcontentloaded',timeout:30000});
    await page.waitForFunction(()=>!!window.__isle?.renderer&&!!window.__isle?.startGame,{timeout:30000});
    const scene=await page.evaluate(async()=>{
     const i=window.__isle,p=i.player;
@@ -105,6 +114,7 @@ try{
     };
    });
    const scaleSweep=[];
+   const postFxAblation=[];
    if(name==='desktop-1440x900'){
     for(const scale of [.5,.4,.3]){
      const sample=await page.evaluate(async scale=>{
@@ -132,15 +142,72 @@ try{
      },scale);
      scaleSweep.push({scale:sample.scale,drawingBuffer:sample.drawingBuffer,metrics:summarize(sample.deltas)});
     }
-    await page.evaluate(()=>{__isle.perf.lock=false;});
     for(let i=1;i<scaleSweep.length;i++){
      const prev=scaleSweep[i-1].drawingBuffer,cur=scaleSweep[i].drawingBuffer;
      assert(cur.width*cur.height<prev.width*prev.height,'scale sweep must reduce rendered pixels');
     }
+    const scenarios=[
+     {name:'all-on',enabled:{bloom:true,dofH:true,dofV:true,finalPass:true}},
+     {name:'bloom-off',enabled:{bloom:false,dofH:true,dofV:true,finalPass:true}},
+     {name:'dof-off',enabled:{bloom:true,dofH:false,dofV:false,finalPass:true}},
+     {name:'final-off',enabled:{bloom:true,dofH:true,dofV:true,finalPass:false}},
+     {name:'bloom-dof-off',enabled:{bloom:false,dofH:false,dofV:false,finalPass:true}}
+    ];
+    for(const scenario of scenarios){
+     const sample=await page.evaluate(async scenario=>{
+      const i=__isle,fx=i.postFx;
+      assertPostFx(fx);
+      i.perf.lock=true;i.perf.scale=.5;dispatchEvent(new Event('resize'));
+      for(const [key,enabled] of Object.entries(scenario.enabled))fx[key].enabled=enabled;
+      await new Promise(resolve=>{
+       let frames=8;
+       const tick=()=>--frames<=0?resolve():requestAnimationFrame(tick);
+       requestAnimationFrame(tick);
+      });
+      const deltas=await new Promise(resolve=>{
+       const values=[];let previous;
+       const tick=now=>{
+        if(previous!==undefined)values.push(now-previous);
+        previous=now;
+        if(values.length>=24)resolve(values);
+        else requestAnimationFrame(tick);
+       };
+       requestAnimationFrame(tick);
+      });
+      const gl=i.renderer.getContext();
+      return {
+       deltas,
+       drawingBuffer:{width:gl.drawingBufferWidth,height:gl.drawingBufferHeight},
+       enabled:Object.fromEntries(Object.keys(scenario.enabled).map(key=>[key,fx[key].enabled])),
+       passCount:fx.composer.passes.length
+      };
+      function assertPostFx(fx){
+       if(!fx||!fx.composer||!fx.bloom||!fx.dofH||!fx.dofV||!fx.finalPass)
+        throw Error('production post-processing diagnostics unavailable');
+      }
+     },scenario);
+     const screenshot=path.join(root,'postfx-'+scenario.name+'.png');
+     await page.screenshot({path:screenshot,animations:'disabled',timeout:30000});
+     assert((await stat(screenshot)).size>7000,'empty post-FX ablation screenshot');
+     assert.deepEqual(sample.enabled,scenario.enabled,scenario.name+' pass state mismatch');
+     assert(sample.passCount>=6,'production post-processing stack is incomplete');
+     postFxAblation.push({
+      name:scenario.name,drawingBuffer:sample.drawingBuffer,enabled:sample.enabled,
+      passCount:sample.passCount,metrics:summarize(sample.deltas),screenshot
+     });
+    }
+    const expectedBuffer=postFxAblation[0].drawingBuffer;
+    assert(postFxAblation.every(x=>x.drawingBuffer.width===expectedBuffer.width&&
+     x.drawingBuffer.height===expectedBuffer.height),'post-FX ablation changed resolution');
+    await page.evaluate(()=>{
+     const fx=__isle.postFx;
+     fx.bloom.enabled=fx.dofH.enabled=fx.dofV.enabled=fx.finalPass.enabled=true;
+     __isle.perf.lock=false;
+    });
    }
    assert.deepEqual(errors,[],'browser errors during FPS sample: '+errors.join(' | '));
-   report.profiles.push({name,scenario:'accepted island test plaza, idle, tod=0.1',scene,metrics,renderInfo,scaleSweep,errors,screenshot});
-   console.log('GAME_FPS_PROFILE '+JSON.stringify({name,scene,metrics,renderInfo,scaleSweep}));
+   report.profiles.push({name,scenario:'accepted island test plaza, idle, tod=0.1',scene,metrics,renderInfo,scaleSweep,postFxAblation,errors,screenshot});
+   console.log('GAME_FPS_PROFILE '+JSON.stringify({name,scene,metrics,renderInfo,scaleSweep,postFxAblation}));
   }finally{await context.close();}
  }
  await writeFile(path.join(root,'game-fps-baseline.json'),JSON.stringify(report,null,2)+'\n');
@@ -148,4 +215,7 @@ try{
   physicalIPhone:report.physicalIPhone,
   profiles:report.profiles.map(({name,scene,metrics})=>({name,resolution:scene.drawingBuffer,metrics}))
  }));
-}finally{await browser.close();}
+}finally{
+ await browser.close();
+ await unlink(instrumentedPath).catch(()=>{});
+}
