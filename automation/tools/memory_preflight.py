@@ -22,6 +22,11 @@ def run(topic, require_match=False, index=INDEX):
             coverage = "PARTIAL"
         else:
             coverage = "VERIFIED"
+        if not isinstance(data.get("entries"), list):
+            return 2, {"status": "BLOCKED", "reason": "Missing or invalid recall entries"}
+        for entry in data["entries"]:
+            if not isinstance(entry, dict) or not isinstance(entry.get("signature"), str) or not isinstance(entry.get("tokens"), list):
+                return 2, {"status": "BLOCKED", "reason": "Malformed recall entry"}
         from cross_repo_recall import recall
         matches = recall(data, topic, 10)
     except (ValueError, KeyError, TypeError) as error:
