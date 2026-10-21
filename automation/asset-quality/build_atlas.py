@@ -9,8 +9,10 @@ def build(root, manifest, output, max_size=2048, padding=2):
     entries=json.loads(Path(manifest).read_text(encoding="utf8"))["sprites"]
     if not isinstance(entries,list) or not entries: raise ValueError("Empty sprites")
     if not 0<=padding<=64 or max_size<8: raise ValueError("Invalid layout parameters")
-    images=[]
+    images=[]; seen=set()
     for entry in sorted(entries,key=lambda e:e["id"]):
+        if entry["id"] in seen: raise ValueError("Duplicate sprite ID: "+entry["id"])
+        seen.add(entry["id"])
         source=(root/entry["file"]).resolve()
         if not source.is_relative_to(root) or not source.is_file(): raise ValueError("Missing or unsafe sprite: "+entry["id"])
         with Image.open(source) as im: image=im.convert("RGBA")
@@ -19,8 +21,10 @@ def build(root, manifest, output, max_size=2048, padding=2):
     atlases=[];records=[];canvas=Image.new("RGBA",(max_size,max_size),(0,0,0,0))
     x=y=row_height=page=used_width=used_height=0
     output.mkdir(parents=True,exist_ok=True)
+    for stale in output.glob("atlas-*.png"):
+        stale.unlink()
     def save_page():
-        if canvas.getbbox():
+        if used_width > 0 and used_height > 0:
             filename=f"atlas-{page:03d}.png"
             canvas.crop((0,0,max(1,used_width),max(1,used_height))).save(output/filename)
             atlases.append(filename)
