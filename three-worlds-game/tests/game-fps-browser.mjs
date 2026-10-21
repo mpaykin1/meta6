@@ -57,11 +57,12 @@ try{
      gpuVendor:debug?gl.getParameter(debug.UNMASKED_VENDOR_WEBGL):gl.getParameter(gl.VENDOR),
      gpuRenderer:debug?gl.getParameter(debug.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),
      webglVersion:gl.getParameter(gl.VERSION),
+     rendererIsOriginalCanvas:i.renderer.domElement===document.querySelector('#c'),
      canvasCount:document.querySelectorAll('canvas').length
     };
    });
    assert.equal(scene.state,'play','game must be running during FPS sample');
-   assert.equal(scene.canvasCount,1,'FPS sample must use the original game canvas');
+   assert(scene.rendererIsOriginalCanvas,'FPS sample must use the original game renderer canvas');
    const deltas=await page.evaluate(sampleFrames=>new Promise(resolve=>{
     const values=[];let previous;
     const tick=now=>{
