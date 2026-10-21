@@ -73,9 +73,10 @@ try{
  const atlasHash=createHash('sha256').update(atlas).digest('hex');
  if(atlasHash!=='69946980330e5e15d640badf5e59584ef0ebb0e91aed48276ef318491c8cec6b')throw Error('SVG reuse changed the rendered atlas '+atlasHash);
  const samples=[];
- for(const [name,x,y] of [['front-idle',0,0],['front-stride',0,192],['side-idle',192,0],['rear-stride',384,192]]){
+ for(const [name,direction,frame] of [['front-idle',0,0],['right-idle',2,0],['rear-idle',4,0],['left-idle',6,0]]){
+  const x=frame*96,y=direction*96;
   const png=await page.screenshot({path:`${out}/scout-${name}.png`,clip:{x,y,width:96,height:96},omitBackground:true});
-  samples.push({name,sha256:createHash('sha256').update(png).digest('hex'),bytes:png.length});
+  samples.push({name,direction,frame,cell:{x,y},sha256:createHash('sha256').update(png).digest('hex'),bytes:png.length});
  }
  if(new Set(samples.map(x=>x.sha256)).size!==samples.length)throw Error('rendered direction/frame samples are identical');
  const labPreviewPerformance=await page.evaluate(async()=>{
@@ -114,8 +115,10 @@ try{
  const referenceProjection={parts:reference.parts,voxels:reference.voxels,paletteColors:reference.paletteColors,directions:reference.directions,
   sha256:createHash('sha256').update(referencePng).digest('hex'),bytes:referencePng.length,
   renderer:'deterministic isometric projection of actual scavenger voxel grids and source palette'};
+ if(samples.map(sample=>sample.direction).join(',')!==reference.directions.join(',')||samples.some(sample=>sample.frame!==0))
+  throw Error('candidate/reference cardinal directions are not directly comparable '+JSON.stringify({samples,reference:reference.directions}));
  const comparison={reference:referenceProjection,candidate:{atlasSha256:atlasHash,samples},visualParity:'UNKNOWN',
-  reviewNote:'Evidence makes source and candidate inspectable side by side; only Claude review may decide parity.'};
+  reviewNote:'Reference and candidate now expose matching cardinal directions 0/2/4/6 at candidate idle frame 0; only Claude review may decide parity.'};
  await writeFile(out+'/scout-comparison.json',JSON.stringify(comparison,null,2)+'\n');
  const evidence={...info,atlas:{sha256:atlasHash,bytes:atlas.length},samples,referenceProjection,
   browser:'Playwright Chromium 1.56.1 / SwiftShader',resolution:'800x800 DPR1',labPreviewPerformance,visualParity:'UNKNOWN',gameFpsP50P95:'UNKNOWN',gameIntegration:false};
