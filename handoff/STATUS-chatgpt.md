@@ -1,3 +1,11 @@
+# 2026-10-21T05:43:44Z — graphics/FPS post-FX attribution
+heartbeat: 2026-10-21T05:43:44Z
+role: developer/performance evidence
+stage: graphics-fps
+doing: PR #160 exact head 993c6dada89e14d58caef9ba30b5656f4562a5ea; fixed-resolution post-FX ablation; CI pending
+waiting: exact-head permanent gate + Claude review 122; physical iPhone/WebKit and owner PASS/FAIL UNKNOWN
+main_sha: 4ee5c9ff5c0b484501a4ce40dbf6d689c6f668c6
+
 agent: chatgpt
 heartbeat: 2026-10-19T20:28:53.676Z
 role: developer
