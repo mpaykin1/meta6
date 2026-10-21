@@ -14,6 +14,8 @@ on:
     branches: [main]
     paths:
       - 'automation/tools/cross_repo_*.py'
+      - 'automation/tools/memory_preflight.py'
+      - 'automation/tools/tests/test_memory_preflight*.py'
       - 'automation/tools/tests/test_cross_repo_*.py'
       - 'docs/development-memory/cross-repo/**'
       - 'docs/development-memory/events.jsonl'
