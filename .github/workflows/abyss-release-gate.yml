@@ -1,0 +1,33 @@
+name: ABYSS Production Release Gate
+on:
+  workflow_dispatch:
+jobs:
+  release-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install Pillow==11.3.0
+      - name: Run asset unit tests
+        run: python -m unittest discover -s automation/asset-quality -p 'test_*.py' -v
+      - name: Validate installed production sprites
+        run: |
+          test -f abyss-glow/assets/manifest.json
+          python automation/asset-quality/validate.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json
+          python automation/asset-quality/check_animation.py --manifest abyss-glow/assets/manifest.json --output asset-animation-report.json
+          python automation/asset-quality/audit_pack.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --requirements automation/asset-quality/abyss-requirements.json --output asset-quality-audit.json
+      - name: Require approved image references
+        run: |
+          python automation/asset-quality/compare_reference_batch.py --root abyss-glow/assets --references abyss-glow/references --output asset-visual-report.json --require-assets
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: abyss-release-gate-evidence
+          path: |
+            asset-quality-audit.json
+            asset-animation-report.json
+            asset-visual-report.json
+          if-no-files-found: warn
