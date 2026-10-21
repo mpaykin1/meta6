@@ -30,8 +30,15 @@ def pages(path, max_pages):
         yield from data
         if len(data) < 100:
             break
-def scan(owner, max_repos, max_branches, previous):
-    repositories = list(pages(f"/users/{urllib.parse.quote(owner)}/repos?type=owner&sort=full_name", 20))
+def scan(owner, max_repos, max_branches, previous, target_repos=None):
+    if target_repos:
+        repositories = []
+        for name in dict.fromkeys(target_repos):
+            if len(name.split('/')) != 2 or name.split('/')[0] != owner or not all(part.replace('-', '').replace('_', '').replace('.', '').isalnum() for part in name.split('/')):
+                raise ValueError('Invalid or cross-owner target repository: ' + name)
+            repositories.append(fetch('/repos/' + urllib.parse.quote(name, safe='/')))
+    else:
+        repositories = list(pages(f"/users/{urllib.parse.quote(owner)}/repos?type=owner&sort=full_name", 20))
     repositories = sorted(repositories, key=lambda r: r["full_name"])
     old = previous.get("repositories", {})
     result = dict(old)
@@ -76,6 +83,7 @@ def scan(owner, max_repos, max_branches, previous):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--owner", default="mpaykin1")
+    parser.add_argument("--repo", action="append", help="Explicit owner/repo target; repeat to scan only named repositories")
     parser.add_argument("--max-repos", type=int, default=3)
     parser.add_argument("--max-branches", type=int, default=75)
     parser.add_argument("--output", type=pathlib.Path, default=STATE)
@@ -94,7 +102,7 @@ def main():
         return
     previous = json.loads(args.output.read_text(encoding="utf-8")) if args.output.exists() else {}
     try:
-        result = scan(args.owner, args.max_repos, args.max_branches, previous)
+        result = scan(args.owner, args.max_repos, args.max_branches, previous, args.repo)
     except (urllib.error.URLError, ValueError) as exc:
         print("Scan incomplete; checkpoint unchanged: " + str(exc), file=sys.stderr)
         raise SystemExit(2)
