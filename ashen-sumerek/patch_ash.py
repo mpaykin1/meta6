@@ -1,5 +1,5 @@
 import re
-s=open('/home/claude/isle/base.html').read()
+s=open(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)),'base-artifact-b94ef394.html')).read()
 def rep(old,new,cnt=1):
     global s
     assert s.count(old)==cnt,(s.count(old),old[:80])
