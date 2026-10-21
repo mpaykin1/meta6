@@ -1,0 +1,23 @@
+name: Asset Quality (scoped)
+on:
+  pull_request:
+    paths:
+      - 'abyss-glow/assets/**'
+      - 'automation/asset-quality/**'
+      - '.github/workflows/abyss-asset-quality.yml'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install Pillow==11.3.0
+      - name: Validate production assets
+        run: |
+          if [ -d abyss-glow/assets ]; then
+            python automation/asset-quality/validate.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --output asset-quality-report.json
+          else
+            echo 'No production assets yet; gate bootstrap only'
+          fi
