@@ -22,3 +22,8 @@
 - Example atlas: `python automation/asset-quality/build_atlas.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --output build/atlas`.
 - Do not run these build commands in-place on canonical originals. Owner approval required before accepting palette quantization.
 - Remaining release blockers: full MD extraction, source-model parity, actual four-layer art, frame/rig QA, browser scene, mobile FPS, owner visual approval, evidence archive.
+
+## v0.3 — Visual review
+- Generate a contact sheet with `python automation/asset-quality/review_sheet.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --output build/review.png`.
+- Pixel content is preserved without resampling. Review sheets are evidence for human review, not automated artistic approval.
+- The gate remains UNKNOWN for browser runtime, original art parity and real-device FPS until independently verified.
