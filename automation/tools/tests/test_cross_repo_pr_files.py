@@ -20,6 +20,14 @@ class PRFilesTests(unittest.TestCase):
         self.assertEqual(item["status"],"CANDIDATE_UNVERIFIED")
         self.assertTrue(item["files_inspected"])
         self.assertEqual(len(calls),1)
+    def test_truncated_file_evidence_fails_closed(self):
+        state={"mpaykin1/meta6":{"cursor":1,"candidates":{"10":{"pr":10,"status":"CANDIDATE_UNVERIFIED"}}}}
+        def fake(url):
+            return [{"filename":"file"+str(i),"status":"modified","additions":1,
+                     "deletions":0,"sha":"a"*40} for i in range(100)]
+        with self.assertRaisesRegex(ValueError, "incomplete evidence"):
+            mod.enrich("mpaykin1/meta6",state,request=fake)
+        self.assertNotIn("files_inspected",state["mpaykin1/meta6"]["candidates"]["10"])
     def test_bad_limit(self):
         with self.assertRaises(ValueError):
             mod.enrich("mpaykin1/meta6",{},0)
