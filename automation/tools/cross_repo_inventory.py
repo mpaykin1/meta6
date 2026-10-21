@@ -53,7 +53,9 @@ def scan(owner, max_repos, max_branches, previous):
         for b in batch:
             existing["branches"][b["name"]] = {
                 "head_sha": b["commit"]["sha"],
-                "indexed_sha": existing["branches"].get(b["name"], {}).get("indexed_sha"),
+                "indexed_sha": (existing["branches"].get(b["name"], {}).get("indexed_sha")
+                                if existing["branches"].get(b["name"], {}).get("head_sha") == b["commit"]["sha"]
+                                else None),
                 "status": "DISCOVERED",
             }
         existing["next_branch"] = branch_cursor + len(batch)
