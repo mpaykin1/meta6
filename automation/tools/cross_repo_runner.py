@@ -15,7 +15,8 @@ DEFAULT_REPOS = ("mpaykin1/meta6", "mpaykin1/World_server", "mpaykin1/world-serv
 def plan(repos, topic, skip_network):
     commands = []
     if not skip_network:
-        commands.append([sys.executable, str(TOOLS/"cross_repo_inventory.py"), "--max-repos", "2", "--max-branches", "40"])
+        commands.append([sys.executable, str(TOOLS/"cross_repo_inventory.py"), "--max-repos", str(len(repos)), "--max-branches", "75",
+                         *[arg for repo in repos for arg in ("--repo", repo)]])
         commands.append([sys.executable, str(TOOLS/"cross_repo_pr_evidence.py"),
                          *[arg for repo in repos for arg in ("--repo", repo)], "--limit", "10"])
         commands.append([sys.executable, str(TOOLS/"cross_repo_pr_files.py"),
