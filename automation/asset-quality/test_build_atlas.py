@@ -22,4 +22,19 @@ class AtlasTests(unittest.TestCase):
             root=Path(tmp);manifest=root/"manifest.json"
             manifest.write_text(json.dumps({"sprites":[{"id":"x","file":"../outside.png"}]}))
             with self.assertRaises(ValueError):build(root,manifest,root/"out")
+    def test_transparent_atlas_page_written(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            Image.new("RGBA",(4,4),(0,0,0,0)).save(root/"blank.png")
+            manifest=root/"manifest.json"
+            manifest.write_text(json.dumps({"sprites":[{"id":"blank","file":"blank.png"}]}))
+            self.assertEqual(build(root,manifest,root/"out",max_size=16),(1,1))
+            self.assertTrue((root/"out"/"atlas-000.png").is_file())
+    def test_duplicate_ids_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            Image.new("RGBA",(4,4),(0,0,0,255)).save(root/"a.png")
+            manifest=root/"manifest.json"
+            manifest.write_text(json.dumps({"sprites":[{"id":"a","file":"a.png"},{"id":"a","file":"a.png"}]}))
+            with self.assertRaises(ValueError):build(root,manifest,root/"out")
 if __name__=="__main__":unittest.main()
