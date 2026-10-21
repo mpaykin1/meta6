@@ -43,7 +43,8 @@
       "45 shared SVG definitions replace 896 repeated geometry instances, reducing raw atlas bytes by 52.83% while CI locks the full raster hash",
       "compact r* definition IDs and short data-d/data-a/data-f/data-m evidence markers reduce metadata without changing rendered geometry",
       "CI now renders four deterministic projections from the actual Ash scavenger voxel grids and source palette beside candidate artifacts; this adds review evidence without claiming parity",
-      "a single CI contact sheet places original source projections and candidate idle frames in matching 0/2/4/6 columns for direct review"
+      "a single CI contact sheet places original source projections and candidate idle frames in matching 0/2/4/6 columns for direct review",
+      "a separate CI motion strip exposes all eight front walk frames and records raster plus geometry-signature counts"
     ],
     "performanceEvidence": {
       "labPreviewFrameTimeP50P95": "measured on 179 requestAnimationFrame intervals while cycling 64 atlas cells; see CI scout-render.json",
@@ -51,7 +52,7 @@
       "gameFpsP50P95": "UNKNOWN (candidate is not integrated into the game)"
     },
     "directionEvidence": "64 cells contain one authored facing cue each; 8 unique cue types, each repeated for all 8 animation frames",
-    "motionEvidence": "64 beacon samples; five unique radii and five unique opacity states, repeated consistently across 8 directions",
+    "motionEvidence": "64 beacon samples plus three-worlds-game/evidence/model-lab/scout-front-motion.png; CI requires at least five unique raster frames and five unique non-beacon geometry signatures across front frames 0-7",
     "optimizationEvidence": {
       "baselineFileBytes": 151303,
       "candidateFileBytes": 61644,
@@ -71,7 +72,8 @@
       "source": "actual scavenger voxel grids and source palette rendered as four deterministic isometric directions",
       "candidateSamples": "matching cardinal directions 0/2/4/6, all at idle frame 0 with explicit atlas cell coordinates",
       "visualParity": "UNKNOWN pending Claude review",
-      "contactSheet": "three-worlds-game/evidence/model-lab/scout-side-by-side.png; original source top, candidate idle bottom, directions 0/2/4/6"
+      "contactSheet": "three-worlds-game/evidence/model-lab/scout-side-by-side.png; original source top, candidate idle bottom, directions 0/2/4/6",
+      "motionStrip": "three-worlds-game/evidence/model-lab/scout-front-motion.png; candidate front frames 0-7, lab evidence only"
     }
   },
   "promotionGate": {
