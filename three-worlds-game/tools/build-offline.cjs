@@ -4,7 +4,7 @@ const dir=path.resolve(__dirname,'..');
 const esbuild=require(process.env.THREE_WORLDS_ESBUILD||'esbuild');
 const threeRoot=process.env.THREE_WORLDS_THREE||path.dirname(path.dirname(require.resolve('three')));
 (async()=>{
- const sourcePath=path.join(dir,'index.source.html');
+ const sourcePath=process.env.THREE_WORLDS_SOURCE||path.join(dir,'index.source.html');
  if(!fs.existsSync(sourcePath))throw Error('index.source.html is required; never bundle generated output recursively');
  let html=fs.readFileSync(sourcePath,'utf8');
  let main=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1];
