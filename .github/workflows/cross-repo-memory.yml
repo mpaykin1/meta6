@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'automation/tools/cross_repo_*.py'
+      - 'automation/tools/memory_preflight.py'
+      - 'automation/tools/tests/test_memory_preflight*.py'
       - 'automation/tools/tests/test_cross_repo_*.py'
       - 'docs/development-memory/cross-repo/**'
       - 'docs/development-memory/events.jsonl'
@@ -28,9 +30,11 @@ jobs:
         with:
           python-version: '3.11'
       - name: Unit tests
-        run: python3 -m unittest discover -s automation/tools/tests -p 'test_cross_repo_*.py'
+        run: |
+          python3 -m unittest discover -s automation/tools/tests -p 'test_cross_repo_*.py'
+          python3 -m unittest discover -s automation/tools/tests -p 'test_memory_preflight*.py'
       - name: Syntax checks
-        run: python3 -m py_compile automation/tools/cross_repo_inventory.py automation/tools/cross_repo_recall.py
+        run: python3 -m py_compile automation/tools/cross_repo_inventory.py automation/tools/cross_repo_recall.py automation/tools/memory_preflight.py
       - name: Recall index deterministic regeneration
         run: |
           python3 automation/tools/cross_repo_recall.py
