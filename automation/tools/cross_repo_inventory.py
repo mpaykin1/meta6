@@ -75,7 +75,10 @@ def scan(owner, max_repos, max_branches, previous, target_repos=None):
             existing["next_branch"] = 0
             repo_cursor += 1
         else:
-            break
+            if target_repos:
+                repo_cursor += 1
+            else:
+                break
     return {"schema_version": 1, "owner": owner, "checked_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
             "next_repo": repo_cursor if repo_cursor < len(repositories) else 0,
             "repository_count": len(repositories), "repositories": result,
