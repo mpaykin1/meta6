@@ -17,6 +17,7 @@ class OwnerApprovalTests(unittest.TestCase):
         self.refs.write_text('{"comparisons":[]}',encoding="utf-8")
     def record(self,approved=True,reviewer="owner"):
         record={"approved":approved,"reviewer":reviewer,
+                "reviewed_at":"2026-10-21T00:00:00Z","evidence":["manual-art-review"],
                 "asset_manifest_sha256":hashlib.sha256(self.assets.read_bytes()).hexdigest(),
                 "reference_manifest_sha256":hashlib.sha256(self.refs.read_bytes()).hexdigest()}
         self.approval.write_text(json.dumps(record),encoding="utf-8")
@@ -39,6 +40,18 @@ class OwnerApprovalTests(unittest.TestCase):
         self.record()
         self.refs.write_text('{"comparisons":[1]}',encoding="utf-8")
         self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"approval_digest_mismatch")
+    def test_missing_review_evidence_fails(self):
+        self.record()
+        record=json.loads(self.approval.read_text(encoding="utf-8"))
+        record["evidence"]=[]
+        self.approval.write_text(json.dumps(record),encoding="utf-8")
+        self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"review_evidence_missing")
+    def test_missing_review_timestamp_fails(self):
+        self.record()
+        record=json.loads(self.approval.read_text(encoding="utf-8"))
+        record.pop("reviewed_at")
+        self.approval.write_text(json.dumps(record),encoding="utf-8")
+        self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"review_timestamp_missing")
     def test_malformed_json_fails(self):
         self.approval.write_text("{",encoding="utf-8")
         self.assertEqual(verify(self.approval,self.assets,self.refs)["status"],"FAIL")
