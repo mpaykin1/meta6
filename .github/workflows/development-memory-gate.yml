@@ -37,3 +37,7 @@ jobs:
           grep -Fq 'docs/development-memory/INDEX.md' automation/prompts/chatgpt-autotask.md
           grep -Fq 'ashen-sumerek/' automation/prompts/chatgpt-autotask.md
           grep -Fq 'underwater-sumerek/' automation/prompts/chatgpt-autotask.md
+      - name: Ensure cross-repository learning is integrated without a new task
+        run: |
+          grep -Fq '## 8. Сквозная память ВСЕХ GitHub-репозиториев и веток' automation/prompts/chatgpt-autotask.md
+          grep -Fq 'Это не шестая автозадача' automation/prompts/chatgpt-autotask.md
