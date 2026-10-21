@@ -22,6 +22,13 @@ def verify(approval_path, asset_manifest, reference_manifest):
             return {"status":"FAIL","reason":"review_timestamp_missing"}
         if not isinstance(record.get("evidence"),list) or not record["evidence"] or any(not isinstance(x,str) or not x.strip() for x in record["evidence"]):
             return {"status":"FAIL","reason":"review_evidence_missing"}
+        for item in record["evidence"]:
+            evidence=Path(item)
+            if evidence.is_absolute() or ".." in evidence.parts or not evidence.parts:
+                return {"status":"FAIL","reason":"unsafe_evidence_path"}
+            resolved=(approval_path.parent/evidence).resolve()
+            if not resolved.is_relative_to(approval_path.parent.resolve()) or not resolved.is_file():
+                return {"status":"FAIL","reason":"evidence_file_missing","path":item}
         return {"status":"PASS","reviewer":record["reviewer"],"reviewed_at":record["reviewed_at"],"evidence_count":len(record["evidence"])}
     except (OSError,ValueError,TypeError) as error:
         return {"status":"FAIL","reason":"invalid_approval","detail":str(error)}

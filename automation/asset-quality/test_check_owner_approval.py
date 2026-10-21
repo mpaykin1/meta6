@@ -13,6 +13,7 @@ class OwnerApprovalTests(unittest.TestCase):
         self.assets=root/"assets.json"
         self.refs=root/"refs.json"
         self.approval=root/"approval.json"
+        (root/"manual-art-review").write_text("reviewed",encoding="utf-8")
         self.assets.write_text('{"sprites":[]}',encoding="utf-8")
         self.refs.write_text('{"comparisons":[]}',encoding="utf-8")
     def record(self,approved=True,reviewer="owner"):
@@ -52,6 +53,16 @@ class OwnerApprovalTests(unittest.TestCase):
         record.pop("reviewed_at")
         self.approval.write_text(json.dumps(record),encoding="utf-8")
         self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"review_timestamp_missing")
+    def test_missing_evidence_file_fails(self):
+        self.record()
+        (self.approval.parent/"manual-art-review").unlink()
+        self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"evidence_file_missing")
+    def test_evidence_path_traversal_fails(self):
+        self.record()
+        record=json.loads(self.approval.read_text(encoding="utf-8"))
+        record["evidence"]=["../outside"]
+        self.approval.write_text(json.dumps(record),encoding="utf-8")
+        self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"unsafe_evidence_path")
     def test_malformed_json_fails(self):
         self.approval.write_text("{",encoding="utf-8")
         self.assertEqual(verify(self.approval,self.assets,self.refs)["status"],"FAIL")
