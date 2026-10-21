@@ -35,5 +35,13 @@ jobs:
         run: |
           python3 automation/tools/cross_repo_recall.py
           python3 automation/tools/cross_repo_recall.py --check
+      - name: Validate reusable component catalog
+        run: python3 automation/tools/cross_repo_components.py --check
+      - name: Report regression coverage gaps (non-blocking until mapped)
+        run: python3 automation/tools/cross_repo_regressions.py
+      - name: Report observed cross-repo coverage
+        run: python3 automation/tools/cross_repo_metrics.py
+      - name: Verify bounded runner plan
+        run: python3 automation/tools/cross_repo_runner.py --offline --topic "ci memory smoke" --plan
       - name: Legacy memory integrity
         run: python3 automation/tools/compact_experience.py --check
