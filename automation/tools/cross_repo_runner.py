@@ -30,10 +30,14 @@ def plan(repos, topic, skip_network):
 def run(commands, executor=subprocess.run):
     results = []
     for command in commands:
-        outcome = executor(command, cwd=ROOT, capture_output=True, text=True, timeout=120)
-        results.append({"step": pathlib.Path(command[1]).name, "returncode": outcome.returncode,
-                        "stdout": outcome.stdout[-3000:], "stderr": outcome.stderr[-1000:]})
-        if outcome.returncode:
+        try:
+            outcome = executor(command, cwd=ROOT, capture_output=True, text=True, timeout=120)
+            code, stdout, stderr = outcome.returncode, outcome.stdout or "", outcome.stderr or ""
+        except subprocess.TimeoutExpired:
+            code, stdout, stderr = 124, "", "Step timed out after 120 seconds"
+        results.append({"step": pathlib.Path(command[1]).name, "returncode": code,
+                        "stdout": stdout[-3000:], "stderr": stderr[-1000:]})
+        if code:
             break
     return results
 
