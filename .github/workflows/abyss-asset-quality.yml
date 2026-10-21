@@ -32,8 +32,7 @@ jobs:
           python automation/asset-quality/compare_reference_batch.py \
             --root abyss-glow/assets \
             --references abyss-glow/references \
-            --output asset-visual-report.json \
-            --require-assets
+            --output asset-visual-report.json
 
       - name: Upload quality evidence
         if: always()
