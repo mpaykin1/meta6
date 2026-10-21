@@ -36,12 +36,14 @@ def main():
     p.add_argument("--ledger", type=pathlib.Path, default=LEDGER)
     p.add_argument("--registry", type=pathlib.Path, default=REGISTRY)
     p.add_argument("--strict", action="store_true")
+    p.add_argument("--check-links", action="store_true", help="Block broken registered links without requiring all historical failures to be mapped")
     args = p.parse_args()
     events = [json.loads(s) for s in args.ledger.read_text(encoding="utf-8").splitlines() if s.strip()] if args.ledger.exists() else []
     links = json.loads(args.registry.read_text(encoding="utf-8"))
     result = audit(events, links)
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    if args.strict and (result["unlinked_failure_ids"] or any(x["status"] != "TEST_LINKED_UNVERIFIED_RUNTIME" for x in result["linked"])):
+    invalid = any(x["status"] != "TEST_LINKED_UNVERIFIED_RUNTIME" for x in result["linked"])
+    if (args.strict and (result["unlinked_failure_ids"] or invalid)) or (args.check_links and invalid):
         raise SystemExit(2)
 if __name__ == "__main__":
     main()

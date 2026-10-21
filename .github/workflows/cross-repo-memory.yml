@@ -49,7 +49,7 @@ jobs:
       - name: Validate reusable component catalog
         run: python3 automation/tools/cross_repo_components.py --check
       - name: Report regression coverage gaps (non-blocking until mapped)
-        run: python3 automation/tools/cross_repo_regressions.py
+        run: python3 automation/tools/cross_repo_regressions.py --check-links
       - name: Report observed cross-repo coverage
         run: python3 automation/tools/cross_repo_metrics.py
       - name: Verify bounded runner plan
