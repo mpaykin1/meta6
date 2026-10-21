@@ -56,8 +56,10 @@ def audit(root, references):
         results.append({"status":"FAIL","reason":"uncovered_asset_manifest_sprites","missing":missing[:100],"missing_count":len(missing)})
     if extra:
         results.append({"status":"FAIL","reason":"undeclared_candidate_sprites","extra":extra[:100],"extra_count":len(extra)})
+    coverage=(len(expected_assets & declared_candidates)/len(expected_assets)) if expected_assets else None
     return {"status":"FAIL" if any(x["status"]=="FAIL" for x in results) else "PIXEL_PASS_ART_REVIEW_UNKNOWN",
-            "checked":len(results),"results":results,"artistic_approval":"UNKNOWN"}
+            "checked":len(records),"results":results,"artistic_approval":"UNKNOWN",
+            "coverage":{"expected":len(expected_assets),"declared":len(expected_assets & declared_candidates),"ratio":coverage,"complete":coverage==1.0 if coverage is not None else None}}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()

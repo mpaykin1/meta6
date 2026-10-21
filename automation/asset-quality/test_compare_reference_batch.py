@@ -73,4 +73,16 @@ class BatchReferenceTests(unittest.TestCase):
             (assets/"manifest.json").write_text(json.dumps({"sprites":[]}))
             (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"a","candidate":"a.png","reference":"a.png"}]}))
             self.assertEqual(audit(assets,refs)["reason"],"invalid_asset_manifest")
+    def test_coverage_ratio_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);assets=root/"assets";refs=root/"refs"
+            assets.mkdir();refs.mkdir()
+            for name in ("a.png","b.png"):
+                Image.new("RGBA",(2,2)).save(assets/name)
+            Image.new("RGBA",(2,2)).save(refs/"a.png")
+            (assets/"manifest.json").write_text(json.dumps({"sprites":[{"file":"a.png"},{"file":"b.png"}]}))
+            (refs/"manifest.json").write_text(json.dumps({"comparisons":[{"id":"a","candidate":"a.png","reference":"a.png"}]}))
+            report=audit(assets,refs)
+            self.assertEqual(report["coverage"]["ratio"],0.5)
+            self.assertFalse(report["coverage"]["complete"])
 if __name__=="__main__":unittest.main()
