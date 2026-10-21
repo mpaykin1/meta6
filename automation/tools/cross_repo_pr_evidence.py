@@ -39,13 +39,18 @@ def collect(repo, previous, limit, request=get):
         if not sha or len(sha) != 40:
             continue
         key = str(number)
+        previous_candidate = candidates.get(key, {})
         candidates[key] = {
+            **previous_candidate,
             "pr": number, "title": pr["title"], "merged_at": pr["merged_at"],
             "merge_sha": sha, "url": pr["html_url"],
             "base_branch": pr["base"]["ref"], "source_branch": pr["head"]["ref"],
             "status": "CANDIDATE_UNVERIFIED", "reviewed": False,
-            "note": "Metadata only: inspect actual diff, tests and license before promoting to lessons",
+            "note": "Metadata and changed files are unverified; inspect actual diff, tests and license",
         }
+        if previous_candidate.get("merge_sha") != sha:
+            candidates[key].pop("files_inspected", None)
+            candidates[key].pop("changed_files", None)
     repo_state.update({"cursor": cursor + 1 if len(pulls) == limit else 1,
                        "candidates": candidates, "last_page_count": len(pulls),
                        "checked_utc": dt.datetime.now(dt.timezone.utc).isoformat()})

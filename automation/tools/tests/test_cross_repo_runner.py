@@ -13,8 +13,9 @@ class RunnerTests(unittest.TestCase):
         commands = mod.plan(["mpaykin1/meta6"], "camera", False)
         self.assertEqual([pathlib.Path(c[1]).name for c in commands],
                          ["cross_repo_inventory.py", "cross_repo_pr_evidence.py",
-                          "cross_repo_recall.py", "memory_preflight.py"])
-        self.assertEqual(len(mod.plan([], "camera", True)), 2)
+                          "cross_repo_pr_files.py", "cross_repo_recall.py", "memory_preflight.py",
+                          "cross_repo_components.py", "cross_repo_regressions.py", "cross_repo_metrics.py"])
+        self.assertEqual(len(mod.plan([], "camera", True)), 5)
     def test_fail_fast(self):
         calls = []
         def fake(command, **kwargs):
