@@ -80,6 +80,18 @@ try{
   sampleImages.push({name,direction,data:'data:image/png;base64,'+png.toString('base64')});
  }
  if(new Set(samples.map(x=>x.sha256)).size!==samples.length)throw Error('rendered direction/frame samples are identical');
+ const motionGeometry=await page.evaluate(()=>[...document.querySelectorAll('g[data-d="0"][data-a]')]
+  .sort((a,b)=>Number(a.getAttribute('data-a'))-Number(b.getAttribute('data-a')))
+  .map(cell=>({frame:Number(cell.getAttribute('data-a')),refs:[...cell.querySelectorAll('use')].map(use=>use.getAttribute('href')||use.getAttribute('xlink:href')).join(',')})));
+ if(motionGeometry.length!==8||new Set(motionGeometry.map(sample=>sample.refs)).size<5)
+  throw Error('front animation geometry lacks authored progression '+JSON.stringify(motionGeometry));
+ const motionFrames=[],motionImages=[];
+ for(let frame=0;frame<8;frame++){
+  const png=await page.screenshot({path:`${out}/scout-front-frame-${frame}.png`,clip:{x:frame*96,y:0,width:96,height:96},omitBackground:true});
+  motionFrames.push({direction:0,frame,cell:{x:frame*96,y:0},sha256:createHash('sha256').update(png).digest('hex'),bytes:png.length});
+  motionImages.push('data:image/png;base64,'+png.toString('base64'));
+ }
+ if(new Set(motionFrames.map(sample=>sample.sha256)).size<5)throw Error('front animation raster lacks visible progression '+JSON.stringify(motionFrames));
  const labPreviewPerformance=await page.evaluate(async()=>{
   const root=document.documentElement;
   const frameTimes=[];
@@ -127,10 +139,19 @@ try{
  if(sheetPng.length<20000)throw Error('side-by-side comparison sheet is unexpectedly empty '+sheetPng.length);
  const contactSheet={path:'scout-side-by-side.png',layout:'original source top; candidate idle bottom; directions 0/2/4/6 left-to-right',
   sha256:createHash('sha256').update(sheetPng).digest('hex'),bytes:sheetPng.length};
- const comparison={reference:referenceProjection,candidate:{atlasSha256:atlasHash,samples},contactSheet,visualParity:'UNKNOWN',
-  reviewNote:'One artifact now exposes matching source and candidate directions 0/2/4/6; only Claude review may decide parity.'};
+ const motionPage=await browser.newPage({viewport:{width:768,height:120},deviceScaleFactor:1});
+ const motionCells=motionImages.map((data,frame)=>'<figure><figcaption>front f'+frame+'</figcaption><img src="'+data+'"></figure>').join('');
+ await motionPage.setContent('<style>*{box-sizing:border-box}body{margin:0;width:768px;height:120px;background:#101018;color:#b0aea8;font:12px monospace;display:grid;grid-template-columns:repeat(8,96px)}figure{margin:0;text-align:center}figcaption{height:24px;padding:5px}img{width:96px;height:96px;image-rendering:pixelated}</style>'+motionCells,{waitUntil:'load'});
+ const motionPng=await motionPage.screenshot({path:out+'/scout-front-motion.png',clip:{x:0,y:0,width:768,height:120}});
+ await motionPage.close();
+ if(motionPng.length<10000)throw Error('front motion strip is unexpectedly empty '+motionPng.length);
+ const motionStrip={path:'scout-front-motion.png',layout:'front direction 0; authored frames 0-7 left-to-right',
+  sha256:createHash('sha256').update(motionPng).digest('hex'),bytes:motionPng.length,frames:motionFrames,
+  uniqueRasterFrames:new Set(motionFrames.map(sample=>sample.sha256)).size,uniqueGeometrySignatures:new Set(motionGeometry.map(sample=>sample.refs)).size};
+ const comparison={reference:referenceProjection,candidate:{atlasSha256:atlasHash,samples},contactSheet,motionStrip,visualParity:'UNKNOWN',
+  reviewNote:'Evidence exposes matching source/candidate directions and a separate eight-frame candidate motion strip; only Claude review may decide parity.'};
  await writeFile(out+'/scout-comparison.json',JSON.stringify(comparison,null,2)+'\n');
- const evidence={...info,atlas:{sha256:atlasHash,bytes:atlas.length},samples,referenceProjection,
+ const evidence={...info,atlas:{sha256:atlasHash,bytes:atlas.length},samples,motionStrip,referenceProjection,
   browser:'Playwright Chromium 1.56.1 / SwiftShader',resolution:'800x800 DPR1',labPreviewPerformance,visualParity:'UNKNOWN',gameFpsP50P95:'UNKNOWN',gameIntegration:false};
  await writeFile(out+'/scout-render.json',JSON.stringify(evidence,null,2)+'\n');
  console.log(JSON.stringify(evidence));

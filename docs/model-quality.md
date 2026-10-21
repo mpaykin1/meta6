@@ -27,4 +27,6 @@
 
 | 2026-10-21T00:20Z | gpt-rift-scout-v1 | ash-assets.mjs: scavenger | 15 против 8 | 14 против 14 | 8×8 против 8×8 | 2 / 1 против 1672 / 8 | 61644 B против 62011 B общего исходника | CI собирает единый контактный лист: оригинальный scavenger сверху, кандидат снизу, одинаковые направления 0/2/4/6 по колонкам; hash/размер фиксируются в JSON evidence | visual parity с оригиналом UNKNOWN до REVIEW Claude / game FPS UNKNOWN |
 
+| 2026-10-21T00:50Z | gpt-rift-scout-v1 | ash-assets.mjs: scavenger | 15 против 8 | 14 против 14 | 8×8 против 8×8 | 2 / 1 против 1672 / 8 | 61644 B против 62011 B общего исходника | CI сохраняет отдельную полосу всех 8 front-кадров и требует не менее 5 уникальных raster-кадров и 5 geometry-signatures без опоры на анимацию маяка | visual parity с оригиналом UNKNOWN / game FPS UNKNOWN |
+
 Точные причины оставшихся `UNKNOWN` записаны в `three-worlds-game/models-lab/gpt-rift-scout-v1.metrics.json`. SVG — только изолированный предпросмотр атласа; в `index.source.html`, standalone `index.html` и `models/MANIFEST.json` он не подключён. Метрики эталона фиксирует `three-worlds-game/tests/model-lab-reference-metrics.test.mjs`.
