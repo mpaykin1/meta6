@@ -18,6 +18,7 @@ jobs:
         run: |
           if [ -d abyss-glow/assets ]; then
             python automation/asset-quality/validate.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json
+            python automation/asset-quality/check_animation.py --manifest abyss-glow/assets/manifest.json --output asset-animation-report.json
             python automation/asset-quality/audit_pack.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --requirements automation/asset-quality/abyss-requirements.json --output asset-quality-audit.json
           else
             echo 'Asset coverage UNKNOWN: source assets not installed'
