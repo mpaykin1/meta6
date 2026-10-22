@@ -15,6 +15,12 @@
 - **Применять:** Validate complete frame ranges, consistent frame count, fps and loop, plus pivot drift at most one art pixel unless rootMotion is explicitly declared.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4724864a742ee8824077c32eb6c36fee4c14c3b3
 
+## asset/manifest-attachment-schema
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-attachment-schema
+- **Наблюдение:** ABYSS static gate counted any object in parts as permission for another alpha island and did not validate sockets or hitbox geometry, so an incomplete part declaration could hide a cropped neighbor.
+- **Применять:** Require §8 sockets, hitbox and parts fields; validate bounded finite points, a positive circle hitbox, unique part IDs and complete id/pivot/parent/joint records; count only valid parts when allowing disconnected components.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4cb261e21c125c205dbc2cbe23da8764c2cf4aa3
+
 ## asset/runtime-hard-traceability
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-runtime-hard-traceability
 - **Наблюдение:** ABYSS requirements listed only broad lighting and FPS UNKNOWNs, so omitted coordinate, LOD, terrain, input, pipeline and license HARD gates were not machine-detectable.
