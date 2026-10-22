@@ -22,7 +22,7 @@ function agInit() {
 function agClear() {
   while (agRoot.children.length) { const c = agRoot.children[0]; agRoot.remove(c); c.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.dispose && !o.material.userData.keep) o.material.dispose(); }); }
   ag.lod.length = 0; ag.bbs.length = 0; ag.beams.length = 0; ag.skyL.length = 0; ag.bursts.length = 0; ag.loops.length = 0; ag.fxPool = {};
-  ag.fog = ag.rays = ag.par = ag.pts = ag.rain = ag.cir = null;
+  ag.fog = ag.rays = ag.par = ag.pts = ag.rain = ag.cir = null; ag.fogY = ag.fogAmt = ag.cirAmt = ag.rainAmt = undefined;
   const el = document.getElementById('ashLogo'); if (el) el.hidden = true;
   if (agWarnEl) agWarnEl.style.opacity = '0';
 }
@@ -232,11 +232,24 @@ function agFrame(dt, T) {
   const U = ASH.GU;
   ag.sky.position.copy(cp);
   ag.par.forEach((p) => p.position.set(cp.x, 20, cp.z));
-  ag.fog.position.y = agH(pp.x, pp.z) - 1.2; ag.fog.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z));
+  // fog and low clouds drift on their own through the world: height eases (no snapping on terrain steps), banks come and go on slow cycles
+  const hT = agH(pp.x, pp.z), ek = 1 - Math.exp(-dt * 0.9);
+  ag.fogY = ag.fogY === undefined ? hT : ag.fogY + (hT - ag.fogY) * ek;
+  ag.fog.position.y = ag.fogY - 1.2; ag.fog.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z));
+  const TT = T + 40 + (ag.tOff || 0);
+  const bnk = (a, b, c) => 0.62 * (0.5 + 0.5 * Math.sin(TT * a + c)) + 0.38 * (0.5 + 0.5 * Math.sin(TT * b + c * 2.3));
+  const fogAmt = Math.min(1, Math.max(0, (bnk(0.047, 0.0173, 1.0) - 0.28) / 0.5)), cirAmt = Math.min(1, Math.max(0, (bnk(0.031, 0.0121, 3.1) - 0.25) / 0.5));
+  ag.fogAmt = ag.fogAmt === undefined ? fogAmt : ag.fogAmt + (fogAmt - ag.fogAmt) * (1 - Math.exp(-dt * 0.5));
+  ag.cirAmt = ag.cirAmt === undefined ? cirAmt : ag.cirAmt + (cirAmt - ag.cirAmt) * (1 - Math.exp(-dt * 0.5));
+  ag.fog.children.forEach((f) => { f.material.uniforms.uAmt.value = ag.fogAmt; });
+  ag.cir.children.forEach((f) => { f.material.uniforms.uAmt.value = ag.cirAmt; });
   ag.pts.ash.material.uniforms.uCenter.value.set(cp.x, cp.y, cp.z); ag.pts.black.material.uniforms.uCenter.value.set(cp.x, cp.y - 3, cp.z);
-  ag.cir.position.y = agH(pp.x, pp.z) - 0.2; ag.cir.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z)); ag.pts.dust.material.uniforms.uCenter.value.set(cp.x, cp.y - 4, cp.z);
+  ag.cir.position.y = ag.fogY - 0.2; ag.cir.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z)); ag.pts.dust.material.uniforms.uCenter.value.set(cp.x, cp.y - 4, cp.z);
   // rain follows the Island's ash_rain event
-  const ru = ag.rain.material.uniforms; ru.uCenter.value.copy(cp); ru.uAmt.value = EVT.cur && EVT.cur.id === 'ash_rain' ? EVT.k : 0;
+  const ru = ag.rain.material.uniforms; ru.uCenter.value.copy(cp); const evRain = EVT.cur && EVT.cur.id === 'ash_rain' ? EVT.k : 0;
+  const cycRain = 0.85 * Math.min(1, Math.max(0, (0.5 - ag.fogAmt) / 0.35)) * Math.min(1, Math.max(0, (Math.sin(TT * 0.036 + 0.6) - 0.15) / 0.5));   // дождь Острова приходит, когда туман отплыл, и уходит, когда плывёт новый
+  ag.rainAmt = ag.rainAmt === undefined ? 0 : ag.rainAmt + (Math.max(evRain, cycRain) - ag.rainAmt) * (1 - Math.exp(-dt * 0.7));
+  ru.uAmt.value = ag.rainAmt;
   if (ru.uAmt.value > 0.3) { ag.rainT -= dt; if (ag.rainT <= 0) { ag.rainT = 0.08; const a = Math.random() * TAU, d = 1.5 + Math.random() * 7; const x = pp.x + Math.cos(a) * d, z = pp.z + Math.sin(a) * d; agFx(9, x, agH(x, z) + 0.1, z, 0.7, 0.35, false, 0); } }
   agWarnTick();
   // far billboards (hybrid LOD)

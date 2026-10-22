@@ -6979,14 +6979,15 @@ function makeFogLayers(n = 6) {
   for (let i = 0; i < n; i++) {
     const geo = new THREE.PlaneGeometry(240, 240, 1, 1); geo.rotateX(-PI / 2);
     const m = new SMat({
-      uniforms: uni({ uK: { value: i / n } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      uniforms: uni({ uK: { value: i / n }, uAmt: { value: 1 } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
       vertexShader: `varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
-      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK;
+      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK,uAmt;
 void main(){
   vec2 q=vW.xz+vec2(uTime*.35*(1.+uK),uTime*.12)+uK*53.; float st=fbm(vec2(q.x*.012+q.y*.003,q.y*.055)+fbm(q*.02)*1.3); float gap=fbm(q*.017+7.); float n=smoothstep(.42,.74,st)*smoothstep(.46,.68,gap);
   float dist=length(vW.xz-cameraPosition.xz); float fade=1.-smoothstep(45.,115.,dist);
   float near=smoothstep(.15,1.6,abs(cameraPosition.y-vW.y));
-  float a=n*.11*fade*near; gl_FragColor=vec4(uFogCol*1.1+vec3(.02),a);
+  float bank=smoothstep(.62-.4*uAmt,.86-.4*uAmt,fbm(vW.xz*.0065+vec2(uTime*.021,uTime*.009)+uK*17.));   // широкие полосы тумана плывут мимо
+  float a=n*.10*fade*near*bank; gl_FragColor=vec4(uFogCol*1.1+vec3(.02),a);
 }` });
     const p = new THREE.Mesh(geo, m); p.position.y = .55 + i * 1.05; p.userData.layer = true; p.frustumCulled = false; p.renderOrder = 10 + i; g.add(p);
   }
@@ -7000,20 +7001,20 @@ function makeCirrusLayers(n = 3) {
   for (let i = 0; i < n; i++) {
     const geo = new THREE.PlaneGeometry(220, 220, 1, 1); geo.rotateX(-PI / 2);
     const m = new SMat({
-      uniforms: uni({ uK: { value: i / n } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      uniforms: uni({ uK: { value: i / n }, uAmt: { value: 1 } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
       vertexShader: `varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
-      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK;
+      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK,uAmt;
 void main(){
   float ang=.55+uK*.35; mat2 R=mat2(cos(ang),-sin(ang),sin(ang),cos(ang));
   vec2 q=R*(vW.xz+vec2(uTime*.5*(1.+uK*.6),uTime*.1)+uK*37.);
   float warp=fbm(q*.015+3.)*2.4;
   float band=.5+.5*sin(q.y*.62+warp*2.2);                       // длинные ряды
   float cell=fbm(vec2(q.x*.26,q.y*.95)+fbm(q*.09)*.8);          // мелкие барашки внутри рядов
-  float cover=smoothstep(.34,.72,fbm(q*.012+uK*9.));              // где небо закрыто, где просвет
+  float cover=smoothstep(.62-.4*uAmt,.86-.4*uAmt,fbm(q*.012+uK*9.));              // где небо закрыто, где просвет
   float n=smoothstep(.44,.60,cell*(.5+.8*band))*cover;
   float dist=length(vW.xz-cameraPosition.xz); float fade=1.-smoothstep(40.,105.,dist);
   float near=smoothstep(.0,1.2,abs(cameraPosition.y-vW.y));
-  float a=n*.62*fade*near; gl_FragColor=vec4(uFogCol*1.5+vec3(.05),a);
+  float a=n*.5*fade*near; gl_FragColor=vec4(uFogCol*1.5+vec3(.05),a);
 }` });
     const p = new THREE.Mesh(geo, m); p.position.y = .5 + i * .85; p.frustumCulled = false; p.renderOrder = 12 + i; g.add(p);
   }
@@ -7606,7 +7607,7 @@ function agInit() {
 function agClear() {
   while (agRoot.children.length) { const c = agRoot.children[0]; agRoot.remove(c); c.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.dispose && !o.material.userData.keep) o.material.dispose(); }); }
   ag.lod.length = 0; ag.bbs.length = 0; ag.beams.length = 0; ag.skyL.length = 0; ag.bursts.length = 0; ag.loops.length = 0; ag.fxPool = {};
-  ag.fog = ag.rays = ag.par = ag.pts = ag.rain = ag.cir = null;
+  ag.fog = ag.rays = ag.par = ag.pts = ag.rain = ag.cir = null; ag.fogY = ag.fogAmt = ag.cirAmt = ag.rainAmt = undefined;
   const el = document.getElementById('ashLogo'); if (el) el.hidden = true;
   if (agWarnEl) agWarnEl.style.opacity = '0';
 }
@@ -7816,11 +7817,24 @@ function agFrame(dt, T) {
   const U = ASH.GU;
   ag.sky.position.copy(cp);
   ag.par.forEach((p) => p.position.set(cp.x, 20, cp.z));
-  ag.fog.position.y = agH(pp.x, pp.z) - 1.2; ag.fog.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z));
+  // fog and low clouds drift on their own through the world: height eases (no snapping on terrain steps), banks come and go on slow cycles
+  const hT = agH(pp.x, pp.z), ek = 1 - Math.exp(-dt * 0.9);
+  ag.fogY = ag.fogY === undefined ? hT : ag.fogY + (hT - ag.fogY) * ek;
+  ag.fog.position.y = ag.fogY - 1.2; ag.fog.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z));
+  const TT = T + 40 + (ag.tOff || 0);
+  const bnk = (a, b, c) => 0.62 * (0.5 + 0.5 * Math.sin(TT * a + c)) + 0.38 * (0.5 + 0.5 * Math.sin(TT * b + c * 2.3));
+  const fogAmt = Math.min(1, Math.max(0, (bnk(0.047, 0.0173, 1.0) - 0.28) / 0.5)), cirAmt = Math.min(1, Math.max(0, (bnk(0.031, 0.0121, 3.1) - 0.25) / 0.5));
+  ag.fogAmt = ag.fogAmt === undefined ? fogAmt : ag.fogAmt + (fogAmt - ag.fogAmt) * (1 - Math.exp(-dt * 0.5));
+  ag.cirAmt = ag.cirAmt === undefined ? cirAmt : ag.cirAmt + (cirAmt - ag.cirAmt) * (1 - Math.exp(-dt * 0.5));
+  ag.fog.children.forEach((f) => { f.material.uniforms.uAmt.value = ag.fogAmt; });
+  ag.cir.children.forEach((f) => { f.material.uniforms.uAmt.value = ag.cirAmt; });
   ag.pts.ash.material.uniforms.uCenter.value.set(cp.x, cp.y, cp.z); ag.pts.black.material.uniforms.uCenter.value.set(cp.x, cp.y - 3, cp.z);
-  ag.cir.position.y = agH(pp.x, pp.z) - 0.2; ag.cir.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z)); ag.pts.dust.material.uniforms.uCenter.value.set(cp.x, cp.y - 4, cp.z);
+  ag.cir.position.y = ag.fogY - 0.2; ag.cir.children.forEach((f) => f.position.set(cp.x, f.position.y, cp.z)); ag.pts.dust.material.uniforms.uCenter.value.set(cp.x, cp.y - 4, cp.z);
   // rain follows the Island's ash_rain event
-  const ru = ag.rain.material.uniforms; ru.uCenter.value.copy(cp); ru.uAmt.value = EVT.cur && EVT.cur.id === 'ash_rain' ? EVT.k : 0;
+  const ru = ag.rain.material.uniforms; ru.uCenter.value.copy(cp); const evRain = EVT.cur && EVT.cur.id === 'ash_rain' ? EVT.k : 0;
+  const cycRain = 0.85 * Math.min(1, Math.max(0, (0.5 - ag.fogAmt) / 0.35)) * Math.min(1, Math.max(0, (Math.sin(TT * 0.036 + 0.6) - 0.15) / 0.5));   // дождь Острова приходит, когда туман отплыл, и уходит, когда плывёт новый
+  ag.rainAmt = ag.rainAmt === undefined ? 0 : ag.rainAmt + (Math.max(evRain, cycRain) - ag.rainAmt) * (1 - Math.exp(-dt * 0.7));
+  ru.uAmt.value = ag.rainAmt;
   if (ru.uAmt.value > 0.3) { ag.rainT -= dt; if (ag.rainT <= 0) { ag.rainT = 0.08; const a = Math.random() * TAU, d = 1.5 + Math.random() * 7; const x = pp.x + Math.cos(a) * d, z = pp.z + Math.sin(a) * d; agFx(9, x, agH(x, z) + 0.1, z, 0.7, 0.35, false, 0); } }
   agWarnTick();
   // far billboards (hybrid LOD)

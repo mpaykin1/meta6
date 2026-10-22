@@ -293,14 +293,15 @@ function makeFogLayers(n = 6) {
   for (let i = 0; i < n; i++) {
     const geo = new THREE.PlaneGeometry(240, 240, 1, 1); geo.rotateX(-PI / 2);
     const m = new SMat({
-      uniforms: uni({ uK: { value: i / n } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      uniforms: uni({ uK: { value: i / n }, uAmt: { value: 1 } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
       vertexShader: `varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
-      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK;
+      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK,uAmt;
 void main(){
   vec2 q=vW.xz+vec2(uTime*.35*(1.+uK),uTime*.12)+uK*53.; float st=fbm(vec2(q.x*.012+q.y*.003,q.y*.055)+fbm(q*.02)*1.3); float gap=fbm(q*.017+7.); float n=smoothstep(.42,.74,st)*smoothstep(.46,.68,gap);
   float dist=length(vW.xz-cameraPosition.xz); float fade=1.-smoothstep(45.,115.,dist);
   float near=smoothstep(.15,1.6,abs(cameraPosition.y-vW.y));
-  float a=n*.11*fade*near; gl_FragColor=vec4(uFogCol*1.1+vec3(.02),a);
+  float bank=smoothstep(.62-.4*uAmt,.86-.4*uAmt,fbm(vW.xz*.0065+vec2(uTime*.021,uTime*.009)+uK*17.));   // широкие полосы тумана плывут мимо
+  float a=n*.10*fade*near*bank; gl_FragColor=vec4(uFogCol*1.1+vec3(.02),a);
 }` });
     const p = new THREE.Mesh(geo, m); p.position.y = .55 + i * 1.05; p.userData.layer = true; p.frustumCulled = false; p.renderOrder = 10 + i; g.add(p);
   }
@@ -314,20 +315,20 @@ function makeCirrusLayers(n = 3) {
   for (let i = 0; i < n; i++) {
     const geo = new THREE.PlaneGeometry(220, 220, 1, 1); geo.rotateX(-PI / 2);
     const m = new SMat({
-      uniforms: uni({ uK: { value: i / n } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      uniforms: uni({ uK: { value: i / n }, uAmt: { value: 1 } }), transparent: true, depthWrite: false, side: THREE.DoubleSide,
       vertexShader: `varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
-      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK;
+      fragmentShader: GLSL_COMMON + `varying vec3 vW; uniform float uK,uAmt;
 void main(){
   float ang=.55+uK*.35; mat2 R=mat2(cos(ang),-sin(ang),sin(ang),cos(ang));
   vec2 q=R*(vW.xz+vec2(uTime*.5*(1.+uK*.6),uTime*.1)+uK*37.);
   float warp=fbm(q*.015+3.)*2.4;
   float band=.5+.5*sin(q.y*.62+warp*2.2);                       // длинные ряды
   float cell=fbm(vec2(q.x*.26,q.y*.95)+fbm(q*.09)*.8);          // мелкие барашки внутри рядов
-  float cover=smoothstep(.34,.72,fbm(q*.012+uK*9.));              // где небо закрыто, где просвет
+  float cover=smoothstep(.62-.4*uAmt,.86-.4*uAmt,fbm(q*.012+uK*9.));              // где небо закрыто, где просвет
   float n=smoothstep(.44,.60,cell*(.5+.8*band))*cover;
   float dist=length(vW.xz-cameraPosition.xz); float fade=1.-smoothstep(40.,105.,dist);
   float near=smoothstep(.0,1.2,abs(cameraPosition.y-vW.y));
-  float a=n*.62*fade*near; gl_FragColor=vec4(uFogCol*1.5+vec3(.05),a);
+  float a=n*.5*fade*near; gl_FragColor=vec4(uFogCol*1.5+vec3(.05),a);
 }` });
     const p = new THREE.Mesh(geo, m); p.position.y = .5 + i * .85; p.frustumCulled = false; p.renderOrder = 12 + i; g.add(p);
   }
