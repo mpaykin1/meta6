@@ -71,6 +71,7 @@ def analyze(root,manifest,requirements=None):
                 if item["id"] in requirement_ids:issues.append({"rule":"duplicate_requirement","id":item["id"]})
                 requirement_ids.append(item["id"])
                 if item["status"]=="UNKNOWN":unknown.append({"rule":"requirement_unverified","id":item["id"]})
+                if item["status"]=="FAIL":issues.append({"rule":"requirement_failed","id":item["id"]})
                 if item["status"] in ("STATIC_PASS","OWNER_APPROVED"):
                     evidence=item.get("evidence")
                     if not isinstance(evidence,list) or not evidence:
