@@ -15,6 +15,12 @@
 - **Применять:** Validate complete frame ranges, consistent frame count, fps and loop, plus pivot drift at most one art pixel unless rootMotion is explicitly declared.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4724864a742ee8824077c32eb6c36fee4c14c3b3
 
+## asset/hard-failure-propagation
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-hard-failure-propagation
+- **Наблюдение:** ABYSS audit accepted a requirement explicitly marked FAIL and returned STATIC_PASS_RUNTIME_UNKNOWN, allowing a known HARD violation such as an unverified license to remain green.
+- **Применять:** Propagate every explicit requirement FAIL into a requirement_failed audit issue and retain a regression asserting that the aggregate audit status is FAIL.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 9f7334e32db801c3d83fbb71ce26a47a4d9da940
+
 ## asset/loop-seam-continuity
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-loop-seam-continuity
 - **Наблюдение:** ABYSS static gate accepted looped frame sequences whose last-to-first RGBA change was larger than every neighboring-frame change, permitting a visible snap at the loop boundary despite complete frame indexes and stable pivots.
