@@ -1,4 +1,4 @@
-import json, tempfile, unittest
+import hashlib, json, tempfile, unittest
 from pathlib import Path
 from audit_pack import analyze
 class AuditPackTests(unittest.TestCase):
@@ -40,5 +40,19 @@ class AuditPackTests(unittest.TestCase):
         item={"id":"LIGHTING","test":"8-way live render","status":"UNKNOWN"}
         req=self.root/"req.json";req.write_text(json.dumps({"requirements":[item,item]}))
         self.assertIn("duplicate_requirement",[x["rule"] for x in self.check([self.entry],req)["issues"]])
+    def test_verified_status_requires_hashed_evidence(self):
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LIGHTING","test":"live render","status":"STATIC_PASS"}]}))
+        self.assertIn({"rule":"requirement_evidence_missing","id":"LIGHTING"},self.check([self.entry],req)["issues"])
+    def test_verified_status_accepts_matching_hashed_evidence(self):
+        evidence=self.root/"lighting.json";evidence.write_bytes(b"sealed live capture metadata")
+        record={"path":"lighting.json","sha256":hashlib.sha256(evidence.read_bytes()).hexdigest()}
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LIGHTING","test":"live render","status":"STATIC_PASS","evidence":[record]}]}))
+        self.assertNotIn("requirement_evidence_invalid",[x["rule"] for x in self.check([self.entry],req)["issues"]])
+    def test_verified_status_rejects_unsafe_or_modified_evidence(self):
+        evidence=self.root/"lighting.json";evidence.write_bytes(b"modified")
+        records=[{"path":"../outside.json","sha256":"0"*64},{"path":"lighting.json","sha256":"0"*64}]
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LIGHTING","test":"live render","status":"OWNER_APPROVED","evidence":records}]}))
+        issues=self.check([self.entry],req)["issues"]
+        self.assertEqual(sum(x["rule"]=="requirement_evidence_invalid" for x in issues),2)
 if __name__=="__main__":unittest.main()
 
