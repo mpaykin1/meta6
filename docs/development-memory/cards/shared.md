@@ -15,6 +15,12 @@
 - **Применять:** Validate complete frame ranges, consistent frame count, fps and loop, plus pivot drift at most one art pixel unless rootMotion is explicitly declared.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4724864a742ee8824077c32eb6c36fee4c14c3b3
 
+## asset/runtime-hard-traceability
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-runtime-hard-traceability
+- **Наблюдение:** ABYSS requirements listed only broad lighting and FPS UNKNOWNs, so omitted coordinate, LOD, terrain, input, pipeline and license HARD gates were not machine-detectable.
+- **Применять:** Declare the complete required runtime-gate ID set and fail audit_pack when any required integration requirement is omitted or duplicated.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 01e76687ccb89987b4b862df6fa02306c4464470
+
 ## asset/size-pivot-bounds
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-size-pivot-bounds
 - **Наблюдение:** ABYSS static gate accepted sizeArt and atlas rect dimensions that disagreed with the decoded PNG, pivots outside the frame, and boolean pivot coordinates.
