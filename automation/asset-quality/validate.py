@@ -73,7 +73,7 @@ def inspect(root, manifest):
         if type(entry.get("loop")) is not bool: issues.append({"id":name,"rule":"animation_loop"})
         if "rootMotion" in entry and type(entry["rootMotion"]) is not bool:
             issues.append({"id":name,"rule":"root_motion_flag"})
-        sequence_key=(entry.get("kind"),entry.get("type"),entry.get("stage"),entry.get("anim"),entry.get("direction"),entry.get("view"))
+        sequence_key=(entry.get("kind"),entry.get("type"),entry.get("stage"),entry.get("anim"),json.dumps(entry.get("direction"),sort_keys=True),json.dumps(entry.get("view"),sort_keys=True))
         sequences.setdefault(sequence_key,[]).append(entry)
         for layer in ("body","detail","normal","emissive"):
             layers=entry.get("layers")
@@ -91,7 +91,7 @@ def inspect(root, manifest):
         if sorted(indices)!=list(range(total)):
             issues.append({"sequence":sequence,"rule":"sequence_complete","actual":sorted(indices),"expected":list(range(total))})
         for field, rule in (("fps","sequence_fps_consistent"),("loop","sequence_loop_consistent")):
-            values={entry.get(field) for entry in entries_in_sequence}
+            values={json.dumps(entry.get(field),sort_keys=True) for entry in entries_in_sequence}
             if len(values)>1: issues.append({"sequence":sequence,"rule":rule})
         root_motion=any(entry.get("rootMotion") is True for entry in entries_in_sequence)
         pivots=[entry.get("pivot") for entry in entries_in_sequence]
