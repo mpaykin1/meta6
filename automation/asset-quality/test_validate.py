@@ -49,4 +49,16 @@ class QualityTests(unittest.TestCase):
     def test_empty_sprite_path_rejected(self):
         self.entry["file"]=""
         self.assertIn("file_path",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_size_art_must_match_png(self):
+        self.entry["sizeArt"]=[16,12]
+        self.assertIn("sizeArt_matches_file",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_pivot_must_be_inside_frame(self):
+        self.entry["pivot"]=[12,6]
+        self.assertIn("pivot_inside_frame",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_rect_size_must_match_png(self):
+        self.entry["rect"]=[0,0,11,12]
+        self.assertIn("rect_size_matches_file",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_boolean_pivot_rejected(self):
+        self.entry["pivot"]=[True,6]
+        self.assertIn("invalid_pivot",[x["rule"] for x in self.check(self.entry)["issues"]])
 if __name__=="__main__":unittest.main()

@@ -47,11 +47,23 @@ def inspect(root, manifest):
             issues.append({"id":name,"rule":"opaque_body_95pct"})
         for field, n in (("sizeArt",2),("pivot",2),("rect",4)):
             val=entry.get(field)
-            if not isinstance(val,list) or len(val)!=n or any(not isinstance(x,(int,float)) or not math.isfinite(x) for x in val):
+            numeric=(lambda x: isinstance(x,(int,float)) and not isinstance(x,bool) and math.isfinite(x))
+            valid=(isinstance(val,list) and len(val)==n and all(numeric(x) for x in val))
+            if field in ("sizeArt","rect") and valid: valid=all(type(x) is int for x in val)
+            if not valid:
                 issues.append({"id":name,"rule":"invalid_"+field})
+        size_art=entry.get("sizeArt")
+        if isinstance(size_art,list) and len(size_art)==2 and all(type(x) is int for x in size_art):
+            if size_art != [w,h]: issues.append({"id":name,"rule":"sizeArt_matches_file","actual":size_art,"expected":[w,h]})
+        pivot=entry.get("pivot")
+        if isinstance(pivot,list) and len(pivot)==2 and all(isinstance(x,(int,float)) and not isinstance(x,bool) and math.isfinite(x) for x in pivot):
+            if not (0 <= pivot[0] < w and 0 <= pivot[1] < h):
+                issues.append({"id":name,"rule":"pivot_inside_frame","pivot":pivot,"size":[w,h]})
         rect=entry.get("rect")
         if isinstance(rect,list) and len(rect)==4 and all(isinstance(x,int) for x in rect) and (rect[2]<=0 or rect[3]<=0 or any(x<0 for x in rect)):
             issues.append({"id":name,"rule":"rect_geometry"})
+        elif isinstance(rect,list) and len(rect)==4 and all(type(x) is int for x in rect) and rect[2:] != [w,h]:
+            issues.append({"id":name,"rule":"rect_size_matches_file","actual":rect[2:],"expected":[w,h]})
         if type(entry.get("stage")) is not int or entry["stage"] not in range(5): issues.append({"id":name,"rule":"stage_0_4"})
         if type(entry.get("frames")) is not int or entry.get("frames",0)<1: issues.append({"id":name,"rule":"frames"})
         for layer in ("body","detail","normal","emissive"):

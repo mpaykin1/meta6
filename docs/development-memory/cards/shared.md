@@ -9,6 +9,12 @@
 - **Применять:** Гасить скорость плавно и проверять покадровые скачки; отсутствие данных в тесте — ошибка.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stage7-surface-velocity-snap.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## asset/size-pivot-bounds
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-size-pivot-bounds
+- **Наблюдение:** ABYSS static gate accepted sizeArt and atlas rect dimensions that disagreed with the decoded PNG, pivots outside the frame, and boolean pivot coordinates.
+- **Применять:** Compare sizeArt and rect dimensions with decoded PNG dimensions, require pivots inside the frame, reject booleans, and retain focused regression tests.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA e2758fb37905e67c68a21edb750f135dd421380a
+
 ## atmosphere/depth-gradient
 - 2026-10-21 · baseline · technical · 2026-10-21-world-lesson-7
 - **Наблюдение:** Стандарт атмосферы World_server: ближний план более читаем, дальний смягчён туманом и менее контрастен.
