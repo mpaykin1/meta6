@@ -9,6 +9,12 @@
 - **Применять:** Гасить скорость плавно и проверять покадровые скачки; отсутствие данных в тесте — ошибка.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stage7-surface-velocity-snap.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## asset/animation-sequence-integrity
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-animation-sequence-integrity
+- **Наблюдение:** ABYSS gate accepted incomplete frame sequences, untyped loop and fps fields, invalid frame indexes and pivot drift above the one-pixel HARD limit.
+- **Применять:** Validate complete frame ranges, consistent frame count, fps and loop, plus pivot drift at most one art pixel unless rootMotion is explicitly declared.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4724864a742ee8824077c32eb6c36fee4c14c3b3
+
 ## asset/size-pivot-bounds
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-size-pivot-bounds
 - **Наблюдение:** ABYSS static gate accepted sizeArt and atlas rect dimensions that disagreed with the decoded PNG, pivots outside the frame, and boolean pivot coordinates.
