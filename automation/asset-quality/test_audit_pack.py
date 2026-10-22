@@ -32,4 +32,13 @@ class AuditPackTests(unittest.TestCase):
         r=self.check([self.entry],req)
         self.assertEqual(r["status"],"STATIC_PASS_RUNTIME_UNKNOWN")
         self.assertTrue(r["unknown"])
+    def test_required_runtime_gate_cannot_be_omitted(self):
+        req=self.root/"req.json";req.write_text(json.dumps({"required_requirement_ids":["COORDINATES","LIGHTING"],"requirements":[{"id":"COORDINATES","test":"live scene","status":"UNKNOWN"}]}))
+        r=self.check([self.entry],req)
+        self.assertIn({"rule":"missing_requirement","id":"LIGHTING"},r["issues"])
+    def test_duplicate_requirement_id_rejected(self):
+        item={"id":"LIGHTING","test":"8-way live render","status":"UNKNOWN"}
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[item,item]}))
+        self.assertIn("duplicate_requirement",[x["rule"] for x in self.check([self.entry],req)["issues"]])
 if __name__=="__main__":unittest.main()
+
