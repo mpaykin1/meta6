@@ -52,6 +52,7 @@ def analyze(root,manifest,requirements=None):
         try:config=json.loads(pathlib.Path(requirements).read_text(encoding="utf-8"))
         except (OSError,ValueError) as e:issues.append({"rule":"requirements_read","detail":str(e)})
     if isinstance(config,dict):
+        evidence_root=pathlib.Path(requirements).resolve().parent if requirements else root
         stages=config.get("stages")
         if isinstance(stages,list):
             for kind,found in groups.items():
@@ -70,6 +71,20 @@ def analyze(root,manifest,requirements=None):
                 if item["id"] in requirement_ids:issues.append({"rule":"duplicate_requirement","id":item["id"]})
                 requirement_ids.append(item["id"])
                 if item["status"]=="UNKNOWN":unknown.append({"rule":"requirement_unverified","id":item["id"]})
+                if item["status"] in ("STATIC_PASS","OWNER_APPROVED"):
+                    evidence=item.get("evidence")
+                    if not isinstance(evidence,list) or not evidence:
+                        issues.append({"rule":"requirement_evidence_missing","id":item["id"]})
+                    else:
+                        for record in evidence:
+                            valid=isinstance(record,dict) and isinstance(record.get("path"),str) and bool(record["path"].strip()) and isinstance(record.get("sha256"),str) and len(record["sha256"])==64
+                            if valid:
+                                target=(evidence_root/record["path"]).resolve()
+                                valid=target.is_relative_to(evidence_root) and target.is_file()
+                                if valid:
+                                    try:valid=hashlib.sha256(target.read_bytes()).hexdigest()==record["sha256"].lower()
+                                    except OSError:valid=False
+                            if not valid:issues.append({"rule":"requirement_evidence_invalid","id":item["id"]})
         required_ids=config.get("required_requirement_ids",[])
         if not isinstance(required_ids,list) or any(not isinstance(item,str) or not item for item in required_ids) or len(required_ids)!=len(set(required_ids)):
             issues.append({"rule":"invalid_required_requirement_ids"})
