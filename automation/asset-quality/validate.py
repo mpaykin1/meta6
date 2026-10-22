@@ -4,6 +4,29 @@ import argparse, json, pathlib, sys, math
 from PIL import Image
 
 PALETTE={(0,0,0),(62,21,0),(112,39,0),(173,66,1),(229,120,7),(249,189,43),(253,231,102)}
+def alpha_component_count(alpha):
+    """Count 4-connected non-transparent islands without recursion."""
+    w,h=alpha.size
+    pixels=alpha.tobytes()
+    seen=bytearray(len(pixels))
+    components=0
+    for start,value in enumerate(pixels):
+        if not value or seen[start]: continue
+        components+=1
+        seen[start]=1
+        stack=[start]
+        while stack:
+            pos=stack.pop()
+            x=pos%w
+            for neighbor in (pos-w if pos>=w else -1,
+                             pos+w if pos+w<len(pixels) else -1,
+                             pos-1 if x else -1,
+                             pos+1 if x+1<w else -1):
+                if neighbor>=0 and pixels[neighbor] and not seen[neighbor]:
+                    seen[neighbor]=1
+                    stack.append(neighbor)
+    return components
+
 def inspect(root, manifest):
     issues=[]; checked=0; sequences={}
     try: data=json.loads(pathlib.Path(manifest).read_text(encoding="utf8"))
@@ -37,6 +60,13 @@ def inspect(root, manifest):
         alpha=im.getchannel("A")
         bbox=alpha.getbbox()
         if not bbox: issues.append({"id":name,"rule":"empty_sprite"}); continue
+        parts=entry.get("parts")
+        if parts is not None and not isinstance(parts,list):
+            issues.append({"id":name,"rule":"invalid_parts"})
+        declared_parts=len(parts) if isinstance(parts,list) else 0
+        component_count=alpha_component_count(alpha)
+        if component_count>1+declared_parts:
+            issues.append({"id":name,"rule":"undeclared_components","actual":component_count,"allowed":1+declared_parts})
         if bbox[0]<2 or bbox[1]<2 or w-bbox[2]<2 or h-bbox[3]<2:
             issues.append({"id":name,"rule":"padding_2px"})
         pixels=list(im.getdata())
