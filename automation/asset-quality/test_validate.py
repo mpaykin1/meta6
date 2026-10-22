@@ -82,5 +82,23 @@ class QualityTests(unittest.TestCase):
         rules=[x["rule"] for x in self.check(self.entry)["issues"]]
         self.assertIn("animation_loop",rules)
         self.assertIn("animation_fps",rules)
+    def disconnected_sprite(self):
+        im=Image.new("RGBA",(16,12),(0,0,0,0))
+        for y in range(2,10):
+            for x in range(2,7): im.putpixel((x,y),(0,0,0,255))
+            for x in range(9,14): im.putpixel((x,y),(0,0,0,255))
+        im.save(self.root/"sprite.png")
+        self.entry["sizeArt"]=[16,12]
+        self.entry["rect"]=[0,0,16,12]
+    def test_undeclared_neighbor_component_rejected(self):
+        self.disconnected_sprite()
+        self.assertIn("undeclared_components",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_declared_part_allows_second_component(self):
+        self.disconnected_sprite()
+        self.entry["parts"]=[{"id":"tail"}]
+        self.assertNotIn("undeclared_components",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_parts_must_be_a_list(self):
+        self.entry["parts"]={"id":"tail"}
+        self.assertIn("invalid_parts",[x["rule"] for x in self.check(self.entry)["issues"]])
 if __name__=="__main__":unittest.main()
 
