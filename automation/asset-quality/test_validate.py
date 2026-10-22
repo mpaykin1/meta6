@@ -122,5 +122,28 @@ class QualityTests(unittest.TestCase):
         details=[x.get("detail") for x in self.check(self.entry)["issues"] if x["rule"]=="manifest"]
         self.assertIn("missing sockets",details)
         self.assertIn("missing parts",details)
+    def animation_frames(self,states,loop=True):
+        entries=[]
+        for frame,extras in enumerate(states):
+            im=Image.new("RGBA",(16,16),(0,0,0,0))
+            for y in range(4,8):
+                for x in range(4,8): im.putpixel((x,y),(0,0,0,255))
+            for point in extras: im.putpixel(point,(0,0,0,255))
+            file=f"frame-{frame}.png";im.save(self.root/file)
+            entry=dict(self.entry,id=f"fish_s0_idle_{frame}",file=file,frame=frame,
+                       frames=len(states),loop=loop,sizeArt=[16,16],pivot=[6,6],rect=[0,0,16,16])
+            entries.append(entry)
+        path=self.root/"manifest.json"
+        path.write_text(json.dumps({"sprites":entries}))
+        return inspect(self.root,path)
+    def test_loop_seam_larger_than_neighbors_rejected(self):
+        result=self.animation_frames([[],[(8,6)],[(8,6),(9,6)]])
+        self.assertIn("loop_seam_continuity",[x["rule"] for x in result["issues"]])
+    def test_smooth_loop_seam_accepted(self):
+        result=self.animation_frames([[],[(8,6)],[]])
+        self.assertNotIn("loop_seam_continuity",[x["rule"] for x in result["issues"]])
+    def test_non_loop_does_not_require_loop_seam(self):
+        result=self.animation_frames([[],[(8,6)],[(8,6),(9,6)]],loop=False)
+        self.assertNotIn("loop_seam_continuity",[x["rule"] for x in result["issues"]])
 if __name__=="__main__":unittest.main()
 
