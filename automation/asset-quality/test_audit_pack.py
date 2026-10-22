@@ -32,6 +32,11 @@ class AuditPackTests(unittest.TestCase):
         r=self.check([self.entry],req)
         self.assertEqual(r["status"],"STATIC_PASS_RUNTIME_UNKNOWN")
         self.assertTrue(r["unknown"])
+    def test_explicit_hard_failure_fails_audit(self):
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LICENSE","test":"license inventory","status":"FAIL"}]}))
+        r=self.check([self.entry],req)
+        self.assertEqual(r["status"],"FAIL")
+        self.assertIn({"rule":"requirement_failed","id":"LICENSE"},r["issues"])
     def test_required_runtime_gate_cannot_be_omitted(self):
         req=self.root/"req.json";req.write_text(json.dumps({"required_requirement_ids":["COORDINATES","LIGHTING"],"requirements":[{"id":"COORDINATES","test":"live scene","status":"UNKNOWN"}]}))
         r=self.check([self.entry],req)
