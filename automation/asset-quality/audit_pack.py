@@ -60,12 +60,23 @@ def analyze(root,manifest,requirements=None):
         count=config.get("min_creature_types")
         if isinstance(count,int) and len(groups)<count:
             issues.append({"rule":"creature_coverage","actual":len(groups),"required":count})
+        requirement_ids=[]
         for item in config.get("requirements",[]):
             if not isinstance(item,dict) or not item.get("id") or not item.get("test"):
                 issues.append({"rule":"untraceable_requirement","item":item})
             elif item.get("status") not in ("FAIL","UNKNOWN","STATIC_PASS","OWNER_APPROVED"):
                 issues.append({"rule":"invalid_requirement_status","id":item["id"]})
-            elif item["status"]=="UNKNOWN":unknown.append({"rule":"requirement_unverified","id":item["id"]})
+            else:
+                if item["id"] in requirement_ids:issues.append({"rule":"duplicate_requirement","id":item["id"]})
+                requirement_ids.append(item["id"])
+                if item["status"]=="UNKNOWN":unknown.append({"rule":"requirement_unverified","id":item["id"]})
+        required_ids=config.get("required_requirement_ids",[])
+        if not isinstance(required_ids,list) or any(not isinstance(item,str) or not item for item in required_ids) or len(required_ids)!=len(set(required_ids)):
+            issues.append({"rule":"invalid_required_requirement_ids"})
+        else:
+            for requirement_id in required_ids:
+                if requirement_id not in requirement_ids:
+                    issues.append({"rule":"missing_requirement","id":requirement_id})
     return {"status":"FAIL" if issues else "STATIC_PASS_RUNTIME_UNKNOWN","checks":checks,"sprites":len(sprites),"creature_types":len(groups),"issues":issues,"unknown":unknown,"provenance":provenance,
             "runtime_unknown":["visual reference parity","eight-way relighting","animation continuity","hybrid 3D","real-device FPS","owner approval"]}
 def main():
@@ -77,3 +88,4 @@ def main():
     if a.output:pathlib.Path(a.output).write_text(out,encoding="utf-8")
     print(out);return int(report["status"]=="FAIL")
 if __name__=="__main__":sys.exit(main())
+
