@@ -4,6 +4,11 @@ import argparse, json, pathlib, sys, math
 from PIL import Image
 
 PALETTE={(0,0,0),(62,21,0),(112,39,0),(173,66,1),(229,120,7),(249,189,43),(253,231,102)}
+def point_in_frame(value,w,h):
+    return (isinstance(value,list) and len(value)==2 and
+            all(isinstance(x,(int,float)) and not isinstance(x,bool) and math.isfinite(x) for x in value) and
+            0<=value[0]<w and 0<=value[1]<h)
+
 def alpha_component_count(alpha):
     """Count 4-connected non-transparent islands without recursion."""
     w,h=alpha.size
@@ -42,7 +47,7 @@ def inspect(root, manifest):
             issues.append({"rule":"invalid_id"}); name=str(name)
         if name in ids: issues.append({"id":name,"rule":"unique_id"})
         ids.add(name)
-        for field in ("id","file","kind","type","stage","anim","frame","frames","fps","loop","sizeArt","pivot","hitbox","atlas","rect","source"):
+        for field in ("id","file","kind","type","stage","anim","frame","frames","fps","loop","sizeArt","pivot","hitbox","sockets","parts","atlas","rect","source"):
             if field not in entry: issues.append({"id":name,"rule":"manifest","detail":"missing "+field})
         file=entry.get("file")
         if not isinstance(file,str) or not file or pathlib.PurePosixPath(file).is_absolute() or ".." in pathlib.PurePosixPath(file).parts:
@@ -60,10 +65,32 @@ def inspect(root, manifest):
         alpha=im.getchannel("A")
         bbox=alpha.getbbox()
         if not bbox: issues.append({"id":name,"rule":"empty_sprite"}); continue
+        sockets=entry.get("sockets")
+        if not isinstance(sockets,dict) or any(not isinstance(socket,str) or not socket or not point_in_frame(point,w,h) for socket,point in sockets.items()):
+            issues.append({"id":name,"rule":"invalid_sockets"})
+        hitbox=entry.get("hitbox")
+        circle=hitbox.get("circle") if isinstance(hitbox,dict) else None
+        if not (isinstance(circle,list) and len(circle)==3 and
+                all(isinstance(x,(int,float)) and not isinstance(x,bool) and math.isfinite(x) for x in circle) and
+                point_in_frame(circle[:2],w,h) and circle[2]>0):
+            issues.append({"id":name,"rule":"invalid_hitbox"})
         parts=entry.get("parts")
+        valid_parts=[]
         if parts is not None and not isinstance(parts,list):
             issues.append({"id":name,"rule":"invalid_parts"})
-        declared_parts=len(parts) if isinstance(parts,list) else 0
+        elif isinstance(parts,list):
+            part_ids=set()
+            for index,part in enumerate(parts):
+                valid=(isinstance(part,dict) and isinstance(part.get("id"),str) and bool(part["id"]) and
+                       part["id"] not in part_ids and point_in_frame(part.get("pivot"),w,h) and
+                       (part.get("parent") is None or isinstance(part.get("parent"),str) and bool(part["parent"])) and
+                       point_in_frame(part.get("joint"),w,h))
+                if not valid:
+                    issues.append({"id":name,"rule":"invalid_part","index":index})
+                    continue
+                part_ids.add(part["id"])
+                valid_parts.append(part)
+        declared_parts=len(valid_parts)
         component_count=alpha_component_count(alpha)
         if component_count>1+declared_parts:
             issues.append({"id":name,"rule":"undeclared_components","actual":component_count,"allowed":1+declared_parts})

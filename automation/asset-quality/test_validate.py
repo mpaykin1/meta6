@@ -12,7 +12,7 @@ class QualityTests(unittest.TestCase):
             for x in range(2,10): im.putpixel((x,y),(0,0,0,255))
         im.save(self.root/"sprite.png")
         for name in ("body","detail","normal","emissive"): im.save(self.root/(name+".png"))
-        self.entry={"id":"fish_s0_idle_0","file":"sprite.png","kind":"creature","type":"fish","stage":0,"anim":"idle","frame":0,"frames":1,"fps":8,"loop":True,"sizeArt":[12,12],"pivot":[6,6],"hitbox":{"circle":[6,6,4]},"atlas":"fish","rect":[0,0,12,12],"source":"test","layers":{k:k+".png" for k in ("body","detail","normal","emissive")}}
+        self.entry={"id":"fish_s0_idle_0","file":"sprite.png","kind":"creature","type":"fish","stage":0,"anim":"idle","frame":0,"frames":1,"fps":8,"loop":True,"sizeArt":[12,12],"pivot":[6,6],"hitbox":{"circle":[6,6,4]},"sockets":{},"parts":None,"atlas":"fish","rect":[0,0,12,12],"source":"test","layers":{k:k+".png" for k in ("body","detail","normal","emissive")}}
     def tearDown(self): self.tmp.cleanup()
     def check(self, entry):
         path=self.root/"manifest.json"
@@ -95,10 +95,32 @@ class QualityTests(unittest.TestCase):
         self.assertIn("undeclared_components",[x["rule"] for x in self.check(self.entry)["issues"]])
     def test_declared_part_allows_second_component(self):
         self.disconnected_sprite()
-        self.entry["parts"]=[{"id":"tail"}]
+        self.entry["parts"]=[{"id":"tail","pivot":[6,6],"parent":"body","joint":[7,6]}]
         self.assertNotIn("undeclared_components",[x["rule"] for x in self.check(self.entry)["issues"]])
     def test_parts_must_be_a_list(self):
         self.entry["parts"]={"id":"tail"}
         self.assertIn("invalid_parts",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_incomplete_part_cannot_hide_neighbor(self):
+        self.disconnected_sprite()
+        self.entry["parts"]=[{"id":"tail"}]
+        rules=[x["rule"] for x in self.check(self.entry)["issues"]]
+        self.assertIn("invalid_part",rules)
+        self.assertIn("undeclared_components",rules)
+    def test_duplicate_part_id_rejected(self):
+        part={"id":"tail","pivot":[6,6],"parent":"body","joint":[7,6]}
+        self.entry["parts"]=[part,dict(part)]
+        self.assertIn("invalid_part",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_socket_must_be_inside_frame(self):
+        self.entry["sockets"]={"eyeL":[12,6]}
+        self.assertIn("invalid_sockets",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_hitbox_circle_is_typed_and_bounded(self):
+        self.entry["hitbox"]={"circle":[True,6,4]}
+        self.assertIn("invalid_hitbox",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_manifest_requires_sockets_and_parts(self):
+        self.entry.pop("sockets")
+        self.entry.pop("parts")
+        details=[x.get("detail") for x in self.check(self.entry)["issues"] if x["rule"]=="manifest"]
+        self.assertIn("missing sockets",details)
+        self.assertIn("missing parts",details)
 if __name__=="__main__":unittest.main()
 
