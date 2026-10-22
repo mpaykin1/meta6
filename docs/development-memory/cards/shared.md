@@ -15,6 +15,12 @@
 - **Применять:** Validate complete frame ranges, consistent frame count, fps and loop, plus pivot drift at most one art pixel unless rootMotion is explicitly declared.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4724864a742ee8824077c32eb6c36fee4c14c3b3
 
+## asset/loop-seam-continuity
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-loop-seam-continuity
+- **Наблюдение:** ABYSS static gate accepted looped frame sequences whose last-to-first RGBA change was larger than every neighboring-frame change, permitting a visible snap at the loop boundary despite complete frame indexes and stable pivots.
+- **Применять:** For complete looped sequences with at least three frames, compare mean absolute RGBA changes and reject a closing seam larger than the maximum adjacent-frame change; retain smooth-loop and non-loop controls.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 52a7634f0288159cfdf251cc59c4cc59f7972466
+
 ## asset/manifest-attachment-schema
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-attachment-schema
 - **Наблюдение:** ABYSS static gate counted any object in parts as permission for another alpha island and did not validate sockets or hitbox geometry, so an incomplete part declaration could hide a cropped neighbor.
