@@ -12,7 +12,7 @@ class QualityTests(unittest.TestCase):
             for x in range(2,10): im.putpixel((x,y),(0,0,0,255))
         im.save(self.root/"sprite.png")
         for name in ("body","detail","normal","emissive"): im.save(self.root/(name+".png"))
-        self.entry={"id":"fish_s0_idle_0","file":"sprite.png","kind":"creature","type":"fish","stage":0,"anim":"idle","frame":0,"frames":1,"fps":8,"sizeArt":[12,12],"pivot":[6,6],"hitbox":{"circle":[6,6,4]},"atlas":"fish","rect":[0,0,12,12],"source":"test","layers":{k:k+".png" for k in ("body","detail","normal","emissive")}}
+        self.entry={"id":"fish_s0_idle_0","file":"sprite.png","kind":"creature","type":"fish","stage":0,"anim":"idle","frame":0,"frames":1,"fps":8,"loop":True,"sizeArt":[12,12],"pivot":[6,6],"hitbox":{"circle":[6,6,4]},"atlas":"fish","rect":[0,0,12,12],"source":"test","layers":{k:k+".png" for k in ("body","detail","normal","emissive")}}
     def tearDown(self): self.tmp.cleanup()
     def check(self, entry):
         path=self.root/"manifest.json"
@@ -61,4 +61,26 @@ class QualityTests(unittest.TestCase):
     def test_boolean_pivot_rejected(self):
         self.entry["pivot"]=[True,6]
         self.assertIn("invalid_pivot",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_incomplete_animation_sequence_rejected(self):
+        self.entry["frames"]=2
+        self.assertIn("sequence_complete",[x["rule"] for x in self.check(self.entry)["issues"]])
+    def test_pivot_drift_over_one_pixel_rejected(self):
+        self.entry["frames"]=2
+        second=dict(self.entry,id="fish_s0_idle_1",frame=1,pivot=[8,6])
+        path=self.root/"manifest.json"
+        path.write_text(json.dumps({"sprites":[self.entry,second]}))
+        self.assertIn("pivot_drift_1px",[x["rule"] for x in inspect(self.root,path)["issues"]])
+    def test_declared_root_motion_allows_pivot_drift(self):
+        self.entry.update(frames=2,rootMotion=True)
+        second=dict(self.entry,id="fish_s0_idle_1",frame=1,pivot=[8,6])
+        path=self.root/"manifest.json"
+        path.write_text(json.dumps({"sprites":[self.entry,second]}))
+        self.assertNotIn("pivot_drift_1px",[x["rule"] for x in inspect(self.root,path)["issues"]])
+    def test_loop_and_fps_are_typed(self):
+        self.entry["loop"]="yes"
+        self.entry["fps"]=True
+        rules=[x["rule"] for x in self.check(self.entry)["issues"]]
+        self.assertIn("animation_loop",rules)
+        self.assertIn("animation_fps",rules)
 if __name__=="__main__":unittest.main()
+
