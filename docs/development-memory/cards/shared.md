@@ -45,6 +45,12 @@
 - **Применять:** Count four-connected non-transparent components and allow only the main body plus parts explicitly declared as a manifest list; retain isolated-neighbor and declared-part regressions.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA ee8b5cafbc931d42aa87f441e6f36653c9a47bdf
 
+## asset/verified-requirement-evidence
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-verified-requirement-evidence
+- **Наблюдение:** ABYSS audit accepted STATIC_PASS and OWNER_APPROVED requirement states with no evidence artifact, so a runtime integration claim could become green without a sealed capture or report.
+- **Применять:** For every verified requirement state, require a non-empty evidence list; resolve each path inside the requirements directory and verify the recorded SHA-256 before accepting the claim.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 578a4243c21bec67086a245073164dc53771b191
+
 ## atmosphere/depth-gradient
 - 2026-10-21 · baseline · technical · 2026-10-21-world-lesson-7
 - **Наблюдение:** Стандарт атмосферы World_server: ближний план более читаем, дальний смягчён туманом и менее контрастен.
