@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ABYSS asset production gate. stdlib + Pillow. UNKNOWN is never PASS."""
 import argparse, json, pathlib, sys, math
-from PIL import Image
+from PIL import Image,ImageChops
 
 PALETTE={(0,0,0),(62,21,0),(112,39,0),(173,66,1),(229,120,7),(249,189,43),(253,231,102)}
 def point_in_frame(value,w,h):
@@ -31,6 +31,19 @@ def alpha_component_count(alpha):
                     seen[neighbor]=1
                     stack.append(neighbor)
     return components
+
+def frame_distance(root,left,right):
+    """Mean absolute RGBA change; None means incomparable frame geometry."""
+    try:
+        with Image.open(pathlib.Path(root)/left["file"]) as source:
+            a=source.convert("RGBA")
+        with Image.open(pathlib.Path(root)/right["file"]) as source:
+            b=source.convert("RGBA")
+    except (OSError,KeyError):
+        return None
+    if a.size!=b.size: return None
+    histogram=ImageChops.difference(a,b).histogram()
+    return sum((index%256)*count for index,count in enumerate(histogram))/(a.width*a.height*4)
 
 def inspect(root, manifest):
     issues=[]; checked=0; sequences={}
@@ -156,6 +169,13 @@ def inspect(root, manifest):
         if not root_motion and len(valid_pivots)==len(entries_in_sequence):
             drift=max(max(p[axis] for p in valid_pivots)-min(p[axis] for p in valid_pivots) for axis in (0,1))
             if drift>1: issues.append({"sequence":sequence,"rule":"pivot_drift_1px","drift":drift})
+        if (total>=3 and sorted(indices)==list(range(total)) and
+                all(entry.get("loop") is True for entry in entries_in_sequence)):
+            ordered=sorted(entries_in_sequence,key=lambda entry:entry["frame"])
+            adjacent=[frame_distance(root,ordered[index],ordered[index+1]) for index in range(total-1)]
+            seam=frame_distance(root,ordered[-1],ordered[0])
+            if seam is not None and all(distance is not None for distance in adjacent) and seam>max(adjacent)+1e-9:
+                issues.append({"sequence":sequence,"rule":"loop_seam_continuity","seam":seam,"max_neighbor":max(adjacent)})
     return {"status":"FAIL" if issues else "STATIC_PASS_RUNTIME_UNKNOWN","checked":checked,"issues":issues,
             "runtime_unknown":["animated pivots/loops","dynamic light 8 directions","3D geometry and collisions","touch movement","FPS on device","visual owner approval"]}
 def main():
