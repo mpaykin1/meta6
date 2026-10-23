@@ -17,7 +17,7 @@
 - `build_atlas.py` produces deterministic RGBA atlases and sprite rects; does not resample or alter the original files.
 - `make_layers.py` extracts existing body and emissive pixels and emits an explicit NEEDS_REVIEW report. Normal maps and hand-painted detail remain UNKNOWN; no fabricated completeness.
 - `audit_pack.py` checks coverage and SHA-256 source provenance; `abyss-requirements.json` records explicit UNKNOWN for live-only tests.
-- A requirement may use `STATIC_PASS` or `OWNER_APPROVED` only with a non-empty `evidence` list of repository-relative `{path, sha256}` records whose files exist and match; missing, escaped or modified evidence fails the audit.
+- A requirement may use `STATIC_PASS` or `OWNER_APPROVED` only with a non-empty `evidence` list of repository-relative `{requirement_id, path, sha256}` records whose `requirement_id` matches the claim and whose files exist and match; missing, cross-bound, escaped or modified evidence fails the audit.
 - Regression tests: `python -m unittest discover -s automation/asset-quality -p 'test_*.py' -v`.
 - Example layer preparation: `python automation/asset-quality/make_layers.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --output build/layers`.
 - Example atlas: `python automation/asset-quality/build_atlas.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --output build/atlas`.
