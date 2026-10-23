@@ -50,7 +50,8 @@ class MawMotionEvidenceTest(unittest.TestCase):
             self.assertEqual(hashlib.sha256(a.read_bytes()).digest(),
                              hashlib.sha256(b.read_bytes()).digest())
             image = Image.open(a).convert("RGBA")
-            used = {pixel[:3] for pixel in image.get_flattened_data() if pixel[3]}
+            # Pillow 11.3.0 is pinned in CI; get_flattened_data arrived later.
+            used = {pixel[:3] for pixel in image.getdata() if pixel[3]}
             self.assertTrue(used)
             self.assertLessEqual(used, PALETTE)
 
