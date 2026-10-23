@@ -10,6 +10,7 @@
   ],
   "min_creature_types": 14,
   "required_requirement_ids": [
+    "ABYSS-SOURCE-CROPS",
     "ABYSS-PALETTE",
     "ABYSS-BODY",
     "ABYSS-LAYERS",
@@ -30,6 +31,13 @@
     "ABYSS-OWNER"
   ],
   "requirements": [
+    {
+      "id": "ABYSS-SOURCE-CROPS",
+      "asset": "production manifest source paths",
+      "test": "audit_pack.py:legacy_crop_source",
+      "evidence": [],
+      "status": "UNKNOWN"
+    },
     {
       "id": "ABYSS-PALETTE",
       "test": "validate.py:seven_color_palette",

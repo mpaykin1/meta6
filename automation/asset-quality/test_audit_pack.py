@@ -21,6 +21,12 @@ class AuditPackTests(unittest.TestCase):
     def test_escape(self):
         self.entry["source"]="../private"
         self.assertIn("path_escape",[x["rule"] for x in self.check([self.entry])["issues"]])
+    def test_legacy_pack_crop_cannot_be_a_production_source(self):
+        legacy=self.root/"assets"/"sprites"/"fish.png"
+        legacy.parent.mkdir(parents=True)
+        legacy.write_bytes(b"legacy crop")
+        self.entry["source"]="assets/sprites/fish.png"
+        self.assertIn("legacy_crop_source",[x["rule"] for x in self.check([self.entry])["issues"]])
     def test_missing_stages(self):
         req=self.root/"req.json";req.write_text(json.dumps({"stages":[0,1,2,3,4],"min_creature_types":1}))
         self.assertIn("missing_stages",[x["rule"] for x in self.check([self.entry],req)["issues"]])

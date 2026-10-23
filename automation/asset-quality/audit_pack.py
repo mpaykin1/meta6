@@ -35,6 +35,9 @@ def analyze(root,manifest,requirements=None):
             name=s.get(key)
             if not isinstance(name,str) or not name:
                 issues.append({"rule":"invalid_path","id":ident,"field":key});continue
+            source_parts=pathlib.PurePosixPath(name.replace("\\","/")).parts
+            if key=="source" and any(source_parts[index:index+2]==("assets","sprites") for index in range(len(source_parts)-1)):
+                issues.append({"rule":"legacy_crop_source","id":ident,"source":name})
             target=(root/name).resolve()
             if not target.is_relative_to(root):
                 issues.append({"rule":"path_escape","id":ident,"field":key});continue
