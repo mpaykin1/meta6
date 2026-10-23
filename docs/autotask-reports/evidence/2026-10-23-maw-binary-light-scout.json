@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "time": "2026-10-23T23:04:00Z",
+  "repo": "mpaykin1/meta6",
+  "pr": 229,
+  "main_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "head_sha": "5f60140bdb9ea7dcbd846bd15a4156dbe4086f07",
+  "asset": "maw_front_v1",
+  "status": "CONFIRMED_MEASUREMENT_DEFECT_ARTISTIC_VERDICT_UNKNOWN",
+  "finding": {
+    "title": "Directional-light score is tautological and produces a hard vertical cutoff",
+    "evidence": [
+      "build_maw_motion_evidence.py constructs a rectangular gate at pivot_x and then reports left/right facing fraction as the literal constant 1.0",
+      "maw-stand/index.html clips detail to [0,pivot_x] or [pivot_x,width]",
+      "Neither implementation reads the atlas normal rect, so the current metric cannot demonstrate normal-dependent lighting or darkness falloff"
+    ],
+    "impact": "The evidence can pass >=0.75 by construction while rendering a binary half-sprite, so CI success is not proof of Selective Pixel Rim Lighting."
+  },
+  "reproduction": {
+    "files": [
+      "automation/asset-quality/build_maw_motion_evidence.py",
+      "abyss-glow/maw-stand/index.html",
+      "docs/autotask-reports/evidence/2026-10-23-maw-motion-light.json"
+    ],
+    "assertions": [
+      "reported light_facing_fraction is exactly 1.0 for both directions",
+      "normal layer is not sampled",
+      "light boundary is the manifest pivot x=108 rather than a normal-dot-light contour"
+    ]
+  },
+  "acceptance_for_build_slot": {
+    "implementation": "Generate eight palette-quantized directional detail variants from the existing normal tiles at build time; runtime selects/interpolates variants without CPU per-pixel work.",
+    "required_tests": [
+      "record normal tile SHA and normalized light vector for every evidence frame",
+      "facing-half lit fraction >=0.75 for left and right",
+      "no continuous vertical brightness seam at pivot longer than 4 art pixels",
+      "left/right matched captures use identical jaw phase, camera, seed and resolution",
+      "body alpha remains 255 on occupied silhouette pixels and colors remain within the canonical seven-color palette",
+      "deterministic rebuild is byte-identical"
+    ]
+  },
+  "unknown": [
+    "owner artistic verdict",
+    "runtime WebGL bloom",
+    "frame-time p50/p95",
+    "physical iPhone"
+  ]
+}
