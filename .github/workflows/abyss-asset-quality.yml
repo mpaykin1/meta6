@@ -38,8 +38,8 @@ jobs:
       - name: Report requirements verification status
         if: always()
         run: |
-          python automation/asset-quality/requirements_status.py \\
-            --requirements automation/asset-quality/abyss-requirements.json \\
+          python automation/asset-quality/requirements_status.py \
+            --requirements automation/asset-quality/abyss-requirements.json \
             --output asset-requirements-status.json
 
       - name: Upload quality evidence
