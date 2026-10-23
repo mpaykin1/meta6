@@ -9,7 +9,35 @@
     4
   ],
   "min_creature_types": 14,
+  "required_requirement_ids": [
+    "ABYSS-SOURCE-CROPS",
+    "ABYSS-PALETTE",
+    "ABYSS-BODY",
+    "ABYSS-LAYERS",
+    "ABYSS-STAGES",
+    "ABYSS-ANIMATION",
+    "ABYSS-SHARED-COORDINATES",
+    "ABYSS-LIGHTING",
+    "ABYSS-EMISSIVE-BLOOM",
+    "ABYSS-PERSPECTIVE-DEPTH",
+    "ABYSS-LOD-PHASE",
+    "ABYSS-3D-TERRAIN-COLLISIONS",
+    "ABYSS-CHUNK-SEAMS-BOUNDS",
+    "ABYSS-INPUT-CAMERA",
+    "ABYSS-SINGLE-PIPELINE",
+    "ABYSS-WEBGL",
+    "ABYSS-FPS",
+    "ABYSS-LICENSE",
+    "ABYSS-OWNER"
+  ],
   "requirements": [
+    {
+      "id": "ABYSS-SOURCE-CROPS",
+      "asset": "production manifest source paths",
+      "test": "audit_pack.py:legacy_crop_source",
+      "evidence": [],
+      "status": "UNKNOWN"
+    },
     {
       "id": "ABYSS-PALETTE",
       "test": "validate.py:seven_color_palette",
@@ -36,13 +64,63 @@
       "status": "UNKNOWN"
     },
     {
+      "id": "ABYSS-SHARED-COORDINATES",
+      "test": "live 2D/2.5D/3D world-coordinate probe",
+      "status": "UNKNOWN"
+    },
+    {
       "id": "ABYSS-LIGHTING",
       "test": "8-way GLSL live render comparison",
       "status": "UNKNOWN"
     },
     {
+      "id": "ABYSS-EMISSIVE-BLOOM",
+      "test": "live emissive isolation and scoped bloom capture",
+      "status": "UNKNOWN"
+    },
+    {
+      "id": "ABYSS-PERSPECTIVE-DEPTH",
+      "test": "live perspective depth and parallax capture",
+      "status": "UNKNOWN"
+    },
+    {
+      "id": "ABYSS-LOD-PHASE",
+      "test": "3D to 2.5D to 2D transition with phase continuity",
+      "status": "UNKNOWN"
+    },
+    {
+      "id": "ABYSS-3D-TERRAIN-COLLISIONS",
+      "test": "live volumetric terrain and collision traversal",
+      "status": "UNKNOWN"
+    },
+    {
+      "id": "ABYSS-CHUNK-SEAMS-BOUNDS",
+      "test": "three chunks each direction, zero seams, bounded memory",
+      "status": "UNKNOWN"
+    },
+    {
+      "id": "ABYSS-INPUT-CAMERA",
+      "test": "four-direction touch follow and camera test without joystick",
+      "status": "UNKNOWN"
+    },
+    {
+      "id": "ABYSS-SINGLE-PIPELINE",
+      "test": "check_runtime_pipeline.py plus runtime instrumentation prove one renderer loop and composer",
+      "status": "UNKNOWN"
+    },
+    {
+      "id": "ABYSS-WEBGL",
+      "test": "live console and WebGL error capture",
+      "status": "UNKNOWN"
+    },
+    {
       "id": "ABYSS-FPS",
       "test": "real-device FPS p50/p95",
+      "status": "UNKNOWN"
+    },
+    {
+      "id": "ABYSS-LICENSE",
+      "test": "source provenance and license inventory",
       "status": "UNKNOWN"
     },
     {
