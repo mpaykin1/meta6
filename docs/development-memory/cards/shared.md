@@ -45,6 +45,12 @@
 - **Применять:** Проверять автономность export, парсинг каждого script и использовать callback при замене JS в сборщике.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-18-three-worlds-offline-and-browser.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## ci/partial-asset-directory
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-partial-pack-workflow
+- **Наблюдение:** Asset Quality treated any abyss-glow/assets directory as a complete pack, so the first owner-maw component correctly passed its tests but CI failed while opening the intentionally absent root manifest.
+- **Применять:** Run full-pack gates only when the root manifest exists; otherwise record component coverage UNKNOWN while still running all component regressions.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/actions/runs/39968654450) · SHA 28f50d923ee16014994bfd292bc88fd386458b31
+
 ## fx/fog-uniform-drift
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-audit041-guest-timer-fog-vendor
 - **Наблюдение:** Плотность сцены fog менялась, а uniform частиц U.fogD оставался старым.

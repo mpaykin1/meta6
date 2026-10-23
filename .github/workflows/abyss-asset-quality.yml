@@ -19,13 +19,13 @@ jobs:
       - run: python -m unittest discover -s automation/asset-quality -p 'test_*.py' -v
       - name: Check production assets
         run: |
-          if [ -d abyss-glow/assets ]; then
+          if [ -f abyss-glow/assets/manifest.json ]; then
             python automation/asset-quality/validate.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json
             python automation/asset-quality/check_animation.py --manifest abyss-glow/assets/manifest.json --output asset-animation-report.json
             python automation/asset-quality/audit_pack.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --requirements automation/asset-quality/abyss-requirements.json --output asset-quality-audit.json
           else
-            echo 'Asset coverage UNKNOWN: source assets not installed'
-            echo '{"status":"UNKNOWN","reason":"source assets not installed"}' > asset-quality-audit.json
+            echo 'Asset coverage UNKNOWN: complete production manifest not installed; component tests still ran'
+            echo '{"status":"UNKNOWN","reason":"complete production manifest not installed; component tests still ran"}' > asset-quality-audit.json
           fi
 
       - name: Compare reference sprites

@@ -17,6 +17,7 @@
   "tested": [
     "focused build tests: 2/2 PASS",
     "full Asset Quality suite: 105/105 PASS",
+    "first exact-head Asset Quality CI: component tests PASS, full-pack step FAIL due directory-vs-manifest workflow condition; repaired for repeat CI",
     "source layer SHA-256 unchanged: 980b6cab87a7556a021f8b13a38b1d30656eca1787dcec3f29028d6ebde40aa8"
   ],
   "evidence": [
