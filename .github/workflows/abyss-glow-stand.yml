@@ -13,6 +13,9 @@ on:
       - 'automation/asset-quality/test_abyss_style_gate.py'
       - 'automation/asset-quality/abyss_part_motion_gate.py'
       - 'automation/asset-quality/test_abyss_part_motion_gate.py'
+      - 'automation/asset-quality/validate_abyss_handoff.py'
+      - 'automation/asset-quality/test_validate_abyss_handoff.py'
+      - 'automation/handoff/**'
       - '.github/workflows/abyss-glow-stand.yml'
   push:
     branches: [main]
@@ -28,6 +31,9 @@ on:
       - 'automation/asset-quality/test_abyss_style_gate.py'
       - 'automation/asset-quality/abyss_part_motion_gate.py'
       - 'automation/asset-quality/test_abyss_part_motion_gate.py'
+      - 'automation/asset-quality/validate_abyss_handoff.py'
+      - 'automation/asset-quality/test_validate_abyss_handoff.py'
+      - 'automation/handoff/**'
       - '.github/workflows/abyss-glow-stand.yml'
   workflow_dispatch:
 
@@ -68,6 +74,8 @@ jobs:
           python3 -m pip install --break-system-packages 'Pillow>=10,<13'
           python3 -m unittest discover -s automation/asset-quality -p 'test_abyss_style_gate.py' -v
           python3 -m unittest discover -s automation/asset-quality -p 'test_abyss_part_motion_gate.py' -v
+          python3 -m unittest discover -s automation/asset-quality -p 'test_validate_abyss_handoff.py' -v
+          python3 automation/asset-quality/validate_abyss_handoff.py
           python3 -m unittest discover -s automation/asset-quality -p 'test_build_single_loop.py' -v
           python3 -m unittest discover -s automation/asset-quality -p 'test_abyss_release_comparison.py' -v
       - name: Independently compare original and candidate in Chromium
