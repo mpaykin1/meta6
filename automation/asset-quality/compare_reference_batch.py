@@ -16,7 +16,7 @@ def audit(root, references):
         records=json.loads(manifest.read_text(encoding="utf8"))["comparisons"]
         if not isinstance(records,list) or not records:
             raise ValueError("empty comparisons")
-    except (OSError,ValueError,KeyError,TypeError) as error:
+    except (OSError,ValueError,KeyError,TypeError,OverflowError) as error:
         return {"status":"FAIL","checked":0,"reason":str(error),"results":[]}
     results=[]
     seen=set()
@@ -39,15 +39,21 @@ def audit(root, references):
                 raise ValueError("missing_or_duplicate_id")
             seen.add(ident)
             candidate_name=record["candidate"]
+            reference_name=record["reference"]
+            if not isinstance(candidate_name,str) or not candidate_name.strip() or not isinstance(reference_name,str) or not reference_name.strip():
+                raise ValueError("invalid_candidate_or_reference_path")
+            tolerance=record.get("max_mismatch",0)
+            if isinstance(tolerance,bool) or not isinstance(tolerance,(int,float)) or not 0<=tolerance<=1:
+                raise ValueError("invalid_max_mismatch")
             if candidate_name in declared_candidates: raise ValueError("duplicate_candidate")
             declared_candidates.add(candidate_name)
             candidate=(root/candidate_name).resolve()
-            reference=(references/record["reference"]).resolve()
+            reference=(references/reference_name).resolve()
             if not candidate.is_relative_to(root) or not reference.is_relative_to(references):
                 raise ValueError("path_escape")
             if not candidate.is_file() or not reference.is_file():
                 raise ValueError("missing_reference_or_candidate")
-            result=compare(reference,candidate,record.get("max_mismatch",0))
+            result=compare(reference,candidate,tolerance)
             result["id"]=record.get("id")
         except (OSError,ValueError,KeyError,TypeError) as error:
             result={"status":"FAIL","id":record.get("id") if isinstance(record,dict) else None,"reason":str(error)}
