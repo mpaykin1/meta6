@@ -21,6 +21,12 @@
 - **Применять:** Propagate every explicit requirement FAIL into a requirement_failed audit issue and retain a regression asserting that the aggregate audit status is FAIL.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 9f7334e32db801c3d83fbb71ce26a47a4d9da940
 
+## asset/legacy-crop-source
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-legacy-crop-source
+- **Наблюдение:** ABYSS audit accepted a production manifest whose source pointed into the owner's assets/sprites legacy crop directory, despite abyss.md §2 marking all 58 crops reference-only because of transparent bodies, borders, captured neighbors and frame drift.
+- **Применять:** Represent the HARD as ABYSS-SOURCE-CROPS in the traceability matrix and reject every production source path containing the exact assets/sprites directory pair; retain a red-first regression with an existing legacy source file.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 5c8ca80bdc88c25ae107f911406367272bc1ab68
+
 ## asset/loop-seam-continuity
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-loop-seam-continuity
 - **Наблюдение:** ABYSS static gate accepted looped frame sequences whose last-to-first RGBA change was larger than every neighboring-frame change, permitting a visible snap at the loop boundary despite complete frame indexes and stable pivots.
