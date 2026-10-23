@@ -12,13 +12,25 @@ class QualityTests(unittest.TestCase):
             for x in range(2,10): im.putpixel((x,y),(0,0,0,255))
         im.save(self.root/"sprite.png")
         for name in ("body","detail","normal","emissive"): im.save(self.root/(name+".png"))
-        self.entry={"id":"fish_s0_idle_0","file":"sprite.png","kind":"creature","type":"fish","stage":0,"anim":"idle","frame":0,"frames":1,"fps":8,"loop":True,"sizeArt":[12,12],"pivot":[6,6],"hitbox":{"circle":[6,6,4]},"sockets":{},"parts":None,"atlas":"fish","rect":[0,0,12,12],"source":"test","layers":{k:k+".png" for k in ("body","detail","normal","emissive")}}
+        self.entry={"id":"fish_s0_idle_0","file":"sprite.png","kind":"creature","type":"fish","stage":0,"zones":[0],"anim":"idle","frame":0,"frames":1,"fps":8,"loop":True,"sizeArt":[12,12],"pivot":[6,6],"hitbox":{"circle":[6,6,4]},"sockets":{},"parts":None,"layer":"play","atlas":"fish","rect":[0,0,12,12],"source":"test","layers":{k:k+".png" for k in ("body","detail","normal","emissive")}}
     def tearDown(self): self.tmp.cleanup()
     def check(self, entry):
         path=self.root/"manifest.json"
         path.write_text(json.dumps({"sprites":[entry]}))
         return inspect(self.root,path)
     def test_valid(self): self.assertEqual(self.check(self.entry)["status"],"STATIC_PASS_RUNTIME_UNKNOWN")
+    def test_manifest_requires_zones_and_render_layer(self):
+        self.entry.pop("zones",None)
+        self.entry.pop("layer",None)
+        details=[x.get("detail") for x in self.check(self.entry)["issues"] if x["rule"]=="manifest"]
+        self.assertIn("missing zones",details)
+        self.assertIn("missing layer",details)
+    def test_zones_and_render_layer_are_typed(self):
+        self.entry["zones"]=[0,True,5]
+        self.entry["layer"]=""
+        rules=[x["rule"] for x in self.check(self.entry)["issues"]]
+        self.assertIn("zones_0_4",rules)
+        self.assertIn("render_layer",rules)
     def test_palette(self):
         im=Image.open(self.root/"sprite.png");im.putpixel((5,5),(12,34,56,255));im.save(self.root/"sprite.png")
         self.assertIn("seven_color_palette",[x["rule"] for x in self.check(self.entry)["issues"]])
