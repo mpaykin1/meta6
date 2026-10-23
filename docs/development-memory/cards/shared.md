@@ -15,6 +15,12 @@
 - **Применять:** Гасить скорость плавно и проверять покадровые скачки; отсутствие данных в тесте — ошибка.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stage7-surface-velocity-snap.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## asset/owner-maw-layer-package
+- 2026-10-23 · solution · technical · 2026-10-23-abyss-owner-maw-layer-package
+- **Наблюдение:** The owner-derived front-maw R/G/B layer image preserved the asymmetric silhouette but lacked the atlas rects, jaw pivot, hitbox, sockets and provenance required by abyss.md §8.
+- **Применять:** Build only from maw_front_layers.png: emit a padded four-layer atlas, two hinged parts, source hashes and an UNKNOWN licence; retain a byte-equality test and reference sheet.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA 28f50d923ee16014994bfd292bc88fd386458b31
+
 ## atmosphere/depth-gradient
 - 2026-10-21 · baseline · technical · 2026-10-21-world-lesson-7
 - **Наблюдение:** Стандарт атмосферы World_server: ближний план более читаем, дальний смягчён туманом и менее контрастен.

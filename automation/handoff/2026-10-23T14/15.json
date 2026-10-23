@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-23T14:00:00Z",
+  "slot": "15",
+  "time": "2026-10-23T14:15:19Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "head_sha": "28f50d923ee16014994bfd292bc88fd386458b31",
+  "objective": "Produce one deterministic owner-source front-maw asset package without changing the original game.",
+  "created": [
+    "four-layer 886x588 atlas with separate upper and lower jaw parts",
+    "shared hinge, sockets, hitbox and provenance/license manifest",
+    "owner-reference versus derived nearest-pixel comparison sheet",
+    "red-first deterministic rebuild and invariant regression"
+  ],
+  "tested": [
+    "focused build tests: 2/2 PASS",
+    "full Asset Quality suite: 105/105 PASS",
+    "source layer SHA-256 unchanged: 980b6cab87a7556a021f8b13a38b1d30656eca1787dcec3f29028d6ebde40aa8"
+  ],
+  "evidence": [
+    "abyss-glow/assets/maw_front_v1/maw_front_evidence.png",
+    "abyss-glow/assets/maw_front_v1/manifest.json",
+    "automation/asset-quality/test_build_maw_asset.py"
+  ],
+  "unknown": [
+    "owner artistic acceptance",
+    "runtime articulated jaw motion and shader response",
+    "explicit production licence grant",
+    "physical iPhone FPS and GPU behaviour"
+  ],
+  "watchdog": "All five existing META6 automations enabled; :05 and :15 recorded in progress, :30 no_update, :40 and :50 completed. No schedule or enablement mutation performed.",
+  "next_action": "Integrate this exact atlas in an isolated stand; animate lower jaw around [108,168] with dt; capture at least three phases and validate real anchors with abyss_part_motion_gate.py. Do not edit abyss-glow/stand/index.html."
+}
