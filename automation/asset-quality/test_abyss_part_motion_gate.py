@@ -34,4 +34,4 @@ class MotionGateTests(unittest.TestCase):
         del self.record["samples"][1]["anchors"]["tail"]
         self.assertEqual(evaluate(self.record)["status"],"FAIL")
 
-if __name__=="__main__":unittest.main()
+    def test_boolean_anchor_coordinate_fails(self):\n        self.record["samples"][0]["anchors"]["head"][0] = False\n        self.record["samples"][1]["anchors"]["head"][0] = True\n        self.assertEqual(evaluate(self.record)["status"], "FAIL")\n\nif __name__=="__main__":unittest.main()
