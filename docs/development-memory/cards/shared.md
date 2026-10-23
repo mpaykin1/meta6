@@ -3,6 +3,12 @@
 Краткая выборка; все исходные записи сохранены в ../events.jsonl.
 При конфликте не выбирай победителя по дате: проверь обе ссылки, запиши новую запись с supersedes.
 
+## animation/boolean-anchor-coordinate
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-motion-boolean-anchor
+- **Наблюдение:** ABYSS part-motion gate accepted true/false anchor coordinates because Python bool is a subclass of int; a forged manifest could therefore satisfy relative-motion arithmetic without real numeric coordinates.
+- **Применять:** Reject bool before accepting finite int/float anchor coordinates and retain a red-first regression that previously returned PASS_PART_ANCHOR_MOTION.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA bd1286b3312c41600cfdcaa7550f26c66b1a2c72
+
 ## animation/surface-clamp-snap
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-stage7-surface-velocity-snap
 - **Наблюдение:** Мгновенное обнуление вертикальной скорости у поверхности вызывало рывок камеры.

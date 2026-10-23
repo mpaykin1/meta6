@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "cycle_utc": "2026-10-23T13:00:00Z",
+  "slot": "40",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "113e3bba963c6c1bc8480180157156c1f38d9f23",
+  "pr": 229,
+  "head_sha": "bd1286b3312c41600cfdcaa7550f26c66b1a2c72",
+  "objective": "Reject boolean coordinates in the independent part-motion release gate",
+  "change_paths": [
+    "automation/asset-quality/abyss_part_motion_gate.py",
+    "automation/asset-quality/test_abyss_part_motion_gate.py"
+  ],
+  "evidence_urls": [
+    "https://github.com/mpaykin1/meta6/actions/runs/39963872887"
+  ],
+  "checks": {
+    "browser": "UNKNOWN",
+    "art": "UNKNOWN",
+    "device_fps": "UNKNOWN"
+  },
+  "blockers": [
+    "Production Stand exact-head workflow still running when this handoff was written",
+    "No independent REVIEW: OK for the current head",
+    "Physical iPhone and owner artistic verdict are UNKNOWN"
+  ],
+  "next_action": "Verify Production Stand on the exact final head, then request repeat independent review; do not merge before REVIEW: OK."
+}
