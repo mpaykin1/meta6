@@ -42,8 +42,10 @@ class ReferenceCoverageTruthTests(unittest.TestCase):
         self.assertEqual(report["blockers"]["count"],0)
     def test_blockers_prioritize_largest_pixel_mismatch(self):
         self.manifest(["a.png","b.png"])
-        Image.new("RGBA",(2,2),(0,0,0,0)).save(self.assets/"b.png")
-        Image.new("RGBA",(2,2),(255,0,0,255)).save(self.references/"b.png")
+        Image.new("RGBA",(2,2),(255,0,0,255)).save(self.assets/"b.png")
+        partial=Image.new("RGBA",(2,2),(0,0,0,0))
+        partial.putpixel((0,0),(255,0,0,255))
+        partial.save(self.references/"b.png")
         Image.new("RGBA",(2,2),(0,0,0,0)).save(self.references/"a.png")
         (self.references/"manifest.json").write_text(json.dumps({"comparisons":[
             {"id":"small","candidate":"a.png","reference":"b.png","max_mismatch":0},
