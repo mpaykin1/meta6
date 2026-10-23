@@ -145,5 +145,8 @@ class QualityTests(unittest.TestCase):
     def test_non_loop_does_not_require_loop_seam(self):
         result=self.animation_frames([[],[(8,6)],[(8,6),(9,6)]],loop=False)
         self.assertNotIn("loop_seam_continuity",[x["rule"] for x in result["issues"]])
+    def test_identical_declared_animation_frames_rejected(self):
+        result=self.animation_frames([[],[],[]])
+        self.assertIn("sequence_static_frames",[x["rule"] for x in result["issues"]])
 if __name__=="__main__":unittest.main()
 
