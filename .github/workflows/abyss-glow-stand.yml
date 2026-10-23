@@ -1,0 +1,78 @@
+name: ABYSS GLOW Production Stand
+on:
+  pull_request:
+    paths:
+      - 'abyss-glow/stand/**'
+      - 'automation/asset-quality/abyss_stand_smoke.mjs'
+      - '.github/workflows/abyss-glow-stand.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'abyss-glow/stand/**'
+      - 'automation/asset-quality/abyss_stand_smoke.mjs'
+      - '.github/workflows/abyss-glow-stand.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: abyss-glow-pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  production-smoke:
+    name: Original game - desktop and touch WebGL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install free pinned browser harness
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve original autonomous HTML
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory abyss-glow/stand > /tmp/abyss-http.log 2>&1 &
+          sleep 2
+          curl -fsS http://127.0.0.1:8765/ > /dev/null
+      - name: Run real Chromium and emulated mobile-touch scenes
+        run: node automation/asset-quality/abyss_stand_smoke.mjs
+      - name: Upload full browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: abyss-glow-production-browser-evidence
+          path: abyss-glow/evidence/
+          retention-days: 14
+          if-no-files-found: warn
+
+  deploy-pages:
+    name: Publish stand without removing existing Meta6 pages
+    if: github.event_name != 'pull_request'
+    needs: production-smoke
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve all existing public site paths
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='_site/' --exclude='abyss-glow/evidence/' ./ _site/
+          touch _site/.nojekyll
+          test -s _site/index.html
+          test -s _site/abyss-glow/stand/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy verified stand
+        id: deployment
+        uses: actions/deploy-pages@v4
