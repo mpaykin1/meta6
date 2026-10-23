@@ -45,6 +45,15 @@ def frame_distance(root,left,right):
     histogram=ImageChops.difference(a,b).histogram()
     return sum((index%256)*count for index,count in enumerate(histogram))/(a.width*a.height*4)
 
+def frame_fingerprint(root,entry):
+    """Decoded RGBA identity, so renamed/metadata-only duplicates stay duplicates."""
+    try:
+        with Image.open(pathlib.Path(root)/entry["file"]) as source:
+            image=source.convert("RGBA")
+            return image.size,image.tobytes()
+    except (OSError,KeyError):
+        return None
+
 def inspect(root, manifest):
     issues=[]; checked=0; sequences={}
     try: data=json.loads(pathlib.Path(manifest).read_text(encoding="utf8"))
@@ -160,6 +169,10 @@ def inspect(root, manifest):
         indices=[entry.get("frame") for entry in entries_in_sequence if type(entry.get("frame")) is int]
         if sorted(indices)!=list(range(total)):
             issues.append({"sequence":sequence,"rule":"sequence_complete","actual":sorted(indices),"expected":list(range(total))})
+        elif total>1:
+            fingerprints=[frame_fingerprint(root,entry) for entry in entries_in_sequence]
+            if all(fingerprint is not None for fingerprint in fingerprints) and len(set(fingerprints))==1:
+                issues.append({"sequence":sequence,"rule":"sequence_static_frames","frames":total})
         for field, rule in (("fps","sequence_fps_consistent"),("loop","sequence_loop_consistent")):
             values={json.dumps(entry.get(field),sort_keys=True) for entry in entries_in_sequence}
             if len(values)>1: issues.append({"sequence":sequence,"rule":rule})
