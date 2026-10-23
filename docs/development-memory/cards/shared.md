@@ -33,6 +33,12 @@
 - **Применять:** Require §8 sockets, hitbox and parts fields; validate bounded finite points, a positive circle hitbox, unique part IDs and complete id/pivot/parent/joint records; count only valid parts when allowing disconnected components.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4cb261e21c125c205dbc2cbe23da8764c2cf4aa3
 
+## asset/manifest-zones-layer
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-manifest-zones-layer
+- **Наблюдение:** ABYSS gate accepted a sprite manifest entry missing the §8 HARD zones and render-layer fields, so an incomplete integration contract could receive a static green result.
+- **Применять:** Require zones and layer, validate zones as a non-empty unique 0–4 list and layer as a non-empty string, and retain red-first missing/type regressions.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA c2de3f4d94ba1e1fc19cd6f307da803264f94559
+
 ## asset/requirement-evidence-binding
 - 2026-10-23 · failure · technical · 2026-10-23-abyss-requirement-evidence-binding
 - **Наблюдение:** ABYSS audit accepted a correctly hashed evidence file for any verified HARD claim without proving that the evidence record belonged to that requirement.
