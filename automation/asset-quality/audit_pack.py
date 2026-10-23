@@ -78,6 +78,8 @@ def analyze(root,manifest,requirements=None):
                         issues.append({"rule":"requirement_evidence_missing","id":item["id"]})
                     else:
                         for record in evidence:
+                            if not isinstance(record,dict) or record.get("requirement_id")!=item["id"]:
+                                issues.append({"rule":"requirement_evidence_binding","id":item["id"]})
                             valid=isinstance(record,dict) and isinstance(record.get("path"),str) and bool(record["path"].strip()) and isinstance(record.get("sha256"),str) and len(record["sha256"])==64
                             if valid:
                                 target=(evidence_root/record["path"]).resolve()
