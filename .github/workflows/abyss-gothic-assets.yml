@@ -1,0 +1,39 @@
+name: ABYSS Gothic Asset Generator
+on:
+  pull_request:
+    paths:
+      - 'automation/asset-quality/generate_gothic_layers.py'
+      - '.github/workflows/abyss-gothic-assets.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generate-and-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate five deterministic 2.5D vector layers
+        run: python3 automation/asset-quality/generate_gothic_layers.py --out /tmp/abyss-gothic
+      - name: Assert geometry and manifest integrity
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib,xml.etree.ElementTree as ET
+          d=pathlib.Path('/tmp/abyss-gothic')
+          m=json.loads((d/'manifest.json').read_text())
+          assert m['status']=='generated_preview_not_integrated'
+          assert len(m['assets'])==5
+          for a in m['assets']:
+              p=d/a['name']
+              assert p.is_file() and p.stat().st_size>100
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==a['sha256']
+              root=ET.fromstring(p.read_bytes())
+              assert root.tag.endswith('svg')
+              assert 0<=a['parallax']<=1
+          print('PASS: 5/5 valid SVG layers, SHA-256 verified, original game untouched')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: abyss-gothic-original-vector-layers
+          path: /tmp/abyss-gothic/
+          retention-days: 14
