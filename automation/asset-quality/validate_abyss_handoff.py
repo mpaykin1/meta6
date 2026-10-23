@@ -25,7 +25,7 @@ def validate(root, require_cycle=False):
         # Legacy handoffs (YYYY-MM-DDTHH with 05.json/15.json) predate the
         # new five-slot contract. Audit them separately during migration;
         # they are NOT evidence of a completed new-format cycle.
-        if re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}T\\d{2}", directory.name):
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}", directory.name):
             continue
         if not CYCLE.fullmatch(directory.name):
             problems.append(f"{directory.name}: invalid cycle id")
