@@ -9,6 +9,12 @@
 - **Применять:** Гасить скорость плавно и проверять покадровые скачки; отсутствие данных в тесте — ошибка.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stage7-surface-velocity-snap.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## asset/animation-boolean-pivot
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-animation-boolean-pivot
+- **Наблюдение:** ABYSS animation gate treated boolean pivot coordinates as numbers, so [true,4] bypassed invalid_pivot and was misreported only as drift.
+- **Применять:** Reject bool explicitly before accepting finite int/float pivot coordinates in every animation frame; retain the red-first regression in test_check_animation.py.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 7f782cbf177bd142437de6d7aea701f10caaf644
+
 ## asset/animation-sequence-integrity
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-animation-sequence-integrity
 - **Наблюдение:** ABYSS gate accepted incomplete frame sequences, untyped loop and fps fields, invalid frame indexes and pivot drift above the one-pixel HARD limit.
