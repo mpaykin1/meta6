@@ -14,7 +14,7 @@ class HandoffTests(unittest.TestCase):
         self.cycle=self.root/"20261023T22"
         self.cycle.mkdir()
         for i,slot in enumerate(SLOTS):
-            obj={"cycle":self.cycle.name,"slot":slot,"status":"OK","head_sha":A}
+            obj={"cycle":self.cycle.name,"slot":slot,"status":"OK","head_sha":A,"actor_id":"agent-"+slot}
             if i:obj["previous_sha"]=A
             if slot=="40-qa":obj.update(reviewed_sha=A,reviewer_role="QA",approved=True)
             if slot=="50-director":obj.update(merged=False)
@@ -36,6 +36,11 @@ class HandoffTests(unittest.TestCase):
     def test_qa_wrong_sha(self):
         self.change("40-qa",reviewed_sha=B)
         self.assertTrue(any("exact SHA" in e for e in validate(self.root)))
+    def test_build_cannot_approve_own_work(self):
+        self.change("40-qa",actor_id="agent-15-build")
+        self.assertTrue(any("QA actor must differ" in e for e in validate(self.root)))
+    def test_missing_entire_cycle_fails_when_required(self):
+        self.assertTrue(any("MISSING_HANDOFF" in e for e in validate(self.root/"absent",require_cycle=True)))
     def test_merge_without_ci(self):
         self.change("50-director",merged=True,merge_sha=A,ci_conclusion="failure")
         self.assertTrue(any("green CI" in e for e in validate(self.root)))
