@@ -69,7 +69,7 @@ def inspect(root, manifest):
             issues.append({"rule":"invalid_id"}); name=str(name)
         if name in ids: issues.append({"id":name,"rule":"unique_id"})
         ids.add(name)
-        for field in ("id","file","kind","type","stage","anim","frame","frames","fps","loop","sizeArt","pivot","hitbox","sockets","parts","atlas","rect","source"):
+        for field in ("id","file","kind","type","stage","zones","anim","frame","frames","fps","loop","sizeArt","pivot","hitbox","sockets","parts","layer","atlas","rect","source"):
             if field not in entry: issues.append({"id":name,"rule":"manifest","detail":"missing "+field})
         file=entry.get("file")
         if not isinstance(file,str) or not file or pathlib.PurePosixPath(file).is_absolute() or ".." in pathlib.PurePosixPath(file).parts:
@@ -144,6 +144,11 @@ def inspect(root, manifest):
         elif isinstance(rect,list) and len(rect)==4 and all(type(x) is int for x in rect) and rect[2:] != [w,h]:
             issues.append({"id":name,"rule":"rect_size_matches_file","actual":rect[2:],"expected":[w,h]})
         if type(entry.get("stage")) is not int or entry["stage"] not in range(5): issues.append({"id":name,"rule":"stage_0_4"})
+        zones=entry.get("zones")
+        if not (isinstance(zones,list) and zones and len(zones)==len(set(zones)) and all(type(zone) is int and zone in range(5) for zone in zones)):
+            issues.append({"id":name,"rule":"zones_0_4"})
+        if not isinstance(entry.get("layer"),str) or not entry["layer"].strip():
+            issues.append({"id":name,"rule":"render_layer"})
         if type(entry.get("frames")) is not int or entry.get("frames",0)<1: issues.append({"id":name,"rule":"frames"})
         if type(entry.get("frame")) is not int or type(entry.get("frames")) is not int or not (0 <= entry.get("frame",-1) < entry.get("frames",0)):
             issues.append({"id":name,"rule":"frame_index"})
