@@ -4,12 +4,16 @@ on:
     paths:
       - 'abyss-glow/stand/**'
       - 'automation/asset-quality/abyss_stand_smoke.mjs'
+      - 'automation/asset-quality/abyss_single_loop_smoke.mjs'
+      - 'automation/asset-quality/build_single_loop.py'
       - '.github/workflows/abyss-glow-stand.yml'
   push:
     branches: [main]
     paths:
       - 'abyss-glow/stand/**'
       - 'automation/asset-quality/abyss_stand_smoke.mjs'
+      - 'automation/asset-quality/abyss_single_loop_smoke.mjs'
+      - 'automation/asset-quality/build_single_loop.py'
       - '.github/workflows/abyss-glow-stand.yml'
   workflow_dispatch:
 
@@ -43,6 +47,10 @@ jobs:
           curl -fsS http://127.0.0.1:8765/ > /dev/null
       - name: Run real Chromium and emulated mobile-touch scenes
         run: node automation/asset-quality/abyss_stand_smoke.mjs
+      - name: Build original-preserving single-RAF candidate
+        run: python3 automation/asset-quality/build_single_loop.py abyss-glow/stand/index.html abyss-glow/stand/single-loop.html
+      - name: Independently compare original and candidate in Chromium
+        run: node automation/asset-quality/abyss_single_loop_smoke.mjs
       - name: Upload full browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -62,6 +70,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Derive optional preview from original without touching it
+        run: python3 automation/asset-quality/build_single_loop.py abyss-glow/stand/index.html abyss-glow/stand/single-loop.html
       - name: Preserve all existing public site paths
         run: |
           mkdir -p _site
