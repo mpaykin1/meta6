@@ -40,6 +40,18 @@ class ReferenceCoverageTruthTests(unittest.TestCase):
         self.assertEqual(report["pixel_quality"]["mismatched_pixels"],0)
         self.assertEqual(report["pixel_quality"]["mismatch_ratio"],0)
         self.assertEqual(report["blockers"]["count"],0)
+    def test_blockers_prioritize_largest_pixel_mismatch(self):
+        self.manifest(["a.png","b.png"])
+        Image.new("RGBA",(2,2),(0,0,0,0)).save(self.assets/"b.png")
+        Image.new("RGBA",(2,2),(255,0,0,255)).save(self.references/"b.png")
+        Image.new("RGBA",(2,2),(0,0,0,0)).save(self.references/"a.png")
+        (self.references/"manifest.json").write_text(json.dumps({"comparisons":[
+            {"id":"small","candidate":"a.png","reference":"b.png","max_mismatch":0},
+            {"id":"large","candidate":"b.png","reference":"a.png","max_mismatch":0}]}))
+        report=audit(self.assets,self.references)
+        self.assertEqual(report["status"],"FAIL")
+        self.assertEqual(report["blockers"]["count"],2)
+        self.assertEqual([x["id"] for x in report["blockers"]["items"]],["large","small"])
     def test_duplicate_manifest_files_fail(self):
         self.manifest(["a.png","a.png"])
         report=audit(self.assets,self.references)
