@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-23T17:00:00Z",
+  "slot": "50",
+  "time": "2026-10-23T17:58:25Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "head_sha": "a0326bda52fad7482e3f80ec27d5847478ee0d11",
+  "objective": "Gate the owner-source front-maw package and hand off one isolated runtime-articulation task.",
+  "readiness": {
+    "confirmed_percent": 46,
+    "previous_percent": 42,
+    "delta_points": 4,
+    "matrix": {
+      "original_preservation": "15/15",
+      "ci_test_infrastructure": "13/15",
+      "abyss_md_compliance": "9/20",
+      "accepted_artistic_assets": "0/25",
+      "real_articulated_animation": "1/10",
+      "touch_fullscreen_offline": "3/5",
+      "factory_coordination": "5/10"
+    }
+  },
+  "created": [
+    "deterministic 886x588 maw_front_v1 four-layer atlas",
+    "separate upper/lower parts with shared hinge [108,168]",
+    "source hashes, sockets, hitbox and UNKNOWN licence record",
+    "owner-reference versus derived evidence sheet"
+  ],
+  "tested": [
+    "local Asset Quality 105/105 PASS",
+    "deterministic package rebuild byte-equality PASS",
+    "compact_experience.py --check PASS",
+    "Production Stand #38 success",
+    "Asset Quality #146 success",
+    "Development memory #108 success",
+    "Cross-repo memory #125 success"
+  ],
+  "rejected": [
+    "procedural substitute geometry",
+    "CI as artistic acceptance",
+    "automatic merge without current-head independent review",
+    "removed parallel visual-target document as authority"
+  ],
+  "unknown": [
+    "runtime jaw articulation and stage transitions",
+    "rendered shader/rim response of maw_front_v1",
+    "five-zone and 14x5 production coverage",
+    "runtime draw calls and memory",
+    "comparable FPS p50 and p95 frame time",
+    "explicit production licence grant",
+    "physical iPhone behaviour",
+    "owner artistic verdict",
+    "repeat independent review for current head"
+  ],
+  "evidence": [
+    "https://github.com/mpaykin1/meta6/blob/a0326bda52fad7482e3f80ec27d5847478ee0d11/abyss-glow/assets/maw_front_v1/maw_front_evidence.png",
+    "https://github.com/mpaykin1/meta6/actions/runs/39968917282",
+    "https://github.com/mpaykin1/meta6/actions/runs/39968917380",
+    "https://github.com/mpaykin1/meta6/actions/runs/39968917297",
+    "https://github.com/mpaykin1/meta6/actions/runs/39968917381",
+    "https://github.com/mpaykin1/meta6/pull/229#pullrequestreview-5627872201"
+  ],
+  "coordination": {
+    "latest_present_slots": ["15"],
+    "missing_slots": ["05", "30", "40"],
+    "cross_repo_memory": "PARTIAL: plan succeeded; online runner stalled in PR-files collection after local inventory and PR-evidence; no temporary output published",
+    "game_dev": "UNAVAILABLE"
+  },
+  "blockers": [
+    "only independent review targets obsolete SHA 84d905b and requires changes",
+    "no runtime articulation evidence for the new atlas",
+    "licence and physical-device evidence remain UNKNOWN"
+  ],
+  "next_action": "Integrate only maw_front_v1 into an isolated autonomous stand; animate lower jaw around [108,168] with dt; capture closed/mid/open frames and real part anchors; run abyss_part_motion_gate.py; compare desktop and 390x844 touch Chromium under the same scene and seed with FPS p50, p95 frame time, draw calls and memory where measurable; do not modify abyss-glow/stand/index.html."
+}
