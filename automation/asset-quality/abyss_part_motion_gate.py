@@ -21,7 +21,7 @@ def evaluate(record):
             isinstance(s.get("anchors"), dict)
             and all(isinstance(s["anchors"].get(p), list)
                     and len(s["anchors"][p]) == 2
-                    and all(isinstance(v, (int, float)) and math.isfinite(v) for v in s["anchors"][p])
+                    and all(not isinstance(v, bool)\n                            and isinstance(v, (int, float))\n                            and math.isfinite(v)\n                            for v in s["anchors"][p])
                     for p in parts)
             for s in samples
         ),
