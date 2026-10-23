@@ -14,8 +14,11 @@ SLOTS=("05-scout","15-build","30-test","40-qa","50-director")
 SHA=re.compile(r"^[0-9a-f]{40}$")
 CYCLE=re.compile(r"^\d{8}T\d{2}$")
 
-def validate(root):
+def validate(root, require_cycle=False):
     problems=[]
+    cycles = [d for d in root.iterdir() if d.is_dir()] if root.exists() else []
+    if require_cycle and not cycles:
+        return ["MISSING_HANDOFF: no completed production cycle exists"]
     for directory in sorted(root.iterdir()) if root.exists() else []:
         if not directory.is_dir():
             continue
@@ -44,6 +47,9 @@ def validate(root):
             if previous is not None and previous.get("status")!="OK" and record.get("status")=="OK":
                 problems.append(f"{path}: dependency was not OK")
             if slot=="40-qa" and record.get("status")=="OK":
+                build=json.loads((directory/"15-build.json").read_text())
+                if not record.get("actor_id") or record.get("actor_id")==build.get("actor_id"):
+                    problems.append(f"{path}: QA actor must differ from BUILD actor")
                 if record.get("reviewed_sha")!=record.get("head_sha"):
                     problems.append(f"{path}: QA must approve exact SHA")
                 if record.get("reviewer_role")!="QA" or record.get("approved") is not True:
@@ -60,8 +66,9 @@ def validate(root):
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--root",type=Path,default=Path("automation/handoff"))
+    p.add_argument("--require-cycle",action="store_true")
     args=p.parse_args()
-    problems=validate(args.root)
+    problems=validate(args.root,require_cycle=args.require_cycle)
     print(json.dumps({"status":"FAIL" if problems else "PASS_SCHEMA_ONLY","problems":problems,"live_five_slot_cycle":"UNKNOWN"},indent=2))
     if problems:raise SystemExit(1)
 
