@@ -22,6 +22,8 @@ def audit(root, references):
     seen=set()
     declared_candidates=set()
     verified_candidates=set()
+    compared_pixels=0
+    mismatched_pixels=0
     expected_assets=set()
     assets_manifest=root/"manifest.json"
     if not assets_manifest.is_file():
@@ -60,6 +62,9 @@ def audit(root, references):
             if not candidate.is_file() or not reference.is_file():
                 raise ValueError("missing_reference_or_candidate")
             result=compare(reference,candidate,tolerance)
+            if isinstance(result.get("pixels"),int) and isinstance(result.get("mismatched_pixels"),int):
+                compared_pixels+=result["pixels"]
+                mismatched_pixels+=result["mismatched_pixels"]
             if result["status"]!="FAIL":
                 verified_candidates.add(candidate_name)
             result["id"]=record.get("id")
@@ -73,8 +78,10 @@ def audit(root, references):
     if extra:
         results.append({"status":"FAIL","reason":"undeclared_candidate_sprites","extra":extra[:100],"extra_count":len(extra)})
     coverage=(len(expected_assets & verified_candidates)/len(expected_assets)) if expected_assets else None
+    pixel_ratio=(mismatched_pixels/compared_pixels) if compared_pixels else None
     return {"status":"FAIL" if any(x["status"]=="FAIL" for x in results) else "PIXEL_PASS_ART_REVIEW_UNKNOWN",
             "checked":len(records),"results":results,"artistic_approval":"UNKNOWN",
+            "pixel_quality":{"compared_pixels":compared_pixels,"mismatched_pixels":mismatched_pixels,"mismatch_ratio":pixel_ratio},
             "coverage":{"expected":len(expected_assets),"declared":len(expected_assets & declared_candidates),"verified":len(expected_assets & verified_candidates),"ratio":coverage,"complete":coverage==1.0 if coverage is not None else None}}
 
 if __name__=="__main__":
