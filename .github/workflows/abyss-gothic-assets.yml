@@ -5,6 +5,7 @@ on:
       - 'automation/asset-quality/generate_gothic_layers.py'
       - '.github/workflows/abyss-gothic-assets.yml'
       - 'abyss-glow/generated/gothic/index.html'
+      - 'automation/asset-quality/gothic_preview_smoke.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,8 +34,17 @@ jobs:
               assert 0<=a['parallax']<=1
           print('PASS: 5/5 valid SVG layers, SHA-256 verified, original game untouched')
           PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium browser harness
+        run: npm install --no-save --no-package-lock playwright@1.58.2 && npx playwright install --with-deps chromium
       - name: Add fullscreen touch preview to artifact
         run: cp abyss-glow/generated/gothic/index.html /tmp/abyss-gothic/index.html
+      - name: Serve generated assets and preview
+        run: python3 -m http.server 8766 --bind 127.0.0.1 --directory /tmp/abyss-gothic > /tmp/abyss-gothic-http.log 2>&1 &
+      - name: Browser smoke - portrait touch and desktop
+        run: node automation/asset-quality/gothic_preview_smoke.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: abyss-gothic-original-vector-layers
