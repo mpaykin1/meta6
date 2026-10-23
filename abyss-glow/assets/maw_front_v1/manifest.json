@@ -1,0 +1,141 @@
+{
+  "animation": {
+    "reason": "baseline parts only; no runtime articulation claimed",
+    "status": "UNKNOWN"
+  },
+  "atlas": {
+    "file": "maw_front_atlas.png",
+    "padding": 2,
+    "size": [
+      886,
+      588
+    ]
+  },
+  "hitbox": {
+    "circle": [
+      108,
+      144,
+      72
+    ]
+  },
+  "id": "maw_front_v1",
+  "kind": "attack",
+  "layer": "play",
+  "license": {
+    "note": "Owner-provided project source; no explicit SPDX grant recorded in repository.",
+    "status": "UNKNOWN"
+  },
+  "limitations": [
+    "Technical extraction is not owner artistic approval.",
+    "Normal map is deterministic bevel baseline pending manual art review.",
+    "Physical iPhone rendering and FPS are UNKNOWN."
+  ],
+  "parts": [
+    {
+      "id": "upper",
+      "joint": "fixed",
+      "parent": null,
+      "pivot": [
+        108,
+        168
+      ],
+      "rects": {
+        "body": [
+          2,
+          2,
+          217,
+          289
+        ],
+        "detail": [
+          223,
+          2,
+          217,
+          289
+        ],
+        "emissive": [
+          665,
+          2,
+          217,
+          289
+        ],
+        "normal": [
+          444,
+          2,
+          217,
+          289
+        ]
+      }
+    },
+    {
+      "id": "lower",
+      "joint": "hinge",
+      "parent": "upper",
+      "pivot": [
+        108,
+        168
+      ],
+      "rects": {
+        "body": [
+          2,
+          295,
+          217,
+          289
+        ],
+        "detail": [
+          223,
+          295,
+          217,
+          289
+        ],
+        "emissive": [
+          665,
+          295,
+          217,
+          289
+        ],
+        "normal": [
+          444,
+          295,
+          217,
+          289
+        ]
+      }
+    }
+  ],
+  "pivot": [
+    108,
+    168
+  ],
+  "schema": "abyss.asset.v1",
+  "sizeArt": [
+    217,
+    289
+  ],
+  "sockets": {
+    "eyeL": [
+      59,
+      107
+    ],
+    "eyeR": [
+      158,
+      105
+    ],
+    "mouthHinge": [
+      108,
+      168
+    ]
+  },
+  "source": {
+    "derivation": "abyss-glow/sketches/prep_maws.py",
+    "kind": "owner_sketch_derived_layers",
+    "owner_reference": "abyss-glow/sketches/maw_front_owner.png",
+    "owner_reference_sha256": "450135f773a1df0c432a9137e274e3d6e59be401747514568d67e2fb0e6b1696",
+    "path": "abyss-glow/sketches/maw_front_layers.png",
+    "sha256": "980b6cab87a7556a021f8b13a38b1d30656eca1787dcec3f29028d6ebde40aa8"
+  },
+  "stage": 4,
+  "type": "owner_front_maw",
+  "zones": [
+    4
+  ]
+}
