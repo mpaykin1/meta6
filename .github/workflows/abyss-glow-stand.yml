@@ -9,6 +9,8 @@ on:
       - 'automation/asset-quality/test_build_single_loop.py'
       - 'automation/asset-quality/abyss_release_comparison.py'
       - 'automation/asset-quality/test_abyss_release_comparison.py'
+      - 'automation/asset-quality/abyss_style_gate.py'
+      - 'automation/asset-quality/test_abyss_style_gate.py'
       - '.github/workflows/abyss-glow-stand.yml'
   push:
     branches: [main]
@@ -20,6 +22,8 @@ on:
       - 'automation/asset-quality/test_build_single_loop.py'
       - 'automation/asset-quality/abyss_release_comparison.py'
       - 'automation/asset-quality/test_abyss_release_comparison.py'
+      - 'automation/asset-quality/abyss_style_gate.py'
+      - 'automation/asset-quality/test_abyss_style_gate.py'
       - '.github/workflows/abyss-glow-stand.yml'
   workflow_dispatch:
 
@@ -55,8 +59,10 @@ jobs:
         run: node automation/asset-quality/abyss_stand_smoke.mjs
       - name: Build original-preserving single-RAF candidate
         run: python3 automation/asset-quality/build_single_loop.py abyss-glow/stand/index.html abyss-glow/stand/single-loop.html
-      - name: Run Python build and release-gate unit tests
+      - name: Run Python build, release and pixel-style gate tests
         run: |
+          python3 -m pip install --break-system-packages 'Pillow>=10,<13'
+          python3 -m unittest discover -s automation/asset-quality -p 'test_abyss_style_gate.py' -v
           python3 -m unittest discover -s automation/asset-quality -p 'test_build_single_loop.py' -v
           python3 -m unittest discover -s automation/asset-quality -p 'test_abyss_release_comparison.py' -v
       - name: Independently compare original and candidate in Chromium
