@@ -165,6 +165,12 @@
 - **Применять:** Перед дизайном читать последний стандарт; проверять любые новые UI-элементы против него.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-18-three-worlds-design-vs-graf-27.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## runtime/anonymous-raf-false-pass
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-anonymous-raf-false-pass
+- **Наблюдение:** The ABYSS single-loop static gate counted only identifier callbacks, so a named game loop plus an anonymous arrow or function-expression requestAnimationFrame callback incorrectly passed.
+- **Применять:** Count non-member global RAF calls not matched as named callbacks as conservative anonymous callback identities, retain named recursion deduplication, and cover named-plus-anonymous, single-anonymous and renderer-member controls.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 744fc58262c1331fc49142983f307a8520336aae
+
 ## runtime/multiple-global-raf-callbacks
 - 2026-10-23 · failure · technical · 2026-10-23-abyss-multiple-raf-loops
 - **Наблюдение:** The owner-provided ABYSS standalone HTML starts both the main q0 render callback and a separate D FPS-counter callback through global requestAnimationFrame, violating the one-loop HARD contract even though the profiler does not render.
