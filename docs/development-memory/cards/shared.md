@@ -45,6 +45,12 @@
 - **Применять:** Compare sizeArt and rect dimensions with decoded PNG dimensions, require pivots inside the frame, reject booleans, and retain focused regression tests.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA e2758fb37905e67c68a21edb750f135dd421380a
 
+## asset/static-animation-frames
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-static-animation-frames
+- **Наблюдение:** ABYSS gate accepted a declared multi-frame sequence when every decoded RGBA frame was identical, so a static image could masquerade as animation.
+- **Применять:** For every complete sequence with more than one frame, compare decoded RGBA fingerprints and reject the sequence when it contains no visual change; retain a red-first regression.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 0eb0aea65684fca847051f6ff8f04d8c6b0cfb98
+
 ## asset/undeclared-neighbor-components
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-undeclared-neighbor-components
 - **Наблюдение:** ABYSS static gate accepted a frame containing multiple disconnected alpha islands even when no parts were declared, allowing an accidentally cropped neighboring sprite to pass.
