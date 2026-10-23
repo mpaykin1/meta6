@@ -7,19 +7,28 @@ import re
 import sys
 
 
+GLOBAL_RAF_CALL = re.compile(r"(?<![\w.$])requestAnimationFrame\s*\(")
 GLOBAL_RAF_CALLBACK = re.compile(
     r"(?<![\w.$])requestAnimationFrame\s*\(\s*([A-Za-z_$][\w$]*)\s*\)"
 )
 
 
 def analyze_text(source):
-    callbacks = sorted(set(GLOBAL_RAF_CALLBACK.findall(source)))
+    named_occurrences = GLOBAL_RAF_CALLBACK.findall(source)
+    callbacks = sorted(set(named_occurrences))
+    anonymous_callbacks = max(
+        0, len(GLOBAL_RAF_CALL.findall(source)) - len(named_occurrences)
+    )
     issues = []
-    if len(callbacks) > 1:
-        issues.append({"rule": "multiple_global_raf_callbacks", "callbacks": callbacks})
+    if len(callbacks) + anonymous_callbacks > 1:
+        issue = {"rule": "multiple_global_raf_callbacks", "callbacks": callbacks}
+        if anonymous_callbacks:
+            issue["anonymous_callbacks"] = anonymous_callbacks
+        issues.append(issue)
     return {
         "status": "FAIL" if issues else "STATIC_PASS_RUNTIME_UNKNOWN",
         "callbacks": callbacks,
+        "anonymous_callbacks": anonymous_callbacks,
         "issues": issues,
         "unknown": [
             "whether callbacks execute in the browser",
