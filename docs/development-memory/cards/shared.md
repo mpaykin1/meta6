@@ -33,6 +33,12 @@
 - **Применять:** Require §8 sockets, hitbox and parts fields; validate bounded finite points, a positive circle hitbox, unique part IDs and complete id/pivot/parent/joint records; count only valid parts when allowing disconnected components.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4cb261e21c125c205dbc2cbe23da8764c2cf4aa3
 
+## asset/requirement-evidence-binding
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-requirement-evidence-binding
+- **Наблюдение:** ABYSS audit accepted a correctly hashed evidence file for any verified HARD claim without proving that the evidence record belonged to that requirement.
+- **Применять:** Require every STATIC_PASS or OWNER_APPROVED evidence record to name the exact requirement_id; reject cross-bound records and retain a red-first regression.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 6745c8356bad3e962f92a53cad2e6c7aa42f3845
+
 ## asset/runtime-hard-traceability
 - 2026-10-22 · failure · technical · 2026-10-22-abyss-runtime-hard-traceability
 - **Наблюдение:** ABYSS requirements listed only broad lighting and FPS UNKNOWNs, so omitted coordinate, LOD, terrain, input, pipeline and license HARD gates were not machine-detectable.
