@@ -1,6 +1,7 @@
 """Release-only human approval gate tied to exact production manifests."""
 import argparse
 import hashlib
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 
@@ -20,6 +21,12 @@ def verify(approval_path, asset_manifest, reference_manifest):
             return {"status":"FAIL","reason":"reviewer_missing"}
         if not isinstance(record.get("reviewed_at"),str) or not record["reviewed_at"].strip():
             return {"status":"FAIL","reason":"review_timestamp_missing"}
+        try:
+            timestamp=datetime.fromisoformat(record["reviewed_at"].replace("Z","+00:00"))
+            if timestamp.tzinfo is None or timestamp > datetime.now(timezone.utc):
+                return {"status":"FAIL","reason":"invalid_review_timestamp"}
+        except ValueError:
+            return {"status":"FAIL","reason":"invalid_review_timestamp"}
         if not isinstance(record.get("evidence"),list) or not record["evidence"] or any(not isinstance(x,dict) for x in record["evidence"]):
             return {"status":"FAIL","reason":"review_evidence_missing"}
         for item in record["evidence"]:

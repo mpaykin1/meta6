@@ -67,6 +67,24 @@ class OwnerApprovalTests(unittest.TestCase):
         self.record()
         (self.approval.parent/"manual-art-review").write_text("tampered",encoding="utf-8")
         self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"evidence_digest_mismatch")
+    def test_invalid_review_timestamp_fails(self):
+        self.record()
+        record=json.loads(self.approval.read_text(encoding="utf-8"))
+        record["reviewed_at"]="not-a-date"
+        self.approval.write_text(json.dumps(record),encoding="utf-8")
+        self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"invalid_review_timestamp")
+    def test_naive_review_timestamp_fails(self):
+        self.record()
+        record=json.loads(self.approval.read_text(encoding="utf-8"))
+        record["reviewed_at"]="2026-10-21T00:00:00"
+        self.approval.write_text(json.dumps(record),encoding="utf-8")
+        self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"invalid_review_timestamp")
+    def test_future_review_timestamp_fails(self):
+        self.record()
+        record=json.loads(self.approval.read_text(encoding="utf-8"))
+        record["reviewed_at"]="2999-01-01T00:00:00Z"
+        self.approval.write_text(json.dumps(record),encoding="utf-8")
+        self.assertEqual(verify(self.approval,self.assets,self.refs)["reason"],"invalid_review_timestamp")
     def test_malformed_json_fails(self):
         self.approval.write_text("{",encoding="utf-8")
         self.assertEqual(verify(self.approval,self.assets,self.refs)["status"],"FAIL")
