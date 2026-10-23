@@ -29,6 +29,8 @@ class ReferenceCoverageTruthTests(unittest.TestCase):
         self.assertEqual(report["pixel_quality"]["compared_pixels"],4)
         self.assertEqual(report["pixel_quality"]["mismatched_pixels"],4)
         self.assertEqual(report["pixel_quality"]["mismatch_ratio"],1)
+        self.assertEqual(report["blockers"]["count"],1)
+        self.assertEqual(report["blockers"]["items"][0]["id"],"a")
     def test_passing_pixel_match_counts_as_verified(self):
         self.manifest(["a.png"])
         Image.new("RGBA",(2,2),(0,0,0,0)).save(self.references/"a.png")
@@ -37,6 +39,7 @@ class ReferenceCoverageTruthTests(unittest.TestCase):
         self.assertEqual(report["coverage"]["ratio"],1)
         self.assertEqual(report["pixel_quality"]["mismatched_pixels"],0)
         self.assertEqual(report["pixel_quality"]["mismatch_ratio"],0)
+        self.assertEqual(report["blockers"]["count"],0)
     def test_duplicate_manifest_files_fail(self):
         self.manifest(["a.png","a.png"])
         report=audit(self.assets,self.references)

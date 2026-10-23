@@ -79,8 +79,10 @@ def audit(root, references):
         results.append({"status":"FAIL","reason":"undeclared_candidate_sprites","extra":extra[:100],"extra_count":len(extra)})
     coverage=(len(expected_assets & verified_candidates)/len(expected_assets)) if expected_assets else None
     pixel_ratio=(mismatched_pixels/compared_pixels) if compared_pixels else None
+    blockers=[{"id":x.get("id"),"reason":x.get("reason","pixel_mismatch"),"mismatch_ratio":x.get("mismatch_ratio")} for x in results if x["status"]=="FAIL"]
     return {"status":"FAIL" if any(x["status"]=="FAIL" for x in results) else "PIXEL_PASS_ART_REVIEW_UNKNOWN",
             "checked":len(records),"results":results,"artistic_approval":"UNKNOWN",
+            "blockers":{"count":len(blockers),"items":blockers[:100],"truncated":len(blockers)>100},
             "pixel_quality":{"compared_pixels":compared_pixels,"mismatched_pixels":mismatched_pixels,"mismatch_ratio":pixel_ratio},
             "coverage":{"expected":len(expected_assets),"declared":len(expected_assets & declared_candidates),"verified":len(expected_assets & verified_candidates),"ratio":coverage,"complete":coverage==1.0 if coverage is not None else None}}
 
