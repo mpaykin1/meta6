@@ -80,6 +80,7 @@ def audit(root, references):
     coverage=(len(expected_assets & verified_candidates)/len(expected_assets)) if expected_assets else None
     pixel_ratio=(mismatched_pixels/compared_pixels) if compared_pixels else None
     blockers=[{"id":x.get("id"),"reason":x.get("reason","pixel_mismatch"),"mismatch_ratio":x.get("mismatch_ratio")} for x in results if x["status"]=="FAIL"]
+    blockers.sort(key=lambda item:(item["mismatch_ratio"] is None, -(item["mismatch_ratio"] or 0), str(item["id"])))
     return {"status":"FAIL" if any(x["status"]=="FAIL" for x in results) else "PIXEL_PASS_ART_REVIEW_UNKNOWN",
             "checked":len(records),"results":results,"artistic_approval":"UNKNOWN",
             "blockers":{"count":len(blockers),"items":blockers[:100],"truncated":len(blockers)>100},
