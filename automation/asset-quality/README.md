@@ -20,6 +20,7 @@
 - `audit_pack.py` rejects any production manifest whose `source` points into the owner's known-bad `assets/sprites/` legacy crop directory; those 58 files remain reference-only and must be recut from source sheets.
 - A requirement may use `STATIC_PASS` or `OWNER_APPROVED` only with a non-empty `evidence` list of repository-relative `{requirement_id, path, sha256}` records whose `requirement_id` matches the claim and whose files exist and match; missing, cross-bound, escaped or modified evidence fails the audit.
 - Regression tests: `python -m unittest discover -s automation/asset-quality -p 'test_*.py' -v`.
+- Runtime source guard: `python automation/asset-quality/check_runtime_pipeline.py --html ABYSS_GLOW_offline.html` rejects more than one distinct global `requestAnimationFrame` callback. It is a conservative second-loop regression guard, not browser/WebGL/FPS evidence.
 - Example layer preparation: `python automation/asset-quality/make_layers.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --output build/layers`.
 - Example atlas: `python automation/asset-quality/build_atlas.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --output build/atlas`.
 - Do not run these build commands in-place on canonical originals. Owner approval required before accepting palette quantization.
