@@ -6,6 +6,9 @@ on:
       - 'automation/asset-quality/abyss_stand_smoke.mjs'
       - 'automation/asset-quality/abyss_single_loop_smoke.mjs'
       - 'automation/asset-quality/build_single_loop.py'
+      - 'automation/asset-quality/test_build_single_loop.py'
+      - 'automation/asset-quality/abyss_release_comparison.py'
+      - 'automation/asset-quality/test_abyss_release_comparison.py'
       - '.github/workflows/abyss-glow-stand.yml'
   push:
     branches: [main]
@@ -14,6 +17,9 @@ on:
       - 'automation/asset-quality/abyss_stand_smoke.mjs'
       - 'automation/asset-quality/abyss_single_loop_smoke.mjs'
       - 'automation/asset-quality/build_single_loop.py'
+      - 'automation/asset-quality/test_build_single_loop.py'
+      - 'automation/asset-quality/abyss_release_comparison.py'
+      - 'automation/asset-quality/test_abyss_release_comparison.py'
       - '.github/workflows/abyss-glow-stand.yml'
   workflow_dispatch:
 
@@ -49,8 +55,15 @@ jobs:
         run: node automation/asset-quality/abyss_stand_smoke.mjs
       - name: Build original-preserving single-RAF candidate
         run: python3 automation/asset-quality/build_single_loop.py abyss-glow/stand/index.html abyss-glow/stand/single-loop.html
+      - name: Run Python build and release-gate unit tests
+        run: |
+          python3 -m unittest discover -s automation/asset-quality -p 'test_build_single_loop.py' -v
+          python3 -m unittest discover -s automation/asset-quality -p 'test_abyss_release_comparison.py' -v
       - name: Independently compare original and candidate in Chromium
         run: node automation/asset-quality/abyss_single_loop_smoke.mjs
+      - name: Validate release gate against actual browser evidence
+        run: |
+          python3 automation/asset-quality/abyss_release_comparison.py --original abyss-glow/evidence/browser-report.json --candidate abyss-glow/evidence/single-loop-comparison.json --source abyss-glow/stand/index.html --output abyss-glow/evidence/release-gate.json
       - name: Upload full browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -70,12 +83,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Derive optional preview from original without touching it
-        run: python3 automation/asset-quality/build_single_loop.py abyss-glow/stand/index.html abyss-glow/stand/single-loop.html
       - name: Preserve all existing public site paths
         run: |
           mkdir -p _site
-          rsync -a --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='_site/' --exclude='abyss-glow/evidence/' ./ _site/
+          rsync -a --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='_site/' --exclude='abyss-glow/evidence/' --exclude='abyss-glow/generated/' --exclude='abyss-glow/stand/single-loop.html' ./ _site/
           touch _site/.nojekyll
           test -s _site/index.html
           test -s _site/abyss-glow/stand/index.html
