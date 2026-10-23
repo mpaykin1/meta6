@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-23T23:00:00Z",
+  "slot": "15",
+  "time": "2026-10-23T23:24:00Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "observed_head_sha": "4cba6fb3fdc6af5bcaa9dccd7ebc612a3baa5634",
+  "objective": "Replace the tautological half-plane maw mask with normal-derived palette-quantized directional light.",
+  "result": {
+    "status": "LOCAL_PASS_OWNER_VERDICT_UNKNOWN",
+    "directions": 8,
+    "normal_tiles_sha256": "1617df54d5a76b262bd898d125a3d033a41d1c44138b3a10824fbfa7d8d55cc0",
+    "light_atlas_sha256": "2646e177eaf956bb98e4120814a0db3ab6ddf373bf5395716fe53f12a82c5035",
+    "facing_light_fraction": {"left": 0.8257, "right": 0.8637},
+    "pivot_seam_max_run_px": 3,
+    "pivot_drift_px": 0,
+    "lower_tip_displacement_px": 53,
+    "local_tests": "118/118 PASS"
+  },
+  "files": [
+    "abyss-glow/assets/maw_front_v1/maw_front_light8.png",
+    "abyss-glow/maw-stand/index.html",
+    "automation/asset-quality/build_maw_motion_evidence.py",
+    "automation/asset-quality/test_maw_motion_evidence.py",
+    "docs/autotask-reports/evidence/2026-10-23-maw-motion-light-sheet.png",
+    "docs/autotask-reports/evidence/2026-10-23-maw-motion-light.json"
+  ],
+  "invariants": {
+    "original_stand_sha256": "d968e47997dbd1cf843fdc73fed94e682217e6d5c833a0c8d602ec5b064f94e5",
+    "original_stand_changed": false,
+    "runtime_per_pixel_cpu_lighting": false,
+    "palette_locked": true,
+    "source_asset": "maw_front_v1 owner-derived atlas"
+  },
+  "unknown": ["owner artistic verdict", "runtime WebGL bloom", "browser p50/p95", "physical iPhone"],
+  "next_action": "Slot :30: run the isolated maw stand in portrait and desktop Chromium, capture all eight light directions plus closed/mid/open phases, verify no console errors or clipping, and measure frame-time p50/p95. Physical iPhone remains UNKNOWN without hardware."
+}
