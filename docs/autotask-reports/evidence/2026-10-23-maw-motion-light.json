@@ -1,0 +1,25 @@
+{
+  "asset": "maw_front_v1",
+  "light_facing_fraction": {
+    "left": 1.0,
+    "right": 1.0
+  },
+  "lower_tip_displacement_px": 53,
+  "phases": [
+    "closed",
+    "mid",
+    "open"
+  ],
+  "pivot": [
+    108,
+    168
+  ],
+  "pivot_drift_px": 0,
+  "source_atlas": "abyss-glow/assets/maw_front_v1/maw_front_atlas.png",
+  "status": "TECHNICAL_EVIDENCE_NOT_OWNER_VERDICT",
+  "unknown": [
+    "physical iPhone",
+    "runtime WebGL bloom",
+    "owner artistic verdict"
+  ]
+}

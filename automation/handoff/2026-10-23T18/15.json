@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-23T18:00:00Z",
+  "slot": "15",
+  "time": "2026-10-23T18:19:00Z",
+  "repo": "mpaykin1/meta6",
+  "pr": 229,
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "observed_head_sha": "2575e9811724c7edf560bc7f841363ca6e7b2230",
+  "objective": "Produce an isolated owner-source maw articulation and directional-light evidence stand without editing the accepted game stand.",
+  "result": {
+    "status": "LOCAL_PASS_OWNER_VERDICT_UNKNOWN",
+    "pivot": [108, 168],
+    "phases": ["closed", "mid", "open"],
+    "pivot_drift_px": 0,
+    "lower_tip_displacement_px": 53,
+    "facing_light_fraction": {"left": 1.0, "right": 1.0},
+    "local_tests": "108/108 PASS"
+  },
+  "files": [
+    "abyss-glow/maw-stand/index.html",
+    "automation/asset-quality/build_maw_motion_evidence.py",
+    "automation/asset-quality/test_maw_motion_evidence.py",
+    "docs/autotask-reports/evidence/2026-10-23-maw-motion-light-sheet.png",
+    "docs/autotask-reports/evidence/2026-10-23-maw-motion-light.json"
+  ],
+  "invariants": {
+    "original_stand_changed": false,
+    "primitive_replacement": false,
+    "source_asset": "maw_front_v1 owner-derived atlas"
+  },
+  "unknown": ["owner artistic verdict", "runtime WebGL bloom/normal response", "frame-time p50/p95", "physical iPhone"],
+  "next_action": "Slot :30 should review the six-frame sheet for clipping and asymmetric composition, run the isolated stand in a real browser if available, record console errors and p50/p95, and keep physical-iPhone status UNKNOWN without hardware evidence."
+}
