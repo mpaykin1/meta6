@@ -6,6 +6,8 @@ on:
       - '.github/workflows/abyss-gothic-assets.yml'
       - 'abyss-glow/generated/gothic/index.html'
       - 'automation/asset-quality/gothic_preview_smoke.mjs'
+      - 'automation/asset-quality/abyss_release_comparison.py'
+      - 'automation/asset-quality/test_abyss_release_comparison.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -45,6 +47,8 @@ jobs:
         run: python3 -m http.server 8766 --bind 127.0.0.1 --directory /tmp/abyss-gothic > /tmp/abyss-gothic-http.log 2>&1 &
       - name: Browser smoke - portrait touch and desktop
         run: node automation/asset-quality/gothic_preview_smoke.mjs
+      - name: Validate release-gate unit tests
+        run: python3 -m unittest discover -s automation/asset-quality -p 'test_abyss_release_comparison.py' -v
       - uses: actions/upload-artifact@v4
         with:
           name: abyss-gothic-original-vector-layers
