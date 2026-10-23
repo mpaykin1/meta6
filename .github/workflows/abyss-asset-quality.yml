@@ -35,6 +35,13 @@ jobs:
             --references abyss-glow/references \
             --output asset-visual-report.json
 
+      - name: Report requirements verification status
+        if: always()
+        run: |
+          python automation/asset-quality/requirements_status.py \\
+            --requirements automation/asset-quality/abyss-requirements.json \\
+            --output asset-requirements-status.json
+
       - name: Upload quality evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -44,4 +51,5 @@ jobs:
             asset-quality-audit.json
             asset-animation-report.json
             asset-visual-report.json
+            asset-requirements-status.json
           if-no-files-found: warn
