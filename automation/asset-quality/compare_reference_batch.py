@@ -21,6 +21,7 @@ def audit(root, references):
     results=[]
     seen=set()
     declared_candidates=set()
+    verified_candidates=set()
     expected_assets=set()
     assets_manifest=root/"manifest.json"
     if not assets_manifest.is_file():
@@ -29,7 +30,12 @@ def audit(root, references):
         try:
             sprites=json.loads(assets_manifest.read_text(encoding="utf8"))["sprites"]
             if not isinstance(sprites,list) or not sprites: raise ValueError("empty asset manifest")
-            expected_assets={str(sprite["file"]) for sprite in sprites}
+            asset_files=[sprite["file"] for sprite in sprites]
+            if any(not isinstance(name,str) or not name.strip() for name in asset_files):
+                raise ValueError("invalid_asset_file")
+            if len(set(asset_files))!=len(asset_files):
+                raise ValueError("duplicate_asset_file")
+            expected_assets=set(asset_files)
         except (OSError,ValueError,KeyError,TypeError):
             return {"status":"FAIL","checked":0,"reason":"invalid_asset_manifest","results":[]}
     for record in records:
@@ -54,6 +60,8 @@ def audit(root, references):
             if not candidate.is_file() or not reference.is_file():
                 raise ValueError("missing_reference_or_candidate")
             result=compare(reference,candidate,tolerance)
+            if result["status"]!="FAIL":
+                verified_candidates.add(candidate_name)
             result["id"]=record.get("id")
         except (OSError,ValueError,KeyError,TypeError) as error:
             result={"status":"FAIL","id":record.get("id") if isinstance(record,dict) else None,"reason":str(error)}
@@ -64,10 +72,10 @@ def audit(root, references):
         results.append({"status":"FAIL","reason":"uncovered_asset_manifest_sprites","missing":missing[:100],"missing_count":len(missing)})
     if extra:
         results.append({"status":"FAIL","reason":"undeclared_candidate_sprites","extra":extra[:100],"extra_count":len(extra)})
-    coverage=(len(expected_assets & declared_candidates)/len(expected_assets)) if expected_assets else None
+    coverage=(len(expected_assets & verified_candidates)/len(expected_assets)) if expected_assets else None
     return {"status":"FAIL" if any(x["status"]=="FAIL" for x in results) else "PIXEL_PASS_ART_REVIEW_UNKNOWN",
             "checked":len(records),"results":results,"artistic_approval":"UNKNOWN",
-            "coverage":{"expected":len(expected_assets),"declared":len(expected_assets & declared_candidates),"ratio":coverage,"complete":coverage==1.0 if coverage is not None else None}}
+            "coverage":{"expected":len(expected_assets),"declared":len(expected_assets & declared_candidates),"verified":len(expected_assets & verified_candidates),"ratio":coverage,"complete":coverage==1.0 if coverage is not None else None}}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
