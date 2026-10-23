@@ -1,0 +1,32 @@
+{
+  "abyss_md_lit_half_min": 0.75,
+  "asset": "maw_front_v1",
+  "detail_pixels": {
+    "left": 6961,
+    "right": 6900,
+    "total": 13861
+  },
+  "dominant_half_fraction": 0.5022,
+  "limitations": [
+    "Static atlas distribution is not a rendered normal-map or bloom test.",
+    "This diagnostic is not owner artistic PASS/FAIL.",
+    "Physical iPhone rendering remains UNKNOWN."
+  ],
+  "next_capture": {
+    "light_positions": [
+      "left-of-maw",
+      "right-of-maw"
+    ],
+    "required": [
+      "silhouette alpha unchanged between captures",
+      "at least 75% of lit object pixels on the light-facing half",
+      "darkness, bright-tone share, frame time p50/p95"
+    ],
+    "same_scene_seed_camera_resolution": true
+  },
+  "observed_head_sha": "a4305f4896ecbc322fab29c62bea52eeada746a4",
+  "probe": "static-detail-half-distribution",
+  "schema": 1,
+  "static_baseline_proves_directional_light": false,
+  "status": "UNKNOWN_DIRECTIONAL_RENDER"
+}

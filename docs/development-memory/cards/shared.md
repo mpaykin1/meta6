@@ -75,6 +75,12 @@
 - **Применять:** Если нужен объёмный светящийся силуэт, изучить shared/light; не заменять геометрию плоской линией и не копировать чужой bloom без теста.
 - **Источник:** [доказательство](https://github.com/mpaykin1/World_server/blob/567a48442ed1dee39e2baad87df2df998b231f95/docs/LIGHT_SYSTEM.md) · SHA 567a48442ed1dee39e2baad87df2df998b231f95
 
+## lighting/static-bilateral-atlas
+- 2026-10-23 · measurement · technical · 2026-10-23-abyss-maw-static-bilateral-light
+- **Наблюдение:** The owner-source maw detail layer measured 6961 lit pixels left and 6900 right, so its 0.5022 dominant-half share cannot prove the required directional rim response.
+- **Применять:** Require matched left-light and right-light runtime captures with unchanged silhouette alpha and at least 75 percent of lit pixels on the facing half.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA a4305f4896ecbc322fab29c62bea52eeada746a4
+
 ## process/branch-from-fresh-main
 - 2026-10-21 · failure · technical · 2026-10-21-ashen-fresh-main
 - **Наблюдение:** Ветка от устаревшего локального main дала конфликт PR (PR 149 закрыт, переделан как 150).

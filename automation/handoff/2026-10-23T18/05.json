@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-23T18:00:00Z",
+  "slot": "05",
+  "time": "2026-10-23T18:06:32Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "observed_head_sha": "a4305f4896ecbc322fab29c62bea52eeada746a4",
+  "objective": "Identify one measurable artistic defect in the owner-source front-maw baseline and specify the smallest discriminating render capture.",
+  "source": {
+    "asset": "maw_front_v1",
+    "owner_reference": "abyss-glow/sketches/maw_front_owner.png",
+    "derived_layers": "abyss-glow/sketches/maw_front_layers.png"
+  },
+  "finding": {
+    "status": "UNKNOWN_DIRECTIONAL_RENDER",
+    "defect": "The static detail layer is bilaterally bright and cannot demonstrate Selective Pixel Rim Lighting from the hero side.",
+    "left_detail_pixels": 6961,
+    "right_detail_pixels": 6900,
+    "dominant_half_fraction": 0.5022,
+    "required_facing_half_fraction": 0.75
+  },
+  "tested": [
+    "maw_static_light_probe focused regression 1/1 PASS",
+    "probe against canonical atlas reproduced 6961/6900 detail distribution",
+    "original abyss-glow/stand/index.html absent from the diff"
+  ],
+  "evidence": [
+    "docs/autotask-reports/evidence/2026-10-23-maw-static-light-probe.json",
+    "abyss-glow/assets/maw_front_v1/maw_front_evidence.png",
+    "automation/asset-quality/maw_static_light_probe.py"
+  ],
+  "unknown": [
+    "runtime normal-map and bloom response",
+    "jaw articulation",
+    "desktop and 390x844 browser render",
+    "draw calls and runtime memory",
+    "frame-time p50/p95",
+    "physical iPhone behaviour",
+    "owner artistic verdict"
+  ],
+  "next_action": "Slot :15 should build an isolated autonomous maw stand without editing abyss-glow/stand/index.html. Use the existing atlas and pivot [108,168], render matched left-light and right-light captures with the same seed/camera/resolution, preserve silhouette alpha, and require >=0.75 lit pixels on the facing half before any directional-light claim. Also capture closed/mid/open jaw phases; do not treat Chromium as iPhone evidence.",
+  "coordination": {
+    "visual_target_document": "ABSENT_FROM_CURRENT_PR_HEAD; abyss.md is authoritative",
+    "game_dev_adapter": "UNAVAILABLE",
+    "new_pr_created": false
+  }
+}
