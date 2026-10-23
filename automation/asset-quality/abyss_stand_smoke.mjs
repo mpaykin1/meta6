@@ -17,18 +17,68 @@ const report = {
   runtime: 'GitHub Actions / headless Chromium / SwiftShader software WebGL',
   real_phone_measured: false,
   profiles: [],
+  embedded_assets: [],
   failures: []
 };
 const expectedSHA = 'd968e47997dbd1cf843fdc73fed94e682217e6d5c833a0c8d602ec5b064f94e5';
 assert.equal(sha256, expectedSHA, 'Original game bytes must not be edited');
 assert.equal((source.match(/data:image\/png;base64,/g) || []).length, 4, 'Four original inline PNGs');
 await mkdir(out, { recursive: true });
+// Lossless, byte-for-byte extraction from the immutable owner HTML.
+const embedded = [...source.matchAll(/"(assets\/[^"]+\.png)":"data:image\/png;base64,([A-Za-z0-9+/=]+)"/g)];
+assert.equal(embedded.length, 4, 'Expected four owner PNGs to extract');
+for (const [, assetPath, encoded] of embedded) {
+  const bytes = Buffer.from(encoded, 'base64');
+  assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'PNG signature: ' + assetPath);
+  const dest = path.join(out, 'extracted', assetPath);
+  await mkdir(path.dirname(dest), { recursive: true });
+  await writeFile(dest, bytes);
+  report.embedded_assets.push({
+    path: assetPath, bytes: bytes.length,
+    sha256: createHash('sha256').update(bytes).digest('hex')
+  });
+}
 
 function percentile(values, p) {
   if (!values.length) return null;
   const a = [...values].sort((x, y) => x - y);
   const index = Math.min(a.length - 1, Math.max(0, Math.ceil(p * a.length) - 1));
   return Number(a[index].toFixed(2));
+}
+// Pixel evidence is measured from the *rendered screenshot*, not a shader declaration.
+async function sampleRenderedPixels(page, pngBytes) {
+  const dataUrl = 'data:image/png;base64,' + pngBytes.toString('base64');
+  return page.evaluate(async url => {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let sampled = 0, dark = 0, central = 0, centralVisible = 0;
+    const w = canvas.width, h = canvas.height;
+    for (let y = 0; y < h; y += 3) {
+      for (let x = 0; x < w; x += 3) {
+        const p = (y * w + x) * 4;
+        const top = Math.max(data[p], data[p + 1], data[p + 2]);
+        sampled++;
+        if (top < 30) dark++;
+        if (x >= w * .25 && x < w * .75 && y >= h * .25 && y < h * .75) {
+          central++;
+          if (top > 60) centralVisible++;
+        }
+      }
+    }
+    return {
+      dimensions: [w, h], sample_stride: 3, sample_count: sampled,
+      darkness_fraction: Number((dark / sampled).toFixed(4)),
+      center_visible_fraction: Number((centralVisible / central).toFixed(4)),
+      center_visible_samples: centralVisible
+    };
+  }, dataUrl);
 }
 const profiles = [
   { name: 'desktop', width: 960, height: 540, touch: false, scale: 1 },
@@ -127,16 +177,24 @@ try {
         const shot = await page.locator('#gl').screenshot({
           path: path.join(out, file), timeout: 60000
         });
+        const pixels = await sampleRenderedPixels(page, shot);
         record.zones.push({
           number: zone + 1,
           stats,
           screenshot: file,
-          screenshot_bytes: shot.length
+          screenshot_bytes: shot.length,
+          screenshot_sha256: createHash('sha256').update(shot).digest('hex'),
+          pixels
         });
         assert(stats.chunks > 0 && stats.calls > 0,
           profile.name + ': zone ' + (zone + 1) + ' not rendering');
         assert(shot.length > 1500,
           profile.name + ': screenshot too small for zone ' + (zone + 1));
+        // A black canvas with an intact HUD can no longer pass as a rendered world.
+        assert(pixels.darkness_fraction >= 0.70,
+          profile.name + ': zone ' + (zone + 1) + ' fails darkness budget');
+        assert(pixels.center_visible_fraction >= 0.001,
+          profile.name + ': zone ' + (zone + 1) + ' has no visible world in the center');
       }
       const current = await page.evaluate(() => ({
         ...window.__abyssStats(), context_losses: window.__standContextLoss,
