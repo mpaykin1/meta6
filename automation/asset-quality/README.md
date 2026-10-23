@@ -9,7 +9,7 @@
 6. Развитие: общие проверки параметризовать по MD игры, дополнять visual diff, shader probes, animation tests, real mobile benchmarks, license inventory, provenance SHA и asset dependency graph.
 ## Команда
 `python3 automation/asset-quality/validate.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --output asset-quality-report.json`
-Отсутствие manifest = FAIL. Статические успехи = STATIC_PASS_RUNTIME_UNKNOWN, окончательный PASS только владелец.
+Отсутствие manifest = FAIL. Каждая запись обязана содержать `zones` (непустой уникальный список зон 0–4) и непустой render `layer`, как требует abyss.md §8. Статические успехи = STATIC_PASS_RUNTIME_UNKNOWN, окончательный PASS только владелец.
 ## Пять существующих слотов
 :05 requirements traceability; :15 sprite/atlas production; :30 animation; :40 live integration; :50 independent QA. Существующие игровые задачи и расписания сохраняются.
 
