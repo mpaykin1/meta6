@@ -237,8 +237,8 @@ function frame(now,dt){
  // Rigid upper/lower body motion; no tooth/image stretch.
  const biteShock=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*(.012+.035*q.impact):0;
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
- ctx.save();ctx.translate(P[0],P[1]-4*upperOpen);ctx.rotate(-.04*upperOpen-biteShock);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);ctx.restore();
- ctx.save();ctx.translate(P[0],P[1]+52*lowerOpen);ctx.rotate(.032*lowerOpen+biteShock);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);ctx.restore();
+ ctx.save();ctx.translate(P[0],P[1]-7*upperOpen);ctx.rotate(-.11*upperOpen-biteShock);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);ctx.restore();
+ ctx.save();ctx.translate(P[0],P[1]+44*lowerOpen);ctx.rotate(.15*lowerOpen+biteShock);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);ctx.restore();
  ctx.restore();
  if(q.light>.02){
   ctx.save();ctx.globalAlpha=clamp(q.visible)*q.light;
