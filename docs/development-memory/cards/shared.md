@@ -183,6 +183,12 @@
 - **Применять:** Проверять произведение числа шагов и dt; требовать фактическую нужную длительность.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stage7-five-minutes-is-60s.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## touch/missing-viewport-layout-width
+- 2026-10-24 · failure · technical · 2026-10-24-abyss-maw-touch-layout-viewport
+- **Наблюдение:** The isolated maw stand rendered at a 980 CSS-pixel layout width in a 390x844 Playwright mobile-touch context because it lacked a viewport meta tag; desktop passed while the touch size assertion failed exact-head CI.
+- **Применять:** Require a device-width viewport declaration and assert the canvas bounding box equals the requested mobile viewport before accepting touch evidence.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/actions/runs/40063254904) · SHA 1e573318182f53bf1368bf09e2e965d0f1c6abd4
+
 ## ux/green-but-empty
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-three-worlds-stage0-6-owner-fail
 - **Наблюдение:** Технически зелёный проект казался владельцу пустым: резкие переходы воды и мало видимого контента.
