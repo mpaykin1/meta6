@@ -38,3 +38,8 @@ The current code passes only the shallow assertion in an isolated Node v22.16.0 
 After writing the red-first test, adjust only the depth-transition curve in `water-dive-camera.mjs), preserving the accepted shallow-water fixture and original camera rig. Rebuild the standalone with the pinned toolchain and run all tests and the live browser checks in `.github/workflows/three-worlds-gate.yml`. Do not bypass the build-reproducibility `git diff --exit-code -- three-worlds-game/index.html` check. Physical-device validation remains UNKNOWN until performed.
 
 Owner PASS/FAIL has not been assigned. The defect should be closed only after exact-head evidence and the owner's verdict.
+
+
+## Revalidation — 2026-10-24 (main e7a2c912656d33dade48cb1ed38949e606852d90)
+
+The current main still has source blob `8a72eb01183c62de99b9117ee265e7ede261aec6` and the same threshold `bound((seaY-floorY-2.8)/1.4,0,1)`. A temporary Node v22.16.0 test copied the existing stage29 tests and this exact source: the existing two tests pass 2/2, but do not target the intermediate shelf. The separate focused 3-case reproduction remains 1/3: shallow passes; `floorY=1` returns shift 0; `floorY=0` leaves cameraY=4.679543 above seaY=3.8. This is still a formula/test-coverage defect, not an owner verdict. The stage29 branch remains occupied/HOLD until explicit owner/coordinator release; no source was changed. Full repository CI/browser/physical-device validation remains UNKNOWN.
