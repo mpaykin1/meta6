@@ -6,7 +6,7 @@ atlas.src='../assets/maw_front_v1/maw_front_atlas.png';
 lights.src='../assets/maw_front_v1/maw_front_light8.png';
 const canvas=document.createElement('canvas');
 canvas.id='play-maw';canvas.setAttribute('aria-hidden','true');
-canvas.style.cssText='position:fixed;inset:0;width:100vw;height:100dvh;z-index:4;pointer-events:none;image-rendering:pixelated';
+canvas.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:4;pointer-events:none;image-rendering:pixelated';
 document.body.appendChild(canvas);
 const ctx=canvas.getContext('2d',{alpha:true});
 if(!ctx)return;
