@@ -11,6 +11,26 @@ document.body.appendChild(canvas);
 const ctx=canvas.getContext('2d',{alpha:true});
 if(!ctx)return;
 ctx.imageSmoothingEnabled=false;
+// Cache the two soft gradients and the throat silhouette once; the live loop only composites them.
+const haloCanvas=document.createElement('canvas'),haloCtx=haloCanvas.getContext('2d');
+haloCanvas.width=haloCanvas.height=256;
+const haloGradient=haloCtx.createRadialGradient(128,128,6,128,128,128);
+haloGradient.addColorStop(0,'rgba(253,200,54,.08)');
+haloGradient.addColorStop(.4,'rgba(229,100,4,.07)');
+haloGradient.addColorStop(1,'rgba(0,0,0,0)');
+haloCtx.fillStyle=haloGradient;haloCtx.fillRect(0,0,256,256);
+const throatShape=new Path2D();
+throatShape.moveTo(P[0]-3,P[1]-27);
+throatShape.bezierCurveTo(P[0]+28,P[1]-22,P[0]+36,P[1]+6,P[0]+30,P[1]+32);
+throatShape.bezierCurveTo(P[0]+25,P[1]+53,P[0]+12,P[1]+64,P[0]+2,P[1]+67);
+throatShape.bezierCurveTo(P[0]-14,P[1]+61,P[0]-28,P[1]+49,P[0]-33,P[1]+26);
+throatShape.bezierCurveTo(P[0]-38,P[1]+1,P[0]-25,P[1]-21,P[0]-3,P[1]-27);throatShape.closePath();
+const throatCanvas=document.createElement('canvas'),throatCtx=throatCanvas.getContext('2d');
+throatCanvas.width=96;throatCanvas.height=112;
+const throatGradient=throatCtx.createRadialGradient(44,60,3,47,58,47);
+throatGradient.addColorStop(0,'#010000');throatGradient.addColorStop(.5,'#050000');
+throatGradient.addColorStop(.78,'#170200');throatGradient.addColorStop(1,'#020000');
+throatCtx.fillStyle=throatGradient;throatCtx.fillRect(0,0,96,112);
 const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
 const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>true).catch(err=>{console.error('ABYSS play maw art unavailable:',err);return false});
 let ready=false;loaded.then(ok=>{ready=ok});
@@ -87,13 +107,13 @@ function drawPart(part,direction,glow){
 }
 function bubbles(time,s,ox,oy){
  const n=15;
- ctx.save();ctx.globalCompositeOperation='lighter';
+ ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#faa22b';
  for(let i=0;i<n;i++){
   const p=((time*.28+i/n)%1),drift=Math.sin(time*1.2+i*2.4)*9;
   const x=ox+(Math.sin(i*7.13)*90+drift)*s;
   const y=oy+(115-p*200)*s;
   const r=Math.max(.9,(1.3+i%3)*s*.8);
-  ctx.strokeStyle='rgba(250,162,43,'+(Math.max(0,.45-p*.3)).toFixed(2)+')';
+  ctx.globalAlpha=Math.max(0,.45-p*.3);
   ctx.lineWidth=Math.max(.7,s*.65);ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
  }
  ctx.restore();
@@ -104,16 +124,9 @@ function throat(time,open,light){
  const tx=P[0],ty=P[1]+18;
  ctx.save();ctx.globalAlpha=reveal;
  const pulse=.5+.5*Math.sin(time*5.2);
- // An asymmetric, pointed cavity joins both jaw roots; no freestanding oval/portal edge.
- ctx.beginPath();ctx.moveTo(tx-3,ty-45);
- ctx.bezierCurveTo(tx+28,ty-40,tx+36,ty-12,tx+30,ty+14);
- ctx.bezierCurveTo(tx+25,ty+35,tx+12,ty+46,tx+2,ty+49);
- ctx.bezierCurveTo(tx-14,ty+43,tx-28,ty+31,tx-33,ty+8);
- ctx.bezierCurveTo(tx-38,ty-17,tx-25,ty-39,tx-3,ty-45);ctx.closePath();ctx.clip();
- const depth=ctx.createRadialGradient(tx-4,ty+4,3,tx-1,ty+2,47);
- depth.addColorStop(0,'#010000');depth.addColorStop(.5,'#050000');
- depth.addColorStop(.78,'#170200');depth.addColorStop(1,'#020000');
- ctx.fillStyle=depth;ctx.fillRect(tx-40,ty-50,80,104);
+ // The pointed cavity and its depth gradient are cached; only living detail animates each frame.
+ ctx.clip(throatShape);
+ ctx.drawImage(throatCanvas,tx-48,ty-56);
  ctx.globalCompositeOperation='lighter';ctx.lineWidth=1;
  for(let side=-1;side<=1;side+=2){
   ctx.globalAlpha=reveal*(.13+.07*light);
@@ -170,9 +183,9 @@ function frame(now,dt){
  ctx.restore();
  if(q.light>.02){
   ctx.save();ctx.globalAlpha=clamp(q.visible)*q.light;
-  const halo=ctx.createRadialGradient(cx,cy,6,cx,cy,Math.max(35,140*s));
-  halo.addColorStop(0,'rgba(253,200,54,.08)');halo.addColorStop(.4,'rgba(229,100,4,.07)');halo.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.globalCompositeOperation='lighter';ctx.fillStyle=halo;ctx.fillRect(0,0,cw,ch);ctx.restore();
+  const haloRadius=Math.max(35,140*s);
+  ctx.globalCompositeOperation='lighter';
+  ctx.drawImage(haloCanvas,cx-haloRadius,cy-haloRadius,haloRadius*2,haloRadius*2);ctx.restore();
   bubbles(seconds,s,cx,cy);
  }
  // Real gameplay damage, once per encounter, through the existing fish hit path.
