@@ -32,7 +32,7 @@ function resize(){
 function clamp(x){return Math.max(0,Math.min(1,x))}
 function smooth(t){const a=clamp(t);return a*a*(3-2*a)}
 const FIRST=8.5, PERIOD=38.0;
-let start=performance.now(),last=0,attackedCycle=-1,rendered=0;
+let start=0,last=0,attackedCycle=-1,rendered=0;
 const state={ready:false,visible:false,attackCount:0,lastHit:false};
 Object.defineProperty(window,'__abyssPlayMaw',{value:state,configurable:false});
 function frameState(seconds){
@@ -118,7 +118,10 @@ function frame(now,dt){
 const gameRAF=window.requestAnimationFrame.bind(window);
 let gameFrame=-1;
 window.requestAnimationFrame=callback=>gameRAF(now=>{
- if(now!==gameFrame){const dt=gameFrame<0?0:Math.min(.05,(now-gameFrame)/1000);gameFrame=now;frame(now,dt)}
+ if(typeof window.__abyssPlayMawHit==='function'&&now!==gameFrame){
+  if(!start)start=now;
+  const dt=gameFrame<0?0:Math.min(.05,(now-gameFrame)/1000);gameFrame=now;frame(now,dt);
+ }
  callback(now);
 });
 })();
