@@ -246,6 +246,13 @@ function frame(now,dt){
  const base=Math.min(cw/SIZE[0],ch/SIZE[1])*.86;
  const s=base*q.scale;
  const cx=cw*.5+aimX,cy=ch*.47+aimY;
+ // Composite the broad water glow behind the silhouette so it cannot wash out teeth and pixel detail.
+ if(q.light>.02){
+  ctx.save();ctx.globalAlpha=clamp(q.visible)*q.light;
+  const haloRadius=Math.max(35,140*s);
+  ctx.globalCompositeOperation='lighter';
+  ctx.drawImage(haloCanvas,cx-haloRadius,cy-haloRadius,haloRadius*2,haloRadius*2);ctx.restore();
+ }
  ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
  ctx.globalAlpha=clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
@@ -257,10 +264,7 @@ function frame(now,dt){
  ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);drawPart('lower',direction,q.light);ctx.restore();
  ctx.restore();
  if(q.light>.02){
-  ctx.save();ctx.globalAlpha=clamp(q.visible)*q.light;
-  const haloRadius=Math.max(35,140*s);
-  ctx.globalCompositeOperation='lighter';
-  ctx.drawImage(haloCanvas,cx-haloRadius,cy-haloRadius,haloRadius*2,haloRadius*2);ctx.restore();
+  // Bubbles and bite spray remain foreground reactions.
   bubbles(seconds,s,cx,cy);biteImpact(seconds,q.impact,s,cx,cy+20*s);
  }
  // Real gameplay damage, once per encounter, through the existing fish hit path.
