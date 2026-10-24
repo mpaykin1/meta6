@@ -1,6 +1,6 @@
 <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ABYSS GLOW — owner maw motion probe</title>
 <style>html,body{margin:0;background:#000;color:#fde766;font:12px monospace;overflow:hidden;overscroll-behavior:none}canvas{width:100vw;height:100vh;image-rendering:pixelated;touch-action:none}aside{position:fixed;left:8px;top:8px}</style>
-<canvas width="390" height="844" aria-label="Animated owner-source front maw evidence stand"></canvas><aside>OWNER MAW · HINGE [108,168] · LEFT/RIGHT LIGHT</aside>
+<canvas width="390" height="844" aria-label="Animated owner-source front maw evidence stand"></canvas>
 <script>
 /* Isolated evidence stand. The accepted abyss-glow/stand/index.html is not imported or edited. */
 const c=document.querySelector('canvas'),x=c.getContext('2d');x.imageSmoothingEnabled=false;
@@ -10,11 +10,45 @@ const W=217,H=289,P=[108,168],rect={upper:{body:[2,2],detail:[223,2],emissive:[6
 let last=0,elapsed=0,testMode=false;
 function tile(part,layer){const r=rect[part][layer];x.drawImage(atlas,r[0],r[1],W,H,0,0,W,H)}
 function part(name,direction){tile(name,'body');const row=name==='upper'?0:H;x.drawImage(lightAtlas,direction*W,row,W,H,0,0,W,H);tile(name,'emissive')}
-function drawMaw(open,direction){
- x.setTransform(1,0,0,1,0,0);x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);const s=1.6,ox=(c.width-W*s)/2,oy=170;x.translate(ox,oy);x.scale(s,s);part('upper',direction);
+// Source-derived two-layer maw: the original silhouette, atlas, pivot and lighting stay intact.
+// Attack is a perspective-like screen-space approach in the isolated 2.5D stand, NOT game integration.
+function drawMaw(open,direction,{scale=1,visibility=1}={}){
+ x.setTransform(1,0,0,1,0,0);x.globalAlpha=1;x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);
+ if(visibility<=0)return;
+ const s=1.6*scale;
+ // Anchor depth approach on the existing fixed jaw pivot, so jaws expand toward the viewer.
+ x.translate(c.width*.5,c.height*.46);x.scale(s,s);x.translate(-P[0],-P[1]);
+ x.globalAlpha=Math.max(0,Math.min(1,visibility));
+ part('upper',direction);
  x.save();x.translate(P[0],P[1]);x.scale(1,1+open*.30);x.translate(-P[0],-P[1]);part('lower',direction);x.restore();
+ x.globalAlpha=1;
 }
+const ATTACK_LOOP_SECONDS=5.4;
+function attackState(seconds){
+ const t=((seconds%ATTACK_LOOP_SECONDS)+ATTACK_LOOP_SECONDS)%ATTACK_LOOP_SECONDS;
+ const smooth=u=>{const a=Math.min(1,Math.max(0,u));return a*a*(3-2*a)};
+ if(t<1.08)return {stage:'dark',scale:.24,visibility:0,open:0};
+ if(t<1.46){
+  const u=smooth((t-1.08)/.38);
+  return {stage:'lunge',scale:.24+1.95*u,visibility:u*u,open:u};
+ }
+ if(t<2.3){
+  const settle=smooth((t-1.46)/.84);
+  return {stage:'attack',scale:2.19-.12*settle,visibility:1,open:1};
+ }
+ if(t<3.02){
+  const u=smooth((t-2.3)/.72);
+  return {stage:'retreat',scale:2.07-1.83*u,visibility:(1-u)*(1-u),open:1-u};
+ }
+ return {stage:'dark',scale:.24,visibility:0,open:0};
+}
+window.__mawAttackState=attackState;
+window.__mawAttackTest=(seconds,direction=0)=>{
+ testMode=true;const state=attackState(seconds);
+ drawMaw(state.open,((direction%8)+8)%8,state);
+ return state;
+};
 window.__mawTest=(open,direction)=>{testMode=true;drawMaw(Math.max(0,Math.min(1,open)),((direction%8)+8)%8)};
-function frame(now){if(testMode)return;const dt=Math.min(.05,(now-last)/1000||0);last=now;elapsed+=dt;const phase=(elapsed%4)/4;const open=Math.sin(Math.PI*Math.min(1,phase*2));const direction=Math.floor((elapsed/2)%8);drawMaw(open,direction);requestAnimationFrame(frame)}
+function frame(now){if(testMode)return;const dt=Math.min(.05,(now-last)/1000||0);last=now;elapsed+=dt;const direction=Math.floor(elapsed/ATTACK_LOOP_SECONDS)%8;const state=attackState(elapsed);drawMaw(state.open,direction,state);requestAnimationFrame(frame)}
 Promise.all([atlas.decode(),lightAtlas.decode()]).then(()=>requestAnimationFrame(frame));
 </script>
