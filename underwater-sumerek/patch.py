@@ -6,6 +6,8 @@ def rep(old,new,cnt=1):
     s=s.replace(old,new)
 pack=open('pack.js').read()
 engine=open('uw_models.js').read()+open('city.js').read()+open('portal.js').read()
+# game identity must be generated from the owner artifact, never hand-edited in index.html
+rep("<title>Остров сумерек</title>", "<title>Под и над</title>")
 # imports
 rep("import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';","import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';\nimport { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';\nimport { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';")
 # pack: right after the last pack, before packEnd of keeper? insert after 'packEnd();' that closes keeper

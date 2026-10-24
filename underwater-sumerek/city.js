@@ -148,7 +148,7 @@ async function buildCity() {
     const meshes = cFlatten(g).map(({ material, geometry }) => {
       geometry.translate(0, -0.22, 0);
       const mat = material.clone();
-      mat.onBeforeCompile = (sh) => { sh.uniforms.uTime = U.time; sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime;').replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.z += sin(uTime * 9.0 + position.x * 12.0 + float(gl_InstanceID) * 1.7) * 0.07 * smoothstep(0.15, -0.3, position.x);'); };
+      mat.onBeforeCompile = (sh) => { sh.uniforms.uTime = U.time; sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime;').replace('#include <begin_vertex>', '#include <begin_vertex>\nfloat tailWeight = 1.0 - smoothstep(-0.3, 0.15, position.x);\ntransformed.z += sin(uTime * 9.0 + position.x * 12.0 + float(gl_InstanceID) * 1.7) * 0.07 * tailWeight;'); };
       const im = new THREE.InstancedMesh(geometry, mat, n); im.frustumCulled = false; grp.add(im); return im;
     });
     const fish = [];
