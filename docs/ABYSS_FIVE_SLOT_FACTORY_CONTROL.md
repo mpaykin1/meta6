@@ -39,3 +39,12 @@ State: operational contract; NOT proof of visual quality. Owner's original HTML 
 
 ## Next priority
 Get independent review for PR #229; then ship one demonstrable, high-quality animated Gothic scene into a separate offline game candidate, compare against owner's reference and measure real-device FPS.
+
+## Owner-visible demo release gate (mandatory; 2026-10-24)
+
+- All five slots inherit the live `automation/prompts/chatgpt-autotask.md` main rule: distinguish `CODE_FOR_CLAUDE` from `DEMO_FOR_OWNER`. Never hand the owner a `main` Pages link to review content that exists only in an open PR.
+- A demo is `VERIFIED` only after opening that exact external URL and proving that its HTML, source images, animation frames and target feature load. Merely fetching source or seeing green CI is not deployment verification.
+- Unmerged branch demos are allowed only when the branch-specific **public preview itself** is verified. If external preview cannot be opened and checked, `demo_status=UNKNOWN`, owner-facing response is `ДЕМОНСТРАЦИЯ НЕ ГОТОВА`, and no unverified gameplay link is provided.
+- In handoff write `demo_status`, `demo_url` only if VERIFIED, `verified_at`, SHA, page/assets/render feature checks; keep reviewer PR and evidence links labeled as engineering artifacts.
+- Owner's 2026-10-24 verdict `PASS` applies strictly to the pre-existing experimental isolated animated-maw stand personally viewed; owner requested a new **spring from complete darkness** behavior. That behavior is separately assessed and is `UNKNOWN` until inspected by owner. Full-game integration and physical iPhone remain `UNKNOWN`.
+- Production sequence for new motion: source owner atlas stays immutable; dark hold > short spatial approach > wide-open lunge > retreat into black; browser captures deterministic frames at both touch and desktop and fails absent movement/black frames. Keep canonical `abyss-glow/stand/index.html` unchanged.
