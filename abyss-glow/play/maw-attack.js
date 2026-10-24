@@ -50,20 +50,22 @@ function cachePart(part){
  const base=document.createElement('canvas'),baseCtx=base.getContext('2d');
  const detail=document.createElement('canvas'),detailCtx=detail.getContext('2d');
  const teeth=document.createElement('canvas'),teethCtx=teeth.getContext('2d');
+ const teethGlow=document.createElement('canvas'),teethGlowCtx=teethGlow.getContext('2d');
  const emissive=document.createElement('canvas'),emissiveCtx=emissive.getContext('2d');
- for(const layer of [base,detail,teeth,emissive]){layer.width=SIZE[0];layer.height=SIZE[1]}
- for(const g of [baseCtx,detailCtx,teethCtx,emissiveCtx])g.imageSmoothingEnabled=false;
+ for(const layer of [base,detail,teeth,teethGlow,emissive]){layer.width=SIZE[0];layer.height=SIZE[1]}
+ for(const g of [baseCtx,detailCtx,teethCtx,teethGlowCtx,emissiveCtx])g.imageSmoothingEnabled=false;
  const [bx,by]=rect[part].body,[dx,dy]=rect[part].detail;
  baseCtx.drawImage(atlas,bx,by,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
  detailCtx.drawImage(atlas,dx,dy,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
  // Lift the original painted teeth out of the detail sheet; no replacement geometry.
  teethCtx.drawImage(detail,0,0);teethCtx.globalCompositeOperation='destination-in';
  teethCtx.fillStyle='#fff';toothRegion(teethCtx,part);teethCtx.globalCompositeOperation='source-over';
+ teethGlowCtx.shadowColor='#ffb21a';teethGlowCtx.shadowBlur=8;teethGlowCtx.drawImage(teeth,0,0);
  detailCtx.globalCompositeOperation='destination-out';detailCtx.drawImage(teeth,0,0);
  baseCtx.drawImage(detail,0,0);
  const [ex,ey]=rect[part].emissive;
  emissiveCtx.drawImage(atlas,ex,ey,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
- return {base,teeth,emissive};
+ return {base,teeth,teethGlow,emissive};
 }
 const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>{
  partCache={upper:cachePart('upper'),lower:cachePart('lower')};
@@ -148,7 +150,7 @@ function drawTeeth(part,time,open,glow,impact){
  ctx.save();ctx.translate(0,inertia+chatter);ctx.drawImage(cached.teeth,0,0);
  if(glow>0){
   ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.12+Math.min(.24,glow*.12);
-  ctx.shadowColor='#ffb21a';ctx.shadowBlur=3+glow*5;ctx.drawImage(cached.teeth,0,0);
+  ctx.drawImage(cached.teethGlow,0,0);
  }
  ctx.restore();
 }
