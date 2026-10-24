@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-24T00:00:00Z",
+  "slot": "05",
+  "time": "2026-10-24T00:06:00Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "observed_head_sha": "4aab8deeae7a05e3f3e553ed67d0537e6740fb78",
+  "objective": "Reproduce the false fixed-hinge evidence and define a discriminating browser test.",
+  "finding": {
+    "status": "CONFIRMED_FALSE_MOTION_EVIDENCE",
+    "declared_hinge": [108, 168],
+    "measured_pivot_drift_px": {"closed": 0.0, "mid": 9.0, "open": 18.0},
+    "measured_open_tip_displacement_px": 32.52,
+    "claimed_pivot_drift_px": 0,
+    "claimed_tip_displacement_px": 53,
+    "artistic_status": "UNKNOWN"
+  },
+  "evidence": [
+    "automation/asset-quality/diagnose_maw_hinge.py",
+    "automation/asset-quality/test_diagnose_maw_hinge.py",
+    "docs/autotask-reports/evidence/2026-10-24-maw-hinge-scout.json",
+    "docs/autotask-reports/2026-10-24.md"
+  ],
+  "exact_head_ci_before_scout": {
+    "ABYSS GLOW Production Stand": "success_but_does_not_exercise_maw_stand",
+    "Asset Quality": "success",
+    "Development memory integrity": "success",
+    "Cross-repo memory tools": "success"
+  },
+  "visual_target_document": "ABSENT_FROM_CURRENT_PR_HEAD; abyss.md remains authoritative",
+  "next_action": "Slot :15: replace translate/stretch with real rotation about [108,168], update evidence from measured output rather than constants, then add Chromium getTransform sampling for closed/mid/open and all eight light directions. Require hinge drift <=0.25 px. Do not edit abyss-glow/stand/index.html.",
+  "unknown": ["owner artistic verdict", "isolated maw browser p50/p95", "draw calls", "memory", "physical iPhone"]
+}

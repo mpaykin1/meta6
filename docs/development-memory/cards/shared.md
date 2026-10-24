@@ -9,6 +9,12 @@
 - **Применять:** Reject bool before accepting finite int/float anchor coordinates and retain a red-first regression that previously returned PASS_PART_ANCHOR_MOTION.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA bd1286b3312c41600cfdcaa7550f26c66b1a2c72
 
+## animation/claimed-fixed-hinge-drift
+- 2026-10-24 · failure · technical · 2026-10-24-abyss-maw-false-hinge-evidence
+- **Наблюдение:** The isolated maw stand translated its declared [108,168] hinge by open*18 while committed evidence hard-coded pivot_drift_px=0 and tip displacement=53; exact transform evaluation measured 18 px drift and 32.52 px tip displacement open.
+- **Применять:** Derive motion evidence from the produced transform or browser matrix, keep a negative control, and require <=0.25 px hinge drift before calling articulation technically fixed.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA 4aab8deeae7a05e3f3e553ed67d0537e6740fb78
+
 ## animation/surface-clamp-snap
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-stage7-surface-velocity-snap
 - **Наблюдение:** Мгновенное обнуление вертикальной скорости у поверхности вызывало рывок камеры.

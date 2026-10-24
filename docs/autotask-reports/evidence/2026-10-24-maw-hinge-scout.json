@@ -1,0 +1,43 @@
+{
+  "absolute_claim_mismatch_px": {
+    "lower_tip_displacement_px": 20.48,
+    "pivot_drift_px": 18.0
+  },
+  "artistic_status": "UNKNOWN",
+  "claimed_evidence": {
+    "lower_tip_displacement_px": 53.0,
+    "pivot_drift_px": 0.0
+  },
+  "fix_target": "rotate the lower jaw around [108,168] with translate(pivot), rotate(angle), translate(-pivot); measured hinge drift <=0.25 px",
+  "hinge": [
+    108.0,
+    168.0
+  ],
+  "max_measured_lower_tip_displacement_px": 32.52,
+  "max_measured_pivot_drift_px": 18.0,
+  "measurement": "Canvas2D transform evaluated at declared local pivot and lower tip",
+  "next_test": "instrument CanvasRenderingContext2D.getTransform in Chromium and sample hinge/tip at closed, mid and open phases",
+  "phases": [
+    {
+      "lower_tip_displacement_px": 0.0,
+      "name": "closed",
+      "openness": 0.0,
+      "pivot_drift_px": 0.0
+    },
+    {
+      "lower_tip_displacement_px": 16.26,
+      "name": "mid",
+      "openness": 0.5,
+      "pivot_drift_px": 9.0
+    },
+    {
+      "lower_tip_displacement_px": 32.52,
+      "name": "open",
+      "openness": 1.0,
+      "pivot_drift_px": 18.0
+    }
+  ],
+  "runtime_browser_status": "UNKNOWN",
+  "source_html_sha256": "eb5cbdc9a22d0504540d1bef09b01833380052132db1ed68695a2d468ef1d034",
+  "status": "BLOCKED_FALSE_MOTION_EVIDENCE"
+}
