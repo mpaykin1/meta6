@@ -3,6 +3,9 @@ name: Meta6 Live Delivery Gate
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**/play/**'
+      - 'abyss-glow/assets/**'
   workflow_dispatch:
 
 permissions:

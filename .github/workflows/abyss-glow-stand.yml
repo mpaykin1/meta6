@@ -52,27 +52,3 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-  deploy-pages:
-    name: Publish stand without removing existing Meta6 pages
-    if: github.event_name != 'pull_request'
-    needs: production-smoke
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Preserve all existing public site paths
-        run: |
-          mkdir -p _site
-          rsync -a --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='_site/' --exclude='abyss-glow/evidence/' ./ _site/
-          touch _site/.nojekyll
-          test -s _site/index.html
-          test -s _site/abyss-glow/stand/index.html
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: _site
-      - name: Deploy verified stand
-        id: deployment
-        uses: actions/deploy-pages@v4

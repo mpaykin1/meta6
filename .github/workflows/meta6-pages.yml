@@ -1,0 +1,63 @@
+name: Publish complete META6 site
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: meta6-complete-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble complete website without deleting accepted games
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          rsync -a --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='_site/' --exclude='**/evidence/' ./ _site/
+          touch _site/.nojekyll
+          test -s _site/index.html
+          test -s _site/abyss-glow/stand/index.html
+          test -s _site/abyss-glow/play/index.html
+          test -s _site/observer-world-en-v7/index.html
+          test -s _site/underwater-world/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy full website
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Confirm live play revision and preservation of originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://mpaykin1.github.io/meta6'
+          for attempt in $(seq 1 45); do
+            if curl --retry 2 --max-time 20 -fsSL -H 'Cache-Control: no-cache' "$base/abyss-glow/play/index.html?rev=${GITHUB_SHA}" -o /tmp/meta6-play.html \
+               && cmp -s _site/abyss-glow/play/index.html /tmp/meta6-play.html \
+               && curl --max-time 20 -fsSL "$base/abyss-glow/stand/index.html?rev=${GITHUB_SHA}" -o /tmp/meta6-stand.html \
+               && cmp -s _site/abyss-glow/stand/index.html /tmp/meta6-stand.html \
+               && curl --max-time 20 -fsSL "$base/observer-world-en-v7/index.html?rev=${GITHUB_SHA}" -o /tmp/meta6-other.html \
+               && cmp -s _site/observer-world-en-v7/index.html /tmp/meta6-other.html; then
+              echo 'Full GitHub Pages site deployed: play, accepted stand and other games'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'GitHub Pages still serves a stale or incomplete version' >&2
+          exit 1
