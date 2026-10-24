@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>ABYSS GLOW — owner maw motion probe</title>
-<style>html,body{margin:0;background:#000;color:#fde766;font:12px monospace;overflow:hidden}canvas{width:100vw;height:100vh;image-rendering:pixelated}aside{position:fixed;left:8px;top:8px}</style>
+<style>html,body{margin:0;background:#000;color:#fde766;font:12px monospace;overflow:hidden;overscroll-behavior:none}canvas{width:100vw;height:100vh;image-rendering:pixelated;touch-action:none}aside{position:fixed;left:8px;top:8px}</style>
 <canvas width="390" height="844" aria-label="Animated owner-source front maw evidence stand"></canvas><aside>OWNER MAW · HINGE [108,168] · LEFT/RIGHT LIGHT</aside>
 <script>
 /* Isolated evidence stand. The accepted abyss-glow/stand/index.html is not imported or edited. */
@@ -7,11 +7,14 @@ const c=document.querySelector('canvas'),x=c.getContext('2d');x.imageSmoothingEn
 const atlas=new Image();atlas.src='../assets/maw_front_v1/maw_front_atlas.png';
 const lightAtlas=new Image();lightAtlas.src='../assets/maw_front_v1/maw_front_light8.png';
 const W=217,H=289,P=[108,168],rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
-let last=0,elapsed=0;
+let last=0,elapsed=0,testMode=false;
 function tile(part,layer){const r=rect[part][layer];x.drawImage(atlas,r[0],r[1],W,H,0,0,W,H)}
 function part(name,direction){tile(name,'body');const row=name==='upper'?0:H;x.drawImage(lightAtlas,direction*W,row,W,H,0,0,W,H);tile(name,'emissive')}
-function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;elapsed+=dt;const phase=(elapsed%4)/4;const open=Math.sin(Math.PI*Math.min(1,phase*2));const direction=Math.floor((elapsed/2)%8);
+function drawMaw(open,direction){
  x.setTransform(1,0,0,1,0,0);x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);const s=1.6,ox=(c.width-W*s)/2,oy=170;x.translate(ox,oy);x.scale(s,s);part('upper',direction);
- x.save();x.translate(P[0],P[1]);x.rotate(open*.22);x.translate(-P[0],-P[1]);part('lower',direction);x.restore();requestAnimationFrame(frame)}
+ x.save();x.translate(P[0],P[1]);x.rotate(open*.22);x.translate(-P[0],-P[1]);part('lower',direction);x.restore();
+}
+window.__mawTest=(open,direction)=>{testMode=true;drawMaw(Math.max(0,Math.min(1,open)),((direction%8)+8)%8)};
+function frame(now){if(testMode)return;const dt=Math.min(.05,(now-last)/1000||0);last=now;elapsed+=dt;const phase=(elapsed%4)/4;const open=Math.sin(Math.PI*Math.min(1,phase*2));const direction=Math.floor((elapsed/2)%8);drawMaw(open,direction);requestAnimationFrame(frame)}
 Promise.all([atlas.decode(),lightAtlas.decode()]).then(()=>requestAnimationFrame(frame));
 </script>

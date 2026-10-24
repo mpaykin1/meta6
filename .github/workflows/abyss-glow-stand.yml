@@ -3,7 +3,10 @@ on:
   pull_request:
     paths:
       - 'abyss-glow/stand/**'
+      - 'abyss-glow/maw-stand/**'
+      - 'abyss-glow/assets/maw_front_v1/**'
       - 'automation/asset-quality/abyss_stand_smoke.mjs'
+      - 'automation/asset-quality/maw_stand_smoke.mjs'
       - 'automation/asset-quality/abyss_single_loop_smoke.mjs'
       - 'automation/asset-quality/build_single_loop.py'
       - 'automation/asset-quality/test_build_single_loop.py'
@@ -21,7 +24,10 @@ on:
     branches: [main]
     paths:
       - 'abyss-glow/stand/**'
+      - 'abyss-glow/maw-stand/**'
+      - 'abyss-glow/assets/maw_front_v1/**'
       - 'automation/asset-quality/abyss_stand_smoke.mjs'
+      - 'automation/asset-quality/maw_stand_smoke.mjs'
       - 'automation/asset-quality/abyss_single_loop_smoke.mjs'
       - 'automation/asset-quality/build_single_loop.py'
       - 'automation/asset-quality/test_build_single_loop.py'
@@ -67,6 +73,12 @@ jobs:
           curl -fsS http://127.0.0.1:8765/ > /dev/null
       - name: Run real Chromium and emulated mobile-touch scenes
         run: node automation/asset-quality/abyss_stand_smoke.mjs
+      - name: Serve isolated maw stand and verify measured articulation
+        run: |
+          python3 -m http.server 8766 --bind 127.0.0.1 --directory abyss-glow > /tmp/abyss-maw-http.log 2>&1 &
+          sleep 2
+          curl -fsS http://127.0.0.1:8766/maw-stand/ > /dev/null
+          node automation/asset-quality/maw_stand_smoke.mjs
       - name: Build original-preserving single-RAF candidate
         run: python3 automation/asset-quality/build_single_loop.py abyss-glow/stand/index.html abyss-glow/stand/single-loop.html
       - name: Run Python build, release and pixel-style gate tests

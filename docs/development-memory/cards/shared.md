@@ -57,6 +57,12 @@
 - **Применять:** Проверять автономность export, парсинг каждого script и использовать callback при замене JS в сборщике.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-18-three-worlds-offline-and-browser.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## ci/changed-runtime-surface-not-exercised
+- 2026-10-24 · failure · technical · 2026-10-24-abyss-changed-stand-missing-browser-gate
+- **Наблюдение:** Exact-head CI was green after the isolated maw stand changed, but the production browser workflow exercised only the canonical stand and single-loop harness; the changed maw runtime, touch layout, rendered phases and Canvas2D transform were not opened by CI.
+- **Применять:** Every changed runnable stand must be included in a browser smoke on desktop and touch, with console/network failure capture, non-empty and phase-distinct frames, measured runtime transforms, p50/p95 frame timing and explicit software-renderer/device labels.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA b7eb6462c03410dd4314054cbd9bd9853a707b97
+
 ## ci/partial-asset-directory
 - 2026-10-23 · failure · technical · 2026-10-23-abyss-partial-pack-workflow
 - **Наблюдение:** Asset Quality treated any abyss-glow/assets directory as a complete pack, so the first owner-maw component correctly passed its tests but CI failed while opening the intentionally absent root manifest.

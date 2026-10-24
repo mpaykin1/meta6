@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-24T04:00:00Z",
+  "slot": "30",
+  "time": "2026-10-24T04:37:45Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "input_head_sha": "b7eb6462c03410dd4314054cbd9bd9853a707b97",
+  "objective": "Run the isolated maw articulation in Chromium desktop and touch and reject empty/static frames or false fixed-pivot evidence.",
+  "result": {
+    "status": "LOCAL_PASS_CI_BROWSER_PENDING_OWNER_VERDICT_UNKNOWN",
+    "local_asset_tests": "120/120 PASS",
+    "browser_profiles": ["desktop 960x540 DPR1", "touch 390x844 DPR2"],
+    "directions": 8,
+    "phases": ["closed", "mid", "open"],
+    "matrix_source": "instrumented CanvasRenderingContext2D.drawImage",
+    "hard_gates": ["hinge drift <=0.25 px", "open tip displacement >5 px", "visible pixels >200", "three distinct phase hashes per direction", "eight distinct closed-light hashes", "zero console/network errors"],
+    "performance": "CI_PENDING",
+    "runtime": "SwiftShader software renderer, not physical device",
+    "artistic_status": "UNKNOWN"
+  },
+  "files": [
+    "abyss-glow/maw-stand/index.html",
+    "automation/asset-quality/maw_stand_smoke.mjs",
+    ".github/workflows/abyss-glow-stand.yml",
+    "docs/development-memory/events.jsonl",
+    "docs/autotask-reports/2026-10-24.md"
+  ],
+  "invariants": {
+    "original_stand_sha256": "d968e47997dbd1cf843fdc73fed94e682217e6d5c833a0c8d602ec5b064f94e5",
+    "original_stand_changed": false
+  },
+  "next_action": "Slot :40: require exact-head green CI, download the maw-browser evidence artifact, independently inspect JSON and representative desktop/touch frames, then record CHANGES or technical QA without claiming artistic or iPhone PASS.",
+  "unknown": ["CI browser result", "GPU draw calls", "owner artistic verdict", "physical iPhone"]
+}
