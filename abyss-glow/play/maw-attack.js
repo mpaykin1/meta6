@@ -56,7 +56,9 @@ const FIRST=8.5, PERIOD=38.0;
 let start=0,last=0,attackedCycle=-1,rendered=0;
 let targetCycle=-2,targetHero=null,heroSample=null,nextHeroSample=0,aimX=0,aimY=0;
 let worldWidth=1,worldHeight=1;
-const state={ready:false,visible:false,attackCount:0,avoidedCount:0,lastHit:false,targetOffset:[0,0]};
+const gameCanvas=document.getElementById('gl');
+let cameraKick=0;
+const state={ready:false,visible:false,attackCount:0,avoidedCount:0,lastHit:false,targetOffset:[0,0],cameraKick:0};
 function sampleHero(seconds,force){
  if(!force&&seconds<nextHeroSample)return heroSample;
  nextHeroSample=seconds+.08;
@@ -185,6 +187,15 @@ function throat(time,open,light){
 function frame(now,dt){
  resize();
  const seconds=(now-start)/1000;const q=frameState(seconds);
+ // Successful bites kick the actual playfield, while the HUD and touch layer remain stable.
+ if(gameCanvas){
+  if(cameraKick>0){
+   cameraKick=Math.max(0,cameraKick-Math.max(0,dt)*3.8);
+   const amp=cameraKick*7.5;
+   gameCanvas.style.transform=`translate3d(${Math.sin(seconds*71)*amp}px,${Math.cos(seconds*59)*amp*.55}px,0) scale(1.018)`;
+  }else if(gameCanvas.style.transform)gameCanvas.style.transform='';
+ }
+ state.cameraKick=cameraKick;
  if(q.cycle>=0&&q.cycle!==targetCycle){
   targetCycle=q.cycle;
   const hero=sampleHero(seconds,true);
@@ -235,6 +246,7 @@ function frame(now,dt){
   if(inMouth){
    try{if(typeof window.__abyssPlayMawHit==='function')hit=!!window.__abyssPlayMawHit()}catch(e){console.error('ABYSS maw hit:',e)}
   }else state.avoidedCount++;
+  if(hit)cameraKick=1;
   state.lastHit=hit;state.attackCount++;
  }
  state.rendered=++rendered;
