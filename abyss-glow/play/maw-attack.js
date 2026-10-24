@@ -123,6 +123,22 @@ function drawPart(part,direction,glow){
  }
  ctx.drawImage(cached.emissive,0,0);
 }
+function drawEyes(time,glow){
+ const source=partCache.upper.emissive;
+ const sockets=[[59,107],[158,105]];
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ ctx.shadowColor='#ffd95a';ctx.shadowBlur=8+glow*19;
+ for(let i=0;i<sockets.length;i++){
+  const [x,y]=sockets[i];
+  const pulse=.5+.5*Math.sin(time*(5.4+i*.45)+i*1.7);
+  const driftX=Math.sin(time*1.9+i*2.3)*.8;
+  const driftY=Math.cos(time*1.35+i*1.2)*.45;
+  ctx.globalAlpha=Math.min(1,.28+glow*.42+pulse*.26);
+  // Reuse each eye's real emissive pixels as a separate animated layer.
+  ctx.drawImage(source,x-15,y-13,30,26,x-15+driftX,y-13+driftY,30,26);
+ }
+ ctx.restore();
+}
 function bubbles(time,s,ox,oy){
  const n=15;
  ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#faa22b';
@@ -237,7 +253,7 @@ function frame(now,dt){
  // Rigid upper/lower body motion; no tooth/image stretch.
  const biteShock=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*(.012+.035*q.impact):0;
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
- ctx.save();ctx.translate(P[0],P[1]-7*upperOpen);ctx.rotate(-.11*upperOpen-biteShock);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);ctx.restore();
+ ctx.save();ctx.translate(P[0],P[1]-7*upperOpen);ctx.rotate(-.11*upperOpen-biteShock);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);drawEyes(seconds,q.light);ctx.restore();
  ctx.save();ctx.translate(P[0],P[1]+44*lowerOpen);ctx.rotate(.15*lowerOpen+biteShock);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);ctx.restore();
  ctx.restore();
  if(q.light>.02){
