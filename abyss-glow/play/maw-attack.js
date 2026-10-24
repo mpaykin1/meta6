@@ -33,7 +33,24 @@ throatGradient.addColorStop(0,'#010000');throatGradient.addColorStop(.5,'#050000
 throatGradient.addColorStop(.78,'#170200');throatGradient.addColorStop(1,'#020000');
 throatCtx.fillStyle=throatGradient;throatCtx.fillRect(0,0,96,112);
 const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
-const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>true).catch(err=>{console.error('ABYSS play maw art unavailable:',err);return false});
+let partCache=null;
+function cachePart(part){
+ const base=document.createElement('canvas'),baseCtx=base.getContext('2d');
+ const emissive=document.createElement('canvas'),emissiveCtx=emissive.getContext('2d');
+ base.width=emissive.width=SIZE[0];base.height=emissive.height=SIZE[1];
+ baseCtx.imageSmoothingEnabled=emissiveCtx.imageSmoothingEnabled=false;
+ for(const layerName of ['body','detail']){
+  const [sx,sy]=rect[part][layerName];
+  baseCtx.drawImage(atlas,sx,sy,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
+ }
+ const [ex,ey]=rect[part].emissive;
+ emissiveCtx.drawImage(atlas,ex,ey,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
+ return {base,emissive};
+}
+const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>{
+ partCache={upper:cachePart('upper'),lower:cachePart('lower')};
+ return true;
+}).catch(err=>{console.error('ABYSS play maw art unavailable:',err);return false});
 let ready=false;loaded.then(ok=>{ready=ok});
 let cw=0,ch=0,viewWidth=0,viewHeight=0;
 let lightDirection=1;
@@ -91,24 +108,20 @@ function frameState(seconds){
  if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:1.03-.77*a,open:.38*(1-a),light:1-a,impact:0,hit:false,cycle}}
  return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle};
 }
-function layer(part,layerName){
- const [sx,sy]=rect[part][layerName];
- ctx.drawImage(atlas,sx,sy,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
-}
 function drawPart(part,direction,glow){
- layer(part,'body');
- layer(part,'detail');
+ const cached=partCache[part];
+ ctx.drawImage(cached.base,0,0);
  const row=part==='upper'?0:SIZE[1];
  ctx.drawImage(lights,direction*SIZE[0],row,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
  if(glow>0){
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=Math.min(1,.72+glow*.25);
   ctx.shadowColor='#ff9f0a';ctx.shadowBlur=18+glow*38;
-  layer(part,'emissive');
+  ctx.drawImage(cached.emissive,0,0);
   ctx.globalAlpha=Math.min(.48,.22+glow*.18);ctx.shadowBlur=4+glow*7;
-  layer(part,'emissive');
+  ctx.drawImage(cached.emissive,0,0);
   ctx.restore();
  }
- layer(part,'emissive');
+ ctx.drawImage(cached.emissive,0,0);
 }
 function bubbles(time,s,ox,oy){
  const n=15;
