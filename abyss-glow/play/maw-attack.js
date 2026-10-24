@@ -74,6 +74,29 @@ function bubbles(time,s,ox,oy){
  }
  ctx.restore();
 }
+function throat(time,open,light){
+ const reveal=smooth((open-.08)/.92);
+ if(reveal<=0)return;
+ const tx=P[0],ty=P[1]+18;
+ ctx.save();ctx.globalAlpha=reveal;
+ const pulse=.5+.5*Math.sin(time*5.2);
+ const depth=ctx.createRadialGradient(tx-3,ty-6,2,tx,ty,45);
+ depth.addColorStop(0,'#010000');depth.addColorStop(.58,'#080000');
+ depth.addColorStop(.84,'rgba(81,12,0,.5)');depth.addColorStop(1,'rgba(25,2,0,0)');
+ ctx.fillStyle=depth;ctx.beginPath();ctx.ellipse(tx,ty,34,46,0,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();ctx.ellipse(tx,ty,30,41,0,0,Math.PI*2);ctx.clip();
+ ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba(190,48,3,'+(.11+.08*light)+')';ctx.lineWidth=1.2;
+ for(let side=-1;side<=1;side+=2){
+  for(let i=0;i<3;i++){
+   const x=tx+side*(16+i*5),sway=Math.sin(time*2.1+i)*1.5;
+   ctx.globalAlpha=reveal*(.42-i*.09);
+   ctx.beginPath();ctx.moveTo(x,ty-31);ctx.bezierCurveTo(x-side*(5+sway),ty-9,x-side*8,ty+13,x-side*3,ty+34);ctx.stroke();
+  }
+ }
+ ctx.globalCompositeOperation='source-over';ctx.globalAlpha=reveal*(.8+.1*pulse);ctx.fillStyle='#010000';
+ ctx.beginPath();ctx.ellipse(tx,ty,8+pulse,15+pulse*2,0,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+}
 function frame(now,dt){
  resize();
  const seconds=(now-start)/1000;const q=frameState(seconds);
@@ -88,15 +111,13 @@ function frame(now,dt){
  const cx=cw*.5,cy=ch*.47;
  ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
  ctx.globalAlpha=clamp(q.visible);
- // The throat is BEHIND both articulated layers, and revealed by lower-jaw displacement.
- if(q.open>0){
-  ctx.save();const throat=ctx.createRadialGradient(P[0],P[1]+22,2,P[0],P[1]+22,70);
-  throat.addColorStop(0,'#160000');throat.addColorStop(.55,'#320500');throat.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=throat;ctx.beginPath();ctx.ellipse(P[0],P[1]+22,43,43,0,0,Math.PI*2);ctx.fill();ctx.restore();
- }
+ // The independently pulsing throat sits behind both rigid articulated layers.
+ throat(seconds,q.open,q.light);
  // Rigid upper/lower body motion; no tooth/image stretch.
- ctx.save();ctx.translate(P[0],P[1]);ctx.rotate(-.018*q.open);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);ctx.restore();
- ctx.save();ctx.translate(P[0],P[1]+36*q.open);ctx.rotate(.018*q.open);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);ctx.restore();
+ const biteShock=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*.025*(1-q.open):0;
+ const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
+ ctx.save();ctx.translate(P[0],P[1]-4*upperOpen);ctx.rotate(-.04*upperOpen-biteShock);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);ctx.restore();
+ ctx.save();ctx.translate(P[0],P[1]+52*lowerOpen);ctx.rotate(.032*lowerOpen+biteShock);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);ctx.restore();
  ctx.restore();
  if(q.light>.02){
   ctx.save();ctx.globalAlpha=clamp(q.visible)*q.light;
