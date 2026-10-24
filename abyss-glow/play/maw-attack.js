@@ -250,11 +250,11 @@ function frame(now,dt){
  ctx.globalAlpha=clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
  throat(seconds,q.open,q.light);
- // Rigid upper/lower body motion; no tooth/image stretch.
- const biteShock=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*(.012+.035*q.impact):0;
+ // Rigid frontal articulation stays on the mouth centerline; no lateral swing or tooth/image stretch.
+ const jawTremor=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*(1.1+2.2*q.impact):0;
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
- ctx.save();ctx.translate(P[0],P[1]-7*upperOpen);ctx.rotate(-.11*upperOpen-biteShock);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);drawEyes(seconds,q.light);ctx.restore();
- ctx.save();ctx.translate(P[0],P[1]+44*lowerOpen);ctx.rotate(.15*lowerOpen+biteShock);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);ctx.restore();
+ ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);drawPart('upper',direction,q.light);drawEyes(seconds,q.light);ctx.restore();
+ ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);drawPart('lower',direction,q.light);ctx.restore();
  ctx.restore();
  if(q.light>.02){
   ctx.save();ctx.globalAlpha=clamp(q.visible)*q.light;
