@@ -5,6 +5,7 @@ on:
     paths:
       - 'observer-world-en-v7/**'
       - '.github/workflows/observer-v7-gate.yml'
+      - '!**/play/**'
   workflow_dispatch:
 permissions:
   contents: read

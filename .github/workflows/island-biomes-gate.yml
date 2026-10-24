@@ -4,11 +4,13 @@ on:
     paths:
       - 'island-sumerek-biomes/**'
       - '.github/workflows/island-biomes-gate.yml'
+      - '!**/play/**'
   push:
     branches: [main]
     paths:
       - 'island-sumerek-biomes/**'
       - '.github/workflows/island-biomes-gate.yml'
+      - '!**/play/**'
   workflow_dispatch:
 permissions:
   contents: read
