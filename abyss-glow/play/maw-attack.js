@@ -34,18 +34,36 @@ throatGradient.addColorStop(.78,'#170200');throatGradient.addColorStop(1,'#02000
 throatCtx.fillStyle=throatGradient;throatCtx.fillRect(0,0,96,112);
 const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
 let partCache=null;
+function toothRegion(g,part){
+ g.beginPath();
+ if(part==='upper'){
+  g.moveTo(35,126);g.bezierCurveTo(55,106,82,105,108,105);
+  g.bezierCurveTo(139,104,166,109,183,127);g.lineTo(188,198);g.lineTo(30,198);
+ }else{
+  g.moveTo(29,70);g.lineTo(190,70);g.lineTo(186,121);
+  g.bezierCurveTo(168,150,143,176,108,182);
+  g.bezierCurveTo(73,177,47,151,31,122);
+ }
+ g.closePath();g.fill();
+}
 function cachePart(part){
  const base=document.createElement('canvas'),baseCtx=base.getContext('2d');
+ const detail=document.createElement('canvas'),detailCtx=detail.getContext('2d');
+ const teeth=document.createElement('canvas'),teethCtx=teeth.getContext('2d');
  const emissive=document.createElement('canvas'),emissiveCtx=emissive.getContext('2d');
- base.width=emissive.width=SIZE[0];base.height=emissive.height=SIZE[1];
- baseCtx.imageSmoothingEnabled=emissiveCtx.imageSmoothingEnabled=false;
- for(const layerName of ['body','detail']){
-  const [sx,sy]=rect[part][layerName];
-  baseCtx.drawImage(atlas,sx,sy,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
- }
+ for(const layer of [base,detail,teeth,emissive]){layer.width=SIZE[0];layer.height=SIZE[1]}
+ for(const g of [baseCtx,detailCtx,teethCtx,emissiveCtx])g.imageSmoothingEnabled=false;
+ const [bx,by]=rect[part].body,[dx,dy]=rect[part].detail;
+ baseCtx.drawImage(atlas,bx,by,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
+ detailCtx.drawImage(atlas,dx,dy,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
+ // Lift the original painted teeth out of the detail sheet; no replacement geometry.
+ teethCtx.drawImage(detail,0,0);teethCtx.globalCompositeOperation='destination-in';
+ teethCtx.fillStyle='#fff';toothRegion(teethCtx,part);teethCtx.globalCompositeOperation='source-over';
+ detailCtx.globalCompositeOperation='destination-out';detailCtx.drawImage(teeth,0,0);
+ baseCtx.drawImage(detail,0,0);
  const [ex,ey]=rect[part].emissive;
  emissiveCtx.drawImage(atlas,ex,ey,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
- return {base,emissive};
+ return {base,teeth,emissive};
 }
 const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>{
  partCache={upper:cachePart('upper'),lower:cachePart('lower')};
@@ -122,6 +140,17 @@ function drawPart(part,direction,glow){
   ctx.restore();
  }
  ctx.drawImage(cached.emissive,0,0);
+}
+function drawTeeth(part,time,open,glow,impact){
+ const cached=partCache[part],side=part==='upper'?1:-1;
+ const inertia=side*Math.sin(time*8.1+(part==='upper'?0:.7))*open*.65;
+ const chatter=side*Math.sin(time*54)*impact*1.8;
+ ctx.save();ctx.translate(0,inertia+chatter);ctx.drawImage(cached.teeth,0,0);
+ if(glow>0){
+  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.12+Math.min(.24,glow*.12);
+  ctx.shadowColor='#ffb21a';ctx.shadowBlur=3+glow*5;ctx.drawImage(cached.teeth,0,0);
+ }
+ ctx.restore();
 }
 function drawEyes(time,glow){
  const source=partCache.upper.emissive;
@@ -260,8 +289,8 @@ function frame(now,dt){
  // Rigid frontal articulation stays on the mouth centerline; no lateral swing or tooth/image stretch.
  const jawTremor=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*(1.1+2.2*q.impact):0;
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
- ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);drawPart('upper',direction,q.light);drawEyes(seconds,q.light);ctx.restore();
- ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);drawPart('lower',direction,q.light);ctx.restore();
+ ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);drawPart('upper',direction,q.light);drawTeeth('upper',seconds,upperOpen,q.light,q.impact);drawEyes(seconds,q.light);ctx.restore();
+ ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);drawPart('lower',direction,q.light);drawTeeth('lower',seconds,lowerOpen,q.light,q.impact);ctx.restore();
  ctx.restore();
  if(q.light>.02){
   // Bubbles and bite spray remain foreground reactions.
