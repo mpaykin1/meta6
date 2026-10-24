@@ -83,7 +83,7 @@ function frameState(seconds){
   else if(raw<.72)open=1-.78*smooth((raw-.34)/.38);
   else open=.22+.16*smooth((raw-.72)/.28);
   const impact=Math.sin(Math.PI*clamp((raw-.48)/.52));
-  return {phase:'bite',visible:1,scale:.95+.08*a-.018*impact,open,light:1+.35*impact,impact,hit:t>2.07,cycle};
+  return {phase:'bite',visible:1,scale:.95+.08*a-.018*impact,open,light:1+.35*impact,impact,hit:raw>=.74,cycle};
  }
  if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:1.03-.77*a,open:.38*(1-a),light:1-a,impact:0,hit:false,cycle}}
  return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle};
@@ -115,6 +115,35 @@ function bubbles(time,s,ox,oy){
   const r=Math.max(.9,(1.3+i%3)*s*.8);
   ctx.globalAlpha=Math.max(0,.45-p*.3);
   ctx.lineWidth=Math.max(.7,s*.65);ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+ }
+ ctx.restore();
+}
+function biteImpact(seconds,intensity,s,ox,oy){
+ if(intensity<.68||s<=0)return;
+ const fade=clamp((intensity-.68)/.32),pixel=Math.max(1,Math.round(s));
+ const colors=['#FDE766','#F9BD2B','#E57807'],drift=seconds*.08;
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ // Broken pixel rings contract into the bite, then flare outward on impact.
+ for(let ring=0;ring<3;ring++){
+  const radius=(34+ring*12+(1-fade)*42)*s;
+  for(let i=0;i<24;i++){
+   if((i+ring*3)%6===0)continue;
+   const angle=i*Math.PI*2/24+ring*.09+drift;
+   const x=ox+Math.cos(angle)*radius,y=oy+Math.sin(angle)*radius*.58;
+   ctx.globalAlpha=fade*(.46-ring*.11)*(.65+.35*((i+ring)%4)/3);
+   ctx.fillStyle=colors[ring];
+   ctx.fillRect(Math.round(x/pixel)*pixel,Math.round(y/pixel)*pixel,
+    pixel*(i%5===0?3:i%2===0?2:1),pixel*(i%4===0?2:1));
+  }
+ }
+ // Short, deterministic pixel sparks reinforce the exact jaw-contact frame.
+ for(let i=0;i<12;i++){
+  const angle=i*Math.PI*2/12+.17+drift;
+  const radius=(24+(1-fade)*55)*s;
+  const x=ox+Math.cos(angle)*radius,y=oy+Math.sin(angle)*radius*.52;
+  ctx.globalAlpha=fade*(.74+.05*(i%4));
+  ctx.fillStyle=i%3===0?colors[0]:colors[1];
+  ctx.fillRect(Math.round(x/pixel)*pixel,Math.round(y/pixel)*pixel,pixel*(2+i%3),pixel);
  }
  ctx.restore();
 }
@@ -186,7 +215,7 @@ function frame(now,dt){
   const haloRadius=Math.max(35,140*s);
   ctx.globalCompositeOperation='lighter';
   ctx.drawImage(haloCanvas,cx-haloRadius,cy-haloRadius,haloRadius*2,haloRadius*2);ctx.restore();
-  bubbles(seconds,s,cx,cy);
+  bubbles(seconds,s,cx,cy);biteImpact(seconds,q.impact,s,cx,cy+20*s);
  }
  // Real gameplay damage, once per encounter, through the existing fish hit path.
  if(q.hit&&q.cycle!==attackedCycle){
