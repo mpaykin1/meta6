@@ -2,8 +2,8 @@
 // ABYSS GLOW play: owner-derived layered maw encounter in actual game.
 // No changes to the accepted stand. Transparent overlay does not intercept touch.
 const SIZE=[217,289], P=[108,168], atlas=new Image(),lights=new Image();
-atlas.src='./assets/maw_front_atlas.png';
-lights.src='./assets/maw_front_light8.png';
+atlas.src='../assets/maw_front_v1/maw_front_atlas.png';
+lights.src='../assets/maw_front_v1/maw_front_light8.png';
 const canvas=document.createElement('canvas');
 canvas.id='play-maw';canvas.setAttribute('aria-hidden','true');
 canvas.style.cssText='position:fixed;inset:0;width:100vw;height:100dvh;z-index:4;pointer-events:none;image-rendering:pixelated';
@@ -15,6 +15,13 @@ const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,29
 const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>true).catch(err=>{console.error('ABYSS play maw art unavailable:',err);return false});
 let ready=false;loaded.then(ok=>{ready=ok});
 let cw=0,ch=0,viewWidth=0,viewHeight=0;
+let lightDirection=1;
+function aimLight(event){
+ const x=event.clientX-innerWidth*.5,y=event.clientY-innerHeight*.47;
+ lightDirection=(Math.round((Math.atan2(y,x)+Math.PI*2)/(Math.PI*.25))+8)%8;
+}
+addEventListener('pointerdown',aimLight,{passive:true});
+addEventListener('pointermove',aimLight,{passive:true});
 function resize(){
  const w=window.innerWidth,h=window.innerHeight,dpr=Math.min(devicePixelRatio||1,1.6);
  const factor=Math.min(1,1080/Math.max(w*dpr,h*dpr));
@@ -74,7 +81,7 @@ function frame(now,dt){
  state.ready=ready;state.visible=ready&&q.visible>.02;state.phase=q.phase;state.elapsed=seconds;state.dt=dt;
  if(!ready||q.visible<=.02)return;
  // Rendered into the actual game and anchored at the camera's center/player region.
- const direction=Math.floor(seconds/4)%8;
+ const direction=lightDirection;
  const base=Math.min(cw/SIZE[0],ch/SIZE[1])*1.25;
  const s=base*q.scale;
  const cx=cw*.5,cy=ch*.47;
