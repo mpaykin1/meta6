@@ -126,6 +126,32 @@ try{
         const phaseHashes=record.screenshots.filter(s=>s.file.includes(`-d${direction}-`)).map(s=>s.sha256);
         assert.equal(new Set(phaseHashes).size,3,profile.name+`: direction ${direction} animation phases are static`);
       }
+      // Actual on-canvas dark-to-lunge pixels: software Chromium, not artistic or iPhone approval.
+      record.attack_gate=[];
+      for(const [label,seconds] of [['dark',0.4],['lunge',1.22],['attack',1.75],['retreat',2.8],['dark_again',4.4]]){
+        const result=await page.evaluate(({seconds})=>{
+          window.__mawDrawCalls=[];
+          const state=window.__mawAttackTest(seconds,0);
+          const c=document.querySelector('canvas'),data=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+          let visible=0;
+          for(let i=0;i<data.length;i+=4)if(data[i]>30||data[i+1]>30||data[i+2]>30)visible++;
+          return {state,visible_pixels:visible,draw_calls:window.__mawDrawCalls.length};
+        },{seconds});
+        const shot=await canvas.screenshot({path:path.join(out,profile.name+'-attack-'+label+'.png'),timeout:30000});
+        const digest=createHash('sha256').update(shot).digest('hex');
+        record.attack_gate.push({label,seconds,...result,sha256:digest});
+      }
+      const attacks=Object.fromEntries(record.attack_gate.map(s=>[s.label,s]));
+      assert.equal(attacks.dark.visible_pixels,0,profile.name+': initial darkness must be black');
+      assert.equal(attacks.dark_again.visible_pixels,0,profile.name+': final darkness must be black');
+      assert.equal(attacks.dark.draw_calls,0,profile.name+': darkness should avoid asset draws');
+      assert(attacks.attack.visible_pixels>200,profile.name+': maw did not emerge from darkness');
+      assert.equal(attacks.attack.draw_calls,6,profile.name+': jaw layers missing');
+      assert(attacks.attack.state.scale>attacks.lunge.state.scale,profile.name+': maw failed to approach camera');
+      assert(attacks.attack.state.open>=.95,profile.name+': jaw not fully open');
+      assert(attacks.lunge.state.visibility>0&&attacks.lunge.state.visibility<1,profile.name+': lunge transition missing');
+      assert.notEqual(attacks.lunge.sha256,attacks.attack.sha256,profile.name+': identical lunge and attack');
+      assert.notEqual(attacks.attack.sha256,attacks.retreat.sha256,profile.name+': identical attack and retreat');
       if(profile.touch){
         const before=await page.evaluate(()=>({scrollX,scrollY}));
         await page.touchscreen.tap(Math.round(profile.width*.5),Math.round(profile.height*.5));
