@@ -123,40 +123,37 @@ function bubbles(time,s,ox,oy){
  }
  ctx.restore();
 }
+const impactColors=['#FFF19A','#F9BD2B','#E57807'];
+const impactFrames=[.08,.25,.5,.75,1].map(fade=>{
+ const c=document.createElement('canvas'),g=c.getContext('2d'),ox=96,oy=96,pixel=1;
+ c.width=c.height=192;g.globalCompositeOperation='lighter';
+ const flashW=24+fade*34,flashH=8+fade*11;
+ g.globalAlpha=fade*.22;g.fillStyle=impactColors[1];
+ g.beginPath();g.ellipse(ox,oy,flashW,flashH,-.08,0,Math.PI*2);g.fill();
+ for(let i=0;i<28;i++){
+  const side=i%2?1:-1,lane=(i*7)%13;
+  const angle=side*(.12+.047*lane)+Math.sin(i*2.31)*.055;
+  const radius=18+(i*19%47)+(1-fade)*32,lift=((i*11)%17-8)*.72;
+  const x=ox+Math.cos(angle)*radius*side,y=oy+Math.sin(angle)*radius*.54+lift;
+  const length=1+(i%4);
+  g.globalAlpha=fade*(.34+.08*(i%5));g.fillStyle=impactColors[i%3];
+  g.save();g.translate(Math.round(x),Math.round(y));g.rotate(side*(.08+.03*(i%5)));
+  g.fillRect(-length*.5,-.5,length,1);g.restore();
+ }
+ for(let i=0;i<9;i++){
+  const x=ox+((i*29)%71)-35,y=oy-(10+(i*17)%43),r=i%3===0?1.5:1;
+  g.globalAlpha=fade*(.28+.06*(i%4));g.strokeStyle=i%2?impactColors[1]:impactColors[0];
+  g.lineWidth=.65;g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.stroke();
+ }
+ return c;
+});
 function biteImpact(seconds,intensity,s,ox,oy){
  if(intensity<.68||s<=0)return;
- const fade=clamp((intensity-.68)/.32),pixel=Math.max(1,Math.round(s));
- const colors=['#FFF19A','#F9BD2B','#E57807'],drift=seconds*.08;
- ctx.save();ctx.globalCompositeOperation='lighter';
- // A short warm contact flash reads as pressure in water, without a geometric portal ring.
- const flashW=(24+fade*34)*s,flashH=(8+fade*11)*s;
- ctx.globalAlpha=fade*.22;ctx.fillStyle=colors[1];
- ctx.beginPath();ctx.ellipse(ox,oy,flashW,flashH,-.08,0,Math.PI*2);ctx.fill();
- // Deterministic asymmetric spray: more energy escapes sideways from the snapping jaws.
- for(let i=0;i<28;i++){
-  const side=i%2?1:-1;
-  const lane=(i*7)%13;
-  const angle=side*(.12+.047*lane)+Math.sin(i*2.31)*.055+drift*.08;
-  const radius=(18+(i*19%47)+(1-fade)*32)*s;
-  const lift=((i*11)%17-8)*s*.72;
-  const x=ox+Math.cos(angle)*radius*side;
-  const y=oy+Math.sin(angle)*radius*.54+lift;
-  const length=pixel*(1+(i%4));
-  ctx.globalAlpha=fade*(.34+.08*(i%5));
-  ctx.fillStyle=colors[i%3];
-  ctx.save();ctx.translate(Math.round(x/pixel)*pixel,Math.round(y/pixel)*pixel);
-  ctx.rotate(side*(.08+.03*(i%5)));
-  ctx.fillRect(-length*.5,-pixel*.5,length,pixel);
-  ctx.restore();
- }
- // Small rising droplets trail the impact and blend it into the existing bubble field.
- for(let i=0;i<9;i++){
-  const x=ox+(((i*29)%71)-35)*s,y=oy-(10+(i*17)%43)*s;
-  const r=pixel*(i%3===0?1.5:1);
-  ctx.globalAlpha=fade*(.28+.06*(i%4));ctx.strokeStyle=i%2?colors[1]:colors[0];
-  ctx.lineWidth=pixel*.65;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
- }
- ctx.restore();
+ const fade=clamp((intensity-.68)/.32);
+ const frame=impactFrames[Math.min(impactFrames.length-1,Math.floor(fade*impactFrames.length))];
+ const size=frame.width*s;
+ ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.92+.08*fade;
+ ctx.drawImage(frame,ox-size*.5,oy-size*.5,size,size);ctx.restore();
 }
 function throat(time,open,light){
  const reveal=smooth((open-.08)/.92);
