@@ -36,13 +36,22 @@ let start=0,last=0,attackedCycle=-1,rendered=0;
 const state={ready:false,visible:false,attackCount:0,lastHit:false};
 Object.defineProperty(window,'__abyssPlayMaw',{value:state,configurable:false});
 function frameState(seconds){
- if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.26,open:0,light:0,hit:false,cycle:-1};
+ if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle:-1};
  const cycle=Math.floor((seconds-FIRST)/PERIOD),t=(seconds-FIRST)-cycle*PERIOD;
- if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.1+.3*a,scale:.26+.06*a,open:0,light:a,hit:false,cycle}}
- if(t<1.85){const a=smooth((t-1)/.85);return {phase:'emerge',visible:.4+.6*a,scale:.32+.63*a,open:a*.9,light:.5+.5*a,hit:false,cycle}}
- if(t<2.30){const a=smooth((t-1.85)/.45);return {phase:'bite',visible:1,scale:.95+.08*a,open:.9+.1*Math.sin(a*Math.PI),light:1.0,hit:t>2.07,cycle}}
- if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:1.03-.77*a,open:1-a,light:1-a,hit:false,cycle}}
- return {phase:'waiting',visible:0,scale:.26,open:0,light:0,hit:false,cycle};
+ if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.1+.3*a,scale:.26+.06*a,open:0,light:a,impact:0,hit:false,cycle}}
+ if(t<1.85){const a=smooth((t-1)/.85);return {phase:'emerge',visible:.4+.6*a,scale:.32+.63*a,open:a*.9,light:.5+.5*a,impact:0,hit:false,cycle}}
+ if(t<2.30){
+  const raw=(t-1.85)/.45,a=smooth(raw);
+  // Anticipation opens wider, then both rigid jaw layers snap shut and rebound.
+  let open;
+  if(raw<.34)open=.9+.1*smooth(raw/.34);
+  else if(raw<.72)open=1-.78*smooth((raw-.34)/.38);
+  else open=.22+.16*smooth((raw-.72)/.28);
+  const impact=Math.sin(Math.PI*clamp((raw-.48)/.52));
+  return {phase:'bite',visible:1,scale:.95+.08*a-.018*impact,open,light:1+.35*impact,impact,hit:t>2.07,cycle};
+ }
+ if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:1.03-.77*a,open:.38*(1-a),light:1-a,impact:0,hit:false,cycle}}
+ return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle};
 }
 function layer(part,layerName){
  const [sx,sy]=rect[part][layerName];
@@ -124,7 +133,7 @@ function frame(now,dt){
  // The independently pulsing throat sits behind both rigid articulated layers.
  throat(seconds,q.open,q.light);
  // Rigid upper/lower body motion; no tooth/image stretch.
- const biteShock=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*.025*(1-q.open):0;
+ const biteShock=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*(.012+.035*q.impact):0;
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
  ctx.save();ctx.translate(P[0],P[1]-4*upperOpen);ctx.rotate(-.04*upperOpen-biteShock);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);ctx.restore();
  ctx.save();ctx.translate(P[0],P[1]+52*lowerOpen);ctx.rotate(.032*lowerOpen+biteShock);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);ctx.restore();
