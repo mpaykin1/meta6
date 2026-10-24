@@ -80,21 +80,31 @@ function throat(time,open,light){
  const tx=P[0],ty=P[1]+18;
  ctx.save();ctx.globalAlpha=reveal;
  const pulse=.5+.5*Math.sin(time*5.2);
- const depth=ctx.createRadialGradient(tx-3,ty-6,2,tx,ty,45);
- depth.addColorStop(0,'#010000');depth.addColorStop(.58,'#080000');
- depth.addColorStop(.84,'rgba(81,12,0,.5)');depth.addColorStop(1,'rgba(25,2,0,0)');
- ctx.fillStyle=depth;ctx.beginPath();ctx.ellipse(tx,ty,34,46,0,0,Math.PI*2);ctx.fill();
- ctx.beginPath();ctx.ellipse(tx,ty,30,41,0,0,Math.PI*2);ctx.clip();
- ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba(190,48,3,'+(.11+.08*light)+')';ctx.lineWidth=1.2;
+ // An asymmetric, pointed cavity joins both jaw roots; no freestanding oval/portal edge.
+ ctx.beginPath();ctx.moveTo(tx-3,ty-45);
+ ctx.bezierCurveTo(tx+28,ty-40,tx+36,ty-12,tx+30,ty+14);
+ ctx.bezierCurveTo(tx+25,ty+35,tx+12,ty+46,tx+2,ty+49);
+ ctx.bezierCurveTo(tx-14,ty+43,tx-28,ty+31,tx-33,ty+8);
+ ctx.bezierCurveTo(tx-38,ty-17,tx-25,ty-39,tx-3,ty-45);ctx.closePath();ctx.clip();
+ const depth=ctx.createRadialGradient(tx-4,ty+4,3,tx-1,ty+2,47);
+ depth.addColorStop(0,'#010000');depth.addColorStop(.5,'#050000');
+ depth.addColorStop(.78,'#170200');depth.addColorStop(1,'#020000');
+ ctx.fillStyle=depth;ctx.fillRect(tx-40,ty-50,80,104);
+ ctx.globalCompositeOperation='lighter';ctx.lineWidth=1;
  for(let side=-1;side<=1;side+=2){
-  for(let i=0;i<3;i++){
-   const x=tx+side*(16+i*5),sway=Math.sin(time*2.1+i)*1.5;
-   ctx.globalAlpha=reveal*(.42-i*.09);
-   ctx.beginPath();ctx.moveTo(x,ty-31);ctx.bezierCurveTo(x-side*(5+sway),ty-9,x-side*8,ty+13,x-side*3,ty+34);ctx.stroke();
-  }
+  ctx.globalAlpha=reveal*(.13+.07*light);
+  ctx.strokeStyle=side<0?'#8e2102':'#b12d03';
+  ctx.beginPath();ctx.moveTo(tx+side*25,ty-31);
+  ctx.bezierCurveTo(tx+side*(18+Math.sin(time*2.1)*2),ty-9,tx+side*20,ty+15,tx+side*9,ty+38);ctx.stroke();
  }
- ctx.globalCompositeOperation='source-over';ctx.globalAlpha=reveal*(.8+.1*pulse);ctx.fillStyle='#010000';
- ctx.beginPath();ctx.ellipse(tx,ty,8+pulse,15+pulse*2,0,0,Math.PI*2);ctx.fill();
+ // Dim warm flecks at the back of the throat provide depth without a geometric ring.
+ for(let i=0;i<9;i++){
+  const x=tx-13+(i*17%27),y=ty+19+(i*11%18),r=.45+(i%3)*.22;
+  ctx.globalAlpha=reveal*(.08+.08*light)*(1-.25*Math.sin(time*3+i));
+  ctx.fillStyle=i%3?'#a32a03':'#e05a08';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalCompositeOperation='source-over';ctx.globalAlpha=reveal*(.82+.08*pulse);ctx.fillStyle='#010000';
+ ctx.beginPath();ctx.ellipse(tx-2,ty+2,7.5+pulse,16+pulse*2,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
 function frame(now,dt){
