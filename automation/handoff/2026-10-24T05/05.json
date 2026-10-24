@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-24T05:00:00Z",
+  "slot": "05",
+  "time": "2026-10-24T05:08:00Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "input_head_sha": "3f54415ef3f981f318511e22fd4b6670406e3d08",
+  "objective": "Distinguish technically fixed hinge motion from a readable frontal maw opening without changing the game HTML.",
+  "result": {
+    "status": "CONFIRMED_DIAGNOSTIC_ARTISTIC_VERDICT_UNKNOWN",
+    "lower_mask_pixels": 8574,
+    "open_angle_rad": 0.22,
+    "lateral_centroid_drift_px": 6.7774,
+    "vertical_centroid_motion_px": -0.689,
+    "vertical_motion_share": 0.1011,
+    "regression": "current rotation BLOCKED; 12 px vertical positive control PASS",
+    "canonical_html_changed": false
+  },
+  "files": [
+    "automation/asset-quality/diagnose_maw_frontal_motion.py",
+    "automation/asset-quality/test_diagnose_maw_frontal_motion.py",
+    "docs/autotask-reports/evidence/2026-10-24-maw-frontal-motion-scout.json"
+  ],
+  "next_action": "Slot :15: preserve the owner-derived layers and prototype a bilateral or centerline-preserving lower-jaw deformation whose open phase keeps lateral centroid drift <=2 px and moves the lower centroid downward >=8 px; generate same-camera before/after evidence and do not alter the canonical stand.",
+  "unknown": ["owner artistic verdict", "best deformation method", "full-game integration", "physical iPhone"]
+}

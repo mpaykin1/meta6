@@ -1,0 +1,21 @@
+{
+  "status": "BLOCKED_FRONTAL_LATERAL_SWING",
+  "source": "abyss-glow/sketches/maw_front_layers.png",
+  "source_sha256": "980b6cab87a7556a021f8b13a38b1d30656eca1787dcec3f29028d6ebde40aa8",
+  "lower_mask_pixels": 8574,
+  "pivot": [108.0, 168.0],
+  "closed_centroid": [108.2694, 199.0266],
+  "open_centroid": [101.492, 198.3376],
+  "open_angle_rad": 0.22,
+  "candidate_vertical_drop_px": 0.0,
+  "lateral_centroid_drift_px": 6.7774,
+  "vertical_centroid_motion_px": -0.689,
+  "vertical_motion_share": 0.1011,
+  "thresholds": {
+    "max_lateral_drift_px": 2.0,
+    "min_vertical_open_px": 8.0
+  },
+  "interpretation": "Technical fixed-pivot evidence is valid, but this source-derived frontal jaw moves mostly sideways and does not yet prove a readable frontal opening.",
+  "artistic_verdict": "UNKNOWN",
+  "physical_iphone": "UNKNOWN"
+}
