@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'abyss-glow/assets/**'
+      - '!abyss-glow/assets/maw_front_v1/**'
+      - '!abyss-glow/play/**'
       - 'abyss-glow/references/**'
       - 'automation/asset-quality/**'
       - '.github/workflows/abyss-asset-quality.yml'

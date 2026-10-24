@@ -1,6 +1,7 @@
 name: ABYSS Production Release Gate
 on:
   workflow_dispatch:
+# This manual legacy release gate is not a play/ or maw_front_v1 gate.
 jobs:
   release-assets:
     runs-on: ubuntu-latest
