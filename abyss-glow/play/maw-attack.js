@@ -67,12 +67,11 @@ function bubbles(time,s,ox,oy){
  }
  ctx.restore();
 }
-function render(now){
- requestAnimationFrame(render);
+function frame(now,dt){
  resize();
  const seconds=(now-start)/1000;const q=frameState(seconds);
  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cw,ch);
- state.ready=ready;state.visible=ready&&q.visible>.02;state.phase=q.phase;state.elapsed=seconds;
+ state.ready=ready;state.visible=ready&&q.visible>.02;state.phase=q.phase;state.elapsed=seconds;state.dt=dt;
  if(!ready||q.visible<=.02)return;
  // Rendered into the actual game and anchored at the camera's center/player region.
  const direction=Math.floor(seconds/4)%8;
@@ -105,7 +104,14 @@ function render(now){
   try{if(typeof window.__abyssPlayMawHit==='function')hit=!!window.__abyssPlayMawHit()}catch(e){console.error('ABYSS maw hit:',e)}
   state.lastHit=hit;state.attackCount++;
  }
- rendered++;
+ state.rendered=++rendered;
 }
-requestAnimationFrame(render);
+// Join the game's existing RAF scheduler instead of creating a parallel loop.
+// Both the WebGL update and this layered entity now advance from the same frame clock.
+const gameRAF=window.requestAnimationFrame.bind(window);
+let gameFrame=-1;
+window.requestAnimationFrame=callback=>gameRAF(now=>{
+ if(now!==gameFrame){const dt=gameFrame<0?0:Math.min(.05,(now-gameFrame)/1000);gameFrame=now;frame(now,dt)}
+ callback(now);
+});
 })();
