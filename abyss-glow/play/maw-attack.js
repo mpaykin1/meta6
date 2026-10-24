@@ -36,13 +36,13 @@ let start=0,last=0,attackedCycle=-1,rendered=0;
 const state={ready:false,visible:false,attackCount:0,lastHit:false};
 Object.defineProperty(window,'__abyssPlayMaw',{value:state,configurable:false});
 function frameState(seconds){
- if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.12,open:0,light:0,hit:false,cycle:-1};
+ if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.26,open:0,light:0,hit:false,cycle:-1};
  const cycle=Math.floor((seconds-FIRST)/PERIOD),t=(seconds-FIRST)-cycle*PERIOD;
- if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.1+.3*a,scale:.18+.09*a,open:0,light:a,hit:false,cycle}}
- if(t<1.85){const a=smooth((t-1)/.85);return {phase:'emerge',visible:.4+.6*a,scale:.27+1.9*a,open:a*.9,light:.5+.5*a,hit:false,cycle}}
- if(t<2.30){const a=smooth((t-1.85)/.45);return {phase:'bite',visible:1,scale:2.17+.22*a,open:.9+.1*Math.sin(a*Math.PI),light:1.0,hit:t>2.07,cycle}}
- if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:2.39-2.2*a,open:1-a,light:1-a,hit:false,cycle}}
- return {phase:'waiting',visible:0,scale:.12,open:0,light:0,hit:false,cycle};
+ if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.1+.3*a,scale:.26+.06*a,open:0,light:a,hit:false,cycle}}
+ if(t<1.85){const a=smooth((t-1)/.85);return {phase:'emerge',visible:.4+.6*a,scale:.32+.63*a,open:a*.9,light:.5+.5*a,hit:false,cycle}}
+ if(t<2.30){const a=smooth((t-1.85)/.45);return {phase:'bite',visible:1,scale:.95+.08*a,open:.9+.1*Math.sin(a*Math.PI),light:1.0,hit:t>2.07,cycle}}
+ if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:1.03-.77*a,open:1-a,light:1-a,hit:false,cycle}}
+ return {phase:'waiting',visible:0,scale:.26,open:0,light:0,hit:false,cycle};
 }
 function layer(part,layerName){
  const [sx,sy]=rect[part][layerName];
@@ -82,7 +82,8 @@ function frame(now,dt){
  if(!ready||q.visible<=.02)return;
  // Rendered into the actual game and anchored at the camera's center/player region.
  const direction=lightDirection;
- const base=Math.min(cw/SIZE[0],ch/SIZE[1])*1.25;
+ // Keep the whole owner silhouette, fins and teeth inside both portrait and landscape playfields.
+ const base=Math.min(cw/SIZE[0],ch/SIZE[1])*.86;
  const s=base*q.scale;
  const cx=cw*.5,cy=ch*.47;
  ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
