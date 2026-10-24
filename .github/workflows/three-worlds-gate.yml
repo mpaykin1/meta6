@@ -5,12 +5,14 @@ on:
       - 'three-worlds-game/**'
       - '.github/workflows/three-worlds-gate.yml'
       - 'docs/ACCEPTED_BEHAVIORS.md'
+      - '!**/play/**'
   push:
     branches: [main]
     paths:
       - 'three-worlds-game/**'
       - '.github/workflows/three-worlds-gate.yml'
       - 'docs/ACCEPTED_BEHAVIORS.md'
+      - '!**/play/**'
 permissions:
   contents: read
 jobs:

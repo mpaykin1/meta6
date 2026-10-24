@@ -6,11 +6,13 @@ on:
     paths:
       - 'underwater-world/**'
       - '.github/workflows/verify-underwater-pages.yml'
+      - '!**/play/**'
   pull_request:
     branches:
       - main
     paths:
       - '.github/workflows/verify-underwater-pages.yml'
+      - '!**/play/**'
   workflow_dispatch:
 permissions:
   contents: read

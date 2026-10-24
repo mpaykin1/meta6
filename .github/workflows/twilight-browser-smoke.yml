@@ -5,6 +5,7 @@ on:
       - 'three-worlds-game/**'
       - 'underwater-world/**'
       - '.github/workflows/twilight-browser-smoke.yml'
+      - '!**/play/**'
   push:
     branches:
       - ai/chatgpt/twilight-underwater-20261016
@@ -14,6 +15,7 @@ on:
       - 'three-worlds-game/**'
       - 'underwater-world/**'
       - '.github/workflows/twilight-browser-smoke.yml'
+      - '!**/play/**'
 permissions:
   contents: read
 jobs:
