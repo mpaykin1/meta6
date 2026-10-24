@@ -15,8 +15,9 @@ ctx.imageSmoothingEnabled=false;
 const haloCanvas=document.createElement('canvas'),haloCtx=haloCanvas.getContext('2d');
 haloCanvas.width=haloCanvas.height=256;
 const haloGradient=haloCtx.createRadialGradient(128,128,6,128,128,128);
-haloGradient.addColorStop(0,'rgba(253,200,54,.08)');
-haloGradient.addColorStop(.4,'rgba(229,100,4,.07)');
+haloGradient.addColorStop(0,'rgba(255,231,102,.18)');
+haloGradient.addColorStop(.36,'rgba(255,143,8,.12)');
+haloGradient.addColorStop(.7,'rgba(207,55,0,.045)');
 haloGradient.addColorStop(1,'rgba(0,0,0,0)');
 haloCtx.fillStyle=haloGradient;haloCtx.fillRect(0,0,256,256);
 const throatShape=new Path2D();
@@ -98,8 +99,10 @@ function drawPart(part,direction,glow){
  const row=part==='upper'?0:SIZE[1];
  ctx.drawImage(lights,direction*SIZE[0],row,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
  if(glow>0){
-  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=Math.min(1,.6+glow*.32);
-  ctx.shadowColor='#ff8b08';ctx.shadowBlur=11+glow*28;
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=Math.min(1,.72+glow*.25);
+  ctx.shadowColor='#ff9f0a';ctx.shadowBlur=18+glow*38;
+  layer(part,'emissive');
+  ctx.globalAlpha=Math.min(.48,.22+glow*.18);ctx.shadowBlur=4+glow*7;
   layer(part,'emissive');
   ctx.restore();
  }
