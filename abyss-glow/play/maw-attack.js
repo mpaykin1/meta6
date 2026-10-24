@@ -317,7 +317,7 @@ function frame(now,dt){
 const gameRAF=window.requestAnimationFrame.bind(window);
 let gameFrame=-1;
 window.requestAnimationFrame=callback=>gameRAF(now=>{
- if(typeof window.__abyssPlayMawHit==='function'&&now!==gameFrame){
+ if(ready&&typeof window.__abyssPlayMawHit==='function'&&now!==gameFrame){
   if(!start)start=now;
   const dt=gameFrame<0?0:Math.min(.05,(now-gameFrame)/1000);gameFrame=now;frame(now,dt);
  }
