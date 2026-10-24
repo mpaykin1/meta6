@@ -124,29 +124,35 @@ function bubbles(time,s,ox,oy){
 function biteImpact(seconds,intensity,s,ox,oy){
  if(intensity<.68||s<=0)return;
  const fade=clamp((intensity-.68)/.32),pixel=Math.max(1,Math.round(s));
- const colors=['#FDE766','#F9BD2B','#E57807'],drift=seconds*.08;
+ const colors=['#FFF19A','#F9BD2B','#E57807'],drift=seconds*.08;
  ctx.save();ctx.globalCompositeOperation='lighter';
- // Broken pixel rings contract into the bite, then flare outward on impact.
- for(let ring=0;ring<3;ring++){
-  const radius=(34+ring*12+(1-fade)*42)*s;
-  for(let i=0;i<24;i++){
-   if((i+ring*3)%6===0)continue;
-   const angle=i*Math.PI*2/24+ring*.09+drift;
-   const x=ox+Math.cos(angle)*radius,y=oy+Math.sin(angle)*radius*.58;
-   ctx.globalAlpha=fade*(.46-ring*.11)*(.65+.35*((i+ring)%4)/3);
-   ctx.fillStyle=colors[ring];
-   ctx.fillRect(Math.round(x/pixel)*pixel,Math.round(y/pixel)*pixel,
-    pixel*(i%5===0?3:i%2===0?2:1),pixel*(i%4===0?2:1));
-  }
+ // A short warm contact flash reads as pressure in water, without a geometric portal ring.
+ const flashW=(24+fade*34)*s,flashH=(8+fade*11)*s;
+ ctx.globalAlpha=fade*.22;ctx.fillStyle=colors[1];
+ ctx.beginPath();ctx.ellipse(ox,oy,flashW,flashH,-.08,0,Math.PI*2);ctx.fill();
+ // Deterministic asymmetric spray: more energy escapes sideways from the snapping jaws.
+ for(let i=0;i<28;i++){
+  const side=i%2?1:-1;
+  const lane=(i*7)%13;
+  const angle=side*(.12+.047*lane)+Math.sin(i*2.31)*.055+drift*.08;
+  const radius=(18+(i*19%47)+(1-fade)*32)*s;
+  const lift=((i*11)%17-8)*s*.72;
+  const x=ox+Math.cos(angle)*radius*side;
+  const y=oy+Math.sin(angle)*radius*.54+lift;
+  const length=pixel*(1+(i%4));
+  ctx.globalAlpha=fade*(.34+.08*(i%5));
+  ctx.fillStyle=colors[i%3];
+  ctx.save();ctx.translate(Math.round(x/pixel)*pixel,Math.round(y/pixel)*pixel);
+  ctx.rotate(side*(.08+.03*(i%5)));
+  ctx.fillRect(-length*.5,-pixel*.5,length,pixel);
+  ctx.restore();
  }
- // Short, deterministic pixel sparks reinforce the exact jaw-contact frame.
- for(let i=0;i<12;i++){
-  const angle=i*Math.PI*2/12+.17+drift;
-  const radius=(24+(1-fade)*55)*s;
-  const x=ox+Math.cos(angle)*radius,y=oy+Math.sin(angle)*radius*.52;
-  ctx.globalAlpha=fade*(.74+.05*(i%4));
-  ctx.fillStyle=i%3===0?colors[0]:colors[1];
-  ctx.fillRect(Math.round(x/pixel)*pixel,Math.round(y/pixel)*pixel,pixel*(2+i%3),pixel);
+ // Small rising droplets trail the impact and blend it into the existing bubble field.
+ for(let i=0;i<9;i++){
+  const x=ox+(((i*29)%71)-35)*s,y=oy-(10+(i*17)%43)*s;
+  const r=pixel*(i%3===0?1.5:1);
+  ctx.globalAlpha=fade*(.28+.06*(i%4));ctx.strokeStyle=i%2?colors[1]:colors[0];
+  ctx.lineWidth=pixel*.65;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
  }
  ctx.restore();
 }
