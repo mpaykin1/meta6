@@ -13,7 +13,7 @@ SPEC.loader.exec_module(MODULE)
 
 
 class MawHingeDiagnosticTest(unittest.TestCase):
-    def test_fixed_rotation_matches_measured_evidence(self):
+    def test_fixed_centerline_deformation_matches_measured_evidence(self):
         report = MODULE.diagnose(
             ROOT / "abyss-glow/maw-stand/index.html",
             ROOT / "docs/autotask-reports/evidence/2026-10-23-maw-motion-light.json",
@@ -27,7 +27,7 @@ class MawHingeDiagnosticTest(unittest.TestCase):
     def test_red_control_old_translation_stretch_is_blocked(self):
         source = (ROOT / "abyss-glow/maw-stand/index.html").read_text()
         source = source.replace(
-            "x.translate(P[0],P[1]);x.rotate(open*.22);x.translate(-P[0],-P[1])",
+            "x.translate(P[0],P[1]);x.scale(1,1+open*.30);x.translate(-P[0],-P[1])",
             "x.translate(P[0],P[1]+open*18);x.scale(1,1+open*.12);x.translate(-P[0],-P[1])",
         )
         with tempfile.TemporaryDirectory() as temp:

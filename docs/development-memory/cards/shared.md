@@ -15,6 +15,12 @@
 - **Применять:** Derive motion evidence from the produced transform or browser matrix, keep a negative control, and require <=0.25 px hinge drift before calling articulation technically fixed.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA 4aab8deeae7a05e3f3e553ed67d0537e6740fb78
 
+## animation/frontal-maw-centerline-opening
+- 2026-10-24 · solution · technical · 2026-10-24-abyss-frontal-maw-centerline-open
+- **Наблюдение:** A 0.30 vertical deformation around the fixed y=168 hinge line preserved the owner-source centerline: lateral lower-mask centroid drift fell from 6.7774 to 0 px, downward motion rose to 9.30798 px, hinge drift stayed 0, and open tip displacement measured 36.3 px.
+- **Применять:** For frontal layered mouths, prefer a centerline-preserving deformation over whole-layer rotation; retain the rotation as a red control and require same-camera closed/mid/open plus browser-matrix evidence before artistic review.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA d23b39433847166702a174f2616c941ee2c4bb03
+
 ## animation/frontal-maw-lateral-swing
 - 2026-10-24 · failure · technical · 2026-10-24-abyss-frontal-maw-lateral-swing
 - **Наблюдение:** The fixed center-pivot rotation removed hinge drift but moved the owner-source lower-jaw centroid 6.7774 px sideways and only -0.6890 px vertically at full open, so a frontal mouth reads as a lateral swing rather than a downward opening.

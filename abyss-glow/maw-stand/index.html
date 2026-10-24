@@ -12,7 +12,7 @@ function tile(part,layer){const r=rect[part][layer];x.drawImage(atlas,r[0],r[1],
 function part(name,direction){tile(name,'body');const row=name==='upper'?0:H;x.drawImage(lightAtlas,direction*W,row,W,H,0,0,W,H);tile(name,'emissive')}
 function drawMaw(open,direction){
  x.setTransform(1,0,0,1,0,0);x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);const s=1.6,ox=(c.width-W*s)/2,oy=170;x.translate(ox,oy);x.scale(s,s);part('upper',direction);
- x.save();x.translate(P[0],P[1]);x.rotate(open*.22);x.translate(-P[0],-P[1]);part('lower',direction);x.restore();
+ x.save();x.translate(P[0],P[1]);x.scale(1,1+open*.30);x.translate(-P[0],-P[1]);part('lower',direction);x.restore();
 }
 window.__mawTest=(open,direction)=>{testMode=true;drawMaw(Math.max(0,Math.min(1,open)),((direction%8)+8)%8)};
 function frame(now){if(testMode)return;const dt=Math.min(.05,(now-last)/1000||0);last=now;elapsed+=dt;const phase=(elapsed%4)/4;const open=Math.sin(Math.PI*Math.min(1,phase*2));const direction=Math.floor((elapsed/2)%8);drawMaw(open,direction);requestAnimationFrame(frame)}

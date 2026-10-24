@@ -13,7 +13,7 @@ PALETTE = ((0, 0, 0), (0x3E, 0x15, 0), (0x70, 0x27, 0),
            (0xFD, 0xE7, 0x66))
 DIRECTIONS = tuple((round(math.cos(i * math.tau / 8), 6),
                     round(math.sin(i * math.tau / 8), 6)) for i in range(8))
-OPEN_ANGLE_RADIANS = 0.22
+OPEN_VERTICAL_STRETCH = 0.30
 FRAME_PAD = 40
 
 
@@ -83,26 +83,24 @@ def pivot_seam_run(image, pivot_x):
     return longest
 
 
-def rotate_point(point, pivot, angle):
-    """Canvas2D positive-angle rotation in screen coordinates (Y down)."""
+def scale_point_y(point, pivot, scale_y):
+    """Canvas2D vertical scale around the fixed frontal hinge line."""
     x, y = point
     px, py = pivot
-    dx, dy = x - px, y - py
-    return (px + dx * math.cos(angle) - dy * math.sin(angle),
-            py + dx * math.sin(angle) + dy * math.cos(angle))
+    return (x, py + (y - py) * scale_y)
 
 
 def motion_samples(width, height, pivot):
     tip = (pivot[0], height)
     samples = []
     for name, openness in (("closed", 0.0), ("mid", 0.5), ("open", 1.0)):
-        angle = OPEN_ANGLE_RADIANS * openness
-        mapped_pivot = rotate_point(pivot, pivot, angle)
-        mapped_tip = rotate_point(tip, pivot, angle)
+        scale_y = 1 + OPEN_VERTICAL_STRETCH * openness
+        mapped_pivot = scale_point_y(pivot, pivot, scale_y)
+        mapped_tip = scale_point_y(tip, pivot, scale_y)
         samples.append({
             "name": name,
             "openness": openness,
-            "angle_radians": round(angle, 4),
+            "scale_y": round(scale_y, 4),
             "pivot_drift_px": round(math.dist(pivot, mapped_pivot), 4),
             "lower_tip_displacement_px": round(math.dist(tip, mapped_tip), 4),
         })
@@ -132,7 +130,7 @@ def build(atlas_path, manifest_path, out_png, out_json, out_light_atlas,
 
     canvas_size = (width + FRAME_PAD * 2, height + FRAME_PAD * 2)
 
-    def render(openness, direction_index, legacy=False):
+    def render(openness, direction_index, legacy_rotation=False):
         canvas = Image.new("RGBA", canvas_size)
         for part in ("upper", "lower"):
             composite = Image.new("RGBA", (width, height))
@@ -140,19 +138,20 @@ def build(atlas_path, manifest_path, out_png, out_json, out_light_atlas,
             composite.alpha_composite(light_tiles[part, direction_index])
             composite.alpha_composite(layers[part, "emissive"])
             if part == "lower":
-                if legacy:
-                    new_height = round(height * (1 + 0.12 * openness))
-                    composite = composite.resize((width, new_height), Image.Resampling.NEAREST)
-                    y = round(pivot_y + 18 * openness - pivot_y * (new_height / height))
-                    canvas.alpha_composite(composite, (FRAME_PAD, FRAME_PAD + y))
-                else:
+                if legacy_rotation:
                     layer = Image.new("RGBA", canvas_size)
                     layer.alpha_composite(composite, (FRAME_PAD, FRAME_PAD))
-                    angle = -math.degrees(OPEN_ANGLE_RADIANS * openness)
+                    angle = -math.degrees(0.22 * openness)
                     layer = layer.rotate(angle, Image.Resampling.NEAREST,
                                          center=(FRAME_PAD + pivot_x,
                                                  FRAME_PAD + pivot_y))
                     canvas.alpha_composite(layer)
+                else:
+                    scale_y = 1 + OPEN_VERTICAL_STRETCH * openness
+                    new_height = round(height * scale_y)
+                    composite = composite.resize((width, new_height), Image.Resampling.NEAREST)
+                    y = round(pivot_y - pivot_y * scale_y)
+                    canvas.alpha_composite(composite, (FRAME_PAD, FRAME_PAD + y))
             else:
                 canvas.alpha_composite(composite, (FRAME_PAD, FRAME_PAD))
         return canvas
@@ -174,14 +173,14 @@ def build(atlas_path, manifest_path, out_png, out_json, out_light_atlas,
     sheet.save(out_png, optimize=False, compress_level=9)
 
     if out_comparison:
-        before = render(1.0, 4, legacy=True).convert("RGB")
+        before = render(1.0, 4, legacy_rotation=True).convert("RGB")
         after = render(1.0, 4).convert("RGB")
         comparison = Image.new("RGB", (frame_width * 2, frame_height + 24), "black")
         comparison.paste(before, (0, 24))
         comparison.paste(after, (frame_width, 24))
         labels = ImageDraw.Draw(comparison)
-        labels.text((5, 5), "BEFORE: TRANSLATE + STRETCH", fill=PALETTE[6])
-        labels.text((frame_width + 5, 5), "AFTER: FIXED-PIVOT ROTATION", fill=PALETTE[6])
+        labels.text((5, 5), "BEFORE: CENTER-PIVOT LATERAL SWING", fill=PALETTE[6])
+        labels.text((frame_width + 5, 5), "AFTER: CENTERLINE VERTICAL OPEN", fill=PALETTE[6])
         Path(out_comparison).parent.mkdir(parents=True, exist_ok=True)
         comparison.save(out_comparison, optimize=False, compress_level=9)
 
@@ -194,7 +193,7 @@ def build(atlas_path, manifest_path, out_png, out_json, out_light_atlas,
         "asset": manifest["id"], "pivot": manifest["pivot"],
         "phases": [name for name, _ in phases],
         "motion_samples": samples,
-        "open_angle_radians": OPEN_ANGLE_RADIANS,
+        "open_vertical_stretch": OPEN_VERTICAL_STRETCH,
         "light_vectors": [list(vector) for vector in DIRECTIONS],
         "normal_tiles_sha256": normal_hash,
         "light_atlas_sha256": hashlib.sha256(Path(out_light_atlas).read_bytes()).hexdigest(),

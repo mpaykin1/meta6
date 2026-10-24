@@ -46,7 +46,9 @@ def _rotate(point: tuple[float, float], pivot: tuple[float, float], angle: float
 def diagnose(
     manifest_path: Path = DEFAULT_MANIFEST,
     *,
+    motion_model: str = "vertical_scale",
     open_angle_rad: float = 0.22,
+    vertical_stretch: float = 0.30,
     candidate_vertical_drop_px: float = 0.0,
     max_lateral_drift_px: float = 2.0,
     min_vertical_open_px: float = 8.0,
@@ -59,7 +61,13 @@ def diagnose(
 
     centroid_x, centroid_y, pixels = _lower_mask_centroid(source)
     pivot = tuple(float(value) for value in manifest["pivot"])
-    open_x, open_y = _rotate((centroid_x, centroid_y), pivot, open_angle_rad)
+    if motion_model == "vertical_scale":
+        open_x = centroid_x
+        open_y = pivot[1] + (centroid_y - pivot[1]) * (1 + vertical_stretch)
+    elif motion_model == "rotation":
+        open_x, open_y = _rotate((centroid_x, centroid_y), pivot, open_angle_rad)
+    else:
+        raise ValueError(f"unsupported motion model: {motion_model}")
     open_y += candidate_vertical_drop_px
     lateral = abs(open_x - centroid_x)
     vertical = open_y - centroid_y
@@ -79,6 +87,8 @@ def diagnose(
         "closed_centroid": [round(centroid_x, 4), round(centroid_y, 4)],
         "open_centroid": [round(open_x, 4), round(open_y, 4)],
         "open_angle_rad": open_angle_rad,
+        "motion_model": motion_model,
+        "vertical_stretch": vertical_stretch,
         "candidate_vertical_drop_px": candidate_vertical_drop_px,
         "lateral_centroid_drift_px": round(lateral, 4),
         "vertical_centroid_motion_px": round(vertical, 4),

@@ -81,7 +81,7 @@ def diagnose(html_path: Path, claimed_path: Path):
         "absolute_claim_mismatch_px": mismatch,
         "source_html_sha256": hashlib.sha256(html_path.read_bytes()).hexdigest(),
         "next_test": "instrument CanvasRenderingContext2D.getTransform in Chromium and sample hinge/tip at closed, mid and open phases",
-        "fix_target": "lower jaw rotates around [108,168] with measured hinge drift <=0.25 px",
+        "fix_target": "lower jaw deforms around the fixed y=168 hinge line with measured drift <=0.25 px",
     }
 
 

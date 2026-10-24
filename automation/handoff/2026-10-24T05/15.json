@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-24T05:00:00Z",
+  "slot": "15",
+  "time": "2026-10-24T05:20:00Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "input_head_sha": "d23b39433847166702a174f2616c941ee2c4bb03",
+  "objective": "Replace the frontal maw's lateral whole-layer swing with a centerline-preserving opening while retaining the owner source and fixed hinge.",
+  "result": {
+    "status": "LOCAL_PASS_CI_BROWSER_PENDING_OWNER_VERDICT_UNKNOWN",
+    "motion": "vertical deformation about fixed y=168 hinge line",
+    "lateral_centroid_drift_before_after_px": [6.7774, 0.0],
+    "vertical_centroid_motion_before_after_px": [-0.689, 9.30798],
+    "vertical_motion_share_before_after": [0.1011, 1.0],
+    "hinge_drift_px": 0.0,
+    "open_tip_displacement_px": 36.3,
+    "focused_tests": "7/7 PASS",
+    "canonical_html_changed": false
+  },
+  "files": [
+    "abyss-glow/maw-stand/index.html",
+    "automation/asset-quality/build_maw_motion_evidence.py",
+    "automation/asset-quality/diagnose_maw_frontal_motion.py",
+    "docs/autotask-reports/evidence/2026-10-24-maw-frontal-opening-before-after.png",
+    "docs/autotask-reports/evidence/2026-10-24-maw-frontal-opening-fixed.json"
+  ],
+  "next_action": "Slot :30: run exact-head desktop 960x540 DPR1 and touch 390x844 DPR2 browser captures for all 8 light directions and closed/mid/open phases; require zero hinge/lateral drift, downward centroid motion >=8 px, distinct hashes, no console/network errors, and record p50/p95. Treat SwiftShader as software-only.",
+  "unknown": ["exact-head CI browser result", "owner artistic verdict", "full-game integration", "physical iPhone"]
+}
