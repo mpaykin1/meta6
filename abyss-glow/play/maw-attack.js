@@ -33,7 +33,22 @@ function clamp(x){return Math.max(0,Math.min(1,x))}
 function smooth(t){const a=clamp(t);return a*a*(3-2*a)}
 const FIRST=8.5, PERIOD=38.0;
 let start=0,last=0,attackedCycle=-1,rendered=0;
-const state={ready:false,visible:false,attackCount:0,lastHit:false};
+let targetCycle=-2,targetHero=null,heroSample=null,nextHeroSample=0,aimX=0,aimY=0;
+let worldWidth=1,worldHeight=1;
+const state={ready:false,visible:false,attackCount:0,avoidedCount:0,lastHit:false,targetOffset:[0,0]};
+function sampleHero(seconds,force){
+ if(!force&&seconds<nextHeroSample)return heroSample;
+ nextHeroSample=seconds+.08;
+ try{
+  const stats=typeof window.__abyssStats==='function'?window.__abyssStats():null;
+  if(stats&&Array.isArray(stats.hero)){
+   heroSample=[Number(stats.hero[0])||0,Number(stats.hero[1])||0];
+   worldWidth=Math.max(1,Number(stats.W)||worldWidth);
+   worldHeight=Math.max(1,Number(stats.H)||worldHeight);
+  }
+ }catch(e){}
+ return heroSample;
+}
 Object.defineProperty(window,'__abyssPlayMaw',{value:state,configurable:false});
 function frameState(seconds){
  if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle:-1};
@@ -119,6 +134,21 @@ function throat(time,open,light){
 function frame(now,dt){
  resize();
  const seconds=(now-start)/1000;const q=frameState(seconds);
+ if(q.cycle>=0&&q.cycle!==targetCycle){
+  targetCycle=q.cycle;
+  const hero=sampleHero(seconds,true);
+  targetHero=hero&&hero.slice();
+  aimX=0;aimY=0;
+ }
+ const hero=q.cycle>=0?sampleHero(seconds,false):heroSample;
+ if(targetHero&&hero){
+  const desiredX=clamp((targetHero[0]-hero[0])/worldWidth+.5)-.5;
+  const desiredY=clamp((hero[1]-targetHero[1])/worldHeight+.5)-.5;
+  const follow=1-Math.exp(-Math.max(0,dt)*12);
+  aimX+=(desiredX*cw-aimX)*follow;
+  aimY+=(desiredY*ch-aimY)*follow;
+ }else{aimX*=.85;aimY*=.85}
+ state.targetOffset[0]=aimX;state.targetOffset[1]=aimY;
  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cw,ch);
  state.ready=ready;state.visible=ready&&q.visible>.02;state.phase=q.phase;state.elapsed=seconds;state.dt=dt;
  if(!ready||q.visible<=.02)return;
@@ -127,7 +157,7 @@ function frame(now,dt){
  // Keep the whole owner silhouette, fins and teeth inside both portrait and landscape playfields.
  const base=Math.min(cw/SIZE[0],ch/SIZE[1])*.86;
  const s=base*q.scale;
- const cx=cw*.5,cy=ch*.47;
+ const cx=cw*.5+aimX,cy=ch*.47+aimY;
  ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
  ctx.globalAlpha=clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
@@ -148,8 +178,12 @@ function frame(now,dt){
  // Real gameplay damage, once per encounter, through the existing fish hit path.
  if(q.hit&&q.cycle!==attackedCycle){
   attackedCycle=q.cycle;
+  const hero=sampleHero(seconds,true);
+  const inMouth=!targetHero||!hero||Math.hypot(hero[0]-targetHero[0],hero[1]-targetHero[1])<38;
   let hit=false;
-  try{if(typeof window.__abyssPlayMawHit==='function')hit=!!window.__abyssPlayMawHit()}catch(e){console.error('ABYSS maw hit:',e)}
+  if(inMouth){
+   try{if(typeof window.__abyssPlayMawHit==='function')hit=!!window.__abyssPlayMawHit()}catch(e){console.error('ABYSS maw hit:',e)}
+  }else state.avoidedCount++;
   state.lastHit=hit;state.attackCount++;
  }
  state.rendered=++rendered;
