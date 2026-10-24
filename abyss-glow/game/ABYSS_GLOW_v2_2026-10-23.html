@@ -3946,7 +3946,7 @@ var mwBubbles=[];
 function mwBubble(x,y,z,n){ for(let i=0;i<n;i++) mwBubbles.push({x:x+(Math.random()-.5)*40,y:y+(Math.random()-.5)*30,z:z+Math.random()*4,vy:14+Math.random()*22,ph:Math.random()*6,life:2.5+Math.random()*2.5,s:Math.random(),sp:hg("bubble",0,Math.random())}); }
 var MW_BUB=!!Hg.bubble;
 /* ---------------- боковые пасти ---------------- */
-var MW_DIRS=[[1,0],[-1,0],[0,-1],[0,1]], MW_Z=14, mwSide=[], mwFront=[], mwTimer=7, mwFirstSpawn=!0, mwFrontTimer=24;
+var MW_DIRS=[[1,0],[-1,0],[0,-1],[0,1]], MW_Z=14, mwSide=[], mwFront=[], mwTimer=18, mwFirstSpawn=!0, mwFrontTimer=4.5;
 function mwSpawnSide(zone,force){
  let di=force??Math.floor(Math.random()*4), d=MW_DIRS[di], k=Math.min(Fg,fg)>260?1.25:1.0;
  let geo=new GD(MW_SW,MW_SH,1,1);
@@ -4001,7 +4001,7 @@ function mwSpawnFront(zone){
  let f={m,mat,k,zone,t:0,ph:"rise",pt:0,z:MW_DEEP,open:0.1,em:0,ox,oy,bites:zone>=3?2:1,hit:!1,tx:0,ty:0,blinkT:2+Math.random()*3};
  mwFront.push(f); mwRise(0,4.2); return f; }
 function mwUpdateFront(time,dt,f){
- let u=f.mat.uniforms, canBite=f.zone>=1&&F.dead<=0;
+ let u=f.mat.uniforms, canBite=F.dead<=0;
  let zT=f.z, oT=0.12+0.05*Math.sin(time*1.5), eT=1, kz=1.2, kxy=0.7;
  f.ox=Ee(f.ox,0,pe(0.25,dt)); f.oy=Ee(f.oy,0,pe(0.25,dt));
  let fx=F.pos.x+f.ox, fy=F.pos.y+f.oy+23*f.k;
