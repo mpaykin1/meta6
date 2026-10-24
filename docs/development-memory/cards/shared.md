@@ -15,6 +15,12 @@
 - **Применять:** Derive motion evidence from the produced transform or browser matrix, keep a negative control, and require <=0.25 px hinge drift before calling articulation technically fixed.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA 4aab8deeae7a05e3f3e553ed67d0537e6740fb78
 
+## animation/measured-fixed-hinge-rotation
+- 2026-10-24 · solution · technical · 2026-10-24-abyss-maw-fixed-pivot-rotation
+- **Наблюдение:** Replacing translate-plus-stretch with a 0.22-radian rotation around the declared [108,168] hinge reduced computed closed/mid/open pivot drift to 0 while preserving 26.5663 px of lower-tip motion; an old-transform mutation still reports 18 px drift.
+- **Применять:** For articulated 2D parts, derive pivot and tip metrics from the same transform used to render, retain the prior transform as a red control, and require browser-matrix confirmation before runtime PASS.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/229) · SHA 4c70f90f7f9134910e1935929e88fc0b225564ba
+
 ## animation/surface-clamp-snap
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-stage7-surface-velocity-snap
 - **Наблюдение:** Мгновенное обнуление вертикальной скорости у поверхности вызывало рывок камеры.

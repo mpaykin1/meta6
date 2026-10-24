@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "cycle": "2026-10-24T00:00:00Z",
+  "slot": "15",
+  "time": "2026-10-24T04:19:00Z",
+  "repo": "mpaykin1/meta6",
+  "base_sha": "54082eca26fa6c1040781e5afb784a9bdcfb5e77",
+  "pr": 229,
+  "input_head_sha": "4c70f90f7f9134910e1935929e88fc0b225564ba",
+  "objective": "Replace false translate/stretch articulation with measured fixed-pivot rotation.",
+  "result": {
+    "status": "LOCAL_PASS_OWNER_VERDICT_UNKNOWN",
+    "declared_hinge": [108, 168],
+    "open_angle_radians": 0.22,
+    "pivot_drift_px": {"closed": 0.0, "mid": 0.0, "open": 0.0},
+    "lower_tip_displacement_px": {"closed": 0.0, "mid": 13.3033, "open": 26.5663},
+    "claim_mismatch_px": {"pivot": 0.0, "tip": 0.0},
+    "red_control_old_transform_drift_px": 18.0,
+    "focused_tests": "5/5 PASS",
+    "artistic_status": "UNKNOWN"
+  },
+  "files": [
+    "abyss-glow/maw-stand/index.html",
+    "automation/asset-quality/build_maw_motion_evidence.py",
+    "automation/asset-quality/diagnose_maw_hinge.py",
+    "automation/asset-quality/test_maw_motion_evidence.py",
+    "automation/asset-quality/test_diagnose_maw_hinge.py",
+    "docs/autotask-reports/evidence/2026-10-23-maw-motion-light-sheet.png",
+    "docs/autotask-reports/evidence/2026-10-23-maw-motion-light.json",
+    "docs/autotask-reports/evidence/2026-10-24-maw-hinge-before-after.png",
+    "docs/autotask-reports/evidence/2026-10-24-maw-hinge-fixed.json"
+  ],
+  "invariants": {
+    "original_stand_sha256": "d968e47997dbd1cf843fdc73fed94e682217e6d5c833a0c8d602ec5b064f94e5",
+    "original_stand_changed": false,
+    "light_atlas_changed": false,
+    "source_sketch_changed": false
+  },
+  "next_action": "Slot :30: instrument the isolated maw stand in Chromium desktop and 390x844 touch; sample CanvasRenderingContext2D matrices at closed/mid/open, require hinge drift <=0.25 px and nonzero tip motion, capture all eight light directions, console errors, p50 FPS, p95 frame time, draw calls and memory where measurable.",
+  "unknown": ["owner artistic verdict", "browser runtime matrix", "browser p50/p95", "draw calls", "memory", "physical iPhone"]
+}

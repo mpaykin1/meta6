@@ -7,6 +7,7 @@ does not claim browser, artistic, or physical-device acceptance.
 import argparse
 import hashlib
 import json
+import math
 import re
 from pathlib import Path
 
@@ -18,6 +19,11 @@ TRANSFORM_RE = re.compile(
     r"x\.scale\(1,1\+open\*(?P<scale>[\d.]+)\);"
     r"x\.translate\(-P\[0\],-P\[1\]\)"
 )
+ROTATION_RE = re.compile(
+    r"x\.translate\(P\[0\],P\[1\]\);"
+    r"x\.rotate\(open\*(?P<angle>[\d.]+)\);"
+    r"x\.translate\(-P\[0\],-P\[1\]\)"
+)
 
 
 def diagnose(html_path: Path, claimed_path: Path):
@@ -26,17 +32,23 @@ def diagnose(html_path: Path, claimed_path: Path):
     pivot_match = PIVOT_RE.search(source)
     size_match = SIZE_RE.search(source)
     transform_match = TRANSFORM_RE.search(source)
-    if not (pivot_match and size_match and transform_match):
+    rotation_match = ROTATION_RE.search(source)
+    if not (pivot_match and size_match and (transform_match or rotation_match)):
         raise ValueError("unsupported maw lower-jaw transform; browser measurement required")
 
     pivot = [float(pivot_match["x"]), float(pivot_match["y"])]
     height = float(size_match["h"])
-    translation = float(transform_match["translate"] or 0)
-    scale = float(transform_match["scale"])
     phases = []
     for name, openness in (("closed", 0.0), ("mid", 0.5), ("open", 1.0)):
-        pivot_drift = translation * openness
-        tip_displacement = pivot_drift + (height - pivot[1]) * scale * openness
+        if rotation_match:
+            angle = float(rotation_match["angle"]) * openness
+            pivot_drift = 0.0
+            tip_displacement = 2 * (height - pivot[1]) * abs(math.sin(angle / 2))
+        else:
+            translation = float(transform_match["translate"] or 0)
+            scale = float(transform_match["scale"])
+            pivot_drift = translation * openness
+            tip_displacement = pivot_drift + (height - pivot[1]) * scale * openness
         phases.append({
             "name": name,
             "openness": openness,
@@ -52,8 +64,9 @@ def diagnose(html_path: Path, claimed_path: Path):
         "pivot_drift_px": round(abs(measured_drift - claimed_drift), 4),
         "lower_tip_displacement_px": round(abs(measured_tip - claimed_tip), 4),
     }
+    claim_error = max(mismatch.values())
     return {
-        "status": "BLOCKED_FALSE_MOTION_EVIDENCE" if measured_drift > 0.25 else "PIVOT_FIXED_NUMERIC_ONLY",
+        "status": "BLOCKED_FALSE_MOTION_EVIDENCE" if measured_drift > 0.25 or claim_error > 0.25 else "PIVOT_FIXED_NUMERIC_ONLY",
         "artistic_status": "UNKNOWN",
         "runtime_browser_status": "UNKNOWN",
         "hinge": pivot,
@@ -68,7 +81,7 @@ def diagnose(html_path: Path, claimed_path: Path):
         "absolute_claim_mismatch_px": mismatch,
         "source_html_sha256": hashlib.sha256(html_path.read_bytes()).hexdigest(),
         "next_test": "instrument CanvasRenderingContext2D.getTransform in Chromium and sample hinge/tip at closed, mid and open phases",
-        "fix_target": "rotate the lower jaw around [108,168] with translate(pivot), rotate(angle), translate(-pivot); measured hinge drift <=0.25 px",
+        "fix_target": "lower jaw rotates around [108,168] with measured hinge drift <=0.25 px",
     }
 
 

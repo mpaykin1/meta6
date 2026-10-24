@@ -34,6 +34,9 @@ class MawMotionEvidenceTest(unittest.TestCase):
             self.assertEqual(report["pivot"], [108, 168])
             self.assertEqual(report["pivot_drift_px"], 0)
             self.assertGreater(report["lower_tip_displacement_px"], 1)
+            self.assertAlmostEqual(report["lower_tip_displacement_px"], 26.5663, places=4)
+            self.assertEqual([sample["name"] for sample in report["motion_samples"]],
+                             ["closed", "mid", "open"])
             self.assertEqual(len(report["light_vectors"]), 8)
             self.assertRegex(report["normal_tiles_sha256"], r"^[0-9a-f]{64}$")
             self.assertGreaterEqual(min(report["light_facing_fraction"].values()), 0.75)
@@ -61,6 +64,8 @@ class MawMotionEvidenceTest(unittest.TestCase):
         self.assertIn("const dt=", html)
         self.assertIn("P=[108,168]", html)
         self.assertIn("part('lower'", html)
+        self.assertIn("x.rotate(open*.22)", html)
+        self.assertNotIn("x.scale(1,1+open*.12)", html)
         self.assertIn("maw_front_light8.png", html)
         self.assertNotIn("x.rect(clip", html)
 

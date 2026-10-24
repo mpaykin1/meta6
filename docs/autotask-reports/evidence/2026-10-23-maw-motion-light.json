@@ -39,8 +39,32 @@
       -0.707107
     ]
   ],
-  "lower_tip_displacement_px": 53,
+  "lower_tip_displacement_px": 26.5663,
+  "motion_samples": [
+    {
+      "angle_radians": 0.0,
+      "lower_tip_displacement_px": 0.0,
+      "name": "closed",
+      "openness": 0.0,
+      "pivot_drift_px": 0.0
+    },
+    {
+      "angle_radians": 0.11,
+      "lower_tip_displacement_px": 13.3033,
+      "name": "mid",
+      "openness": 0.5,
+      "pivot_drift_px": 0.0
+    },
+    {
+      "angle_radians": 0.22,
+      "lower_tip_displacement_px": 26.5663,
+      "name": "open",
+      "openness": 1.0,
+      "pivot_drift_px": 0.0
+    }
+  ],
   "normal_tiles_sha256": "1617df54d5a76b262bd898d125a3d033a41d1c44138b3a10824fbfa7d8d55cc0",
+  "open_angle_radians": 0.22,
   "phases": [
     "closed",
     "mid",
@@ -50,7 +74,7 @@
     108,
     168
   ],
-  "pivot_drift_px": 0,
+  "pivot_drift_px": 0.0,
   "pivot_seam_max_run_px": 3,
   "runtime_per_pixel_cpu_lighting": false,
   "source_atlas": "abyss-glow/assets/maw_front_v1/maw_front_atlas.png",
