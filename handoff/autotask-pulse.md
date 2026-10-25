@@ -1,0 +1,4 @@
+# Пульс автозадач META6
+
+- 2026-10-21T10:35:07Z · :30 · meta6/main `c6c70ab64f3351ef67e880a1d34095353ab877bf` · underwater-sumerek · [PR #164](https://github.com/mpaykin1/meta6/pull/164), `ai/chatgpt/underwater-fish-tail-weight-auto05` · конфликт старой базы устранён переносом на свежий main; rebuild/memory/golden/численная маска PASS, live WebGL и FPS UNKNOWN · далее: exact-head CI + Claude-review · опыт: `2026-10-21-underwater-smoothstep-order`
+- 2026-10-21T10:37:12Z · :40 · meta6/main `c6c70ab64f3351ef67e880a1d34095353ab877bf` · underwater-sumerek · [PR #164](https://github.com/mpaykin1/meta6/pull/164), HEAD `d00225d2a203bf17a41c986e49dacab7de12c9dc` · mergeable, exact-head CI 2/2 PASS; Claude-review и live WebGL/FPS UNKNOWN · далее: Claude REVIEW OK/CHANGES для актуального HEAD · опыт: `2026-10-21-underwater-smoothstep-order`
