@@ -475,7 +475,7 @@ function frame(now,dt){
  ctx.globalAlpha=warning?clamp(q.visible*(.18+.82*bodyReveal)):clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
  throat(seconds,q.open,q.light);
- // Four rigid half-jaws rotate around fixed hidden side pivots; no tooth stretch and no drifting hinge.
+ // Keep the owner-painted upper silhouette intact; the lower jaw drops from the center hinge.
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
  const snap=q.phase==='bite'?Math.sin((seconds-FIRST)*38)*q.impact*.012:0;
   // Keep the owner-painted upper silhouette intact and articulate the original lower-jaw layer.
