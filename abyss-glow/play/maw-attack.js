@@ -470,6 +470,7 @@ function frame(now,dt){
    state.avoidedCount++;
    const sweep=q.cycle%2?1:-1;
    retreatKickX=sweep*cw*.12;retreatKickY=-ch*.045;
+   try{if(typeof window.__abyssPlayMawDodge==='function')window.__abyssPlayMawDodge(sweep)}catch(e){console.error('ABYSS maw dodge:',e)}
    state.reaction='dodged';
   }
   if(hit){cameraKick=1;retreatKickY=-ch*.025;state.reaction='hit'}
