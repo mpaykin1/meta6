@@ -53,8 +53,9 @@ function cachePart(part){
  const teeth=document.createElement('canvas'),teethCtx=teeth.getContext('2d');
  const teethGlow=document.createElement('canvas'),teethGlowCtx=teethGlow.getContext('2d');
  const emissive=document.createElement('canvas'),emissiveCtx=emissive.getContext('2d');
- for(const layer of [base,detail,teeth,teethGlow,emissive]){layer.width=SIZE[0];layer.height=SIZE[1]}
- for(const g of [baseCtx,detailCtx,teethCtx,teethGlowCtx,emissiveCtx])g.imageSmoothingEnabled=false;
+ const eyes=document.createElement('canvas'),eyesCtx=eyes.getContext('2d');
+ for(const layer of [base,detail,teeth,teethGlow,emissive,eyes]){layer.width=SIZE[0];layer.height=SIZE[1]}
+ for(const g of [baseCtx,detailCtx,teethCtx,teethGlowCtx,emissiveCtx,eyesCtx])g.imageSmoothingEnabled=false;
  const [bx,by]=rect[part].body,[dx,dy]=rect[part].detail;
  baseCtx.drawImage(atlas,bx,by,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
  detailCtx.drawImage(atlas,dx,dy,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
@@ -66,7 +67,13 @@ function cachePart(part){
  baseCtx.drawImage(detail,0,0);
  const [ex,ey]=rect[part].emissive;
  emissiveCtx.drawImage(atlas,ex,ey,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
- return {base,teeth,teethGlow,emissive};
+ if(part==='upper'){
+  // Move the original emissive eye pixels into their own layer so animated eyes do not ghost over static cores.
+  for(const [x,y] of [[59,107],[158,105]])eyesCtx.drawImage(emissive,x-15,y-13,30,26,x-15,y-13,30,26);
+  emissiveCtx.globalCompositeOperation='destination-out';emissiveCtx.drawImage(eyes,0,0);
+  emissiveCtx.globalCompositeOperation='source-over';
+ }
+ return {base,teeth,teethGlow,emissive,eyes};
 }
 const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>{
  partCache={upper:cachePart('upper'),lower:cachePart('lower')};
@@ -156,7 +163,7 @@ function drawTeeth(part,time,open,glow,impact){
  ctx.restore();
 }
 function drawEyes(time,glow){
- const source=partCache.upper.emissive;
+ const source=partCache.upper.eyes;
  const sockets=[[59,107],[158,105]];
  ctx.save();ctx.globalCompositeOperation='lighter';
  ctx.shadowColor='#ffd95a';ctx.shadowBlur=8+glow*19;
