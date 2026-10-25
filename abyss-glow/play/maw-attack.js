@@ -75,6 +75,12 @@ function cacheEmissiveGlow(source,glow){
  g.globalAlpha=Math.min(.48,.22+glow*.18);g.shadowBlur=4+glow*7;g.drawImage(source,GLOW_PAD,GLOW_PAD);
  return layer;
 }
+function cacheEyeGlow(source,blur){
+ const layer=document.createElement('canvas'),g=layer.getContext('2d');
+ layer.width=SIZE[0];layer.height=SIZE[1];g.imageSmoothingEnabled=false;
+ g.globalCompositeOperation='lighter';g.shadowColor='#ffd95a';g.shadowBlur=blur;
+ g.globalAlpha=.92;g.drawImage(source,0,0);return layer;
+}
 function cachePart(part){
  const base=document.createElement('canvas'),baseCtx=base.getContext('2d');
  const detail=document.createElement('canvas'),detailCtx=detail.getContext('2d');
@@ -104,7 +110,10 @@ function cachePart(part){
  const glowLow=cacheEmissiveGlow(emissive,.35);
  const glowMid=cacheEmissiveGlow(emissive,1);
  const glowHigh=cacheEmissiveGlow(emissive,1.35);
- return {base,teeth,teethGlow,emissive,eyes,glowLow,glowMid,glowHigh};
+ const eyeGlowLow=part==='upper'?cacheEyeGlow(eyes,8):null;
+ const eyeGlowMid=part==='upper'?cacheEyeGlow(eyes,19):null;
+ const eyeGlowHigh=part==='upper'?cacheEyeGlow(eyes,27):null;
+ return {base,teeth,teethGlow,emissive,eyes,glowLow,glowMid,glowHigh,eyeGlowLow,eyeGlowMid,eyeGlowHigh};
 }
 function imageReady(image){
  if(image.complete)return image.naturalWidth?Promise.resolve():Promise.reject(new Error('image unavailable'));
@@ -232,11 +241,14 @@ function drawTeeth(part,time,open,glow,impact){
 }
 const eyeSockets=[[59,107],[158,105]];
 function drawEyes(time,glow,impact){
- const source=partCache.upper.eyes,baseAlpha=ctx.globalAlpha;
+ const cached=partCache.upper,source=cached.eyes,baseAlpha=ctx.globalAlpha;
  const gazeX=Math.max(-1,Math.min(1,aimX/Math.max(1,cw)))*5.5;
  const gazeY=Math.max(-1,Math.min(1,aimY/Math.max(1,ch)))*4;
+ let glowA=cached.eyeGlowLow,glowB=null,mix=0;
+ if(glow<.35)mix=glow/.35;
+ else if(glow<=1){glowB=cached.eyeGlowMid;mix=(glow-.35)/.65}
+ else{glowA=cached.eyeGlowMid;glowB=cached.eyeGlowHigh;mix=clamp((glow-1)/.35)}
  ctx.save();ctx.globalCompositeOperation='lighter';
- ctx.shadowColor='#ffd95a';ctx.shadowBlur=8+glow*19;
  for(let i=0;i<eyeSockets.length;i++){
   const [x,y]=eyeSockets[i];
   const pulse=.5+.5*Math.sin(time*(5.4+i*.45)+i*1.7);
@@ -245,9 +257,13 @@ function drawEyes(time,glow,impact){
   // Rare cropped blink and bite squint keep the real eye pixels rigid instead of stretching them.
   const blink=Math.pow(Math.max(0,Math.sin(time*.91+i*.035)),30);
   const lid=Math.min(11,Math.floor(blink*11+impact*2.5));
-  const h=26-lid*2;
-  ctx.globalAlpha=baseAlpha*Math.min(1,.28+glow*.42+pulse*.26);
-  if(h>2)ctx.drawImage(source,x-15,y-13+lid,30,h,x-15+driftX,y-13+lid+driftY,30,h);
+  const h=26-lid*2,alpha=baseAlpha*Math.min(1,.28+glow*.42+pulse*.26);
+  if(h<=2)continue;
+  const sx=x-32,sy=y-30+lid,sw=64,sh=60-lid*2;
+  ctx.globalAlpha=alpha*(glowB?1-mix:mix);
+  if(ctx.globalAlpha>0)ctx.drawImage(glowA,sx,sy,sw,sh,sx+driftX,sy+driftY,sw,sh);
+  if(glowB&&mix>0){ctx.globalAlpha=alpha*mix;ctx.drawImage(glowB,sx,sy,sw,sh,sx+driftX,sy+driftY,sw,sh)}
+  ctx.globalAlpha=alpha;ctx.drawImage(source,x-15,y-13+lid,30,h,x-15+driftX,y-13+lid+driftY,30,h);
  }
  ctx.restore();
 }
