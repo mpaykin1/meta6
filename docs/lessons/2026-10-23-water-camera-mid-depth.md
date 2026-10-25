@@ -43,3 +43,12 @@ Owner PASS/FAIL has not been assigned. The defect should be closed only after ex
 ## Revalidation — 2026-10-24 (main e7a2c912656d33dade48cb1ed38949e606852d90)
 
 The current main still has source blob `8a72eb01183c62de99b9117ee265e7ede261aec6` and the same threshold `bound((seaY-floorY-2.8)/1.4,0,1)`. A temporary Node v22.16.0 test copied the existing stage29 tests and this exact source: the existing two tests pass 2/2, but do not target the intermediate shelf. The separate focused 3-case reproduction remains 1/3: shallow passes; `floorY=1` returns shift 0; `floorY=0` leaves cameraY=4.679543 above seaY=3.8. This is still a formula/test-coverage defect, not an owner verdict. The stage29 branch remains occupied/HOLD until explicit owner/coordinator release; no source was changed. Full repository CI/browser/physical-device validation remains UNKNOWN.
+
+
+## Revalidation — 2026-10-25T12:01:38.792Z (current main 7f49b334f2aa72bd0ee0d8610b9eb0f77b30d581)
+
+The current main source blob remains 8a72eb01183c62de99b9117ee265e7ede261aec6. Focused-test blob d1b03962d00acfae8d124ac10a5891cff3958364 and browser fixture blob 697dee644cee340cea7de3329d1b78f2a37d0b4f still omit the intermediate/moderate floor cases. Local copies of the exact source and focused test were verified with git hash-object. Command node --test tests/water-dive-camera.test.mjs returned 2/2 PASS; this does not cover the missing range.
+
+A separate temporary red-first harness, 120 steps at dt=1/60, remains 1/3: shallow control passes, floorY=1 produces zero shift, and floorY=0 leaves cameraY 4.679543 above seaY 3.8. The current Chromium fixture requires floor <= seaY-4, so it does not demonstrate either failing input. Playwright is unavailable and external raw-source download failed DNS resolution in this environment; the full repository suite, standalone rebuild, exact-head CI and physical-device check remain UNKNOWN.
+
+No source/formula change was made. Keep A01/A08 open until a red-first regression covers shallow/intermediate/moderate depth, a minimal implementation fix passes exact-head gates, and the owner supplies a verdict.
