@@ -28,11 +28,16 @@ function traceThroat(g){
  g.bezierCurveTo(P[0]-38,P[1]+1,P[0]-25,P[1]-21,P[0]-3,P[1]-27);g.closePath();
 }
 const throatCanvas=document.createElement('canvas'),throatCtx=throatCanvas.getContext('2d');
-throatCanvas.width=96;throatCanvas.height=112;
+const throatGlowCanvas=document.createElement('canvas'),throatGlowCtx=throatGlowCanvas.getContext('2d');
+throatCanvas.width=throatGlowCanvas.width=96;throatCanvas.height=throatGlowCanvas.height=112;
 const throatGradient=throatCtx.createRadialGradient(44,60,3,47,58,47);
 throatGradient.addColorStop(0,'#010000');throatGradient.addColorStop(.5,'#050000');
 throatGradient.addColorStop(.78,'#170200');throatGradient.addColorStop(1,'#020000');
 throatCtx.fillStyle=throatGradient;throatCtx.fillRect(0,0,96,112);
+const throatGlow=throatGlowCtx.createRadialGradient(34,34,2,49,56,61);
+throatGlow.addColorStop(0,'rgba(255,224,92,.28)');throatGlow.addColorStop(.26,'rgba(255,137,11,.2)');
+throatGlow.addColorStop(.66,'rgba(181,43,2,.1)');throatGlow.addColorStop(1,'rgba(0,0,0,0)');
+throatGlowCtx.fillStyle=throatGlow;throatGlowCtx.fillRect(0,0,96,112);
 const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
 let partCache=null;
 function toothRegion(g,part){
@@ -237,12 +242,19 @@ function throat(time,open,light){
  // The pointed cavity and its depth gradient are cached; only living detail animates each frame.
  traceThroat(ctx);ctx.clip();
  ctx.drawImage(throatCanvas,tx-48,ty-56);
- ctx.globalCompositeOperation='lighter';ctx.lineWidth=1;
+ ctx.globalCompositeOperation='lighter';
+ ctx.globalAlpha=reveal*(.28+.18*pulse)*(.58+.42*light);
+ ctx.drawImage(throatGlowCanvas,tx-48+Math.sin(time*1.7)*1.2,ty-56+Math.cos(time*1.3)*.8);
+ ctx.lineWidth=1;
  for(let side=-1;side<=1;side+=2){
-  ctx.globalAlpha=reveal*(.13+.07*light);
-  ctx.strokeStyle=side<0?'#8e2102':'#b12d03';
-  ctx.beginPath();ctx.moveTo(tx+side*25,ty-31);
-  ctx.bezierCurveTo(tx+side*(18+Math.sin(time*2.1)*2),ty-9,tx+side*20,ty+15,tx+side*9,ty+38);ctx.stroke();
+  for(let i=0;i<3;i++){
+   const sway=Math.sin(time*(1.8+i*.22)+i*1.4)*2.1;
+   const x=tx+side*(14+i*7);
+   ctx.globalAlpha=reveal*(.19-i*.035+.075*light);
+   ctx.strokeStyle=i===0?'#e35d07':(side<0?'#9d2602':'#bd3403');
+   ctx.beginPath();ctx.moveTo(x,ty-30+i*3);
+   ctx.bezierCurveTo(x-side*(5+sway),ty-8,x-side*(8-i),ty+13,x-side*(3+i),ty+38-i*2);ctx.stroke();
+  }
  }
  // Dim warm flecks at the back of the throat provide depth without a geometric ring.
  for(let i=0;i<9;i++){
