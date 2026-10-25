@@ -35,6 +35,8 @@ function create({native,onBuild,onSwap}){
   native.mobileMove(dx,dy);moveCount++;
   knob.style.transform="translate(calc(-50% + "+(dx*rect.width*.29)+"px),calc(-50% + "+(dy*rect.height*.29)+"px))";
  }
+ const stopDocumentDrag=e=>{if(moveId!==null&&e.cancelable)e.preventDefault()};
+ document.addEventListener("touchmove",stopDocumentDrag,{passive:false});
  const stopStick=e=>{
   if(e.pointerId!==moveId||moveId===null)return;eat(e);moveId=null;zero();
  };
@@ -63,7 +65,7 @@ function create({native,onBuild,onSwap}){
  return Object.freeze({enabled:true,isMobile:enabled,ui:hud,release,
   get counters(){return{pressCount,buildCount,moveCount}},
   dispose(){release();document.removeEventListener("visibilitychange",hide);root.removeEventListener("blur",release);
-    hud.remove();document.body.classList.remove("v7-touch")}})
+    document.removeEventListener("touchmove",stopDocumentDrag);hud.remove();document.body.classList.remove("v7-touch")}})
 }
 root.ObserverMobileControls=Object.freeze({create,isMobile:enabled});
 })(window);
