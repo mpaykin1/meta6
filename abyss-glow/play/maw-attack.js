@@ -279,16 +279,24 @@ function drawEyes(time,glow,impact){
  }
  ctx.restore();
 }
+const BUBBLE_N=15,bubbleBaseX=new Float32Array(BUBBLE_N),bubblePhase=new Float32Array(BUBBLE_N);
+for(let i=0;i<BUBBLE_N;i++){bubbleBaseX[i]=Math.sin(i*7.13)*90;bubblePhase[i]=i/BUBBLE_N}
+const bubbleColors=['#ffd36a','#faa22b','#b85c0e'],bubbleAlpha=[.43,.32,.2];
 function bubbles(time,s,ox,oy){
- const n=15;
- ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#faa22b';
- for(let i=0;i<n;i++){
-  const p=((time*.28+i/n)%1),drift=Math.sin(time*1.2+i*2.4)*9;
-  const x=ox+(Math.sin(i*7.13)*90+drift)*s;
-  const y=oy+(115-p*200)*s;
-  const r=Math.max(.9,(1.3+i%3)*s*.8);
-  ctx.globalAlpha=Math.max(0,.45-p*.3);
-  ctx.lineWidth=Math.max(.7,s*.65);ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+ ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineWidth=Math.max(.7,s*.65);
+ // Three batched depth layers preserve the rising drift while replacing fifteen strokes with three.
+ for(let layer=0;layer<3;layer++){
+  ctx.beginPath();
+  for(let i=0;i<BUBBLE_N;i++){
+   const p=(time*.28+bubblePhase[i])%1;
+   if(Math.min(2,(p*3)|0)!==layer)continue;
+   const drift=Math.sin(time*1.2+i*2.4)*9;
+   const x=ox+(bubbleBaseX[i]+drift)*s;
+   const y=oy+(115-p*200)*s;
+   const r=Math.max(.9,(1.3+i%3)*s*.8);
+   ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,Math.PI*2);
+  }
+  ctx.strokeStyle=bubbleColors[layer];ctx.globalAlpha=bubbleAlpha[layer];ctx.stroke();
  }
  ctx.restore();
 }
