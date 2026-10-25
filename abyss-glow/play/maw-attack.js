@@ -364,6 +364,20 @@ function throat(time,open,light){
  ctx.beginPath();ctx.ellipse(tx-2,ty+2,7.5+pulse,16+pulse*2,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
+function drawJawHalf(part,side,time,open,glow,impact,direction,snap){
+ const pivotX=side<0?-36:SIZE[0]+36;
+ const baseSwing=part==='upper'?.105*open:-.15*open;
+ const angle=side*(baseSwing+snap);
+ ctx.save();
+ ctx.translate(pivotX,P[1]);ctx.rotate(angle);ctx.translate(-pivotX,-P[1]);
+ ctx.beginPath();
+ if(side<0)ctx.rect(-GLOW_PAD,-GLOW_PAD,P[0]+GLOW_PAD+1,SIZE[1]+GLOW_PAD*2);
+ else ctx.rect(P[0]-1,-GLOW_PAD,SIZE[0]-P[0]+GLOW_PAD+1,SIZE[1]+GLOW_PAD*2);
+ ctx.clip();
+ drawPart(part,direction,glow);drawEmissive(part,time,glow,impact);drawTeeth(part,time,open,glow,impact);
+ if(part==='upper')drawEyes(time,glow,impact);
+ ctx.restore();
+}
 function frame(now,dt){
  resize();
  const seconds=(now-start)/1000;const q=frameState(seconds);
@@ -413,14 +427,13 @@ function frame(now,dt){
  ctx.globalAlpha=clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
  throat(seconds,q.open,q.light);
- // Rigid frontal articulation stays on the mouth centerline; no lateral swing or tooth/image stretch.
- const jawTremor=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*(1.1+2.2*q.impact):0;
+ // Four rigid half-jaws rotate around fixed hidden side pivots; no tooth stretch and no drifting hinge.
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
- // Opposed rotations keep the shared hinge fixed while giving the frontal bite a real articulated snap.
- const spring=q.phase==='bite'?Math.sin((seconds-FIRST)*34)*q.impact*.012:0;
- const upperAngle=-.028*upperOpen-spring,lowerAngle=.044*lowerOpen+spring;
- ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(upperAngle);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);drawEmissive('upper',seconds,q.light,q.impact);drawTeeth('upper',seconds,upperOpen,q.light,q.impact);drawEyes(seconds,q.light,q.impact);ctx.restore();
- ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(lowerAngle);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);drawEmissive('lower',seconds,q.light,q.impact);drawTeeth('lower',seconds,lowerOpen,q.light,q.impact);ctx.restore();
+ const snap=q.phase==='bite'?Math.sin((seconds-FIRST)*38)*q.impact*.012:0;
+ drawJawHalf('upper',-1,seconds,upperOpen,q.light,q.impact,direction,snap);
+ drawJawHalf('upper',1,seconds,upperOpen,q.light,q.impact,direction,snap);
+ drawJawHalf('lower',-1,seconds,lowerOpen,q.light,q.impact,direction,-snap);
+ drawJawHalf('lower',1,seconds,lowerOpen,q.light,q.impact,direction,-snap);
  ctx.restore();
  if(q.light>.02){
   // Bubbles and bite spray remain foreground reactions.
