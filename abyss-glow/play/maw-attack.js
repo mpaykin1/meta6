@@ -185,23 +185,23 @@ function frameState(seconds){
  return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle};
 }
 function drawPart(part,direction,glow){
- const cached=partCache[part];
+ const cached=partCache[part],baseAlpha=ctx.globalAlpha;
  ctx.drawImage(cached.base,0,0);
  const row=part==='upper'?0:SIZE[1];
  ctx.drawImage(lights,direction*SIZE[0],row,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
  if(glow>0){
   ctx.save();ctx.globalCompositeOperation='lighter';
   let first=cached.glowLow,second=null,mix=0;
-  if(glow<.35)ctx.globalAlpha=glow/.35;
-  else if(glow<=1){first=cached.glowLow;second=cached.glowMid;mix=(glow-.35)/.65;ctx.globalAlpha=1-mix}
-  else{first=cached.glowMid;second=cached.glowHigh;mix=clamp((glow-1)/.35);ctx.globalAlpha=1-mix}
+  if(glow<.35)ctx.globalAlpha=baseAlpha*glow/.35;
+  else if(glow<=1){first=cached.glowLow;second=cached.glowMid;mix=(glow-.35)/.65;ctx.globalAlpha=baseAlpha*(1-mix)}
+  else{first=cached.glowMid;second=cached.glowHigh;mix=clamp((glow-1)/.35);ctx.globalAlpha=baseAlpha*(1-mix)}
   if(ctx.globalAlpha>0)ctx.drawImage(first,-GLOW_PAD,-GLOW_PAD);
-  if(second&&mix>0){ctx.globalAlpha=mix;ctx.drawImage(second,-GLOW_PAD,-GLOW_PAD)}
+  if(second&&mix>0){ctx.globalAlpha=baseAlpha*mix;ctx.drawImage(second,-GLOW_PAD,-GLOW_PAD)}
   ctx.restore();
  }
 }
 function drawEmissive(part,time,glow,impact){
- const source=partCache[part].emissive,bands=5,bandH=Math.ceil(SIZE[1]/bands);
+ const source=partCache[part].emissive,bands=5,bandH=Math.ceil(SIZE[1]/bands),baseAlpha=ctx.globalAlpha;
  const lag=part==='upper'?0:.62;
  ctx.save();ctx.globalCompositeOperation='lighter';
  for(let band=0;band<bands;band++){
@@ -211,28 +211,28 @@ function drawEmissive(part,time,glow,impact){
   const follow=Math.sin(time*1.55-band*.41+lag)*.55;
   const dx=wave*.7,dy=follow*.65;
   const pulse=.72+.2*Math.sin(time*4.1-band*.63+lag)+impact*.22;
-  ctx.globalAlpha=clamp((.36+glow*.48)*pulse);
+  ctx.globalAlpha=baseAlpha*clamp((.36+glow*.48)*pulse);
   ctx.drawImage(source,0,sy,SIZE[0],h,dx,sy+dy,SIZE[0],h);
  }
  // A crisp core follows the slower travelling wave, so the original pixel detail stays readable.
- ctx.globalAlpha=clamp(.22+glow*.24+impact*.18);
+ ctx.globalAlpha=baseAlpha*clamp(.22+glow*.24+impact*.18);
  ctx.drawImage(source,Math.sin(time*2.1+lag)*.35,Math.cos(time*1.7+lag)*.3);
  ctx.restore();
 }
 function drawTeeth(part,time,open,glow,impact){
- const cached=partCache[part],side=part==='upper'?1:-1;
+ const cached=partCache[part],side=part==='upper'?1:-1,baseAlpha=ctx.globalAlpha;
  const inertia=side*Math.sin(time*8.1+(part==='upper'?0:.7))*open*.65;
  const chatter=side*Math.sin(time*54)*impact*1.8;
  ctx.save();ctx.translate(0,inertia+chatter);ctx.drawImage(cached.teeth,0,0);
  if(glow>0){
-  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.12+Math.min(.24,glow*.12);
+  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=baseAlpha*(.12+Math.min(.24,glow*.12));
   ctx.drawImage(cached.teethGlow,0,0);
  }
  ctx.restore();
 }
 const eyeSockets=[[59,107],[158,105]];
 function drawEyes(time,glow,impact){
- const source=partCache.upper.eyes;
+ const source=partCache.upper.eyes,baseAlpha=ctx.globalAlpha;
  const gazeX=Math.max(-1,Math.min(1,aimX/Math.max(1,cw)))*5.5;
  const gazeY=Math.max(-1,Math.min(1,aimY/Math.max(1,ch)))*4;
  ctx.save();ctx.globalCompositeOperation='lighter';
@@ -246,7 +246,7 @@ function drawEyes(time,glow,impact){
   const blink=Math.pow(Math.max(0,Math.sin(time*.91+i*.035)),30);
   const lid=Math.min(11,Math.floor(blink*11+impact*2.5));
   const h=26-lid*2;
-  ctx.globalAlpha=Math.min(1,.28+glow*.42+pulse*.26);
+  ctx.globalAlpha=baseAlpha*Math.min(1,.28+glow*.42+pulse*.26);
   if(h>2)ctx.drawImage(source,x-15,y-13+lid,30,h,x-15+driftX,y-13+lid+driftY,30,h);
  }
  ctx.restore();
@@ -316,23 +316,23 @@ function biteImpact(seconds,intensity,s,ox,oy){
  ctx.drawImage(frame,ox-size*.5,oy-size*.5,size,size);ctx.restore();
 }
 function throat(time,open,light){
- const reveal=smooth((open-.08)/.92);
+ const reveal=smooth((open-.08)/.92),baseAlpha=ctx.globalAlpha;
  if(reveal<=0)return;
  const tx=P[0],ty=P[1]+18;
- ctx.save();ctx.globalAlpha=reveal;
+ ctx.save();ctx.globalAlpha=baseAlpha*reveal;
  const pulse=.5+.5*Math.sin(time*5.2);
  // The pointed cavity and its depth gradient are cached; only living detail animates each frame.
  traceThroat(ctx);ctx.clip();
  ctx.drawImage(throatCanvas,tx-48,ty-56);
  ctx.globalCompositeOperation='lighter';
- ctx.globalAlpha=reveal*(.28+.18*pulse)*(.58+.42*light);
+ ctx.globalAlpha=baseAlpha*reveal*(.28+.18*pulse)*(.58+.42*light);
  ctx.drawImage(throatGlowCanvas,tx-48+Math.sin(time*1.7)*1.2,ty-56+Math.cos(time*1.3)*.8);
  ctx.lineWidth=1;
  for(let side=-1;side<=1;side+=2){
   for(let i=0;i<3;i++){
    const sway=Math.sin(time*(1.8+i*.22)+i*1.4)*2.1;
    const x=tx+side*(14+i*7);
-   ctx.globalAlpha=reveal*(.19-i*.035+.075*light);
+   ctx.globalAlpha=baseAlpha*reveal*(.19-i*.035+.075*light);
    ctx.strokeStyle=i===0?'#e35d07':(side<0?'#9d2602':'#bd3403');
    ctx.beginPath();ctx.moveTo(x,ty-30+i*3);
    ctx.bezierCurveTo(x-side*(5+sway),ty-8,x-side*(8-i),ty+13,x-side*(3+i),ty+38-i*2);ctx.stroke();
@@ -341,10 +341,10 @@ function throat(time,open,light){
  // Dim warm flecks at the back of the throat provide depth without a geometric ring.
  for(let i=0;i<9;i++){
   const x=tx-13+(i*17%27),y=ty+19+(i*11%18),r=.45+(i%3)*.22;
-  ctx.globalAlpha=reveal*(.08+.08*light)*(1-.25*Math.sin(time*3+i));
+  ctx.globalAlpha=baseAlpha*reveal*(.08+.08*light)*(1-.25*Math.sin(time*3+i));
   ctx.fillStyle=i%3?'#a32a03':'#e05a08';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
  }
- ctx.globalCompositeOperation='source-over';ctx.globalAlpha=reveal*(.82+.08*pulse);ctx.fillStyle='#010000';
+ ctx.globalCompositeOperation='source-over';ctx.globalAlpha=baseAlpha*reveal*(.82+.08*pulse);ctx.fillStyle='#010000';
  ctx.beginPath();ctx.ellipse(tx-2,ty+2,7.5+pulse,16+pulse*2,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
