@@ -181,10 +181,11 @@ function sampleHero(seconds,force){
 }
 Object.defineProperty(window,'__abyssPlayMaw',{value:state,configurable:false});
 function frameState(seconds){
- if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle:-1};
+ if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.68,open:0,light:0,impact:0,hit:false,cycle:-1};
  const cycle=Math.floor((seconds-FIRST)/PERIOD),t=(seconds-FIRST)-cycle*PERIOD;
- if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.12+.38*a,scale:.26+.06*a,open:0,light:.18+.82*a,impact:0,hit:false,cycle}}
- if(t<1.85){const a=smooth((t-1)/.85);return {phase:'emerge',visible:.4+.6*a,scale:.32+.63*a,open:a*.9,light:.5+.5*a,impact:0,hit:false,cycle}}
+ // Depth now reads through darkness, glow and wake parallax; the owner silhouette no longer grows from a point.
+ if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.08+.34*a,scale:.68+.04*a,open:0,light:.14+.76*a,impact:0,hit:false,cycle}}
+ if(t<1.85){const a=smooth((t-1)/.85);return {phase:'emerge',visible:.42+.58*a,scale:.72+.23*a,open:a*.9,light:.46+.54*a,impact:0,hit:false,cycle}}
  if(t<2.30){
   const raw=(t-1.85)/.45,a=smooth(raw);
   // Anticipation opens wider, then both rigid jaw layers snap shut and rebound.
@@ -195,8 +196,8 @@ function frameState(seconds){
   const impact=Math.sin(Math.PI*clamp((raw-.48)/.52));
   return {phase:'bite',visible:1,scale:.95+.08*a-.018*impact,open,light:1+.35*impact,impact,hit:raw>=.74,cycle};
  }
- if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:1.03-.77*a,open:.38*(1-a),light:1-a,impact:0,hit:false,cycle}}
- return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle};
+ if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:1.03-.31*a,open:.38*(1-a),light:1-a,impact:0,hit:false,cycle}}
+ return {phase:'waiting',visible:0,scale:.68,open:0,light:0,impact:0,hit:false,cycle};
 }
 function drawPart(part,direction,glow){
  const cached=partCache[part],baseAlpha=ctx.globalAlpha;
