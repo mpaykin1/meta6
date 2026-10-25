@@ -20,12 +20,13 @@ haloGradient.addColorStop(.36,'rgba(255,143,8,.12)');
 haloGradient.addColorStop(.7,'rgba(207,55,0,.045)');
 haloGradient.addColorStop(1,'rgba(0,0,0,0)');
 haloCtx.fillStyle=haloGradient;haloCtx.fillRect(0,0,256,256);
-const throatShape=new Path2D();
-throatShape.moveTo(P[0]-3,P[1]-27);
-throatShape.bezierCurveTo(P[0]+28,P[1]-22,P[0]+36,P[1]+6,P[0]+30,P[1]+32);
-throatShape.bezierCurveTo(P[0]+25,P[1]+53,P[0]+12,P[1]+64,P[0]+2,P[1]+67);
-throatShape.bezierCurveTo(P[0]-14,P[1]+61,P[0]-28,P[1]+49,P[0]-33,P[1]+26);
-throatShape.bezierCurveTo(P[0]-38,P[1]+1,P[0]-25,P[1]-21,P[0]-3,P[1]-27);throatShape.closePath();
+function traceThroat(g){
+ g.beginPath();g.moveTo(P[0]-3,P[1]-27);
+ g.bezierCurveTo(P[0]+28,P[1]-22,P[0]+36,P[1]+6,P[0]+30,P[1]+32);
+ g.bezierCurveTo(P[0]+25,P[1]+53,P[0]+12,P[1]+64,P[0]+2,P[1]+67);
+ g.bezierCurveTo(P[0]-14,P[1]+61,P[0]-28,P[1]+49,P[0]-33,P[1]+26);
+ g.bezierCurveTo(P[0]-38,P[1]+1,P[0]-25,P[1]-21,P[0]-3,P[1]-27);g.closePath();
+}
 const throatCanvas=document.createElement('canvas'),throatCtx=throatCanvas.getContext('2d');
 throatCanvas.width=96;throatCanvas.height=112;
 const throatGradient=throatCtx.createRadialGradient(44,60,3,47,58,47);
@@ -222,7 +223,7 @@ function throat(time,open,light){
  ctx.save();ctx.globalAlpha=reveal;
  const pulse=.5+.5*Math.sin(time*5.2);
  // The pointed cavity and its depth gradient are cached; only living detail animates each frame.
- ctx.clip(throatShape);
+ traceThroat(ctx);ctx.clip();
  ctx.drawImage(throatCanvas,tx-48,ty-56);
  ctx.globalCompositeOperation='lighter';ctx.lineWidth=1;
  for(let side=-1;side<=1;side+=2){
