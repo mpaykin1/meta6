@@ -228,14 +228,26 @@ function drawEmissive(part,time,glow,impact){
  ctx.drawImage(source,Math.sin(time*2.1+lag)*.35,Math.cos(time*1.7+lag)*.3);
  ctx.restore();
 }
+const TOOTH_SEGMENTS=7,toothDx=new Int8Array(TOOTH_SEGMENTS),toothDy=new Int8Array(TOOTH_SEGMENTS);
 function drawTeeth(part,time,open,glow,impact){
  const cached=partCache[part],side=part==='upper'?1:-1,baseAlpha=ctx.globalAlpha;
- const inertia=side*Math.sin(time*8.1+(part==='upper'?0:.7))*open*.65;
- const chatter=side*Math.sin(time*54)*impact*1.8;
- ctx.save();ctx.translate(0,inertia+chatter);ctx.drawImage(cached.teeth,0,0);
+ const lag=part==='upper'?0:.7,segW=Math.ceil(SIZE[0]/TOOTH_SEGMENTS);
+ const baseY=Math.round(side*Math.sin(time*8.1+lag)*open*.65);
+ for(let i=0;i<TOOTH_SEGMENTS;i++){
+  toothDx[i]=impact>.05?Math.round(Math.sin(time*43+i*2.13+lag)*impact*.9):0;
+  toothDy[i]=baseY+Math.round(side*Math.sin(time*51+i*1.31+lag)*impact*(.8+(i%3)*.35));
+ }
+ ctx.save();
+ for(let i=0;i<TOOTH_SEGMENTS;i++){
+  const sx=Math.max(0,i*segW-1),w=Math.min(SIZE[0]-sx,segW+2);
+  if(w>0)ctx.drawImage(cached.teeth,sx,0,w,SIZE[1],sx+toothDx[i],toothDy[i],w,SIZE[1]);
+ }
  if(glow>0){
   ctx.globalCompositeOperation='lighter';ctx.globalAlpha=baseAlpha*(.12+Math.min(.24,glow*.12));
-  ctx.drawImage(cached.teethGlow,0,0);
+  for(let i=0;i<TOOTH_SEGMENTS;i++){
+   const sx=Math.max(0,i*segW-1),w=Math.min(SIZE[0]-sx,segW+2);
+   if(w>0)ctx.drawImage(cached.teethGlow,sx,0,w,SIZE[1],sx+toothDx[i],toothDy[i],w,SIZE[1]);
+  }
  }
  ctx.restore();
 }
