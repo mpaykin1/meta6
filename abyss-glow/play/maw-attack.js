@@ -267,7 +267,7 @@ function drawTeeth(part,time,open,glow,impact){
  ctx.restore();
 }
 const eyeSockets=[[59,107],[158,105]];
-function drawEyes(time,glow,impact){
+function drawEyes(time,glow,impact,side=0){
  const cached=partCache.upper,source=cached.eyes,baseAlpha=ctx.globalAlpha;
  const gazeX=Math.max(-1,Math.min(1,aimX/Math.max(1,cw)))*5.5;
  const gazeY=Math.max(-1,Math.min(1,aimY/Math.max(1,ch)))*4;
@@ -277,6 +277,7 @@ function drawEyes(time,glow,impact){
  else{glowA=cached.eyeGlowMid;glowB=cached.eyeGlowHigh;mix=clamp((glow-1)/.35)}
  ctx.save();ctx.globalCompositeOperation='lighter';
  for(let i=0;i<eyeSockets.length;i++){
+  if(side<0&&i>0||side>0&&i<1)continue;
   const [x,y]=eyeSockets[i];
   const pulse=.5+.5*Math.sin(time*(5.4+i*.45)+i*1.7);
   const driftX=Math.sin(time*1.9+i*2.3)*.45+gazeX;
@@ -410,7 +411,7 @@ function drawJawHalf(part,side,time,open,glow,impact,direction,snap,showEyes){
  else ctx.rect(P[0]-1,-GLOW_PAD,SIZE[0]-P[0]+GLOW_PAD+1,SIZE[1]+GLOW_PAD*2);
  ctx.clip();
  drawPart(part,direction,glow);drawEmissive(part,time,glow,impact);drawTeeth(part,time,open,glow,impact);
- if(part==='upper'&&showEyes)drawEyes(time,glow,impact);
+ if(part==='upper'&&showEyes)drawEyes(time,glow,impact,side);
  ctx.restore();
 }
 function frame(now,dt){
