@@ -159,8 +159,8 @@ let start=0,last=0,attackedCycle=-1,rendered=0;
 let targetCycle=-2,targetHero=null,heroSample=null,nextHeroSample=0,aimX=0,aimY=0;
 let worldWidth=1,worldHeight=1;
 const gameCanvas=document.getElementById('gl');
-let cameraKick=0;
-const state={ready:false,visible:false,attackCount:0,avoidedCount:0,lastHit:false,targetOffset:[0,0],cameraKick:0};
+let cameraKick=0,retreatKickX=0,retreatKickY=0;
+const state={ready:false,visible:false,attackCount:0,avoidedCount:0,lastHit:false,reaction:'none',targetOffset:[0,0],cameraKick:0};
 function sampleHero(seconds,force){
  if(!force&&seconds<nextHeroSample)return heroSample;
  nextHeroSample=seconds+.08;
@@ -406,7 +406,7 @@ function frame(now,dt){
   targetCycle=q.cycle;
   const hero=sampleHero(seconds,true);
   targetHero=hero&&hero.slice();
-  aimX=0;aimY=0;
+  aimX=0;aimY=0;retreatKickX=0;retreatKickY=0;state.reaction='none';
  }
  const hero=q.cycle>=0?sampleHero(seconds,false):heroSample;
  if(targetHero&&hero){
@@ -425,7 +425,11 @@ function frame(now,dt){
  // Keep the whole owner silhouette, fins and teeth inside both portrait and landscape playfields.
  const base=Math.min(cw/SIZE[0],ch/SIZE[1])*.86;
  const s=base*q.scale;
- const cx=cw*.5+aimX,cy=ch*.47+aimY;
+ const retreatProgress=q.phase==='retreat'?smooth(1-q.visible):0;
+ // A missed strike carries past the fish and rolls away; a hit recoils mostly into depth.
+ const cx=cw*.5+aimX+retreatKickX*retreatProgress;
+ const cy=ch*.47+aimY+retreatKickY*retreatProgress;
+ const retreatRoll=(retreatKickX/Math.max(1,cw))*retreatProgress*.72;
  // Staggered parallax wake makes the approach read as travel through black water, not a flat sprite zoom.
  depthWake(seconds,q,s,cx,cy);
  // Composite the broad water glow behind the silhouette so it cannot wash out teeth and pixel detail.
@@ -435,7 +439,7 @@ function frame(now,dt){
   ctx.globalCompositeOperation='lighter';
   ctx.drawImage(haloCanvas,cx-haloRadius,cy-haloRadius,haloRadius*2,haloRadius*2);ctx.restore();
  }
- ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(retreatRoll);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
  ctx.globalAlpha=clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
  throat(seconds,q.open,q.light);
@@ -462,8 +466,13 @@ function frame(now,dt){
   let hit=false;
   if(inMouth){
    try{if(typeof window.__abyssPlayMawHit==='function')hit=!!window.__abyssPlayMawHit()}catch(e){console.error('ABYSS maw hit:',e)}
-  }else state.avoidedCount++;
-  if(hit)cameraKick=1;
+  }else{
+   state.avoidedCount++;
+   const sweep=q.cycle%2?1:-1;
+   retreatKickX=sweep*cw*.12;retreatKickY=-ch*.045;
+   state.reaction='dodged';
+  }
+  if(hit){cameraKick=1;retreatKickY=-ch*.025;state.reaction='hit'}
   state.lastHit=hit;state.attackCount++;
  }
  state.rendered=++rendered;
