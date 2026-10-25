@@ -92,7 +92,17 @@ function cachePart(part){
  const glowHigh=cacheEmissiveGlow(emissive,1.35);
  return {base,teeth,teethGlow,emissive,eyes,glowLow,glowMid,glowHigh};
 }
-const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>{
+function imageReady(image){
+ if(image.complete)return image.naturalWidth?Promise.resolve():Promise.reject(new Error('image unavailable'));
+ const eventReady=()=>new Promise((resolve,reject)=>{
+  if(image.complete){image.naturalWidth?resolve():reject(new Error('image unavailable'));return}
+  image.addEventListener('load',resolve,{once:true});
+  image.addEventListener('error',()=>reject(new Error('image unavailable')),{once:true});
+ });
+ if(typeof image.decode!=='function')return eventReady();
+ return image.decode().catch(eventReady);
+}
+const loaded=Promise.all([imageReady(atlas),imageReady(lights)]).then(()=>{
  partCache={upper:cachePart('upper'),lower:cachePart('lower')};
  return true;
 }).catch(err=>{console.error('ABYSS play maw art unavailable:',err);return false});
