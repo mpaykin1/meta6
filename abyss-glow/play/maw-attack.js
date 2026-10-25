@@ -114,7 +114,7 @@ Object.defineProperty(window,'__abyssPlayMaw',{value:state,configurable:false});
 function frameState(seconds){
  if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.26,open:0,light:0,impact:0,hit:false,cycle:-1};
  const cycle=Math.floor((seconds-FIRST)/PERIOD),t=(seconds-FIRST)-cycle*PERIOD;
- if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.1+.3*a,scale:.26+.06*a,open:0,light:a,impact:0,hit:false,cycle}}
+ if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.12+.38*a,scale:.26+.06*a,open:0,light:.18+.82*a,impact:0,hit:false,cycle}}
  if(t<1.85){const a=smooth((t-1)/.85);return {phase:'emerge',visible:.4+.6*a,scale:.32+.63*a,open:a*.9,light:.5+.5*a,impact:0,hit:false,cycle}}
  if(t<2.30){
   const raw=(t-1.85)/.45,a=smooth(raw);
