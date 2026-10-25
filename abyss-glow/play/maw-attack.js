@@ -20,6 +20,20 @@ haloGradient.addColorStop(.36,'rgba(255,143,8,.12)');
 haloGradient.addColorStop(.7,'rgba(207,55,0,.045)');
 haloGradient.addColorStop(1,'rgba(0,0,0,0)');
 haloCtx.fillStyle=haloGradient;haloCtx.fillRect(0,0,256,256);
+// Cached broken rings and suspended flecks make the predator travel through water depth instead of only scaling up.
+const wakeCanvas=document.createElement('canvas'),wakeCtx=wakeCanvas.getContext('2d');
+wakeCanvas.width=wakeCanvas.height=256;wakeCtx.translate(128,128);wakeCtx.globalCompositeOperation='lighter';
+for(let ring=0;ring<4;ring++){
+ wakeCtx.strokeStyle=ring%2?'rgba(255,145,18,.22)':'rgba(255,211,79,.17)';
+ wakeCtx.lineWidth=1+ring*.45;wakeCtx.setLineDash([8+ring*3,15+ring*5]);
+ wakeCtx.beginPath();wakeCtx.arc(0,0,30+ring*22,-2.75,2.7);wakeCtx.stroke();
+}
+wakeCtx.setLineDash([]);
+for(let i=0;i<24;i++){
+ const angle=(i/24)*Math.PI*2+(i%3)*.09,r=24+(i*29%83),length=4+(i%5)*2;
+ wakeCtx.save();wakeCtx.rotate(angle);wakeCtx.globalAlpha=.14+(i%4)*.035;
+ wakeCtx.fillStyle=i%3?'#e47708':'#ffd75a';wakeCtx.fillRect(r,-.55,length,1.1);wakeCtx.restore();
+}
 function traceThroat(g){
  g.beginPath();g.moveTo(P[0]-3,P[1]-27);
  g.bezierCurveTo(P[0]+28,P[1]-22,P[0]+36,P[1]+6,P[0]+30,P[1]+32);
@@ -256,6 +270,25 @@ const impactFrames=[.08,.25,.5,.75,1].map(fade=>{
  }
  return c;
 });
+function depthWake(time,q,s,ox,oy){
+ let force=0;
+ if(q.phase==='warning')force=.18+.25*q.light;
+ else if(q.phase==='emerge')force=.35+.65*q.visible;
+ else if(q.phase==='bite')force=1;
+ else if(q.phase==='retreat')force=q.visible*.72;
+ if(force<=.02)return;
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ for(let layer=0;layer<3;layer++){
+  const drift=(time*(.075+layer*.018)+layer*.31)%1;
+  const radius=(92+layer*38)*s*(.68+drift*.42);
+  const squash=1.12-layer*.1;
+  ctx.save();ctx.translate(ox,oy);ctx.rotate(time*(layer%2?-.055:.04)+layer*.7);
+  ctx.scale(squash,1/squash);
+  ctx.globalAlpha=force*(.16+layer*.035)*(1-drift*.55);
+  ctx.drawImage(wakeCanvas,-radius,-radius,radius*2,radius*2);ctx.restore();
+ }
+ ctx.restore();
+}
 function biteImpact(seconds,intensity,s,ox,oy){
  if(intensity<.68||s<=0)return;
  const fade=clamp((intensity-.68)/.32);
@@ -333,6 +366,8 @@ function frame(now,dt){
  const base=Math.min(cw/SIZE[0],ch/SIZE[1])*.86;
  const s=base*q.scale;
  const cx=cw*.5+aimX,cy=ch*.47+aimY;
+ // Staggered parallax wake makes the approach read as travel through black water, not a flat sprite zoom.
+ depthWake(seconds,q,s,cx,cy);
  // Composite the broad water glow behind the silhouette so it cannot wash out teeth and pixel detail.
  if(q.light>.02){
   ctx.save();ctx.globalAlpha=clamp(q.visible)*q.light;
