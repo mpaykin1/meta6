@@ -180,12 +180,17 @@ function sampleHero(seconds,force){
  return heroSample;
 }
 Object.defineProperty(window,'__abyssPlayMaw',{value:state,configurable:false});
+const frameQ={phase:'waiting',visible:0,scale:.68,open:0,light:0,impact:0,hit:false,cycle:-1};
+function setFrameQ(phase,visible,scale,open,light,impact,hit,cycle){
+ frameQ.phase=phase;frameQ.visible=visible;frameQ.scale=scale;frameQ.open=open;
+ frameQ.light=light;frameQ.impact=impact;frameQ.hit=hit;frameQ.cycle=cycle;return frameQ;
+}
 function frameState(seconds){
- if(seconds<FIRST)return {phase:'waiting',visible:0,scale:.68,open:0,light:0,impact:0,hit:false,cycle:-1};
+ if(seconds<FIRST)return setFrameQ('waiting',0,.68,0,0,0,false,-1);
  const cycle=Math.floor((seconds-FIRST)/PERIOD),t=(seconds-FIRST)-cycle*PERIOD;
  // Depth now reads through darkness, glow and wake parallax; the owner silhouette no longer grows from a point.
- if(t<1.0){const a=smooth(t);return {phase:'warning',visible:.08+.34*a,scale:.68+.04*a,open:0,light:.14+.76*a,impact:0,hit:false,cycle}}
- if(t<1.85){const a=smooth((t-1)/.85);return {phase:'emerge',visible:.42+.58*a,scale:.72+.23*a,open:a*.9,light:.46+.54*a,impact:0,hit:false,cycle}}
+ if(t<1.0){const a=smooth(t);return setFrameQ('warning',.08+.34*a,.68+.04*a,0,.14+.76*a,0,false,cycle)}
+ if(t<1.85){const a=smooth((t-1)/.85);return setFrameQ('emerge',.42+.58*a,.72+.23*a,a*.9,.46+.54*a,0,false,cycle)}
  if(t<2.30){
   const raw=(t-1.85)/.45,a=smooth(raw);
   // Anticipation opens wider, then both rigid jaw layers snap shut and rebound.
@@ -194,10 +199,10 @@ function frameState(seconds){
   else if(raw<.72)open=1-.78*smooth((raw-.34)/.38);
   else open=.22+.16*smooth((raw-.72)/.28);
   const impact=Math.sin(Math.PI*clamp((raw-.48)/.52));
-  return {phase:'bite',visible:1,scale:.95+.08*a-.018*impact,open,light:1+.35*impact,impact,hit:raw>=.74,cycle};
+  return setFrameQ('bite',1,.95+.08*a-.018*impact,open,1+.35*impact,impact,raw>=.74,cycle);
  }
- if(t<3.25){const a=smooth((t-2.30)/.95);return {phase:'retreat',visible:1-a,scale:1.03-.31*a,open:.38*(1-a),light:1-a,impact:0,hit:false,cycle}}
- return {phase:'waiting',visible:0,scale:.68,open:0,light:0,impact:0,hit:false,cycle};
+ if(t<3.25){const a=smooth((t-2.30)/.95);return setFrameQ('retreat',1-a,1.03-.31*a,.38*(1-a),1-a,0,false,cycle)}
+ return setFrameQ('waiting',0,.68,0,0,0,false,cycle);
 }
 function drawPart(part,direction,glow){
  const cached=partCache[part],baseAlpha=ctx.globalAlpha;
