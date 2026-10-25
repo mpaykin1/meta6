@@ -190,18 +190,19 @@ function frameState(seconds){
  const cycle=Math.floor((seconds-FIRST)/PERIOD),t=(seconds-FIRST)-cycle*PERIOD;
  // Depth now reads through darkness, glow and wake parallax; the owner silhouette no longer grows from a point.
  if(t<1.0){const a=smooth(t);return setFrameQ('warning',.08+.34*a,.68+.04*a,0,.14+.76*a,0,false,cycle)}
- if(t<1.85){const a=smooth((t-1)/.85);return setFrameQ('emerge',.42+.58*a,.72+.23*a,a*.9,.46+.54*a,0,false,cycle)}
- if(t<2.30){
-  const raw=(t-1.85)/.45,a=smooth(raw);
-  // Anticipation opens wider, then both rigid jaw layers snap shut and rebound.
+ if(t<1.95){const a=smooth((t-1)/.95);return setFrameQ('emerge',.42+.58*a,.72+.23*a,a*.9,.46+.54*a,0,false,cycle)}
+ if(t<2.68){
+  const raw=(t-1.95)/.73,a=smooth(raw);
+  // Anticipate, hold the articulated jaws open long enough to read the throat, then snap shut and rebound.
   let open;
-  if(raw<.34)open=.9+.1*smooth(raw/.34);
-  else if(raw<.72)open=1-.78*smooth((raw-.34)/.38);
-  else open=.22+.16*smooth((raw-.72)/.28);
+  if(raw<.30)open=.9+.1*smooth(raw/.30);
+  else if(raw<.48)open=1;
+  else if(raw<.82)open=1-.8*smooth((raw-.48)/.34);
+  else open=.2+.18*smooth((raw-.82)/.18);
   const impact=Math.sin(Math.PI*clamp((raw-.48)/.52));
-  return setFrameQ('bite',1,.95+.08*a-.018*impact,open,1+.35*impact,impact,raw>=.74,cycle);
+  return setFrameQ('bite',1,.95+.08*a-.018*impact,open,1+.35*impact,impact,raw>=.78,cycle);
  }
- if(t<3.25){const a=smooth((t-2.30)/.95);return setFrameQ('retreat',1-a,1.03-.31*a,.38*(1-a),1-a,0,false,cycle)}
+ if(t<3.63){const a=smooth((t-2.68)/.95);return setFrameQ('retreat',1-a,1.03-.31*a,.38*(1-a),1-a,0,false,cycle)}
  return setFrameQ('waiting',0,.68,0,0,0,false,cycle);
 }
 function drawPart(part,direction,glow){
