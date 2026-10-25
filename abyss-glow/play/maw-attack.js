@@ -1,9 +1,11 @@
 (()=>{'use strict';
 // ABYSS GLOW play: owner-derived layered maw encounter in actual game.
 // No changes to the accepted stand. Transparent overlay does not intercept touch.
-const SIZE=[217,289], P=[108,168], atlas=new Image(),lights=new Image();
+const SIZE=[217,289], P=[108,168], atlas=new Image(),lights=new Image(),throatArt=new Image();
 atlas.src='../assets/maw_front_v1/maw_front_atlas.png';
 lights.src='../assets/maw_front_v1/maw_front_light8.png';
+// Palette-locked 96x112 crop from sketches/maw_front_owner.png; embedded to avoid a third network request.
+throatArt.src='data:image/png;base64,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';
 const canvas=document.createElement('canvas');
 canvas.id='play-maw';canvas.setAttribute('aria-hidden','true');
 canvas.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:4;pointer-events:none;image-rendering:pixelated';
@@ -41,17 +43,15 @@ function traceThroat(g){
  g.bezierCurveTo(P[0]-14,P[1]+61,P[0]-28,P[1]+49,P[0]-33,P[1]+26);
  g.bezierCurveTo(P[0]-38,P[1]+1,P[0]-25,P[1]-21,P[0]-3,P[1]-27);g.closePath();
 }
-const throatCanvas=document.createElement('canvas'),throatCtx=throatCanvas.getContext('2d');
 const throatGlowCanvas=document.createElement('canvas'),throatGlowCtx=throatGlowCanvas.getContext('2d');
-throatCanvas.width=throatGlowCanvas.width=96;throatCanvas.height=throatGlowCanvas.height=112;
-const throatGradient=throatCtx.createRadialGradient(44,60,3,47,58,47);
-throatGradient.addColorStop(0,'#000000');throatGradient.addColorStop(.5,'#000000');
-throatGradient.addColorStop(.78,'#3E1500');throatGradient.addColorStop(1,'#000000');
-throatCtx.fillStyle=throatGradient;throatCtx.fillRect(0,0,96,112);
-const throatGlow=throatGlowCtx.createRadialGradient(34,34,2,49,56,61);
-throatGlow.addColorStop(0,'rgba(253,231,102,.28)');throatGlow.addColorStop(.26,'rgba(229,120,7,.2)');
-throatGlow.addColorStop(.66,'rgba(173,66,1,.1)');throatGlow.addColorStop(1,'rgba(0,0,0,0)');
-throatGlowCtx.fillStyle=throatGlow;throatGlowCtx.fillRect(0,0,96,112);
+throatGlowCanvas.width=96;throatGlowCanvas.height=112;
+function cacheThroatGlow(){
+ throatGlowCtx.imageSmoothingEnabled=false;throatGlowCtx.globalCompositeOperation='lighter';
+ throatGlowCtx.shadowColor='#E57807';throatGlowCtx.shadowBlur=11;throatGlowCtx.globalAlpha=.7;
+ throatGlowCtx.drawImage(throatArt,0,0);
+ throatGlowCtx.shadowColor='#F9BD2B';throatGlowCtx.shadowBlur=4;throatGlowCtx.globalAlpha=.34;
+ throatGlowCtx.drawImage(throatArt,0,0);
+}
 const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
 let partCache=null;
 function toothRegion(g,part){
@@ -125,8 +125,9 @@ function imageReady(image){
  if(typeof image.decode!=='function')return eventReady();
  return image.decode().catch(eventReady);
 }
-const loaded=Promise.all([imageReady(atlas),imageReady(lights)]).then(()=>{
+const loaded=Promise.all([imageReady(atlas),imageReady(lights),imageReady(throatArt)]).then(()=>{
  partCache={upper:cachePart('upper'),lower:cachePart('lower')};
+ cacheThroatGlow();
  return true;
 }).catch(err=>{console.error('ABYSS play maw art unavailable:',err);return false});
 let ready=false;loaded.then(ok=>{ready=ok});
@@ -386,31 +387,19 @@ function throat(time,open,light){
  const tx=P[0],ty=P[1]+18;
  ctx.save();ctx.globalAlpha=baseAlpha*reveal;
  const pulse=.5+.5*Math.sin(time*5.2);
- // The pointed cavity and its depth gradient are cached; only living detail animates each frame.
+ // The cavity is cut directly from the owner's painting; horizontal tissue bands breathe independently.
  traceThroat(ctx);ctx.clip();
- ctx.drawImage(throatCanvas,tx-48,ty-56);
+ const bands=7,bandH=16;
+ for(let band=0;band<bands;band++){
+  const sy=band*bandH,h=Math.min(bandH,112-sy);
+  const depth=Math.abs(band-3)/3;
+  const dx=Math.sin(time*2.15-band*.72)*(1.7-depth*.55)*reveal;
+  const dy=Math.cos(time*1.45-band*.49)*.38*reveal;
+  ctx.drawImage(throatArt,0,sy,96,h,tx-48+dx,ty-56+sy+dy,96,h);
+ }
  ctx.globalCompositeOperation='lighter';
- ctx.globalAlpha=baseAlpha*reveal*(.28+.18*pulse)*(.58+.42*light);
+ ctx.globalAlpha=baseAlpha*reveal*(.16+.13*pulse)*(.58+.42*light);
  ctx.drawImage(throatGlowCanvas,tx-48+Math.sin(time*1.7)*1.2,ty-56+Math.cos(time*1.3)*.8);
- ctx.lineWidth=1;
- for(let side=-1;side<=1;side+=2){
-  for(let i=0;i<3;i++){
-   const sway=Math.sin(time*(1.8+i*.22)+i*1.4)*2.1;
-   const x=tx+side*(14+i*7);
-   ctx.globalAlpha=baseAlpha*reveal*(.19-i*.035+.075*light);
-   ctx.strokeStyle=i===0?'#E57807':(side<0?'#702700':'#AD4201');
-   ctx.beginPath();ctx.moveTo(x,ty-30+i*3);
-   ctx.bezierCurveTo(x-side*(5+sway),ty-8,x-side*(8-i),ty+13,x-side*(3+i),ty+38-i*2);ctx.stroke();
-  }
- }
- // Dim warm flecks at the back of the throat provide depth without a geometric ring.
- for(let i=0;i<9;i++){
-  const x=tx-13+(i*17%27),y=ty+19+(i*11%18),r=.45+(i%3)*.22;
-  ctx.globalAlpha=baseAlpha*reveal*(.08+.08*light)*(1-.25*Math.sin(time*3+i));
-  ctx.fillStyle=i%3?'#702700':'#E57807';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
- }
- ctx.globalCompositeOperation='source-over';ctx.globalAlpha=baseAlpha*reveal*(.82+.08*pulse);ctx.fillStyle='#000000';
- ctx.beginPath();ctx.ellipse(tx-2,ty+2,7.5+pulse,16+pulse*2,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
 function drawJawLayer(part,time,open,glow,impact,direction,recoil,showEyes){
