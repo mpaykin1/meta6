@@ -162,19 +162,24 @@ function drawTeeth(part,time,open,glow,impact){
  }
  ctx.restore();
 }
-function drawEyes(time,glow){
+const eyeSockets=[[59,107],[158,105]];
+function drawEyes(time,glow,impact){
  const source=partCache.upper.eyes;
- const sockets=[[59,107],[158,105]];
+ const gazeX=clamp(aimX/Math.max(1,cw))*5.5;
+ const gazeY=clamp(aimY/Math.max(1,ch))*4;
  ctx.save();ctx.globalCompositeOperation='lighter';
  ctx.shadowColor='#ffd95a';ctx.shadowBlur=8+glow*19;
- for(let i=0;i<sockets.length;i++){
-  const [x,y]=sockets[i];
+ for(let i=0;i<eyeSockets.length;i++){
+  const [x,y]=eyeSockets[i];
   const pulse=.5+.5*Math.sin(time*(5.4+i*.45)+i*1.7);
-  const driftX=Math.sin(time*1.9+i*2.3)*.8;
-  const driftY=Math.cos(time*1.35+i*1.2)*.45;
+  const driftX=Math.sin(time*1.9+i*2.3)*.45+gazeX;
+  const driftY=Math.cos(time*1.35+i*1.2)*.28+gazeY;
+  // Rare cropped blink and bite squint keep the real eye pixels rigid instead of stretching them.
+  const blink=Math.pow(Math.max(0,Math.sin(time*.91+i*.035)),30);
+  const lid=Math.min(11,Math.floor(blink*11+impact*2.5));
+  const h=26-lid*2;
   ctx.globalAlpha=Math.min(1,.28+glow*.42+pulse*.26);
-  // Reuse each eye's real emissive pixels as a separate animated layer.
-  ctx.drawImage(source,x-15,y-13,30,26,x-15+driftX,y-13+driftY,30,26);
+  if(h>2)ctx.drawImage(source,x-15,y-13+lid,30,h,x-15+driftX,y-13+lid+driftY,30,h);
  }
  ctx.restore();
 }
@@ -302,7 +307,7 @@ function frame(now,dt){
  // Opposed rotations keep the shared hinge fixed while giving the frontal bite a real articulated snap.
  const spring=q.phase==='bite'?Math.sin((seconds-FIRST)*34)*q.impact*.012:0;
  const upperAngle=-.028*upperOpen-spring,lowerAngle=.044*lowerOpen+spring;
- ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(upperAngle);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);drawTeeth('upper',seconds,upperOpen,q.light,q.impact);drawEyes(seconds,q.light);ctx.restore();
+ ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(upperAngle);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);drawTeeth('upper',seconds,upperOpen,q.light,q.impact);drawEyes(seconds,q.light,q.impact);ctx.restore();
  ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(lowerAngle);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);drawTeeth('lower',seconds,lowerOpen,q.light,q.impact);ctx.restore();
  ctx.restore();
  if(q.light>.02){
