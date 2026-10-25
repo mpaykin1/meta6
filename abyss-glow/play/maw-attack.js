@@ -52,6 +52,15 @@ function toothRegion(g,part){
  }
  g.closePath();g.fill();
 }
+const GLOW_PAD=64;
+function cacheEmissiveGlow(source,glow){
+ const layer=document.createElement('canvas'),g=layer.getContext('2d');
+ layer.width=SIZE[0]+GLOW_PAD*2;layer.height=SIZE[1]+GLOW_PAD*2;g.imageSmoothingEnabled=false;
+ g.globalCompositeOperation='lighter';g.shadowColor='#ff9f0a';
+ g.globalAlpha=Math.min(1,.72+glow*.25);g.shadowBlur=18+glow*38;g.drawImage(source,GLOW_PAD,GLOW_PAD);
+ g.globalAlpha=Math.min(.48,.22+glow*.18);g.shadowBlur=4+glow*7;g.drawImage(source,GLOW_PAD,GLOW_PAD);
+ return layer;
+}
 function cachePart(part){
  const base=document.createElement('canvas'),baseCtx=base.getContext('2d');
  const detail=document.createElement('canvas'),detailCtx=detail.getContext('2d');
@@ -78,7 +87,10 @@ function cachePart(part){
   emissiveCtx.globalCompositeOperation='destination-out';emissiveCtx.drawImage(eyes,0,0);
   emissiveCtx.globalCompositeOperation='source-over';
  }
- return {base,teeth,teethGlow,emissive,eyes};
+ const glowLow=cacheEmissiveGlow(emissive,.35);
+ const glowMid=cacheEmissiveGlow(emissive,1);
+ const glowHigh=cacheEmissiveGlow(emissive,1.35);
+ return {base,teeth,teethGlow,emissive,eyes,glowLow,glowMid,glowHigh};
 }
 const loaded=Promise.all([atlas.decode(),lights.decode()]).then(()=>{
  partCache={upper:cachePart('upper'),lower:cachePart('lower')};
@@ -154,11 +166,13 @@ function drawPart(part,direction,glow){
  const row=part==='upper'?0:SIZE[1];
  ctx.drawImage(lights,direction*SIZE[0],row,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
  if(glow>0){
-  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=Math.min(1,.72+glow*.25);
-  ctx.shadowColor='#ff9f0a';ctx.shadowBlur=18+glow*38;
-  ctx.drawImage(cached.emissive,0,0);
-  ctx.globalAlpha=Math.min(.48,.22+glow*.18);ctx.shadowBlur=4+glow*7;
-  ctx.drawImage(cached.emissive,0,0);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  let first=cached.glowLow,second=null,mix=0;
+  if(glow<.35)ctx.globalAlpha=glow/.35;
+  else if(glow<=1){first=cached.glowLow;second=cached.glowMid;mix=(glow-.35)/.65;ctx.globalAlpha=1-mix}
+  else{first=cached.glowMid;second=cached.glowHigh;mix=clamp((glow-1)/.35);ctx.globalAlpha=1-mix}
+  if(ctx.globalAlpha>0)ctx.drawImage(first,-GLOW_PAD,-GLOW_PAD);
+  if(second&&mix>0){ctx.globalAlpha=mix;ctx.drawImage(second,-GLOW_PAD,-GLOW_PAD)}
   ctx.restore();
  }
  ctx.drawImage(cached.emissive,0,0);
