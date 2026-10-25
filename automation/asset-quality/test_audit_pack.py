@@ -1,4 +1,4 @@
-import json, tempfile, unittest
+import hashlib, json, tempfile, unittest
 from pathlib import Path
 from audit_pack import analyze
 class AuditPackTests(unittest.TestCase):
@@ -21,6 +21,12 @@ class AuditPackTests(unittest.TestCase):
     def test_escape(self):
         self.entry["source"]="../private"
         self.assertIn("path_escape",[x["rule"] for x in self.check([self.entry])["issues"]])
+    def test_legacy_pack_crop_cannot_be_a_production_source(self):
+        legacy=self.root/"assets"/"sprites"/"fish.png"
+        legacy.parent.mkdir(parents=True)
+        legacy.write_bytes(b"legacy crop")
+        self.entry["source"]="assets/sprites/fish.png"
+        self.assertIn("legacy_crop_source",[x["rule"] for x in self.check([self.entry])["issues"]])
     def test_missing_stages(self):
         req=self.root/"req.json";req.write_text(json.dumps({"stages":[0,1,2,3,4],"min_creature_types":1}))
         self.assertIn("missing_stages",[x["rule"] for x in self.check([self.entry],req)["issues"]])
@@ -32,4 +38,37 @@ class AuditPackTests(unittest.TestCase):
         r=self.check([self.entry],req)
         self.assertEqual(r["status"],"STATIC_PASS_RUNTIME_UNKNOWN")
         self.assertTrue(r["unknown"])
+    def test_explicit_hard_failure_fails_audit(self):
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LICENSE","test":"license inventory","status":"FAIL"}]}))
+        r=self.check([self.entry],req)
+        self.assertEqual(r["status"],"FAIL")
+        self.assertIn({"rule":"requirement_failed","id":"LICENSE"},r["issues"])
+    def test_required_runtime_gate_cannot_be_omitted(self):
+        req=self.root/"req.json";req.write_text(json.dumps({"required_requirement_ids":["COORDINATES","LIGHTING"],"requirements":[{"id":"COORDINATES","test":"live scene","status":"UNKNOWN"}]}))
+        r=self.check([self.entry],req)
+        self.assertIn({"rule":"missing_requirement","id":"LIGHTING"},r["issues"])
+    def test_duplicate_requirement_id_rejected(self):
+        item={"id":"LIGHTING","test":"8-way live render","status":"UNKNOWN"}
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[item,item]}))
+        self.assertIn("duplicate_requirement",[x["rule"] for x in self.check([self.entry],req)["issues"]])
+    def test_verified_status_requires_hashed_evidence(self):
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LIGHTING","test":"live render","status":"STATIC_PASS"}]}))
+        self.assertIn({"rule":"requirement_evidence_missing","id":"LIGHTING"},self.check([self.entry],req)["issues"])
+    def test_verified_status_accepts_matching_hashed_evidence(self):
+        evidence=self.root/"lighting.json";evidence.write_bytes(b"sealed live capture metadata")
+        record={"requirement_id":"LIGHTING","path":"lighting.json","sha256":hashlib.sha256(evidence.read_bytes()).hexdigest()}
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LIGHTING","test":"live render","status":"STATIC_PASS","evidence":[record]}]}))
+        self.assertNotIn("requirement_evidence_invalid",[x["rule"] for x in self.check([self.entry],req)["issues"]])
+    def test_verified_evidence_must_bind_to_requirement(self):
+        evidence=self.root/"lighting.json";evidence.write_bytes(b"sealed live capture metadata")
+        record={"requirement_id":"OTHER","path":"lighting.json","sha256":hashlib.sha256(evidence.read_bytes()).hexdigest()}
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LIGHTING","test":"live render","status":"STATIC_PASS","evidence":[record]}]}))
+        self.assertIn({"rule":"requirement_evidence_binding","id":"LIGHTING"},self.check([self.entry],req)["issues"])
+    def test_verified_status_rejects_unsafe_or_modified_evidence(self):
+        evidence=self.root/"lighting.json";evidence.write_bytes(b"modified")
+        records=[{"path":"../outside.json","sha256":"0"*64},{"path":"lighting.json","sha256":"0"*64}]
+        req=self.root/"req.json";req.write_text(json.dumps({"requirements":[{"id":"LIGHTING","test":"live render","status":"OWNER_APPROVED","evidence":records}]}))
+        issues=self.check([self.entry],req)["issues"]
+        self.assertEqual(sum(x["rule"]=="requirement_evidence_invalid" for x in issues),2)
 if __name__=="__main__":unittest.main()
+
