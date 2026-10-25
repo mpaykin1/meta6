@@ -238,10 +238,14 @@ const TOOTH_SEGMENTS=7,toothDx=new Int8Array(TOOTH_SEGMENTS),toothDy=new Int8Arr
 function drawTeeth(part,time,open,glow,impact){
  const cached=partCache[part],side=part==='upper'?1:-1,baseAlpha=ctx.globalAlpha;
  const lag=part==='upper'?0:.7,segW=Math.ceil(SIZE[0]/TOOTH_SEGMENTS);
- const baseY=Math.round(side*Math.sin(time*8.1+lag)*open*.65);
+ const baseY=Math.round(side*Math.sin(time*8.1+lag)*open*.9);
  for(let i=0;i<TOOTH_SEGMENTS;i++){
-  toothDx[i]=impact>.05?Math.round(Math.sin(time*43+i*2.13+lag)*impact*.9):0;
-  toothDy[i]=baseY+Math.round(side*Math.sin(time*51+i*1.31+lag)*impact*(.8+(i%3)*.35));
+  const centerDistance=Math.abs(i-(TOOTH_SEGMENTS-1)*.5)/((TOOTH_SEGMENTS-1)*.5);
+  // The central teeth take the bite first; outer groups follow with a damped visible cascade.
+  const localImpact=clamp(impact*1.18-centerDistance*.18);
+  const idle=Math.sin(time*7.2+i*.83+lag)*open*(.28+centerDistance*.34);
+  toothDx[i]=Math.round(idle+Math.sin(time*39+i*1.91+lag)*localImpact*(1.25+centerDistance*.75));
+  toothDy[i]=baseY+Math.round(side*Math.sin(time*47+i*1.27+lag)*localImpact*(1.15+(i%3)*.55));
  }
  ctx.save();
  for(let i=0;i<TOOTH_SEGMENTS;i++){
