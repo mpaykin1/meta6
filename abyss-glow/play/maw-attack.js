@@ -291,8 +291,11 @@ function frame(now,dt){
  // Rigid frontal articulation stays on the mouth centerline; no lateral swing or tooth/image stretch.
  const jawTremor=q.phase==='bite'?Math.sin((seconds-FIRST)*48)*(1.1+2.2*q.impact):0;
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
- ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);drawPart('upper',direction,q.light);drawTeeth('upper',seconds,upperOpen,q.light,q.impact);drawEyes(seconds,q.light);ctx.restore();
- ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);drawPart('lower',direction,q.light);drawTeeth('lower',seconds,lowerOpen,q.light,q.impact);ctx.restore();
+ // Opposed rotations keep the shared hinge fixed while giving the frontal bite a real articulated snap.
+ const spring=q.phase==='bite'?Math.sin((seconds-FIRST)*34)*q.impact*.012:0;
+ const upperAngle=-.028*upperOpen-spring,lowerAngle=.044*lowerOpen+spring;
+ ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(upperAngle);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);drawTeeth('upper',seconds,upperOpen,q.light,q.impact);drawEyes(seconds,q.light);ctx.restore();
+ ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(lowerAngle);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);drawTeeth('lower',seconds,lowerOpen,q.light,q.impact);ctx.restore();
  ctx.restore();
  if(q.light>.02){
   // Bubbles and bite spray remain foreground reactions.
