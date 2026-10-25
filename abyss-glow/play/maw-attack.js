@@ -413,18 +413,18 @@ function throat(time,open,light){
  ctx.beginPath();ctx.ellipse(tx-2,ty+2,7.5+pulse,16+pulse*2,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
-function drawJawLayer(part,time,open,glow,impact,direction,snap,showEyes){
+function drawJawLayer(part,time,open,glow,impact,direction,recoil,showEyes){
  ctx.save();
  if(part==='upper'){
   // Lift the complete upper source layer from the shared hinge. No jaw or tooth stretching.
   const lift=7*open;
   ctx.translate(P[0],P[1]-lift);
-  ctx.rotate(.018*open-snap*.28);
+  ctx.rotate(.018*open+recoil*.45);
   ctx.translate(-P[0],-P[1]);
  }else{
   // The lower source layer carries most of the opening and rebounds around the same pivot.
   const drop=24*open;
-  const angle=-.068*open+snap;
+  const angle=-.068*open-recoil;
   ctx.translate(P[0],P[1]+drop);
   ctx.rotate(angle);
   ctx.translate(-P[0],-P[1]);
@@ -512,10 +512,12 @@ function frame(now,dt){
  // Both owner-painted halves now separate around their shared pivot; neither source layer is scaled.
  const upperOpen=smooth(clamp(articulatedOpen*.82));
  const lowerOpen=smooth(clamp((articulatedOpen-.035)/.965));
- const snap=q.phase==='bite'?Math.sin((seconds-FIRST)*38)*q.impact*.012:0;
-  // Articulate the original source layers independently; the throat remains behind them.
-  drawJawLayer('upper',seconds,upperOpen,q.light,q.impact,direction,0,!warning);
-  drawJawLayer('lower',seconds,lowerOpen,q.light,q.impact,direction,-snap,false);
+ let recoil=0;
+ if(q.phase==='bite')recoil=Math.sin((seconds-FIRST)*38)*q.impact*.012;
+ else if(q.phase==='retreat')recoil=Math.sin(retreatProgress*Math.PI*4)*q.visible*.008;
+  // Opposed recoil keeps both original jaw halves alive through impact and the first retreat beats.
+  drawJawLayer('upper',seconds,upperOpen,q.light,q.impact,direction,recoil,!warning);
+  drawJawLayer('lower',seconds,lowerOpen,q.light,q.impact,direction,recoil,false);
  if(warning){ctx.globalAlpha=clamp(.22+q.light*.72);drawEyes(seconds,q.light,0)}
  ctx.restore();
  if(q.light>.02){
