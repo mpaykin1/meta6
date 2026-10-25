@@ -199,7 +199,25 @@ function drawPart(part,direction,glow){
   if(second&&mix>0){ctx.globalAlpha=mix;ctx.drawImage(second,-GLOW_PAD,-GLOW_PAD)}
   ctx.restore();
  }
- ctx.drawImage(cached.emissive,0,0);
+}
+function drawEmissive(part,time,glow,impact){
+ const source=partCache[part].emissive,bands=5,bandH=Math.ceil(SIZE[1]/bands);
+ const lag=part==='upper'?0:.62;
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ for(let band=0;band<bands;band++){
+  const sy=band*bandH,h=Math.min(bandH,SIZE[1]-sy);
+  if(h<=0)continue;
+  const wave=Math.sin(time*2.7-band*.72+lag);
+  const follow=Math.sin(time*1.55-band*.41+lag)*.55;
+  const dx=wave*.7,dy=follow*.65;
+  const pulse=.72+.2*Math.sin(time*4.1-band*.63+lag)+impact*.22;
+  ctx.globalAlpha=clamp((.36+glow*.48)*pulse);
+  ctx.drawImage(source,0,sy,SIZE[0],h,dx,sy+dy,SIZE[0],h);
+ }
+ // A crisp core follows the slower travelling wave, so the original pixel detail stays readable.
+ ctx.globalAlpha=clamp(.22+glow*.24+impact*.18);
+ ctx.drawImage(source,Math.sin(time*2.1+lag)*.35,Math.cos(time*1.7+lag)*.3);
+ ctx.restore();
 }
 function drawTeeth(part,time,open,glow,impact){
  const cached=partCache[part],side=part==='upper'?1:-1;
@@ -385,8 +403,8 @@ function frame(now,dt){
  // Opposed rotations keep the shared hinge fixed while giving the frontal bite a real articulated snap.
  const spring=q.phase==='bite'?Math.sin((seconds-FIRST)*34)*q.impact*.012:0;
  const upperAngle=-.028*upperOpen-spring,lowerAngle=.044*lowerOpen+spring;
- ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(upperAngle);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);drawTeeth('upper',seconds,upperOpen,q.light,q.impact);drawEyes(seconds,q.light,q.impact);ctx.restore();
- ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(lowerAngle);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);drawTeeth('lower',seconds,lowerOpen,q.light,q.impact);ctx.restore();
+ ctx.save();ctx.translate(0,-7*upperOpen-jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(upperAngle);ctx.translate(-P[0],-P[1]);drawPart('upper',direction,q.light);drawEmissive('upper',seconds,q.light,q.impact);drawTeeth('upper',seconds,upperOpen,q.light,q.impact);drawEyes(seconds,q.light,q.impact);ctx.restore();
+ ctx.save();ctx.translate(0,44*lowerOpen+jawTremor);ctx.translate(P[0],P[1]);ctx.rotate(lowerAngle);ctx.translate(-P[0],-P[1]);drawPart('lower',direction,q.light);drawEmissive('lower',seconds,q.light,q.impact);drawTeeth('lower',seconds,lowerOpen,q.light,q.impact);ctx.restore();
  ctx.restore();
  if(q.light>.02){
   // Bubbles and bite spray remain foreground reactions.
