@@ -499,7 +499,13 @@ function frame(now,dt){
 // Join the game's existing RAF scheduler instead of creating a parallel loop.
 // Both the WebGL update and this layered entity now advance from the same frame clock.
 const gameRAF=window.requestAnimationFrame.bind(window);
-let gameFrame=-1;
+let gameFrame=-1,hiddenAt=0;
+// Mobile app switching must pause the encounter clock, otherwise the bite can land immediately on resume.
+document.addEventListener('visibilitychange',()=>{
+ const now=performance.now();
+ if(document.hidden){hiddenAt=now;return}
+ if(hiddenAt){if(start)start+=now-hiddenAt;hiddenAt=0;gameFrame=now}
+},{passive:true});
 window.requestAnimationFrame=callback=>gameRAF(now=>{
  if(ready&&typeof window.__abyssPlayMawHit==='function'&&now!==gameFrame){
   if(!start)start=now;
