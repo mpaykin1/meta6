@@ -170,9 +170,10 @@ function sampleHero(seconds,force){
  if(!force&&seconds<nextHeroSample)return heroSample;
  nextHeroSample=seconds+.08;
  try{
-  const stats=typeof window.__abyssStats==='function'?window.__abyssStats():null;
+  const stats=typeof window.__abyssPlayHero==='function'?window.__abyssPlayHero():(typeof window.__abyssStats==='function'?window.__abyssStats():null);
   if(stats&&Array.isArray(stats.hero)){
-   heroSample=[Number(stats.hero[0])||0,Number(stats.hero[1])||0];
+   if(!heroSample)heroSample=[0,0];
+   heroSample[0]=Number(stats.hero[0])||0;heroSample[1]=Number(stats.hero[1])||0;
    worldWidth=Math.max(1,Number(stats.W)||worldWidth);
    worldHeight=Math.max(1,Number(stats.H)||worldHeight);
   }
