@@ -159,12 +159,23 @@ function resize(){
 }
 function clamp(x){return Math.max(0,Math.min(1,x))}
 function smooth(t){const a=clamp(t);return a*a*(3-2*a)}
+function springJaw(target,dt){
+ const step=Math.min(.05,Math.max(0,dt));
+ // The lower jaw follows the phase with mass instead of copying it frame-for-frame.
+ // Closing is faster than opening, with a small overshoot that reads as bite recoil.
+ const stiffness=target<jawOpen?150:92,damping=target<jawOpen?9.5:11.5;
+ jawVelocity+=(target-jawOpen)*stiffness*step;
+ jawVelocity*=Math.exp(-damping*step);
+ jawOpen=Math.max(-.045,Math.min(1.075,jawOpen+jawVelocity*step));
+ return jawOpen;
+}
 const FIRST=8.5, PERIOD=38.0;
 let start=0,last=0,attackedCycle=-1,rendered=0;
 let targetCycle=-2,targetHero=null,heroSample=null,nextHeroSample=0,aimX=0,aimY=0;
 let worldWidth=1,worldHeight=1;
 const gameCanvas=document.getElementById('gl');
 let cameraKick=0,retreatKickX=0,retreatKickY=0;
+let jawOpen=0,jawVelocity=0;
 const state={ready:false,visible:false,attackCount:0,avoidedCount:0,lastHit:false,reaction:'none',targetOffset:[0,0],cameraKick:0};
 function sampleHero(seconds,force){
  if(!force&&seconds<nextHeroSample)return heroSample;
@@ -404,10 +415,16 @@ function throat(time,open,light){
 }
 function drawJawLayer(part,time,open,glow,impact,direction,snap,showEyes){
  ctx.save();
- if(part==='lower'){
-  // Move the complete source-art lower jaw from the center hinge; never split the mouth into four swinging halves.
-  const drop=16*open;
-  const angle=-.055*open+snap;
+ if(part==='upper'){
+  // Lift the complete upper source layer from the shared hinge. No jaw or tooth stretching.
+  const lift=7*open;
+  ctx.translate(P[0],P[1]-lift);
+  ctx.rotate(.018*open-snap*.28);
+  ctx.translate(-P[0],-P[1]);
+ }else{
+  // The lower source layer carries most of the opening and rebounds around the same pivot.
+  const drop=24*open;
+  const angle=-.068*open+snap;
   ctx.translate(P[0],P[1]+drop);
   ctx.rotate(angle);
   ctx.translate(-P[0],-P[1]);
@@ -449,6 +466,7 @@ function frame(now,dt){
  state.targetOffset[0]=aimX;state.targetOffset[1]=aimY;
  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cw,ch);
  state.ready=ready;state.visible=ready&&q.visible>.02;state.phase=q.phase;state.elapsed=seconds;state.dt=dt;
+ const articulatedOpen=Math.max(0,springJaw(q.open,dt));
  if(!ready||q.visible<=.02)return;
  // Rendered into the actual game and anchored at the camera's center/player region.
  const direction=lightDirection;
@@ -475,11 +493,12 @@ function frame(now,dt){
  const bodyReveal=warning?smooth((q.light-.45)/.45):1;
  ctx.globalAlpha=warning?clamp(q.visible*(.18+.82*bodyReveal)):clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
- throat(seconds,q.open,q.light);
- // Keep the owner-painted upper silhouette intact; the lower jaw drops from the center hinge.
- const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
+ throat(seconds,clamp(articulatedOpen),q.light);
+ // Both owner-painted halves now separate around their shared pivot; neither source layer is scaled.
+ const upperOpen=smooth(clamp(articulatedOpen*.82));
+ const lowerOpen=smooth(clamp((articulatedOpen-.035)/.965));
  const snap=q.phase==='bite'?Math.sin((seconds-FIRST)*38)*q.impact*.012:0;
-  // Keep the owner-painted upper silhouette intact and articulate the original lower-jaw layer.
+  // Articulate the original source layers independently; the throat remains behind them.
   drawJawLayer('upper',seconds,upperOpen,q.light,q.impact,direction,0,!warning);
   drawJawLayer('lower',seconds,lowerOpen,q.light,q.impact,direction,-snap,false);
  if(warning){ctx.globalAlpha=clamp(.22+q.light*.72);drawEyes(seconds,q.light,0)}
