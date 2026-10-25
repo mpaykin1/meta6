@@ -45,12 +45,22 @@ function traceThroat(g){
 }
 const throatGlowCanvas=document.createElement('canvas'),throatGlowCtx=throatGlowCanvas.getContext('2d');
 throatGlowCanvas.width=96;throatGlowCanvas.height=112;
+const throatLayers=[];
 function cacheThroatGlow(){
  throatGlowCtx.imageSmoothingEnabled=false;throatGlowCtx.globalCompositeOperation='lighter';
  throatGlowCtx.shadowColor='#E57807';throatGlowCtx.shadowBlur=11;throatGlowCtx.globalAlpha=.7;
  throatGlowCtx.drawImage(throatArt,0,0);
  throatGlowCtx.shadowColor='#F9BD2B';throatGlowCtx.shadowBlur=4;throatGlowCtx.globalAlpha=.34;
  throatGlowCtx.drawImage(throatArt,0,0);
+ // Split the owner's painted cavity into concentric tissue rings once; the live loop only articulates them.
+ const rings=[[47,55,35,42],[36,43,25,31],[26,32,15,20],[16,21,0,0]];
+ for(const [outerX,outerY,innerX,innerY] of rings){
+  const layer=document.createElement('canvas'),g=layer.getContext('2d');
+  layer.width=96;layer.height=112;g.imageSmoothingEnabled=false;g.drawImage(throatArt,0,0);
+  g.globalCompositeOperation='destination-in';g.beginPath();g.ellipse(48,56,outerX,outerY,0,0,Math.PI*2);g.fill();
+  if(innerX>0){g.globalCompositeOperation='destination-out';g.beginPath();g.ellipse(48,56,innerX,innerY,0,0,Math.PI*2);g.fill()}
+  throatLayers.push(layer);
+ }
 }
 const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
 let partCache=null;
@@ -381,21 +391,23 @@ function biteImpact(seconds,intensity,s,ox,oy){
  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.92+.08*fade;
  ctx.drawImage(frame,ox-size*.5,oy-size*.5,size,size);ctx.restore();
 }
-function throat(time,open,light){
+function throat(time,open,light,impact){
  const reveal=smooth((open-.08)/.92),baseAlpha=ctx.globalAlpha;
  if(reveal<=0)return;
  const tx=P[0],ty=P[1]+18;
  ctx.save();ctx.globalAlpha=baseAlpha*reveal;
  const pulse=.5+.5*Math.sin(time*5.2);
- // The cavity is cut directly from the owner's painting; horizontal tissue bands breathe independently.
+ // The cavity is cut directly from the owner's painting; nested tissue rings contract toward the dark core.
  traceThroat(ctx);ctx.clip();
- const bands=7,bandH=16;
- for(let band=0;band<bands;band++){
-  const sy=band*bandH,h=Math.min(bandH,112-sy);
-  const depth=Math.abs(band-3)/3;
-  const dx=Math.sin(time*2.15-band*.72)*(1.7-depth*.55)*reveal;
-  const dy=Math.cos(time*1.45-band*.49)*.38*reveal;
-  ctx.drawImage(throatArt,0,sy,96,h,tx-48+dx,ty-56+sy+dy,96,h);
+ for(let ring=0;ring<throatLayers.length;ring++){
+  const depth=ring/(throatLayers.length-1),phase=time*3.05-ring*.82;
+  const swallow=Math.sin(phase)*(.018+depth*.012)*reveal;
+  const recoil=impact*Math.sin(ring*1.8+1.1)*(.026+depth*.012);
+  const scale=1+swallow+recoil;
+  const dx=Math.sin(time*1.55-ring*.63)*(1.25-depth*.42)*reveal;
+  const dy=Math.cos(time*1.32-ring*.47)*(.48+depth*.15)*reveal;
+  ctx.save();ctx.translate(tx+dx,ty+dy);ctx.rotate(Math.sin(phase*.55)*(.005+depth*.004));
+  ctx.scale(scale,scale);ctx.drawImage(throatLayers[ring],-48,-56);ctx.restore();
  }
  ctx.globalCompositeOperation='lighter';
  ctx.globalAlpha=baseAlpha*reveal*(.16+.13*pulse)*(.58+.42*light);
@@ -498,7 +510,7 @@ function frame(now,dt){
  const bodyReveal=warning?smooth((q.light-.45)/.45):1;
  ctx.globalAlpha=warning?clamp(q.visible*(.18+.82*bodyReveal)):clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
- throat(seconds,clamp(articulatedOpen),q.light);
+ throat(seconds,clamp(articulatedOpen),q.light,q.impact);
  // Both owner-painted halves now separate around their shared pivot; neither source layer is scaled.
  const upperOpen=smooth(clamp(articulatedOpen*.82));
  const lowerOpen=smooth(clamp((articulatedOpen-.035)/.965));
