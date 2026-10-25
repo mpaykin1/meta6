@@ -429,7 +429,9 @@ function frame(now,dt){
   targetCycle=q.cycle;
   const hero=sampleHero(seconds,true);
   targetHero=hero&&hero.slice();
-  aimX=0;aimY=0;retreatKickX=0;retreatKickY=0;state.reaction='none';
+  aimX=0;aimY=0;retreatKickX=0;retreatKickY=0;state.reaction='warning';
+  // The fish notices the eye-and-bubble warning before the jaws lunge; one hook call per encounter.
+  try{if(typeof window.__abyssPlayMawWarn==='function')window.__abyssPlayMawWarn(q.cycle%2?1:-1)}catch(e){console.error('ABYSS maw warning:',e)}
  }
  const hero=q.cycle>=0?sampleHero(seconds,false):heroSample;
  if(targetHero&&hero){
