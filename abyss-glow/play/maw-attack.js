@@ -15,16 +15,16 @@ ctx.imageSmoothingEnabled=false;
 const haloCanvas=document.createElement('canvas'),haloCtx=haloCanvas.getContext('2d');
 haloCanvas.width=haloCanvas.height=256;
 const haloGradient=haloCtx.createRadialGradient(128,128,6,128,128,128);
-haloGradient.addColorStop(0,'rgba(255,231,102,.18)');
-haloGradient.addColorStop(.36,'rgba(255,143,8,.12)');
-haloGradient.addColorStop(.7,'rgba(207,55,0,.045)');
+haloGradient.addColorStop(0,'rgba(253,231,102,.18)');
+haloGradient.addColorStop(.36,'rgba(249,189,43,.12)');
+haloGradient.addColorStop(.7,'rgba(173,66,1,.045)');
 haloGradient.addColorStop(1,'rgba(0,0,0,0)');
 haloCtx.fillStyle=haloGradient;haloCtx.fillRect(0,0,256,256);
 // Cached broken rings and suspended flecks make the predator travel through water depth instead of only scaling up.
 const wakeCanvas=document.createElement('canvas'),wakeCtx=wakeCanvas.getContext('2d');
 wakeCanvas.width=wakeCanvas.height=256;wakeCtx.translate(128,128);wakeCtx.globalCompositeOperation='lighter';
 for(let ring=0;ring<4;ring++){
- wakeCtx.strokeStyle=ring%2?'rgba(255,145,18,.22)':'rgba(255,211,79,.17)';
+ wakeCtx.strokeStyle=ring%2?'rgba(229,120,7,.22)':'rgba(249,189,43,.17)';
  wakeCtx.lineWidth=1+ring*.45;wakeCtx.setLineDash([8+ring*3,15+ring*5]);
  wakeCtx.beginPath();wakeCtx.arc(0,0,30+ring*22,-2.75,2.7);wakeCtx.stroke();
 }
@@ -32,7 +32,7 @@ wakeCtx.setLineDash([]);
 for(let i=0;i<24;i++){
  const angle=(i/24)*Math.PI*2+(i%3)*.09,r=24+(i*29%83),length=4+(i%5)*2;
  wakeCtx.save();wakeCtx.rotate(angle);wakeCtx.globalAlpha=.14+(i%4)*.035;
- wakeCtx.fillStyle=i%3?'#e47708':'#ffd75a';wakeCtx.fillRect(r,-.55,length,1.1);wakeCtx.restore();
+ wakeCtx.fillStyle=i%3?'#E57807':'#FDE766';wakeCtx.fillRect(r,-.55,length,1.1);wakeCtx.restore();
 }
 function traceThroat(g){
  g.beginPath();g.moveTo(P[0]-3,P[1]-27);
@@ -45,12 +45,12 @@ const throatCanvas=document.createElement('canvas'),throatCtx=throatCanvas.getCo
 const throatGlowCanvas=document.createElement('canvas'),throatGlowCtx=throatGlowCanvas.getContext('2d');
 throatCanvas.width=throatGlowCanvas.width=96;throatCanvas.height=throatGlowCanvas.height=112;
 const throatGradient=throatCtx.createRadialGradient(44,60,3,47,58,47);
-throatGradient.addColorStop(0,'#010000');throatGradient.addColorStop(.5,'#050000');
-throatGradient.addColorStop(.78,'#170200');throatGradient.addColorStop(1,'#020000');
+throatGradient.addColorStop(0,'#000000');throatGradient.addColorStop(.5,'#000000');
+throatGradient.addColorStop(.78,'#3E1500');throatGradient.addColorStop(1,'#000000');
 throatCtx.fillStyle=throatGradient;throatCtx.fillRect(0,0,96,112);
 const throatGlow=throatGlowCtx.createRadialGradient(34,34,2,49,56,61);
-throatGlow.addColorStop(0,'rgba(255,224,92,.28)');throatGlow.addColorStop(.26,'rgba(255,137,11,.2)');
-throatGlow.addColorStop(.66,'rgba(181,43,2,.1)');throatGlow.addColorStop(1,'rgba(0,0,0,0)');
+throatGlow.addColorStop(0,'rgba(253,231,102,.28)');throatGlow.addColorStop(.26,'rgba(229,120,7,.2)');
+throatGlow.addColorStop(.66,'rgba(173,66,1,.1)');throatGlow.addColorStop(1,'rgba(0,0,0,0)');
 throatGlowCtx.fillStyle=throatGlow;throatGlowCtx.fillRect(0,0,96,112);
 const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
 let partCache=null;
@@ -70,7 +70,7 @@ const GLOW_PAD=64;
 function cacheEmissiveGlow(source,glow){
  const layer=document.createElement('canvas'),g=layer.getContext('2d');
  layer.width=SIZE[0]+GLOW_PAD*2;layer.height=SIZE[1]+GLOW_PAD*2;g.imageSmoothingEnabled=false;
- g.globalCompositeOperation='lighter';g.shadowColor='#ff9f0a';
+ g.globalCompositeOperation='lighter';g.shadowColor='#F9BD2B';
  g.globalAlpha=Math.min(1,.72+glow*.25);g.shadowBlur=18+glow*38;g.drawImage(source,GLOW_PAD,GLOW_PAD);
  g.globalAlpha=Math.min(.48,.22+glow*.18);g.shadowBlur=4+glow*7;g.drawImage(source,GLOW_PAD,GLOW_PAD);
  return layer;
@@ -78,7 +78,7 @@ function cacheEmissiveGlow(source,glow){
 function cacheEyeGlow(source,blur){
  const layer=document.createElement('canvas'),g=layer.getContext('2d');
  layer.width=SIZE[0];layer.height=SIZE[1];g.imageSmoothingEnabled=false;
- g.globalCompositeOperation='lighter';g.shadowColor='#ffd95a';g.shadowBlur=blur;
+ g.globalCompositeOperation='lighter';g.shadowColor='#FDE766';g.shadowBlur=blur;
  g.globalAlpha=.92;g.drawImage(source,0,0);return layer;
 }
 function cachePart(part){
@@ -96,7 +96,7 @@ function cachePart(part){
  // Lift the original painted teeth out of the detail sheet; no replacement geometry.
  teethCtx.drawImage(detail,0,0);teethCtx.globalCompositeOperation='destination-in';
  teethCtx.fillStyle='#fff';toothRegion(teethCtx,part);teethCtx.globalCompositeOperation='source-over';
- teethGlowCtx.shadowColor='#ffb21a';teethGlowCtx.shadowBlur=8;teethGlowCtx.drawImage(teeth,0,0);
+ teethGlowCtx.shadowColor='#F9BD2B';teethGlowCtx.shadowBlur=8;teethGlowCtx.drawImage(teeth,0,0);
  detailCtx.globalCompositeOperation='destination-out';detailCtx.drawImage(teeth,0,0);
  baseCtx.drawImage(detail,0,0);
  const [ex,ey]=rect[part].emissive;
@@ -299,7 +299,7 @@ function drawEyes(time,glow,impact,side=0){
 }
 const BUBBLE_N=15,bubbleBaseX=new Float32Array(BUBBLE_N),bubblePhase=new Float32Array(BUBBLE_N);
 for(let i=0;i<BUBBLE_N;i++){bubbleBaseX[i]=Math.sin(i*7.13)*90;bubblePhase[i]=i/BUBBLE_N}
-const bubbleColors=['#ffd36a','#faa22b','#b85c0e'],bubbleAlpha=[.43,.32,.2];
+const bubbleColors=['#FDE766','#F9BD2B','#AD4201'],bubbleAlpha=[.43,.32,.2];
 function bubbles(time,s,ox,oy){
  ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineWidth=Math.max(.7,s*.65);
  // Three batched depth layers preserve the rising drift while replacing fifteen strokes with three.
@@ -318,7 +318,7 @@ function bubbles(time,s,ox,oy){
  }
  ctx.restore();
 }
-const impactColors=['#FFF19A','#F9BD2B','#E57807'];
+const impactColors=['#FDE766','#F9BD2B','#E57807'];
 const impactFrames=[.08,.25,.5,.75,1].map(fade=>{
  const c=document.createElement('canvas'),g=c.getContext('2d'),ox=96,oy=96,pixel=1;
  c.width=c.height=192;g.globalCompositeOperation='lighter';
@@ -387,7 +387,7 @@ function throat(time,open,light){
    const sway=Math.sin(time*(1.8+i*.22)+i*1.4)*2.1;
    const x=tx+side*(14+i*7);
    ctx.globalAlpha=baseAlpha*reveal*(.19-i*.035+.075*light);
-   ctx.strokeStyle=i===0?'#e35d07':(side<0?'#9d2602':'#bd3403');
+   ctx.strokeStyle=i===0?'#E57807':(side<0?'#702700':'#AD4201');
    ctx.beginPath();ctx.moveTo(x,ty-30+i*3);
    ctx.bezierCurveTo(x-side*(5+sway),ty-8,x-side*(8-i),ty+13,x-side*(3+i),ty+38-i*2);ctx.stroke();
   }
@@ -396,9 +396,9 @@ function throat(time,open,light){
  for(let i=0;i<9;i++){
   const x=tx-13+(i*17%27),y=ty+19+(i*11%18),r=.45+(i%3)*.22;
   ctx.globalAlpha=baseAlpha*reveal*(.08+.08*light)*(1-.25*Math.sin(time*3+i));
-  ctx.fillStyle=i%3?'#a32a03':'#e05a08';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=i%3?'#702700':'#E57807';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
  }
- ctx.globalCompositeOperation='source-over';ctx.globalAlpha=baseAlpha*reveal*(.82+.08*pulse);ctx.fillStyle='#010000';
+ ctx.globalCompositeOperation='source-over';ctx.globalAlpha=baseAlpha*reveal*(.82+.08*pulse);ctx.fillStyle='#000000';
  ctx.beginPath();ctx.ellipse(tx-2,ty+2,7.5+pulse,16+pulse*2,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
