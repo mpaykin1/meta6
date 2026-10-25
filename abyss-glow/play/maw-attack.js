@@ -210,8 +210,8 @@ function frameState(seconds){
   let open;
   if(raw<.30)open=.9+.1*smooth(raw/.30);
   else if(raw<.48)open=1;
-  else if(raw<.82)open=1-.8*smooth((raw-.48)/.34);
-  else open=.2+.18*smooth((raw-.82)/.18);
+  else if(raw<.82)open=1-.95*smooth((raw-.48)/.34);
+  else open=.05+.13*smooth((raw-.82)/.18);
   const impact=Math.sin(Math.PI*clamp((raw-.48)/.52));
   return setFrameQ('bite',1,.95+.08*a-.018*impact,open,1+.35*impact,impact,raw>=.78,cycle);
  }
@@ -405,15 +405,16 @@ function throat(time,open,light){
 function drawJawLayer(part,time,open,glow,impact,direction,recoil,showEyes){
  ctx.save();
  if(part==='upper'){
-  // Lift the complete upper source layer from the shared hinge. No jaw or tooth stretching.
-  const lift=7*open;
+  // Close inward, then lift the complete upper source layer from the hinge. No jaw or tooth stretching.
+  const lift=-5+12*open;
+  const angle=-.012*(1-open)+.018*open+recoil*.45;
   ctx.translate(P[0],P[1]-lift);
-  ctx.rotate(.018*open+recoil*.45);
+  ctx.rotate(angle);
   ctx.translate(-P[0],-P[1]);
  }else{
-  // The lower source layer carries most of the opening and rebounds around the same pivot.
-  const drop=24*open;
-  const angle=-.068*open-recoil;
+  // The lower source layer interlocks on impact, then carries most of the opening around the same pivot.
+  const drop=-30+54*open;
+  const angle=.04*(1-open)-.068*open-recoil;
   ctx.translate(P[0],P[1]+drop);
   ctx.rotate(angle);
   ctx.translate(-P[0],-P[1]);
