@@ -401,18 +401,20 @@ function throat(time,open,light){
  ctx.beginPath();ctx.ellipse(tx-2,ty+2,7.5+pulse,16+pulse*2,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
-function drawJawHalf(part,side,time,open,glow,impact,direction,snap,showEyes){
- const pivotX=side<0?-36:SIZE[0]+36;
- const baseSwing=part==='upper'?.105*open:-.15*open;
- const angle=side*(baseSwing+snap);
+function drawJawLayer(part,time,open,glow,impact,direction,snap,showEyes){
  ctx.save();
- ctx.translate(pivotX,P[1]);ctx.rotate(angle);ctx.translate(-pivotX,-P[1]);
- ctx.beginPath();
- if(side<0)ctx.rect(-GLOW_PAD,-GLOW_PAD,P[0]+GLOW_PAD+1,SIZE[1]+GLOW_PAD*2);
- else ctx.rect(P[0]-1,-GLOW_PAD,SIZE[0]-P[0]+GLOW_PAD+1,SIZE[1]+GLOW_PAD*2);
- ctx.clip();
- drawPart(part,direction,glow);drawEmissive(part,time,glow,impact);drawTeeth(part,time,open,glow,impact);
- if(part==='upper'&&showEyes)drawEyes(time,glow,impact,side);
+ if(part==='lower'){
+  // Move the complete source-art lower jaw from the center hinge; never split the mouth into four swinging halves.
+  const drop=16*open;
+  const angle=-.055*open+snap;
+  ctx.translate(P[0],P[1]+drop);
+  ctx.rotate(angle);
+  ctx.translate(-P[0],-P[1]);
+ }
+ drawPart(part,direction,glow);
+ drawEmissive(part,time,glow,impact);
+ drawTeeth(part,time,open,glow,impact);
+ if(part==='upper'&&showEyes)drawEyes(time,glow,impact);
  ctx.restore();
 }
 function frame(now,dt){
@@ -476,10 +478,9 @@ function frame(now,dt){
  // Four rigid half-jaws rotate around fixed hidden side pivots; no tooth stretch and no drifting hinge.
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
  const snap=q.phase==='bite'?Math.sin((seconds-FIRST)*38)*q.impact*.012:0;
- drawJawHalf('upper',-1,seconds,upperOpen,q.light,q.impact,direction,snap,!warning);
- drawJawHalf('upper',1,seconds,upperOpen,q.light,q.impact,direction,snap,!warning);
- drawJawHalf('lower',-1,seconds,lowerOpen,q.light,q.impact,direction,-snap,false);
- drawJawHalf('lower',1,seconds,lowerOpen,q.light,q.impact,direction,-snap,false);
+  // Keep the owner-painted upper silhouette intact and articulate the original lower-jaw layer.
+  drawJawLayer('upper',seconds,upperOpen,q.light,q.impact,direction,0,!warning);
+  drawJawLayer('lower',seconds,lowerOpen,q.light,q.impact,direction,-snap,false);
  if(warning){ctx.globalAlpha=clamp(.22+q.light*.72);drawEyes(seconds,q.light,0)}
  ctx.restore();
  if(q.light>.02){
