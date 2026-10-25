@@ -165,8 +165,8 @@ function drawTeeth(part,time,open,glow,impact){
 const eyeSockets=[[59,107],[158,105]];
 function drawEyes(time,glow,impact){
  const source=partCache.upper.eyes;
- const gazeX=clamp(aimX/Math.max(1,cw))*5.5;
- const gazeY=clamp(aimY/Math.max(1,ch))*4;
+ const gazeX=Math.max(-1,Math.min(1,aimX/Math.max(1,cw)))*5.5;
+ const gazeY=Math.max(-1,Math.min(1,aimY/Math.max(1,ch)))*4;
  ctx.save();ctx.globalCompositeOperation='lighter';
  ctx.shadowColor='#ffd95a';ctx.shadowBlur=8+glow*19;
  for(let i=0;i<eyeSockets.length;i++){
