@@ -88,11 +88,18 @@ let ready=false;loaded.then(ok=>{ready=ok});
 let cw=0,ch=0,viewWidth=0,viewHeight=0;
 let lightDirection=1;
 function aimLight(event){
- const x=event.clientX-innerWidth*.5,y=event.clientY-innerHeight*.47;
+ const point=event.touches&&event.touches.length?event.touches[0]:event;
+ if(!point||!Number.isFinite(point.clientX)||!Number.isFinite(point.clientY))return;
+ const x=point.clientX-innerWidth*.5,y=point.clientY-innerHeight*.47;
  lightDirection=(Math.round((Math.atan2(y,x)+Math.PI*2)/(Math.PI*.25))+8)%8;
 }
 addEventListener('pointerdown',aimLight,{passive:true});
 addEventListener('pointermove',aimLight,{passive:true});
+// Older mobile Safari: mirror the finger into directional light without stealing fish controls.
+if(!('PointerEvent' in window)){
+ addEventListener('touchstart',aimLight,{passive:true});
+ addEventListener('touchmove',aimLight,{passive:true});
+}
 function resize(){
  const w=window.innerWidth,h=window.innerHeight,dpr=Math.min(devicePixelRatio||1,1.6);
  const factor=Math.min(1,1080/Math.max(w*dpr,h*dpr));
