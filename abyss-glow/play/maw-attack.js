@@ -399,7 +399,7 @@ function throat(time,open,light){
  ctx.beginPath();ctx.ellipse(tx-2,ty+2,7.5+pulse,16+pulse*2,0,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
-function drawJawHalf(part,side,time,open,glow,impact,direction,snap){
+function drawJawHalf(part,side,time,open,glow,impact,direction,snap,showEyes){
  const pivotX=side<0?-36:SIZE[0]+36;
  const baseSwing=part==='upper'?.105*open:-.15*open;
  const angle=side*(baseSwing+snap);
@@ -410,7 +410,7 @@ function drawJawHalf(part,side,time,open,glow,impact,direction,snap){
  else ctx.rect(P[0]-1,-GLOW_PAD,SIZE[0]-P[0]+GLOW_PAD+1,SIZE[1]+GLOW_PAD*2);
  ctx.clip();
  drawPart(part,direction,glow);drawEmissive(part,time,glow,impact);drawTeeth(part,time,open,glow,impact);
- if(part==='upper')drawEyes(time,glow,impact);
+ if(part==='upper'&&showEyes)drawEyes(time,glow,impact);
  ctx.restore();
 }
 function frame(now,dt){
@@ -463,16 +463,20 @@ function frame(now,dt){
   ctx.drawImage(haloCanvas,cx-haloRadius,cy-haloRadius,haloRadius*2,haloRadius*2);ctx.restore();
  }
  ctx.save();ctx.translate(cx,cy);ctx.rotate(retreatRoll);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
- ctx.globalAlpha=clamp(q.visible);
+ const warning=q.phase==='warning';
+ // During warning the real emissive eyes appear first; the full silhouette stays inside black water until the lunge.
+ const bodyReveal=warning?smooth((q.light-.45)/.45):1;
+ ctx.globalAlpha=warning?clamp(q.visible*(.18+.82*bodyReveal)):clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
  throat(seconds,q.open,q.light);
  // Four rigid half-jaws rotate around fixed hidden side pivots; no tooth stretch and no drifting hinge.
  const upperOpen=smooth(q.open*.82),lowerOpen=smooth(Math.max(0,(q.open-.06)/.94));
  const snap=q.phase==='bite'?Math.sin((seconds-FIRST)*38)*q.impact*.012:0;
- drawJawHalf('upper',-1,seconds,upperOpen,q.light,q.impact,direction,snap);
- drawJawHalf('upper',1,seconds,upperOpen,q.light,q.impact,direction,snap);
- drawJawHalf('lower',-1,seconds,lowerOpen,q.light,q.impact,direction,-snap);
- drawJawHalf('lower',1,seconds,lowerOpen,q.light,q.impact,direction,-snap);
+ drawJawHalf('upper',-1,seconds,upperOpen,q.light,q.impact,direction,snap,!warning);
+ drawJawHalf('upper',1,seconds,upperOpen,q.light,q.impact,direction,snap,!warning);
+ drawJawHalf('lower',-1,seconds,lowerOpen,q.light,q.impact,direction,-snap,false);
+ drawJawHalf('lower',1,seconds,lowerOpen,q.light,q.impact,direction,-snap,false);
+ if(warning){ctx.globalAlpha=clamp(.22+q.light*.72);drawEyes(seconds,q.light,0)}
  ctx.restore();
  if(q.light>.02){
   // Bubbles and bite spray remain foreground reactions.
