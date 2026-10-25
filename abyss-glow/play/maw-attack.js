@@ -130,7 +130,10 @@ const loaded=Promise.all([imageReady(atlas),imageReady(lights)]).then(()=>{
  return true;
 }).catch(err=>{console.error('ABYSS play maw art unavailable:',err);return false});
 let ready=false;loaded.then(ok=>{ready=ok});
-let cw=0,ch=0,viewWidth=0,viewHeight=0;
+let cw=0,ch=0,viewWidth=0,viewHeight=0,resizeDirty=true;
+const markResize=()=>{resizeDirty=true};
+addEventListener('resize',markResize,{passive:true});
+if(window.visualViewport)visualViewport.addEventListener('resize',markResize,{passive:true});
 let lightDirection=1;
 function aimLight(event){
  const point=event.touches&&event.touches.length?event.touches[0]:event;
@@ -146,6 +149,8 @@ if(!('PointerEvent' in window)){
  addEventListener('touchmove',aimLight,{passive:true});
 }
 function resize(){
+ if(!resizeDirty)return;
+ resizeDirty=false;
  const w=window.innerWidth,h=window.innerHeight,dpr=Math.min(devicePixelRatio||1,1.6);
  const factor=Math.min(1,1080/Math.max(w*dpr,h*dpr));
  const width=Math.max(1,Math.round(w*dpr*factor)),height=Math.max(1,Math.round(h*dpr*factor));
