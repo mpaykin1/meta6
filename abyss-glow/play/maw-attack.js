@@ -414,7 +414,10 @@ function frame(now,dt){
  if(q.hit&&q.cycle!==attackedCycle){
   attackedCycle=q.cycle;
   const hero=sampleHero(seconds,true);
-  const inMouth=!targetHero||!hero||Math.hypot(hero[0]-targetHero[0],hero[1]-targetHero[1])<38;
+  // Resolve the bite against the visible mouth in screen space, so portrait touch and desktop share one honest hit area.
+  const mouthDistance=Math.hypot(aimX,aimY);
+  const mouthRadius=Math.max(22*s,Math.min(cw,ch)*.055);
+  const inMouth=!targetHero||!hero||mouthDistance<mouthRadius;
   let hit=false;
   if(inMouth){
    try{if(typeof window.__abyssPlayMawHit==='function')hit=!!window.__abyssPlayMawHit()}catch(e){console.error('ABYSS maw hit:',e)}
