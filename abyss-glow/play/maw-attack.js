@@ -474,9 +474,24 @@ function frame(now,dt){
  const base=Math.min(cw/SIZE[0],ch/SIZE[1])*.86;
  const s=base*q.scale;
  const retreatProgress=q.phase==='retreat'?smooth(1-q.visible):0;
+ let approachX=0,approachY=0,approachRoll=0;
+ const approachSide=q.cycle%2?1:-1;
+ if(q.phase==='warning'){
+  // The eye warning drifts out of black water instead of appearing as a centered overlay.
+  const settle=smooth((q.light-.14)/.76);
+  approachX=approachSide*cw*(.085-.035*settle);
+  approachY=ch*(.055-.018*settle);
+  approachRoll=approachSide*(.045-.015*settle);
+ }else if(q.phase==='emerge'){
+  // Perspective travel resolves to the fish before the bite so the hit area stays honest.
+  const settle=smooth((q.visible-.42)/.58),remaining=1-settle;
+  approachX=approachSide*cw*.05*remaining;
+  approachY=ch*.037*remaining;
+  approachRoll=approachSide*.03*remaining;
+ }
  // A missed strike carries past the fish and rolls away; a hit recoils mostly into depth.
- const cx=cw*.5+aimX+retreatKickX*retreatProgress;
- const cy=ch*.47+aimY+retreatKickY*retreatProgress;
+ const cx=cw*.5+aimX+approachX+retreatKickX*retreatProgress;
+ const cy=ch*.47+aimY+approachY+retreatKickY*retreatProgress;
  const retreatRoll=(retreatKickX/Math.max(1,cw))*retreatProgress*.72;
  // Staggered parallax wake makes the approach read as travel through black water, not a flat sprite zoom.
  depthWake(seconds,q,s,cx,cy);
@@ -487,7 +502,7 @@ function frame(now,dt){
   ctx.globalCompositeOperation='lighter';
   ctx.drawImage(haloCanvas,cx-haloRadius,cy-haloRadius,haloRadius*2,haloRadius*2);ctx.restore();
  }
- ctx.save();ctx.translate(cx,cy);ctx.rotate(retreatRoll);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(approachRoll+retreatRoll);ctx.scale(s,s);ctx.translate(-P[0],-P[1]);
  const warning=q.phase==='warning';
  // During warning the real emissive eyes appear first; the full silhouette stays inside black water until the lunge.
  const bodyReveal=warning?smooth((q.light-.45)/.45):1;
