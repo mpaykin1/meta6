@@ -64,6 +64,23 @@ function cacheThroatGlow(){
 }
 const rect={upper:{body:[2,2],detail:[223,2],emissive:[665,2]},lower:{body:[2,295],detail:[223,295],emissive:[665,295]}};
 let partCache=null;
+// Blend the 8 painted light directions only when touch/pointer input moves; the live renderer keeps one draw per jaw.
+const lightCanvas={upper:document.createElement('canvas'),lower:document.createElement('canvas')};
+const lightCtx={upper:lightCanvas.upper.getContext('2d'),lower:lightCanvas.lower.getContext('2d')};
+for(const part of ['upper','lower']){
+ lightCanvas[part].width=SIZE[0];lightCanvas[part].height=SIZE[1];lightCtx[part].imageSmoothingEnabled=false;
+}
+function rebuildDirectionalLight(){
+ if(!lights.naturalWidth)return;
+ const direction=((lightDirection%8)+8)%8,first=Math.floor(direction),mix=direction-first,second=(first+1)%8;
+ for(const part of ['upper','lower']){
+  const g=lightCtx[part],row=part==='upper'?0:SIZE[1];
+  g.clearRect(0,0,SIZE[0],SIZE[1]);g.globalAlpha=1-mix;
+  g.drawImage(lights,first*SIZE[0],row,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
+  if(mix>.001){g.globalAlpha=mix;g.drawImage(lights,second*SIZE[0],row,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1])}
+  g.globalAlpha=1;
+ }
+}
 function toothRegion(g,part){
  g.beginPath();
  if(part==='upper'){
@@ -137,7 +154,7 @@ function imageReady(image){
 }
 const loaded=Promise.all([imageReady(atlas),imageReady(lights),imageReady(throatArt)]).then(()=>{
  partCache={upper:cachePart('upper'),lower:cachePart('lower')};
- cacheThroatGlow();
+ cacheThroatGlow();rebuildDirectionalLight();
  return true;
 }).catch(err=>{console.error('ABYSS play maw art unavailable:',err);return false});
 let ready=false;loaded.then(ok=>{ready=ok});
@@ -150,7 +167,8 @@ function aimLight(event){
  const point=event.touches&&event.touches.length?event.touches[0]:event;
  if(!point||!Number.isFinite(point.clientX)||!Number.isFinite(point.clientY))return;
  const x=point.clientX-innerWidth*.5,y=point.clientY-innerHeight*.47;
- lightDirection=(Math.round((Math.atan2(y,x)+Math.PI*2)/(Math.PI*.25))+8)%8;
+ const next=((Math.atan2(y,x)+Math.PI*2)/(Math.PI*.25)+8)%8;
+ if(Math.abs(next-lightDirection)>.025){lightDirection=next;rebuildDirectionalLight()}
 }
 addEventListener('pointerdown',aimLight,{passive:true});
 addEventListener('pointermove',aimLight,{passive:true});
@@ -231,8 +249,7 @@ function frameState(seconds){
 function drawPart(part,direction,glow){
  const cached=partCache[part],baseAlpha=ctx.globalAlpha;
  ctx.drawImage(cached.base,0,0);
- const row=part==='upper'?0:SIZE[1];
- ctx.drawImage(lights,direction*SIZE[0],row,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
+ ctx.drawImage(lightCanvas[part],0,0);
  if(glow>0){
   ctx.save();ctx.globalCompositeOperation='lighter';
   let first=cached.glowLow,second=null,mix=0;
