@@ -2,8 +2,12 @@
 // ABYSS GLOW play: owner-derived layered maw encounter in actual game.
 // No changes to the accepted stand. Transparent overlay does not intercept touch.
 const SIZE=[217,289], P=[108,168], atlas=new Image(),lights=new Image(),throatArt=new Image();
+const lanternSide=new Image(),lanternFront=new Image(),invertedBells=new Image();
 atlas.src='../assets/maw_front_v1/maw_front_atlas.png';
 lights.src='../assets/maw_front_v1/maw_front_light8.png';
+lanternSide.src='assets/lantern-ray/lantern_ray_side4.png';
+lanternFront.src='assets/lantern-ray/lantern_ray_front.png';
+invertedBells.src='assets/lantern-ray/inverted_bells_biome.png';
 // Palette-locked 96x112 crop from sketches/maw_front_owner.png; embedded to avoid a third network request.
 throatArt.src='data:image/png;base64,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';
 const canvas=document.createElement('canvas');
@@ -195,7 +199,10 @@ function imageReady(image){
  if(typeof image.decode!=='function')return eventReady();
  return image.decode().catch(eventReady);
 }
-const loaded=Promise.all([imageReady(atlas),imageReady(lights),imageReady(throatArt)]).then(()=>{
+const loaded=Promise.all([
+ imageReady(atlas),imageReady(lights),imageReady(throatArt),
+ imageReady(lanternSide),imageReady(lanternFront),imageReady(invertedBells)
+]).then(()=>{
  partCache={upper:cachePart('upper'),lower:cachePart('lower')};
  cacheThroatGlow();rebuildDirectionalLight();
  return true;
@@ -530,6 +537,50 @@ function drawJawLayer(part,time,open,glow,impact,direction,recoil,showEyes){
  if(part==='upper'&&showEyes)drawEyes(time,glow,impact);
  ctx.restore();
 }
+const lanternState={visible:false,front:false,side:true,guide:'finger-light',z:-24,biomePlanes:3,position:[0,0]};
+window.__abyssLanternRay=()=>lanternState;
+let lanternX=0,lanternY=0,lanternStarted=false;
+function drawMirroredBiomeLayer(time,layer){
+ const tileW=Math.max(cw*(1.05+layer*.24),620),tileH=tileW*invertedBells.height/invertedBells.width;
+ const travel=(time*(5+layer*3.5))%(tileW*2),baseX=-tileW*2+travel;
+ const baseY=-tileH+Math.sin(time*(.055+layer*.018)+layer)*tileH*.14;
+ ctx.save();ctx.globalAlpha=[.16,.23,.34][layer];
+ for(let row=-1;row<=Math.ceil(ch/tileH)+1;row++)for(let col=0;col<6;col++){
+  const flipX=(col&1)!==0,flipY=((row+layer)&1)!==0;
+  const x=baseX+col*tileW,y=baseY+row*tileH;
+  ctx.save();ctx.translate(x+(flipX?tileW:0),y+(flipY?tileH:0));ctx.scale(flipX?-1:1,flipY?-1:1);
+  ctx.drawImage(invertedBells,0,0,tileW,tileH);ctx.restore();
+ }
+ ctx.restore();
+}
+function drawLanternRay(time,dt){
+ for(let layer=0;layer<3;layer++)drawMirroredBiomeLayer(time,layer);
+ const angle=lightDirection*Math.PI*.25,reach=Math.min(cw,ch)*.235;
+ const targetX=cw*.5+Math.cos(angle)*reach,targetY=ch*.5+Math.sin(angle)*reach*.78;
+ if(!lanternStarted){lanternX=cw*.5-reach;lanternY=ch*.57;lanternStarted=true}
+ const follow=1-Math.exp(-Math.max(0,dt)*2.15);
+ lanternX+=(targetX-lanternX)*follow;lanternY+=(targetY-lanternY)*follow;
+ const alpha=clamp((time-2.5)/2.4),bob=Math.sin(time*1.35)*Math.max(2,ch*.006);
+ const dx=targetX-lanternX,dy=targetY-lanternY,front=Math.abs(dy)>Math.abs(dx)*1.08;
+ lanternState.visible=alpha>.02;lanternState.front=front;lanternState.side=!front;
+ lanternState.position[0]=Math.round(lanternX);lanternState.position[1]=Math.round(lanternY+bob);
+ if(alpha<=0)return;
+ const localDpr=Math.max(1,cw/Math.max(1,viewWidth));
+ const width=Math.min(cw*.52,220*localDpr),height=width*160/256;
+ ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=alpha*.24;
+ const haloW=width*1.75,haloH=height*2.05;
+ ctx.drawImage(haloCanvas,lanternX-haloW*.5,lanternY+bob-haloH*.5,haloW,haloH);ctx.restore();
+ ctx.save();ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=false;
+ if(front){
+  const frontW=width*.86,frontH=frontW*160/256;
+  ctx.drawImage(lanternFront,lanternX-frontW*.5,lanternY+bob-frontH*.5,frontW,frontH);
+ }else{
+  const frame=Math.floor(time*2.2)%4,flip=dx<0;
+  ctx.translate(lanternX,lanternY+bob);ctx.scale(flip?-1:1,1);
+  ctx.drawImage(lanternSide,frame*256,0,256,160,-width*.5,-height*.5,width,height);
+ }
+ ctx.restore();
+}
 function frame(now,dt){
  resize();
  const seconds=(now-start)/1000;const q=frameState(seconds);
@@ -562,7 +613,10 @@ function frame(now,dt){
  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cw,ch);
  state.ready=ready;state.visible=ready&&q.visible>.02;state.phase=q.phase;state.elapsed=seconds;state.dt=dt;
  const articulatedOpen=Math.max(0,springJaw(q.open,dt));
- if(!ready||q.visible<=.02)return;
+ if(!ready)return;
+ // The new friend and location reuse this already-scheduled game pass: no new canvas and no new RAF.
+ drawLanternRay(seconds,dt);
+ if(q.visible<=.02){preserveHeroForeground();state.rendered=++rendered;return}
  // Rendered into the actual game and anchored at the camera's center/player region.
  const direction=lightDirection;
  // Keep the whole owner silhouette, fins and teeth inside both portrait and landscape playfields.
