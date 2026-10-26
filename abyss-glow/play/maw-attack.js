@@ -544,8 +544,14 @@ function drawMirroredBiomeLayer(time,layer){
  const tileW=Math.max(cw*(1.05+layer*.24),620),tileH=tileW*invertedBells.height/invertedBells.width;
  const travel=(time*(5+layer*3.5))%(tileW*2),baseX=-tileW*2+travel;
  const baseY=-tileH+Math.sin(time*(.055+layer*.018)+layer)*tileH*.14;
+ // Cull mirrored tiles before issuing drawImage: the old fixed six-column loop drew
+ // several full-resolution biome copies wholly outside the portrait viewport.
+ const firstCol=Math.max(0,Math.floor((-baseX-tileW)/tileW));
+ const lastCol=Math.min(5,Math.ceil((cw-baseX)/tileW));
+ const firstRow=Math.floor((-baseY-tileH)/tileH);
+ const lastRow=Math.ceil((ch-baseY)/tileH);
  ctx.save();ctx.globalAlpha=[.16,.23,.34][layer];
- for(let row=-1;row<=Math.ceil(ch/tileH)+1;row++)for(let col=0;col<6;col++){
+ for(let row=firstRow;row<=lastRow;row++)for(let col=firstCol;col<=lastCol;col++){
   const flipX=(col&1)!==0,flipY=((row+layer)&1)!==0;
   const x=baseX+col*tileW,y=baseY+row*tileH;
   ctx.save();ctx.translate(x+(flipX?tileW:0),y+(flipY?tileH:0));ctx.scale(flipX?-1:1,flipY?-1:1);
@@ -567,17 +573,26 @@ function drawLanternRay(time,dt){
  if(alpha<=0)return;
  const localDpr=Math.max(1,cw/Math.max(1,viewWidth));
  const width=Math.min(cw*.52,220*localDpr),height=width*160/256;
+ // The light organ trails the body like a pendulum; the same directional halo stays local.
+ const lanternLag=Math.sin(time*1.7)*width*.055,lanternLift=Math.cos(time*1.35)*height*.07;
  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=alpha*.24;
  const haloW=width*1.75,haloH=height*2.05;
- ctx.drawImage(haloCanvas,lanternX-haloW*.5,lanternY+bob-haloH*.5,haloW,haloH);ctx.restore();
- ctx.save();ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(haloCanvas,lanternX+lanternLag-haloW*.5,lanternY+bob+lanternLift-haloH*.5,haloW,haloH);ctx.restore();
+ ctx.save();ctx.imageSmoothingEnabled=false;
  if(front){
   const frontW=width*.86,frontH=frontW*160/256;
+  ctx.globalAlpha=alpha;
   ctx.drawImage(lanternFront,lanternX-frontW*.5,lanternY+bob-frontH*.5,frontW,frontH);
  }else{
-  const frame=Math.floor(time*2.2)%4,flip=dx<0;
+  const phase=(time*2.2)%4,frame=Math.floor(phase),next=(frame+1)%4;
+  const blend=smooth(phase-frame),flip=dx<0;
   ctx.translate(lanternX,lanternY+bob);ctx.scale(flip?-1:1,1);
+  // Cross-fade adjacent painted phases: the wings travel through the four real
+  // source poses instead of snapping or stretching a single sprite.
+  ctx.globalAlpha=alpha*(1-blend);
   ctx.drawImage(lanternSide,frame*256,0,256,160,-width*.5,-height*.5,width,height);
+  ctx.globalAlpha=alpha*blend;
+  ctx.drawImage(lanternSide,next*256,0,256,160,-width*.5,-height*.5,width,height);
  }
  ctx.restore();
 }
