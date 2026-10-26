@@ -166,12 +166,6 @@ function cachePart(part){
   emissiveCtx.globalCompositeOperation='destination-out';emissiveCtx.drawImage(eyes,0,0);
   emissiveCtx.globalCompositeOperation='source-over';
  }
- const glowLow=cacheEmissiveGlow(emissive,.35);
- const glowMid=cacheEmissiveGlow(emissive,1);
- const glowHigh=cacheEmissiveGlow(emissive,1.35);
- const eyeGlowLow=part==='upper'?cacheEyeGlow(eyes,8):null;
- const eyeGlowMid=part==='upper'?cacheEyeGlow(eyes,19):null;
- const eyeGlowHigh=part==='upper'?cacheEyeGlow(eyes,27):null;
  let fins=null;
  if(finBase){
   const finEmissive=FIN_REGIONS.map(layerCanvas);extractRegions(emissive,finEmissive,true);
@@ -181,6 +175,13 @@ function cachePart(part){
    glowHigh:cacheEmissiveGlow(finEmissive[i],1.2)
   }));
  }
+ // Cache the stationary upper glow only after the moving fin emissive has been removed.
+ const glowLow=cacheEmissiveGlow(emissive,.35);
+ const glowMid=cacheEmissiveGlow(emissive,1);
+ const glowHigh=cacheEmissiveGlow(emissive,1.35);
+ const eyeGlowLow=part==='upper'?cacheEyeGlow(eyes,8):null;
+ const eyeGlowMid=part==='upper'?cacheEyeGlow(eyes,19):null;
+ const eyeGlowHigh=part==='upper'?cacheEyeGlow(eyes,27):null;
  return {base,teeth,teethGlow,emissive,eyes,glowLow,glowMid,glowHigh,eyeGlowLow,eyeGlowMid,eyeGlowHigh,fins};
 }
 function imageReady(image){
