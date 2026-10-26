@@ -73,8 +73,9 @@ for(const part of ['upper','lower']){
 // Side fins and long owner-painted spines are separate rigid secondary parts.
 // Each polygon stays outside the eyes, teeth and central jaw hinge.
 const FIN_REGIONS=[
- {pivot:[72,104],phase:.25,points:[[0,48],[73,48],[73,101],[54,119],[55,166],[0,166]]},
- {pivot:[145,104],phase:1.65,points:[[144,42],[217,42],[217,166],[163,166],[163,119],[144,101]]}
+ // Keep the eye sockets and central jaw out of the moving masks; only the external painted fins articulate.
+ {pivot:[45,123],phase:.25,points:[[0,72],[43,72],[43,116],[55,145],[55,166],[0,166]]},
+ {pivot:[172,123],phase:1.65,points:[[174,70],[217,70],[217,166],[162,166],[162,145],[174,116]]}
 ];
 function traceRegion(g,points){
  g.beginPath();g.moveTo(points[0][0],points[0][1]);
