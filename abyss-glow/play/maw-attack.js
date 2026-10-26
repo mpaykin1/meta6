@@ -213,7 +213,7 @@ function frameState(seconds){
  const cycle=Math.floor((seconds-FIRST)/PERIOD),t=(seconds-FIRST)-cycle*PERIOD;
  // Depth now reads through darkness, glow and wake parallax; the owner silhouette no longer grows from a point.
  if(t<1.0){const a=smooth(t);return setFrameQ('warning',.08+.34*a,.68+.04*a,0,.14+.76*a,0,false,cycle)}
- if(t<1.95){const a=smooth((t-1)/.95);return setFrameQ('emerge',.42+.58*a,.72+.23*a,a*.9,.46+.54*a,0,false,cycle)}
+ if(t<1.95){const a=smooth((t-1)/.95);return setFrameQ('emerge',.08+.92*a,.72+.23*a,a*.9,.46+.54*a,0,false,cycle)}
  if(t<2.68){
   const raw=(t-1.95)/.73,a=smooth(raw);
   // Anticipate, hold the articulated jaws open long enough to read the throat, then snap shut and rebound.
@@ -508,7 +508,7 @@ function frame(now,dt){
  const warning=q.phase==='warning';
  // During warning the real emissive eyes appear first; the full silhouette stays inside black water until the lunge.
  const bodyReveal=warning?smooth((q.light-.45)/.45):1;
- ctx.globalAlpha=warning?clamp(q.visible*(.18+.82*bodyReveal)):clamp(q.visible);
+ ctx.globalAlpha=warning?clamp(q.visible*(.08+.12*bodyReveal)):clamp(q.visible);
  // The independently pulsing throat sits behind both rigid articulated layers.
  throat(seconds,clamp(articulatedOpen),q.light,q.impact);
  // Both owner-painted halves now separate around their shared pivot; neither source layer is scaled.
@@ -520,7 +520,11 @@ function frame(now,dt){
   // Opposed recoil keeps both original jaw halves alive through impact and the first retreat beats.
   drawJawLayer('upper',seconds,upperOpen,q.light,q.impact,direction,recoil,!warning);
   drawJawLayer('lower',seconds,lowerOpen,q.light,q.impact,direction,recoil,false);
- if(warning){ctx.globalAlpha=clamp(.22+q.light*.72);drawEyes(seconds,q.light,0)}
+ if(warning||q.phase==='emerge'){
+  // Hold the warning eyes in the darkness while the jaw-bound eyes cross-fade into the lunging body.
+  const carry=warning?1:1-smooth((q.visible-.08)/.92);
+  ctx.globalAlpha=clamp((.22+q.light*.72)*carry);drawEyes(seconds,q.light,0);
+ }
  ctx.restore();
  if(q.light>.02){
   // Bubbles and bite spray remain foreground reactions.
