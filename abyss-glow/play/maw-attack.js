@@ -70,6 +70,34 @@ const lightCtx={upper:lightCanvas.upper.getContext('2d'),lower:lightCanvas.lower
 for(const part of ['upper','lower']){
  lightCanvas[part].width=SIZE[0];lightCanvas[part].height=SIZE[1];lightCtx[part].imageSmoothingEnabled=false;
 }
+// Side fins and long owner-painted spines are separate rigid secondary parts.
+// Each polygon stays outside the eyes, teeth and central jaw hinge.
+const FIN_REGIONS=[
+ {pivot:[72,104],phase:.25,points:[[0,48],[73,48],[73,101],[54,119],[55,166],[0,166]]},
+ {pivot:[145,104],phase:1.65,points:[[144,42],[217,42],[217,166],[163,166],[163,119],[144,101]]}
+];
+function traceRegion(g,points){
+ g.beginPath();g.moveTo(points[0][0],points[0][1]);
+ for(let i=1;i<points.length;i++)g.lineTo(points[i][0],points[i][1]);
+ g.closePath();
+}
+function layerCanvas(){
+ const c=document.createElement('canvas');c.width=SIZE[0];c.height=SIZE[1];
+ c.getContext('2d').imageSmoothingEnabled=false;return c;
+}
+function extractRegions(source,targets,remove=true){
+ for(let i=0;i<targets.length;i++){
+  const g=targets[i].getContext('2d');g.clearRect(0,0,SIZE[0],SIZE[1]);g.globalCompositeOperation='source-over';
+  g.drawImage(source,0,0);g.globalCompositeOperation='destination-in';traceRegion(g,FIN_REGIONS[i].points);g.fill();
+  g.globalCompositeOperation='source-over';
+ }
+ if(remove){
+  const g=source.getContext('2d');g.save();g.globalCompositeOperation='destination-out';g.globalAlpha=1;
+  for(const region of FIN_REGIONS){traceRegion(g,region.points);g.fill()}
+  g.restore();
+ }
+}
+const finLightCanvas=FIN_REGIONS.map(layerCanvas);
 function rebuildDirectionalLight(){
  if(!lights.naturalWidth)return;
  const direction=((lightDirection%8)+8)%8,first=Math.floor(direction),mix=direction-first,second=(first+1)%8;
@@ -80,6 +108,8 @@ function rebuildDirectionalLight(){
   if(mix>.001){g.globalAlpha=mix;g.drawImage(lights,second*SIZE[0],row,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1])}
   g.globalAlpha=1;
  }
+ // Refresh the two articulated fin-light slices only when the eight-way light changes.
+ extractRegions(lightCanvas.upper,finLightCanvas,true);
 }
 function toothRegion(g,part){
  g.beginPath();
@@ -126,6 +156,8 @@ function cachePart(part){
  teethGlowCtx.shadowColor='#F9BD2B';teethGlowCtx.shadowBlur=8;teethGlowCtx.drawImage(teeth,0,0);
  detailCtx.globalCompositeOperation='destination-out';detailCtx.drawImage(teeth,0,0);
  baseCtx.drawImage(detail,0,0);
+ const finBase=part==='upper'?FIN_REGIONS.map(layerCanvas):null;
+ if(finBase)extractRegions(base,finBase,true);
  const [ex,ey]=rect[part].emissive;
  emissiveCtx.drawImage(atlas,ex,ey,SIZE[0],SIZE[1],0,0,SIZE[0],SIZE[1]);
  if(part==='upper'){
@@ -140,7 +172,16 @@ function cachePart(part){
  const eyeGlowLow=part==='upper'?cacheEyeGlow(eyes,8):null;
  const eyeGlowMid=part==='upper'?cacheEyeGlow(eyes,19):null;
  const eyeGlowHigh=part==='upper'?cacheEyeGlow(eyes,27):null;
- return {base,teeth,teethGlow,emissive,eyes,glowLow,glowMid,glowHigh,eyeGlowLow,eyeGlowMid,eyeGlowHigh};
+ let fins=null;
+ if(finBase){
+  const finEmissive=FIN_REGIONS.map(layerCanvas);extractRegions(emissive,finEmissive,true);
+  fins=finBase.map((fin,i)=>({
+   base:fin,emissive:finEmissive[i],
+   glowLow:cacheEmissiveGlow(finEmissive[i],.35),
+   glowHigh:cacheEmissiveGlow(finEmissive[i],1.2)
+  }));
+ }
+ return {base,teeth,teethGlow,emissive,eyes,glowLow,glowMid,glowHigh,eyeGlowLow,eyeGlowMid,eyeGlowHigh,fins};
 }
 function imageReady(image){
  if(image.complete)return image.naturalWidth?Promise.resolve():Promise.reject(new Error('image unavailable'));
@@ -447,6 +488,22 @@ function throat(time,open,light,impact){
  ctx.drawImage(throatGlowCanvas,tx-48+Math.sin(time*1.7)*1.2,ty-56+Math.cos(time*1.3)*.8);
  ctx.restore();
 }
+function drawUpperFins(time,open,glow,impact,recoil){
+ const cached=partCache.upper,baseAlpha=ctx.globalAlpha;
+ for(let i=0;i<FIN_REGIONS.length;i++){
+  const region=FIN_REGIONS[i],fin=cached.fins[i],side=i?1:-1;
+  // The long fins lag the jaw and counter-sway with the water; only rigid rotation is used.
+  const idle=Math.sin(time*1.42+region.phase)*.017+Math.sin(time*2.65+region.phase)*.005;
+  const angle=idle*(.38+open*.62)+side*recoil*.34-side*impact*.008;
+  ctx.save();ctx.translate(region.pivot[0],region.pivot[1]);ctx.rotate(angle);ctx.translate(-region.pivot[0],-region.pivot[1]);
+  ctx.globalAlpha=baseAlpha;ctx.drawImage(fin.base,0,0);ctx.drawImage(finLightCanvas[i],0,0);
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalAlpha=baseAlpha*clamp(.24+glow*.48+impact*.16);ctx.drawImage(fin.emissive,0,0);
+  ctx.globalAlpha=baseAlpha*clamp(.12+glow*.22);
+  ctx.drawImage(glow>1?fin.glowHigh:fin.glowLow,-GLOW_PAD,-GLOW_PAD);
+  ctx.restore();
+ }
+}
 function drawJawLayer(part,time,open,glow,impact,direction,recoil,showEyes){
  ctx.save();
  if(part==='upper'){
@@ -466,6 +523,7 @@ function drawJawLayer(part,time,open,glow,impact,direction,recoil,showEyes){
  }
  drawPart(part,direction,glow);
  drawEmissive(part,time,glow,impact);
+ if(part==='upper')drawUpperFins(time,open,glow,impact,recoil);
  drawTeeth(part,time,open,glow,impact);
  if(part==='upper'&&showEyes)drawEyes(time,glow,impact);
  ctx.restore();
