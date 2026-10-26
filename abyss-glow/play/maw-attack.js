@@ -321,22 +321,31 @@ function drawEyes(time,glow,impact,side=0){
 }
 const BUBBLE_N=15,bubbleBaseX=new Float32Array(BUBBLE_N),bubblePhase=new Float32Array(BUBBLE_N);
 for(let i=0;i<BUBBLE_N;i++){bubbleBaseX[i]=Math.sin(i*7.13)*90;bubblePhase[i]=i/BUBBLE_N}
-const bubbleColors=['#FDE766','#F9BD2B','#AD4201'],bubbleAlpha=[.43,.32,.2];
+const bubbleAlpha=[.2,.32,.43];
+const bubbleSprites=[0,1,2].map(layer=>{
+ const size=20+layer*8,c=document.createElement('canvas'),g=c.getContext('2d');
+ c.width=c.height=size;g.imageSmoothingEnabled=false;g.globalCompositeOperation='lighter';
+ const center=size*.5,radius=5+layer*3,dot=1+layer;
+ g.shadowColor=layer===2?'#F9BD2B':'#E57807';g.shadowBlur=2+layer*2;
+ for(let step=0;step<24;step++){
+  if((step+layer*3)%7===0||(step+layer)%11===0)continue;
+  const angle=step/24*Math.PI*2,x=Math.round(center+Math.cos(angle)*radius),y=Math.round(center+Math.sin(angle)*radius);
+  g.globalAlpha=.48+(step%4)*.12;g.fillStyle=step%5===0?'#FDE766':step%2?'#F9BD2B':'#AD4201';
+  g.fillRect(x-dot*.5,y-dot*.5,dot,dot);
+ }
+ g.shadowBlur=0;g.globalAlpha=.95;g.fillStyle='#FDE766';
+ g.fillRect(Math.round(center-radius*.62),Math.round(center-radius*.72),dot+1,dot);
+ return c;
+});
 function bubbles(time,s,ox,oy){
- ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineWidth=Math.max(.7,s*.65);
- // Three batched depth layers preserve the rising drift while replacing fifteen strokes with three.
- for(let layer=0;layer<3;layer++){
-  ctx.beginPath();
-  for(let i=0;i<BUBBLE_N;i++){
-   const p=(time*.28+bubblePhase[i])%1;
-   if(Math.min(2,(p*3)|0)!==layer)continue;
-   const drift=Math.sin(time*1.2+i*2.4)*9;
-   const x=ox+(bubbleBaseX[i]+drift)*s;
-   const y=oy+(115-p*200)*s;
-   const r=Math.max(.9,(1.3+i%3)*s*.8);
-   ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,Math.PI*2);
-  }
-  ctx.strokeStyle=bubbleColors[layer];ctx.globalAlpha=bubbleAlpha[layer];ctx.stroke();
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ for(let i=0;i<BUBBLE_N;i++){
+  const layer=i%3,p=(time*(.18+layer*.035)+bubblePhase[i])%1;
+  const drift=Math.sin(time*(1.05+layer*.13)+i*2.4)*(6+layer*2.5);
+  const x=ox+(bubbleBaseX[i]+drift)*s,y=oy+(118-p*210)*s;
+  const pulse=.9+.1*Math.sin(time*2.2+i*.91),size=(9+layer*5)*s*pulse;
+  ctx.globalAlpha=bubbleAlpha[layer]*smooth(Math.min(p/.12,(1-p)/.12));
+  ctx.drawImage(bubbleSprites[layer],x-size*.5,y-size*.5,size,size);
  }
  ctx.restore();
 }
