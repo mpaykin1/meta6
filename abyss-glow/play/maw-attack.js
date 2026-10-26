@@ -417,6 +417,13 @@ function biteImpact(seconds,intensity,s,ox,oy){
  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.92+.08*fade;
  ctx.drawImage(frame,ox-size*.5,oy-size*.5,size,size);ctx.restore();
 }
+// The predator lives behind the hero's WebGL layer. Clear only the hero footprint from this
+// transparent encounter canvas so the fish remains readable through jaws, glow and spray.
+function preserveHeroForeground(){
+ const radiusX=Math.max(24,Math.min(cw,ch)*.10),radiusY=Math.max(13,radiusX*.52);
+ ctx.save();ctx.globalCompositeOperation='destination-out';ctx.globalAlpha=1;
+ ctx.beginPath();ctx.ellipse(cw*.5,ch*.5,radiusX,radiusY,0,0,Math.PI*2);ctx.fill();ctx.restore();
+}
 function throat(time,open,light,impact){
  const reveal=smooth((open-.08)/.92),baseAlpha=ctx.globalAlpha;
  if(reveal<=0)return;
@@ -556,6 +563,8 @@ function frame(now,dt){
   // Bubbles and bite spray remain foreground reactions.
   bubbles(seconds,s,cx,cy);biteImpact(seconds,q.impact,s,cx,cy+20*s);
  }
+ // Restore front-to-back composition after every maw pass; this never touches gameplay input or hit logic.
+ preserveHeroForeground();
  // Real gameplay damage, once per encounter, through the existing fish hit path.
  if(q.hit&&q.cycle!==attackedCycle){
   attackedCycle=q.cycle;
