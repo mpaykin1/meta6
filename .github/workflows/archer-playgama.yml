@@ -57,7 +57,6 @@ jobs:
       - name: Send build to Playgama when upload slot is available
         if: hashFiles('playgama/archer-in-fog/upload-once.json') != ''
         run: |
-          cd playgama/archer-in-fog
           python3 - <<'PY'
           import json,urllib.request
           from pathlib import Path
