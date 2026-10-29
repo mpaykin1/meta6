@@ -229,5 +229,11 @@ const mpCss=document.createElement('style');""",1)
 s=s.replace("if(G.mode==='play')updateGame(dt,t);",
 """if(G.mode==='play'){updateGame(dt,t);MP.display(t,dt)}""",1)
 
+
+# Joining online must dismiss the single-player menu; the game starts in the original scene.
+s=s.replace("if(G.mode!=='play')startGame();\n    if(m.state", """if(G.mode!=='play')startGame();
+    document.getElementById('menu').classList.add('hide');
+    if(m.state""",1)
+
 (root/'index.html').write_text(s,encoding='utf-8')
 print('Generated Playgama index.html',len(s),'bytes of text')
