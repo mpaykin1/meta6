@@ -68,20 +68,6 @@ jobs:
           with urllib.request.urlopen(request,timeout=120) as response:
             print('PLAYGAMA_PUT_STATUS='+str(response.status))
           PY
-      - name: Upload signed Playgama archive
-        run: |
-          if [ -f upload-config.json ]; then
-            python3 - <<'PY'
-          import json,urllib.request
-          from pathlib import Path
-          c=json.loads(Path('upload-config.json').read_text())
-          data=Path('archer-in-the-fog.zip').read_bytes()
-          assert len(data)==c['size'], f"ZIP length mismatch: {len(data)}"
-          request=urllib.request.Request(c['url'],data=data,method='PUT',headers=c['headers'])
-          with urllib.request.urlopen(request,timeout=120) as r:
-            print('PLAYGAMA_PUT_STATUS='+str(r.status))
-          PY
-          fi
       - uses: actions/upload-artifact@v4
         with:
           name: archer-in-the-fog-playgama
