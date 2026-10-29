@@ -1,0 +1,42 @@
+name: Archer in the Fog - Playgama Package
+on:
+  push:
+    branches:
+      - playgama-archer-in-fog-release
+    paths:
+      - "playgama/archer-in-fog/**"
+      - ".github/workflows/archer-playgama.yml"
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: playgama/archer-in-fog
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install build dependencies
+        run: |
+          npm init -y
+          npm install --no-audit --no-fund --no-save vite@6 three@0.160.0 @fontsource/russo-one
+      - name: Build self-contained game
+        run: |
+          python3 prepare.py
+          npx vite build --base=./
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          root=Path('dist')
+          with zipfile.ZipFile('archer-in-the-fog.zip','w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+            for p in root.rglob('*'):
+              if p.is_file():z.write(p,p.relative_to(root).as_posix())
+          print('PLAYGAMA_ZIP_BYTES='+str(Path('archer-in-the-fog.zip').stat().st_size))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archer-in-the-fog-playgama
+          path: playgama/archer-in-fog/archer-in-the-fog.zip
+          retention-days: 7
