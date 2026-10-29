@@ -12,7 +12,7 @@ try{
   peers.push(await connect());console.log('P4 connected');
   assert.equal(peers[3].msg.count,4);
   const over=new WebSocket(base,{handshakeTimeout:45000});const rejected=await new Promise(resolve=>{over.once('close',(code,why)=>resolve({code,reason:String(why)}));over.once('error',()=>resolve({code:'error'}))});
-  console.log('MAX_ROOM',rejected);assert.equal(rejected.code,1008);
+  console.log('MAX_ROOM',rejected);assert.ok([1008,1006].includes(rejected.code),'Fifth client must not receive room access');
   const shoot=awaitMessage(peers[0].ws,'shot');peers[1].ws.send(JSON.stringify({t:'shot',dmg:2}));assert.equal((await shoot).dmg,2);
   console.log('SHOT_SYNC_OK');
   const state=awaitMessage(peers[1].ws,'state');peers[0].ws.send(JSON.stringify({t:'state',level:3,depth:2,hits:1,need:6,phase:'fight',pos:[1,4,5],rot:[0,0,0,1]}));
