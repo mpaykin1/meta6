@@ -35,6 +35,39 @@ jobs:
               if p.is_file():z.write(p,p.relative_to(root).as_posix())
           print('PLAYGAMA_ZIP_BYTES='+str(Path('archer-in-the-fog.zip').stat().st_size))
           PY
+      - name: Include Bridge config in Playgama build
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED
+          import json
+          original=Path('archer-in-the-fog.zip')
+          config={"advertisement":{"minimumDelayBetweenInterstitial":60,"interstitial":{"placements":[{"id":"game_over"}]}}}
+          with ZipFile(original) as a, ZipFile('corrected.zip','w',ZIP_DEFLATED,compresslevel=9) as b:
+            for name in a.namelist():
+              data=a.read(name)
+              if name=='index.html':
+                data=data.replace('DRAGON<br>ПОБЕДИЛ'.encode(),'DRAGON<br>WON'.encode())
+              b.writestr(name,data)
+            b.writestr('playgama-bridge-config.json',json.dumps(config,separators=(',',':')))
+          original.unlink()
+          Path('corrected.zip').rename(original)
+          print('PLAYGAMA_FIXED_ZIP_BYTES='+str(original.stat().st_size))
+          PY
+      - name: Send build to Playgama when upload slot is available
+        if: hashFiles('playgama/archer-in-fog/upload-once.json') != ''
+        run: |
+          cd playgama/archer-in-fog
+          python3 - <<'PY'
+          import json,urllib.request
+          from pathlib import Path
+          c=json.loads(Path('upload-once.json').read_text())
+          data=Path('archer-in-the-fog.zip').read_bytes()
+          assert len(data)==c['size'],f"Archive size changed: {len(data)} not {c['size']}"
+          request=urllib.request.Request(c['url'],data=data,method='PUT',headers=c['headers'])
+          with urllib.request.urlopen(request,timeout=120) as response:
+            print('PLAYGAMA_PUT_STATUS='+str(response.status))
+          PY
       - name: Upload signed Playgama archive
         run: |
           if [ -f upload-config.json ]; then
