@@ -21,7 +21,7 @@ function startGpuEncounter(images){
  const smooth=x=>{const a=clamp(x);return a*a*(3-2*a)};
  const imageReady=image=>image.complete?(image.naturalWidth?Promise.resolve(image):Promise.reject(new Error('image unavailable'))):new Promise((resolve,reject)=>{image.addEventListener('load',()=>resolve(image),{once:true});image.addEventListener('error',()=>reject(new Error('image unavailable')),{once:true})});
  const FIRST=8.5,PERIOD=38;
- let ready=false,gpu=null,start=0,gameFrame=-1,hiddenAt=0,lightDirection=1;
+ let ready=false,gpu=null,start=0,gameFrame=-1,hiddenAt=0,lightDirection=1,lightX=Math.SQRT1_2,lightY=Math.SQRT1_2,lightDirty=true;
  let jawOpen=0,jawVelocity=0,targetCycle=-2,attackedCycle=-1,targetHero=null,heroSample=null,nextHeroSample=0;
  let worldWidth=1,worldHeight=1,aimX=0,aimY=0,cameraKick=0,retreatKickX=0,retreatKickY=0;
  let lanternX=0,lanternY=0,lanternStarted=false;
@@ -32,7 +32,7 @@ function startGpuEncounter(images){
  const aimLight=event=>{
   const point=event.touches&&event.touches.length?event.touches[0]:event;
   if(!point||!Number.isFinite(point.clientX)||!Number.isFinite(point.clientY))return;
-  lightDirection=((Math.atan2(point.clientY-innerHeight*.47,point.clientX-innerWidth*.5)+Math.PI*2)/(Math.PI*.25)+8)%8;
+  const next=((Math.atan2(point.clientY-innerHeight*.47,point.clientX-innerWidth*.5)+Math.PI*2)/(Math.PI*.25)+8)%8;if(Math.abs(next-lightDirection)>.0001){lightDirection=next;const angle=next*Math.PI*.25;lightX=Math.cos(angle);lightY=Math.sin(angle);lightDirty=true}
  };
  addEventListener('pointerdown',aimLight,{passive:true});addEventListener('pointermove',aimLight,{passive:true});
  if(!('PointerEvent' in window)){addEventListener('touchstart',aimLight,{passive:true});addEventListener('touchmove',aimLight,{passive:true})}
@@ -124,14 +124,14 @@ void main(){
  const prepare=(time)=>{
   if(!gpu)return false;const {gl,webgl2,vao,vaoExt,program,textures,uniforms}=gpu,saved=saveGl(gl,webgl2,vaoExt,2),w=gameCanvas.width,h=gameCanvas.height;if(!w||!h)return false;
   gl.useProgram(program);if(webgl2)gl.bindVertexArray(vao);else if(vaoExt)vaoExt.bindVertexArrayOES(vao);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,w,h);gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.SCISSOR_TEST);gl.enable(gl.BLEND);gl.blendEquation(gl.FUNC_ADD);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);gl.colorMask(true,true,true,true);
-  if(gpu.viewportW!==w||gpu.viewportH!==h){gpu.viewportW=w;gpu.viewportH=h;gl.uniform2f(uniforms.uViewport,w,h);gl.uniform2f(uniforms.uHeroCenter,w*.5,h*.5);const heroScale=Math.min(w,h);gl.uniform2f(uniforms.uHeroRadius,Math.max(24,heroScale*.10),Math.max(13,heroScale*.052))}gl.uniform1f(uniforms.uTime,time);gl.uniform2f(uniforms.uBiomeDrift0,time*.008,Math.sin(time*.055)*.055);gl.uniform2f(uniforms.uBiomeDrift1,time*.012,Math.sin(time*.073)*.055);gl.uniform2f(uniforms.uBiomeDrift2,time*.016,Math.sin(time*.091)*.055);const angle=lightDirection*Math.PI*.25;gl.uniform2f(uniforms.uLightDir,Math.cos(angle),Math.sin(angle));gl.uniform2f(uniforms.uPivot,0,0);gl.uniform2f(uniforms.uShift,0,0);gl.uniform1f(uniforms.uRotation,0);gl.uniform1f(uniforms.uImpact,0);gl.uniform1f(uniforms.uFlip,0);return {gl,textures,uniforms,saved,w,h,angle};
+  if(gpu.viewportW!==w||gpu.viewportH!==h){gpu.viewportW=w;gpu.viewportH=h;gl.uniform2f(uniforms.uViewport,w,h);gl.uniform2f(uniforms.uHeroCenter,w*.5,h*.5);const heroScale=Math.min(w,h);gl.uniform2f(uniforms.uHeroRadius,Math.max(24,heroScale*.10),Math.max(13,heroScale*.052))}gl.uniform1f(uniforms.uTime,time);gl.uniform2f(uniforms.uBiomeDrift0,time*.008,Math.sin(time*.055)*.055);gl.uniform2f(uniforms.uBiomeDrift1,time*.012,Math.sin(time*.073)*.055);gl.uniform2f(uniforms.uBiomeDrift2,time*.016,Math.sin(time*.091)*.055);if(lightDirty){gl.uniform2f(uniforms.uLightDir,lightX,lightY);gl.uniform1f(uniforms.uLightIndex,lightDirection);lightDirty=false}gl.uniform2f(uniforms.uPivot,0,0);gl.uniform2f(uniforms.uShift,0,0);gl.uniform1f(uniforms.uRotation,0);gl.uniform1f(uniforms.uImpact,0);gl.uniform1f(uniforms.uFlip,0);return {gl,textures,uniforms,saved,w,h,lightX,lightY};
  };
  const bindTextures=(gl,textures,first,second=-1)=>{gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,textures[first]);if(second>=0){gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,textures[second])}};
  const draw=(pass,mode,cx,cy,sx,sy,alpha,part=0,rotation=0,pivotX=0,pivotY=0,shiftX=0,shiftY=0,glow=0,impact=0)=>{const {gl,uniforms}=pass;gl.uniform1f(uniforms.uMode,mode);gl.uniform2f(uniforms.uCenter,cx,cy);gl.uniform2f(uniforms.uSize,sx,sy);gl.uniform1f(uniforms.uAlpha,alpha);if(mode===0){gl.uniform1f(uniforms.uPart,part);gl.uniform1f(uniforms.uRotation,rotation);gl.uniform2f(uniforms.uPivot,pivotX,pivotY);gl.uniform2f(uniforms.uShift,shiftX,shiftY);gl.uniform1f(uniforms.uGlow,glow);gl.uniform1f(uniforms.uImpact,impact)}else if(mode===1){gl.uniform1f(uniforms.uGlow,glow)}else if(mode===2){gl.uniform1f(uniforms.uGlow,glow);gl.uniform1f(uniforms.uImpact,impact)}gl.drawArrays(gl.TRIANGLE_STRIP,0,4)};
  const render=(time,dt,q,open)=>{
-  const pass=prepare(time);if(!pass)return;const {gl,textures,uniforms,w,h,angle,saved}=pass;
+  const pass=prepare(time);if(!pass)return;const {gl,textures,uniforms,w,h,lightX,lightY,saved}=pass;
   bindTextures(gl,textures,5);gl.uniform1f(uniforms.uMode,4);gl.uniform2f(uniforms.uCenter,w*.5,h*.5);gl.uniform2f(uniforms.uSize,w,h);gl.uniform1f(uniforms.uAlpha,1);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-  const reach=Math.min(w,h)*.235,targetX=w*.5+Math.cos(angle)*reach,targetY=h*.5+Math.sin(angle)*reach*.78;
+  const reach=Math.min(w,h)*.235,targetX=w*.5+lightX*reach,targetY=h*.5+lightY*reach*.78;
   if(!lanternStarted){lanternX=w*.5-reach;lanternY=h*.57;lanternStarted=true}const follow=1-Math.exp(-Math.max(0,dt)*2.15);lanternX+=(targetX-lanternX)*follow;lanternY+=(targetY-lanternY)*follow;const lanternAlpha=clamp((time-2.5)/2.4),bob=Math.sin(time*1.35)*Math.max(2,h*.006),dx=targetX-lanternX,dy=targetY-lanternY;lanternState.visible=lanternAlpha>.02;lanternState.front=Math.abs(dy)>Math.abs(dx)*1.08;lanternState.side=!lanternState.front;lanternState.position[0]=Math.round(lanternX);lanternState.position[1]=Math.round(lanternY+bob);gl.uniform1f(uniforms.uFlip,dx<0?1:0);const raySize=Math.min(w*.52,220);bindTextures(gl,textures,3,4);draw(pass,3,lanternX,lanternY+bob,raySize,raySize*160/256,lanternAlpha);
   if(q.visible>.02){
    const base=Math.min(w/217,h/289)*.86,s=base*q.scale,retreat=q.phase==='retreat'?smooth(1-q.visible):0,side=q.cycle%2?1:-1;let approachX=0,approachY=0,roll=0;
@@ -141,7 +141,7 @@ void main(){
    const reveal=smooth((open-.08)/.92);if(reveal>.001){bindTextures(gl,textures,2);draw(pass,1,cx,cy+18*s,96*s,112*s,alpha*reveal,0,roll+retreatRoll,0,0,0,0,q.light,q.impact)}
    const upperOpen=smooth(clamp(open*.82)),lowerOpen=smooth(clamp((open-.035)/.965));let recoil=0;if(q.phase==='bite')recoil=Math.sin((time-FIRST)*38)*q.impact*.012;else if(q.phase==='retreat')recoil=Math.sin(retreat*Math.PI*4)*q.visible*.008;
    const upperRot=roll+retreatRoll+(-.012*(1-upperOpen)+.018*upperOpen+recoil*.45),lowerRot=roll+retreatRoll+(.04*(1-lowerOpen)-.068*lowerOpen-recoil),upperShiftY=(5-12*upperOpen)*s,lowerShiftY=(-30+54*lowerOpen)*s;
-   bindTextures(gl,textures,0,1);gl.uniform1f(uniforms.uLightIndex,lightDirection);draw(pass,0,cx,cy,sizeX,sizeY,alpha,0,upperRot,pivotX,pivotY,0,upperShiftY,q.light,q.impact);draw(pass,0,cx,cy,sizeX,sizeY,alpha,1,lowerRot,pivotX,pivotY,0,lowerShiftY,q.light,q.impact);
+   bindTextures(gl,textures,0,1);draw(pass,0,cx,cy,sizeX,sizeY,alpha,0,upperRot,pivotX,pivotY,0,upperShiftY,q.light,q.impact);draw(pass,0,cx,cy,sizeX,sizeY,alpha,1,lowerRot,pivotX,pivotY,0,lowerShiftY,q.light,q.impact);
    const finWave=Math.sin(time*1.42)*.017+Math.sin(time*2.65)*.005;draw(pass,0,cx,cy,sizeX,sizeY,alpha,2,upperRot-finWave*(.38+upperOpen*.62),-.293,-.074,0,upperShiftY,q.light,q.impact);draw(pass,0,cx,cy,sizeX,sizeY,alpha,3,upperRot+finWave*(.38+upperOpen*.62),.293,-.074,0,upperShiftY,q.light,q.impact);
   }
   restoreGl(gl,saved,gpu.webgl2,gpu.vaoExt);
