@@ -540,61 +540,174 @@ function drawJawLayer(part,time,open,glow,impact,direction,recoil,showEyes){
 const lanternState={visible:false,front:false,side:true,guide:'finger-light',z:-24,biomePlanes:3,position:[0,0]};
 window.__abyssLanternRay=()=>lanternState;
 let lanternX=0,lanternY=0,lanternStarted=false;
-function drawMirroredBiomeLayer(time,layer){
- const tileW=Math.max(cw*(1.05+layer*.24),620),tileH=tileW*invertedBells.height/invertedBells.width;
- const travel=(time*(5+layer*3.5))%(tileW*2),baseX=-tileW*2+travel;
- const baseY=-tileH+Math.sin(time*(.055+layer*.018)+layer)*tileH*.14;
- // Cull mirrored tiles before issuing drawImage: the old fixed six-column loop drew
- // several full-resolution biome copies wholly outside the portrait viewport.
- const firstCol=Math.max(0,Math.floor((-baseX-tileW)/tileW));
- const lastCol=Math.min(5,Math.ceil((cw-baseX)/tileW));
- const firstRow=Math.floor((-baseY-tileH)/tileH);
- const lastRow=Math.ceil((ch-baseY)/tileH);
- ctx.save();ctx.globalAlpha=[.16,.23,.34][layer];
- for(let row=firstRow;row<=lastRow;row++)for(let col=firstCol;col<=lastCol;col++){
-  const flipX=(col&1)!==0,flipY=((row+layer)&1)!==0;
-  const x=baseX+col*tileW,y=baseY+row*tileH;
-  ctx.save();ctx.translate(x+(flipX?tileW:0),y+(flipY?tileH:0));ctx.scale(flipX?-1:1,flipY?-1:1);
-  ctx.drawImage(invertedBells,0,0,tileW,tileH);ctx.restore();
+let lanternGpu=null;
+function createLanternGpu(){
+ const gl=gameCanvas&&(gameCanvas.getContext('webgl2')||gameCanvas.getContext('webgl'));
+ if(!gl)return null;
+ const webgl2=typeof WebGL2RenderingContext!=='undefined'&&gl instanceof WebGL2RenderingContext;
+ const vertexBody=`precision highp float;
+attribute vec2 aPos; attribute vec2 aUv;
+uniform vec2 uViewport,uCenter,uSize; uniform float uTime,uMode;
+varying vec2 vUv;
+void main(){
+ vec2 p=aPos;
+ if(uMode<0.5){
+  float tail=(1.0-p.x)*0.5;
+  p.y+=sin(uTime*2.25-p.x*2.8)*0.035*tail;
+  p.x+=sin(uTime*1.35+p.y*2.1)*0.012;
  }
- ctx.restore();
+ vec2 px=uCenter+p*uSize*0.5;
+ gl_Position=vec4(px.x/uViewport.x*2.0-1.0,1.0-px.y/uViewport.y*2.0,0.0,1.0);
+ vUv=aUv;
+}`;
+ const fragmentBody=`precision highp float;
+uniform sampler2D tSide,tFront,tBiome;
+uniform vec2 uViewport,uLightDir,uHeroCenter,uHeroRadius;
+uniform float uTime,uMode,uLayer,uAlpha,uFlip;
+varying vec2 vUv;
+vec3 pal(float i){
+ if(i<0.5)return vec3(0.0);
+ if(i<1.5)return vec3(62.0,21.0,0.0)/255.0;
+ if(i<2.5)return vec3(112.0,39.0,0.0)/255.0;
+ if(i<3.5)return vec3(173.0,66.0,1.0)/255.0;
+ if(i<4.5)return vec3(229.0,120.0,7.0)/255.0;
+ if(i<5.5)return vec3(249.0,189.0,43.0)/255.0;
+ return vec3(253.0,231.0,102.0)/255.0;
 }
-function drawLanternRay(time,dt){
- for(let layer=0;layer<3;layer++)drawMirroredBiomeLayer(time,layer);
- const angle=lightDirection*Math.PI*.25,reach=Math.min(cw,ch)*.235;
- const targetX=cw*.5+Math.cos(angle)*reach,targetY=ch*.5+Math.sin(angle)*reach*.78;
- if(!lanternStarted){lanternX=cw*.5-reach;lanternY=ch*.57;lanternStarted=true}
+float nearestTone(vec3 c){
+ float best=0.0,dist=dot(c,c);
+ for(int i=1;i<7;i++){
+  vec3 d=c-pal(float(i));float q=dot(d,d);
+  if(q<dist){dist=q;best=float(i);}
+ }
+ return best;
+}
+vec2 mirrorUv(vec2 p){
+ vec2 cell=floor(p),f=fract(p);
+ if(mod(cell.x,2.0)>0.5)f.x=1.0-f.x;
+ if(mod(cell.y,2.0)>0.5)f.y=1.0-f.y;
+ return f;
+}
+void main(){
+ vec2 frag=gl_FragCoord.xy;
+ vec2 hero=(frag-uHeroCenter)/max(uHeroRadius,vec2(1.0));
+ if(dot(hero,hero)<1.0)discard;
+ if(uMode>0.5){
+  float tiles=1.15+uLayer*0.38;
+  vec2 drift=vec2(uTime*(0.008+uLayer*0.004),sin(uTime*(0.055+uLayer*0.018))*0.055);
+  vec4 c=texture2D(tBiome,mirrorUv(vUv*vec2(tiles,tiles*1.8)+drift+uLayer*0.31));
+  if(c.a<0.03)discard;
+  float tone=nearestTone(c.rgb);
+  gl_FragColor=vec4(pal(tone),c.a*uAlpha);
+  return;
+ }
+ vec2 uv=vUv; if(uFlip>0.5)uv.x=1.0-uv.x;
+ float phase=mod(uTime*2.2,4.0),frame=floor(phase),next=mod(frame+1.0,4.0);
+ vec4 sideA=texture2D(tSide,vec2((uv.x+frame)*0.25,uv.y));
+ vec4 sideB=texture2D(tSide,vec2((uv.x+next)*0.25,uv.y));
+ float mixK=smoothstep(0.0,1.0,fract(phase));
+ vec4 side=mix(sideA,sideB,mixK);
+ vec4 front=texture2D(tFront,uv);
+ float frontK=smoothstep(0.72,0.9,abs(uLightDir.y));
+ vec4 c=mix(side,front,frontK);
+ float halo=exp(-dot(vUv-0.5,vUv-0.5)*13.0)*0.10*uAlpha;
+ if(c.a<0.03){if(halo<0.008)discard;gl_FragColor=vec4(pal(5.0),halo);return;}
+ float tone=nearestTone(c.rgb);
+ float directional=clamp(0.42+0.58*dot(normalize(vUv-0.5+vec2(0.001)),uLightDir),0.18,1.0);
+ tone=floor(tone*(0.58+0.42*directional)+0.5);
+ gl_FragColor=vec4(pal(tone),c.a*uAlpha);
+}`;
+ const vertex=webgl2?'#version 300 es\n'+vertexBody.replace(/attribute/g,'in').replace(/varying/g,'out'):vertexBody;
+ const fragment=webgl2?'#version 300 es\n'+fragmentBody.replace(/varying/g,'in').replace(/texture2D/g,'texture').replace(/gl_FragColor/g,'outColor').replace('precision highp float;','precision highp float; out vec4 outColor;'):fragmentBody;
+ const shader=(type,source)=>{
+  const item=gl.createShader(type);gl.shaderSource(item,source);gl.compileShader(item);
+  if(!gl.getShaderParameter(item,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(item)||'lantern shader compile failed');
+  return item;
+ };
+ const program=gl.createProgram(),vs=shader(gl.VERTEX_SHADER,vertex),fs=shader(gl.FRAGMENT_SHADER,fragment);
+ gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);
+ if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'lantern shader link failed');
+ gl.deleteShader(vs);gl.deleteShader(fs);
+ const state={
+  program:gl.getParameter(gl.CURRENT_PROGRAM),array:gl.getParameter(gl.ARRAY_BUFFER_BINDING),
+  element:gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING),framebuffer:gl.getParameter(gl.FRAMEBUFFER_BINDING),
+  active:gl.getParameter(gl.ACTIVE_TEXTURE),viewport:gl.getParameter(gl.VIEWPORT),
+  blend:gl.isEnabled(gl.BLEND),depth:gl.isEnabled(gl.DEPTH_TEST),cull:gl.isEnabled(gl.CULL_FACE),scissor:gl.isEnabled(gl.SCISSOR_TEST),
+  srcRGB:gl.getParameter(gl.BLEND_SRC_RGB),dstRGB:gl.getParameter(gl.BLEND_DST_RGB),
+  srcA:gl.getParameter(gl.BLEND_SRC_ALPHA),dstA:gl.getParameter(gl.BLEND_DST_ALPHA),
+  eqRGB:gl.getParameter(gl.BLEND_EQUATION_RGB),eqA:gl.getParameter(gl.BLEND_EQUATION_ALPHA),
+  depthMask:gl.getParameter(gl.DEPTH_WRITEMASK),colorMask:gl.getParameter(gl.COLOR_WRITEMASK),textures:[]
+ };
+ const vaoExt=!webgl2&&gl.getExtension('OES_vertex_array_object');
+ state.vao=webgl2?gl.getParameter(gl.VERTEX_ARRAY_BINDING):vaoExt?gl.getParameter(vaoExt.VERTEX_ARRAY_BINDING_OES):null;
+ for(let unit=0;unit<3;unit++){gl.activeTexture(gl.TEXTURE0+unit);state.textures[unit]=gl.getParameter(gl.TEXTURE_BINDING_2D)}
+ const buffer=gl.createBuffer();
+ gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,0,1,1,-1,1,1,-1,1,0,0,1,1,1,0]),gl.STATIC_DRAW);
+ const vao=webgl2?gl.createVertexArray():vaoExt?vaoExt.createVertexArrayOES():null;
+ if(webgl2)gl.bindVertexArray(vao);else if(vaoExt)vaoExt.bindVertexArrayOES(vao);
+ gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+ const aPos=gl.getAttribLocation(program,'aPos'),aUv=gl.getAttribLocation(program,'aUv');
+ gl.enableVertexAttribArray(aPos);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,16,0);
+ gl.enableVertexAttribArray(aUv);gl.vertexAttribPointer(aUv,2,gl.FLOAT,false,16,8);
+ const makeTexture=image=>{
+  const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);return texture;
+ };
+ const textures=[makeTexture(lanternSide),makeTexture(lanternFront),makeTexture(invertedBells)];
+ const uniforms={};
+ for(const name of ['uViewport','uCenter','uSize','uTime','uMode','uLayer','uAlpha','uFlip','uLightDir','uHeroCenter','uHeroRadius','tSide','tFront','tBiome'])uniforms[name]=gl.getUniformLocation(program,name);
+ const restore=()=>{
+  for(let unit=0;unit<3;unit++){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,state.textures[unit])}
+  gl.activeTexture(state.active);gl.useProgram(state.program);gl.bindBuffer(gl.ARRAY_BUFFER,state.array);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,state.element);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,state.framebuffer);gl.viewport(state.viewport[0],state.viewport[1],state.viewport[2],state.viewport[3]);
+  state.blend?gl.enable(gl.BLEND):gl.disable(gl.BLEND);state.depth?gl.enable(gl.DEPTH_TEST):gl.disable(gl.DEPTH_TEST);
+  state.cull?gl.enable(gl.CULL_FACE):gl.disable(gl.CULL_FACE);state.scissor?gl.enable(gl.SCISSOR_TEST):gl.disable(gl.SCISSOR_TEST);
+  gl.blendFuncSeparate(state.srcRGB,state.dstRGB,state.srcA,state.dstA);gl.blendEquationSeparate(state.eqRGB,state.eqA);
+  gl.depthMask(state.depthMask);gl.colorMask(state.colorMask[0],state.colorMask[1],state.colorMask[2],state.colorMask[3]);
+  if(webgl2)gl.bindVertexArray(state.vao);else if(vaoExt)vaoExt.bindVertexArrayOES(state.vao);
+ };
+ restore();
+ return {gl,program,vao,vaoExt,webgl2,textures,uniforms,restore};
+}
+function renderLanternGpu(time,dt){
+ if(!lanternGpu){try{lanternGpu=createLanternGpu()}catch(error){console.error('ABYSS lantern GPU:',error);lanternGpu=false}if(!lanternGpu)return}
+ if(lanternGpu===false)return;
+ const {gl,program,vao,vaoExt,webgl2,textures,uniforms,restore}=lanternGpu,w=gameCanvas.width,h=gameCanvas.height;
+ if(!w||!h)return;
+ const angle=lightDirection*Math.PI*.25,reach=Math.min(w,h)*.235;
+ const targetX=w*.5+Math.cos(angle)*reach,targetY=h*.5+Math.sin(angle)*reach*.78;
+ if(!lanternStarted){lanternX=w*.5-reach;lanternY=h*.57;lanternStarted=true}
  const follow=1-Math.exp(-Math.max(0,dt)*2.15);
  lanternX+=(targetX-lanternX)*follow;lanternY+=(targetY-lanternY)*follow;
- const alpha=clamp((time-2.5)/2.4),bob=Math.sin(time*1.35)*Math.max(2,ch*.006);
+ const alpha=clamp((time-2.5)/2.4),bob=Math.sin(time*1.35)*Math.max(2,h*.006);
  const dx=targetX-lanternX,dy=targetY-lanternY,front=Math.abs(dy)>Math.abs(dx)*1.08;
  lanternState.visible=alpha>.02;lanternState.front=front;lanternState.side=!front;
  lanternState.position[0]=Math.round(lanternX);lanternState.position[1]=Math.round(lanternY+bob);
- if(alpha<=0)return;
- const localDpr=Math.max(1,cw/Math.max(1,viewWidth));
- const width=Math.min(cw*.52,220*localDpr),height=width*160/256;
- // The light organ trails the body like a pendulum; the same directional halo stays local.
- const lanternLag=Math.sin(time*1.7)*width*.055,lanternLift=Math.cos(time*1.35)*height*.07;
- ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=alpha*.24;
- const haloW=width*1.75,haloH=height*2.05;
- ctx.drawImage(haloCanvas,lanternX+lanternLag-haloW*.5,lanternY+bob+lanternLift-haloH*.5,haloW,haloH);ctx.restore();
- ctx.save();ctx.imageSmoothingEnabled=false;
- if(front){
-  const frontW=width*.86,frontH=frontW*160/256;
-  ctx.globalAlpha=alpha;
-  ctx.drawImage(lanternFront,lanternX-frontW*.5,lanternY+bob-frontH*.5,frontW,frontH);
- }else{
-  const phase=(time*2.2)%4,frame=Math.floor(phase),next=(frame+1)%4;
-  const blend=smooth(phase-frame),flip=dx<0;
-  ctx.translate(lanternX,lanternY+bob);ctx.scale(flip?-1:1,1);
-  // Cross-fade adjacent painted phases: the wings travel through the four real
-  // source poses instead of snapping or stretching a single sprite.
-  ctx.globalAlpha=alpha*(1-blend);
-  ctx.drawImage(lanternSide,frame*256,0,256,160,-width*.5,-height*.5,width,height);
-  ctx.globalAlpha=alpha*blend;
-  ctx.drawImage(lanternSide,next*256,0,256,160,-width*.5,-height*.5,width,height);
+ gl.useProgram(program);if(webgl2)gl.bindVertexArray(vao);else if(vaoExt)vaoExt.bindVertexArrayOES(vao);
+ gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,w,h);gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.SCISSOR_TEST);
+ gl.enable(gl.BLEND);gl.blendEquation(gl.FUNC_ADD);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);gl.colorMask(true,true,true,true);
+ for(let unit=0;unit<3;unit++){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,textures[unit])}
+ gl.uniform1i(uniforms.tSide,0);gl.uniform1i(uniforms.tFront,1);gl.uniform1i(uniforms.tBiome,2);
+ gl.uniform2f(uniforms.uViewport,w,h);gl.uniform1f(uniforms.uTime,time);
+ gl.uniform2f(uniforms.uLightDir,Math.cos(angle),Math.sin(angle));
+ gl.uniform2f(uniforms.uHeroCenter,w*.5,h*.5);gl.uniform2f(uniforms.uHeroRadius,Math.max(24,Math.min(w,h)*.10),Math.max(13,Math.min(w,h)*.052));
+ gl.uniform1f(uniforms.uMode,1);gl.uniform2f(uniforms.uCenter,w*.5,h*.5);gl.uniform2f(uniforms.uSize,w,h);gl.uniform1f(uniforms.uFlip,0);
+ for(let layer=0;layer<3;layer++){
+  gl.uniform1f(uniforms.uLayer,layer);gl.uniform1f(uniforms.uAlpha,[.10,.16,.22][layer]);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
  }
- ctx.restore();
+ if(alpha>.001){
+  const width=Math.min(w*.52,220),height=width*160/256;
+  gl.uniform1f(uniforms.uMode,0);gl.uniform1f(uniforms.uLayer,0);gl.uniform1f(uniforms.uAlpha,alpha);gl.uniform1f(uniforms.uFlip,dx<0?1:0);
+  gl.uniform2f(uniforms.uCenter,lanternX,lanternY+bob);gl.uniform2f(uniforms.uSize,width,height);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+ }
+ // Restore the stable end-of-frame state that Three.js left before this pass.
+ restore();
 }
 function frame(now,dt){
  resize();
@@ -629,8 +742,6 @@ function frame(now,dt){
  state.ready=ready;state.visible=ready&&q.visible>.02;state.phase=q.phase;state.elapsed=seconds;state.dt=dt;
  const articulatedOpen=Math.max(0,springJaw(q.open,dt));
  if(!ready)return;
- // The new friend and location reuse this already-scheduled game pass: no new canvas and no new RAF.
- drawLanternRay(seconds,dt);
  if(q.visible<=.02){preserveHeroForeground();state.rendered=++rendered;return}
  // Rendered into the actual game and anchored at the camera's center/player region.
  const direction=lightDirection;
@@ -733,5 +844,6 @@ window.requestAnimationFrame=callback=>gameRAF(now=>{
   const dt=gameFrame<0?0:Math.min(.05,(now-gameFrame)/1000);gameFrame=now;frame(now,dt);
  }
  callback(now);
+ if(ready&&start)renderLanternGpu((now-start)/1000,state.dt||0);
 });
 })();
