@@ -25,7 +25,7 @@ jobs:
       - name: Build self-contained game
         run: |
           python3 prepare.py
-          npx vite build --base=./
+          npx vite build --base=./ --target=esnext
           python3 - <<'PY'
           from pathlib import Path
           import zipfile
