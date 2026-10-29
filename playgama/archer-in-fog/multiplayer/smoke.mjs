@@ -20,3 +20,5 @@ try{
   peers.forEach(p=>p.ws.close());clearTimeout(timeout);
   console.log('MULTIPLAYER_SMOKE_PASS');
 }catch(e){console.error(e);process.exitCode=1;clearTimeout(timeout);peers.forEach(p=>p.ws.close())}
+
+// Recheck after deploying state-transform synchronization on Render.
