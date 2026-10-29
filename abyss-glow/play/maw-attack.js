@@ -89,7 +89,7 @@ uniform sampler2D tAtlas,tLight,tThroat,tSide,tFront,tBiome;
 uniform vec2 uViewport,uLightDir,uHeroCenter,uHeroRadius,uBiomeDrift0,uBiomeDrift1,uBiomeDrift2;uniform float uTime,uMode,uPart,uAlpha,uGlow,uImpact,uFlip,uLightIndex;
 varying vec2 vUv;
 vec3 pal(float i){if(i<.5)return vec3(0.0);if(i<1.5)return vec3(62.,21.,0.)/255.;if(i<2.5)return vec3(112.,39.,0.)/255.;if(i<3.5)return vec3(173.,66.,1.)/255.;if(i<4.5)return vec3(229.,120.,7.)/255.;if(i<5.5)return vec3(249.,189.,43.)/255.;return vec3(253.,231.,102.)/255.;}
-float nearestTone(vec3 c){float best=0.,dist=dot(c,c);for(int i=1;i<7;i++){vec3 d=c-pal(float(i));float q=dot(d,d);if(q<dist){dist=q;best=float(i);}}return best;}
+float nearestTone(vec3 c){float r=c.r;return r<.12156863?0.:r<.34117648?1.:r<.55882353?2.:r<.7882353?3.:r<.9372549?4.:r<.98431373?5.:6.;}
 vec4 over(vec4 a,vec4 b){float alpha=b.a+a.a*(1.-b.a);return alpha<.001?vec4(0.):vec4((b.rgb*b.a+a.rgb*a.a*(1.-b.a))/alpha,alpha);}
 vec2 mirrorUv(vec2 p){vec2 cell=floor(p),f=fract(p);if(mod(cell.x,2.)>.5)f.x=1.-f.x;if(mod(cell.y,2.)>.5)f.y=1.-f.y;return f;}
 float bubble(vec2 p,vec2 center,float radius){float d=abs(length(p-center)-radius);return 1.-smoothstep(.004,.012,d);}
