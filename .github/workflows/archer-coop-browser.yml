@@ -1,0 +1,40 @@
+name: Archer co-op browser smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [playgama-archer-in-fog-release]
+    paths:
+      - 'playgama/archer-in-fog/prepare.py'
+      - 'playgama/archer-in-fog/browser-smoke.mjs'
+      - '.github/workflows/archer-coop-browser.yml'
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: playgama/archer-in-fog
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install game and browser test
+        run: |
+          npm init -y
+          npm install --no-audit --no-fund --no-save vite@6 three@0.160.0 @fontsource/russo-one playwright@1.58.0
+          npx playwright install chromium
+      - name: Build and open game in browser
+        run: |
+          python3 prepare.py
+          npx vite build --base=./ --target=esnext
+          python3 -m http.server 8765 --directory dist >server.log 2>&1 &
+          node browser-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: archer-coop-browser-screens
+          path: |
+            playgama/archer-in-fog/browser-*.png
+            playgama/archer-in-fog/server.log
+          retention-days: 7
