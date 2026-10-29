@@ -187,5 +187,47 @@ s=s.replace("if(G.mode==='play'){dropLoot(p,'coin',1+",
 s=s.replace("fireArrow(from,to,{speed:65,dmg:0});",
 """fireArrow(from,to,{speed:65,dmg:1,ghost:true});""",1)
 
+
+# Improve co-op: shared dragon position and companions rendered in the original 3D scene.
+s=s.replace("if(!f.far&&a.m.position.distanceTo(f.m.position)<","if(!a.ghost&&!f.far&&a.m.position.distanceTo(f.m.position)<",1)
+s=s.replace("if(m.t==='state'&&!this.isHost())this.apply(m);","if(m.t==='state'&&!this.isHost())this.apply(m);",1)
+s=s.replace("if(m.t==='welcome'){this.id=m.id;this.host=m.host;this.count=m.count;",
+"""if(m.t==='welcome'){this.id=m.id;this.host=m.host;this.count=m.count;""",1)
+s=s.replace("if(G.mode!=='play')startGame();\n   }\n   if(m.t==='join')",
+"""if(G.mode!=='play')startGame();
+    if(m.state&&!this.isHost())this.apply(m.state);
+   }
+   if(m.t==='join')""",1)
+s=s.replace("const from=archer.handPos(new V3()),to=dragon.root.position.clone();",
+"""const from=(this.avatars?.get(m.id)||archer).handPos(new V3()),to=dragon.root.position.clone();""",1)
+s=s.replace("if(m.phase==='retreat'&&G.phase==='fight'){G.phase='retreat';G.pt=0}",
+"""if(m.phase==='retreat'&&G.phase==='fight'){G.phase='retreat';G.pt=0}
+  if(Array.isArray(m.pos)&&m.pos.length===3)this.remoteDragon=m;""",1)
+s=s.replace("this.send({t:'state',level:G.level,depth:G.depth,hits:G.hits,need:G.need,phase:G.phase})",
+"""this.send({t:'state',level:G.level,depth:G.depth,hits:G.hits,need:G.need,phase:G.phase,pos:dragon.root.position.toArray(),rot:dragon.root.quaternion.toArray()})""",1)
+s=s.replace("const mpCss=document.createElement('style');",
+"""MP.avatars=new Map();
+MP.display=function(t,dt){
+  if(!this.id)return;
+  if(!this.isHost()&&this.remoteDragon){
+    const p=this.remoteDragon;
+    dragon.root.position.lerp(new V3(...p.pos),Math.min(1,dt*16));
+    if(p.rot&&p.rot.length===4)dragon.root.quaternion.slerp(new THREE.Quaternion(...p.rot),Math.min(1,dt*16));
+  }
+  for(const [id] of this.peers){
+    if(!this.avatars.has(id)){const a=new Archer(scene);a.mBow.color.set(id.charCodeAt(0)%2?0xffaa44:0x44faff);this.avatars.set(id,a)}
+  }
+  for(const [id,a] of this.avatars){
+    if(!this.peers.has(id)){scene.remove(a.root);this.avatars.delete(id);continue}
+    const peers=[...this.peers.keys()],index=peers.indexOf(id),angle=(index+1)*Math.PI*.42;
+    const goal=new V3(cur.stand.x+Math.cos(angle)*1.8,cur.stand.y,cur.stand.z+Math.sin(angle)*1.8);
+    a.root.position.lerp(goal,Math.min(1,dt*10));
+    a.update(dt,t,dragon.root.position.clone().sub(a.root.position).normalize());
+  }
+};
+const mpCss=document.createElement('style');""",1)
+s=s.replace("if(G.mode==='play')updateGame(dt,t);",
+"""if(G.mode==='play'){updateGame(dt,t);MP.display(t,dt)}""",1)
+
 (root/'index.html').write_text(s,encoding='utf-8')
 print('Generated Playgama index.html',len(s),'bytes of text')
