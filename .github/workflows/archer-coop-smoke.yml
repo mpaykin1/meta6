@@ -1,0 +1,21 @@
+name: Archer co-op network smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [playgama-archer-in-fog-release]
+    paths:
+      - 'playgama/archer-in-fog/multiplayer/**'
+      - '.github/workflows/archer-coop-smoke.yml'
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebSocket test client
+        run: npm install --prefix playgama/archer-in-fog/multiplayer --no-audit --no-fund
+      - name: Two-way WebSocket and four-player cap
+        run: node playgama/archer-in-fog/multiplayer/smoke.mjs
