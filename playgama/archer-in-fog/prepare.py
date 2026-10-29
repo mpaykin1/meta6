@@ -104,5 +104,76 @@ s=s.replace("const $=id=>document.getElementById(id);",lang_js+"\nconst $=id=>do
 s=s.replace(lang_js+"\nconst $=id=>document.getElementById(id);","const $=id=>document.getElementById(id);",1)
 s=s.replace(pg_init,pg_init+"\n"+lang_js,1)
 s=s.replace('font-family:\'Russo One\',system-ui,sans-serif','font-family:\'Russo One\',system-ui,sans-serif')
+
+coop = r"""
+const MP={ws:null,id:null,host:null,room:null,count:0,peers:new Map(),lastState:0,
+ isHost(){return !!this.id&&this.host===this.id},
+ send(v){if(this.ws?.readyState===1)this.ws.send(JSON.stringify(v))},
+ connect(code){
+  this.room=code.toUpperCase();
+  if(this.ws)this.ws.close();
+  const ws=this.ws=new WebSocket('wss://archer-fog-coop.onrender.com/?room='+encodeURIComponent(this.room));
+  ws.onmessage=e=>{
+   let m;try{m=JSON.parse(e.data)}catch{return}
+   if(m.t==='welcome'){this.id=m.id;this.host=m.host;this.count=m.count;
+    this.peers=new Map(m.peers.map(id=>[id,0]));
+    document.getElementById('mpLobby').style.display='none';
+    if(G.mode!=='play')startGame();
+   }
+   if(m.t==='join'){this.peers.set(m.id,0);this.count=m.count;this.host=m.host}
+   if(m.t==='leave'){this.peers.delete(m.id);this.count=m.count;this.host=m.host}
+   if(m.t==='shot'){this.peers.set(m.id,performance.now());this.remoteShot(m)}
+   if(m.t==='state'&&!this.isHost())this.apply(m);
+   this.status();
+  };
+  ws.onclose=()=>{if(this.ws===ws){this.id=null;this.host=null;this.count=0;this.status()}};
+  ws.onerror=()=>{this.status()};
+ },
+ status(){document.getElementById('mpStatus').textContent=this.id?'ROOM '+this.room+' '+this.count+'/4':'OFFLINE'},
+ remoteShot(m){
+  if(G.mode!=='play')return;
+  const from=archer.handPos(new V3()),to=dragon.root.position.clone();
+  fireArrow(from,to,{speed:65,dmg:0});
+  if(!this.isHost())return;
+  const dmg=Math.min(2,Math.max(1,Number(m.dmg)||1));
+  if(['windup','dive','tail','spin'].includes(G.phase)){
+    G.repelHits+=dmg;showRepel();if(G.repelHits>=G.repelNeed)repel()
+  }else if(G.phase==='fight'||G.phase==='intro'){
+    G.hits=Math.min(G.need,G.hits+dmg);renderHP();dragon.hit();
+    if(G.hits>=G.need){G.phase='retreat';G.pt=0;dragon.jawOpen=1;flashScreen(.25);dropLoot(dragon.root.position.clone(),'coin',4+G.level)}
+  }
+ },
+ apply(m){
+  if(G.mode!=='play')return;
+  if(Number.isInteger(m.level)&&m.level>0&&m.level!==G.level){G.level=m.level;G.depth=m.depth||1;THT=themeFor(G.level);startRound()}
+  if(typeof m.need==='number')G.need=m.need;
+  if(typeof m.hits==='number'){G.hits=Math.max(0,Math.min(G.need,m.hits));renderHP()}
+  if(m.phase==='retreat'&&G.phase==='fight'){G.phase='retreat';G.pt=0}
+ },
+ update(t){if(!this.id||G.mode!=='play')return;
+  if(this.isHost()&&t-this.lastState>.12){this.lastState=t;this.send({t:'state',level:G.level,depth:G.depth,hits:G.hits,need:G.need,phase:G.phase})}
+ }
+};
+const mpCss=document.createElement('style');mpCss.textContent='#mpLobby{position:fixed;inset:0;z-index:30;background:#121b32ee;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:white;font-family:system-ui,sans-serif}#mpLobby input{padding:12px;background:#121b32;color:white;font-size:23px;text-align:center;width:160px}#mpLobby button{padding:12px;color:white;background:#233a55;border:1px solid #7edfff}#mpStatus{position:fixed;top:45px;left:15px;font:12px system-ui,sans-serif;z-index:4;color:#d8eeff;pointer-events:none}';
+document.head.appendChild(mpCss);
+const mpButton=document.createElement('button');mpButton.className='btn';mpButton.textContent='CO-OP 2–4';document.getElementById('menu').appendChild(mpButton);
+const mpStatus=document.createElement('div');mpStatus.id='mpStatus';mpStatus.textContent='OFFLINE';document.body.appendChild(mpStatus);
+const mpLobby=document.createElement('div');mpLobby.id='mpLobby';
+mpLobby.innerHTML='<h2>CO-OP ROOM</h2><div>Share room code with friends</div><input id="mpCode" maxlength="8" placeholder="CODE"><button id="mpJoin">CREATE / JOIN</button><button id="mpBack">BACK</button>';
+document.body.appendChild(mpLobby);
+mpButton.onclick=()=>{mpLobby.style.display='flex';document.getElementById('mpCode').value=Math.random().toString(36).slice(2,7).toUpperCase()};
+document.getElementById('mpJoin').onclick=()=>{const c=document.getElementById('mpCode').value.trim().toUpperCase();if(/^[A-Z0-9]{4,8}$/.test(c))MP.connect(c)};
+document.getElementById('mpBack').onclick=()=>mpLobby.style.display='none';
+const _oldTryFire=tryFire;
+tryFire=function(){
+ const can=G.mode==='play'&&G.fireCD<=0&&archer.fall<=0&&!G.paused&&G.phase!=='fall'&&G.phase!=='over',w=weapon();
+ _oldTryFire();
+ if(can&&MP.id)MP.send({t:'shot',dmg:w.dmg});
+};
+"""
+s=s.replace("frame();\nif(PG.ready)",coop+"\nframe();\nif(PG.ready)",1)
+s=s.replace("frame();\n\n</script>",coop+"\nframe();\n\n</script>",1)
+s=s.replace("  G.slow=damp(G.slow,1,1.3,rdt);","  MP.update(t);G.slow=damp(G.slow,1,1.3,rdt);",1)
+
 (root/'index.html').write_text(s,encoding='utf-8')
 print('Generated Playgama index.html',len(s),'bytes of text')
