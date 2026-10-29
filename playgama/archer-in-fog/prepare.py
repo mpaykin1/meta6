@@ -175,5 +175,17 @@ s=s.replace("frame();\nif(PG.ready)",coop+"\nframe();\nif(PG.ready)",1)
 s=s.replace("frame();\n\n</script>",coop+"\nframe();\n\n</script>",1)
 s=s.replace("  G.slow=damp(G.slow,1,1.3,rdt);","  MP.update(t);G.slow=damp(G.slow,1,1.3,rdt);",1)
 
+
+# Prevent client-side duplicate boss damage for remote-visual arrows.
+s=s.replace("arrows.push({m,v:d,life:3.2,stuck:null,g,dmg:o.dmg||1,fire:!!o.fire,freeze:!!o.freeze});",
+"""arrows.push({m,v:d,life:3.2,stuck:null,g,dmg:o.dmg||1,ghost:!!o.ghost,fire:!!o.fire,freeze:!!o.freeze});""",1)
+s=s.replace("const hitO=dragon.visible?dragon.hitTest(a.m.position):null;",
+"""const hitO=!a.ghost&&dragon.visible?dragon.hitTest(a.m.position):null;""",1)
+s=s.replace("if(G.mode==='play'){dropLoot(p,'coin',1+",
+"""if(MP.id&&!MP.isHost())return;
+  if(G.mode==='play'){dropLoot(p,'coin',1+""",1)
+s=s.replace("fireArrow(from,to,{speed:65,dmg:0});",
+"""fireArrow(from,to,{speed:65,dmg:1,ghost:true});""",1)
+
 (root/'index.html').write_text(s,encoding='utf-8')
 print('Generated Playgama index.html',len(s),'bytes of text')
