@@ -18,7 +18,7 @@ wss.on('connection',(ws,req)=>{
  ws.on('message',raw=>{
   let m;try{m=JSON.parse(raw.toString())}catch{return}if(!m||typeof m!=='object')return;
   if(m.t==='shot'&&Date.now()-p.lastShot>=150){p.lastShot=Date.now();broadcast(r,{t:'shot',id,dmg:num(m.dmg,1,2),freeze:!!m.freeze,fire:!!m.fire},ws)}
-  else if(m.t==='state'&&r.host===id&&Date.now()-p.lastState>=90){p.lastState=Date.now();r.lastState={level:num(m.level,1,999),depth:num(m.depth,1,999),hits:num(m.hits,0,99),need:num(m.need,1,99),phase:String(m.phase||'fight').slice(0,20)};broadcast(r,{t:'state',id,...r.lastState},ws)}
+  else if(m.t==='state'&&r.host===id&&Date.now()-p.lastState>=90){p.lastState=Date.now();r.lastState={level:num(m.level,1,999),depth:num(m.depth,1,999),hits:num(m.hits,0,99),need:num(m.need,1,99),phase:String(m.phase||'fight').slice(0,20),pos:Array.isArray(m.pos)&&m.pos.length===3?m.pos.map(v=>num(v,-10000,10000)):null,rot:Array.isArray(m.rot)&&m.rot.length===4?m.rot.map(v=>num(v,-1,1)):null};broadcast(r,{t:'state',id,...r.lastState},ws)}
   else if(m.t==='ping')send(ws,{t:'pong'});
  });
  const leave=()=>{if(!r.players.has(ws))return;r.players.delete(ws);if(r.host===id)r.host=r.players.values().next().value?.id||null;broadcast(r,{t:'leave',id,host:r.host,count:r.players.size});if(!r.players.size)rooms.delete(code)};
