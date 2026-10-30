@@ -1,0 +1,1 @@
+ASQURA is an ordinary office with an extraordinary elevator. Travel between 1750, 2026 and 2099, where danger follows the staff across time. After each jump, memories fade. Explore the office, talk to coworkers, discover dreams linked to other worlds and collect clues. What connects these dreams to ASQURA, and who is really asleep?
