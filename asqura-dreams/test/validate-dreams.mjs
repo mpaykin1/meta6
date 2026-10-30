@@ -17,4 +17,20 @@ for(let i=0;i<5;i++)check(ci.has(i),'missing employee '+i);
 check(keys(inv,['suspects','chapters','final']),'investigation shape');check(inv.chapters.length===4,'chapters count');
 inv.chapters.forEach((c,i)=>{check(keys(c,['need','who','l','en']),'chapter shape');check(c.need===[2,4,6,8][i]&&c.need<=dreams.length,'need '+i);check(c.who==='boss'||Number.isInteger(c.who)&&c.who>=0&&c.who<=4,'who '+i);lines(c.l,4,'chapter '+i+'.l');lines(c.en,4,'chapter '+i+'.en')});
 check(keys(inv.final,['who','l','en']),'final shape');check(inv.final.who==='boss'||Number.isInteger(inv.final.who)&&inv.final.who>=0&&inv.final.who<=4,'final who');lines(inv.final.l,6,'final.l');lines(inv.final.en,6,'final.en');
-console.log(errors.length?errors.join('\n'):'0 errors: 8 dreams, 4 chapters, 5 employees');if(errors.length)process.exitCode=1;
+
+const raidLines=read('raid_lines.json');
+const raidCounts={start:3,enemy:6,panic:6,hide:4,attack:4,saved:3,forget:3};
+check(keys(raidLines,['-1','1']),'raid epoch keys');
+for(const ep of ['-1','1']){
+  const block=raidLines[ep];
+  check(block!==null&&typeof block==='object'&&!Array.isArray(block),'raid epoch '+ep+' shape');
+  if(!block||typeof block!=='object'||Array.isArray(block))continue;
+  check(keys(block,Object.keys(raidCounts)),'raid '+ep+' keys');
+  for(const [kind,count] of Object.entries(raidCounts)){
+    const entries=block[kind];
+    check(Array.isArray(entries)&&entries.length===count,'raid '+ep+'.'+kind+' count');
+    if(Array.isArray(entries))entries.forEach((line,i)=>check(typeof line==='string'&&line.trim().length>0&&[...line].length<=38,'raid '+ep+'.'+kind+'['+i+'] length'));
+  }
+}
+
+console.log(errors.length?errors.join('\n'):'0 errors: 8 dreams, 4 chapters, 5 employees, 2 raid epochs');if(errors.length)process.exitCode=1;
