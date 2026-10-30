@@ -21,20 +21,6 @@ function startGpuEncounter(images){
  const smooth=x=>{const a=clamp(x);return a*a*(3-2*a)};
  const imageReady=image=>image.complete?(image.naturalWidth?Promise.resolve(image):Promise.reject(new Error('image unavailable'))):new Promise((resolve,reject)=>{image.addEventListener('load',()=>resolve(image),{once:true});image.addEventListener('error',()=>reject(new Error('image unavailable')),{once:true})});
 
- // Immediate original-art presentation, removed as soon as GPU rendering starts.
- let previewHost=null,previewAnchor=null;
- const previewPointer=e=>{if(!previewAnchor)return;const p=e.touches&&e.touches.length?e.touches[0]:e;if(!p||!Number.isFinite(p.clientX))return;previewAnchor.style.left=Math.max(25,Math.min(75,p.clientX/innerWidth*100))+'%';previewAnchor.style.top=Math.max(28,Math.min(68,p.clientY/innerHeight*100))+'%'};
- function startVisiblePreview(){
-  if(previewHost)return;
-  const host=document.createElement('div');host.setAttribute('aria-hidden','true');host.style.cssText='position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:4;background:#000';
-  const style=document.createElement('style');style.textContent='@keyframes abyss-preview-breathe{from{transform:scale(1.01) translateX(-.4%)}to{transform:scale(1.09) translateX(1%)}}@keyframes abyss-preview-swim{from{transform:translateY(-7px) rotate(-1.5deg)}to{transform:translateY(9px) rotate(2deg)}}@keyframes abyss-preview-frames{from{background-position:0% 50%}to{background-position:100% 50%}}';host.appendChild(style);
-  const biome=document.createElement('img');biome.src=invertedBells.src;biome.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;image-rendering:pixelated;opacity:.93;animation:abyss-preview-breathe 10s ease-in-out infinite alternate';host.appendChild(biome);
-  const anchor=document.createElement('div');anchor.style.cssText='position:absolute;left:61%;top:43%;width:min(72vw,312px);aspect-ratio:256/160;transform:translate(-50%,-50%);transition:left .45s ease-out,top .45s ease-out;filter:drop-shadow(0 0 11px #e57807) drop-shadow(0 0 26px #ad4201)';
-  const swimming=document.createElement('div');swimming.style.cssText='width:100%;height:100%;image-rendering:pixelated;background-repeat:no-repeat;background-size:400% 100%;animation:abyss-preview-frames 1.6s steps(3,end) infinite,abyss-preview-swim 3.3s ease-in-out infinite alternate';swimming.style.backgroundImage='url("'+lanternSide.src+'")';anchor.appendChild(swimming);host.appendChild(anchor);document.body.appendChild(host);previewHost=host;previewAnchor=anchor;
-  addEventListener('pointermove',previewPointer,{passive:true});addEventListener('touchmove',previewPointer,{passive:true});
- }
- function finishVisiblePreview(){if(!previewHost)return;previewHost.remove();previewHost=null;previewAnchor=null;removeEventListener('pointermove',previewPointer);removeEventListener('touchmove',previewPointer)}
-
  const FIRST=8.5,PERIOD=38;
  let ready=false,gpu=null,start=0,gameFrame=-1,hiddenAt=0,lightDirection=1,lightX=Math.SQRT1_2,lightY=Math.SQRT1_2,lightDirty=true;
  let jawOpen=0,jawVelocity=0,targetCycle=-2,attackedCycle=-1,targetHero=null,heroSample=null,nextHeroSample=0;
@@ -44,7 +30,6 @@ function startGpuEncounter(images){
  const lanternState={visible:false,front:false,side:true,guide:'finger-light',z:-24,biomePlanes:3,position:[0,0],renderer:'main-webgl'};
  Object.defineProperty(window,'__abyssPlayMaw',{value:mawState,configurable:false});
  window.__abyssLanternRay=()=>lanternState;
- startVisiblePreview();
  const aimLight=event=>{
   const point=event.touches&&event.touches.length?event.touches[0]:event;
   if(!point||!Number.isFinite(point.clientX)||!Number.isFinite(point.clientY))return;
@@ -161,7 +146,7 @@ void main(){
    bindTextures(pass,0,1);draw(pass,0,cx,cy,sizeX,sizeY,alpha,0,upperRot,pivotX,pivotY,0,upperShiftY,q.light,q.impact);draw(pass,0,cx,cy,sizeX,sizeY,alpha,1,lowerRot,pivotX,pivotY,0,lowerShiftY,q.light,q.impact);
    const finWave=Math.sin(time*1.42)*.017+Math.sin(time*2.65)*.005;draw(pass,0,cx,cy,sizeX,sizeY,alpha,2,upperRot-finWave*(.38+upperOpen*.62),-.293,-.074,0,upperShiftY,q.light,q.impact);draw(pass,0,cx,cy,sizeX,sizeY,alpha,3,upperRot+finWave*(.38+upperOpen*.62),.293,-.074,0,upperShiftY,q.light,q.impact);
   }
-  restoreGl(gl,saved,gpu.webgl2,gpu.vaoExt);finishVisiblePreview();
+  restoreGl(gl,saved,gpu.webgl2,gpu.vaoExt);
  };
  const update=(now,dt)=>{
   const seconds=(now-start)/1000,q=frameState(seconds),open=springJaw(q.open,dt),w=gameCanvas.width,h=gameCanvas.height;
@@ -172,7 +157,7 @@ void main(){
   if(q.hit&&q.cycle!==attackedCycle){attackedCycle=q.cycle;const current=sampleHero(seconds,true),s=Math.min(w/217,h/289)*.86*q.scale,inMouth=!targetHero||!current||Math.hypot(aimX,aimY)<Math.max(22*s,Math.min(w,h)*.055);let hit=false;if(inMouth){try{if(typeof window.__abyssPlayMawHit==='function')hit=!!window.__abyssPlayMawHit()}catch(error){console.error('ABYSS maw hit:',error)}}else{mawState.avoidedCount++;const sweep=q.cycle%2?1:-1;retreatKickX=sweep*w*.12;retreatKickY=-h*.045;try{if(typeof window.__abyssPlayMawDodge==='function')window.__abyssPlayMawDodge(sweep)}catch(error){console.error('ABYSS maw dodge:',error)}mawState.reaction='dodged'}if(hit){cameraKick=1;retreatKickY=-h*.025;mawState.reaction='hit'}mawState.lastHit=hit;mawState.attackCount++}
   return {seconds,q,open};
  };
- Promise.all(Object.values(images).map(imageReady)).then(()=>{gpu=makeGpu();if(!gpu)throw new Error('main WebGL context unavailable');ready=true;mawState.ready=true}).catch(error=>{console.error('ABYSS main-canvas encounter:',error);startVisiblePreview()});
+ Promise.all(Object.values(images).map(imageReady)).then(()=>{gpu=makeGpu();if(!gpu)throw new Error('main WebGL context unavailable');ready=true;mawState.ready=true}).catch(error=>{console.error('ABYSS main-canvas encounter:',error)});
  const gameRAF=window.requestAnimationFrame.bind(window);document.addEventListener('visibilitychange',()=>{const now=performance.now();if(document.hidden){hiddenAt=now;return}if(hiddenAt){if(start)start+=now-hiddenAt;hiddenAt=0;gameFrame=now}},{passive:true});
  window.requestAnimationFrame=callback=>gameRAF(now=>{let snapshot=null;if(ready&&typeof window.__abyssPlayMawHit==='function'&&now!==gameFrame){if(!start)start=now;const dt=gameFrame<0?0:Math.min(.05,(now-gameFrame)/1000);gameFrame=now;snapshot=update(now,dt)}callback(now);if(snapshot)render(snapshot.seconds,mawState.dt||0,snapshot.q,snapshot.open)});
  return true;
