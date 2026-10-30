@@ -92,7 +92,7 @@ vec3 pal(float i){if(i<.5)return vec3(0.0);if(i<1.5)return vec3(62.,21.,0.)/255.
 float nearestTone(vec3 c){float r=c.r;return r<.12156863?0.:r<.34117648?1.:r<.55882353?2.:r<.7882353?3.:r<.9372549?4.:r<.98431373?5.:6.;}
 vec4 over(vec4 a,vec4 b){float alpha=b.a+a.a*(1.-b.a);return alpha<.001?vec4(0.):vec4((b.rgb*b.a+a.rgb*a.a*(1.-b.a))/alpha,alpha);}
 vec4 overPremul(vec4 a,vec4 b){return vec4(b.rgb*b.a+a.rgb*(1.-b.a),b.a+a.a*(1.-b.a));}
-vec2 mirrorUv(vec2 p){vec2 cell=floor(p),f=fract(p);if(mod(cell.x,2.)>.5)f.x=1.-f.x;if(mod(cell.y,2.)>.5)f.y=1.-f.y;return f;}
+vec2 mirrorUv(vec2 p){return 1.-abs(mod(p,2.)-1.);}
 float bubble(vec2 p,vec2 center,float radius){float d=abs(length(p-center)-radius);return 1.-smoothstep(.004,.012,d);}
 void main(){
  vec2 frag=gl_FragCoord.xy,hero=(frag-uHeroCenter)*uHeroInvRadius;if(dot(hero,hero)<1.)discard;
