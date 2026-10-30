@@ -20,6 +20,21 @@ function startGpuEncounter(images){
  const clamp=x=>Math.max(0,Math.min(1,x));
  const smooth=x=>{const a=clamp(x);return a*a*(3-2*a)};
  const imageReady=image=>image.complete?(image.naturalWidth?Promise.resolve(image):Promise.reject(new Error('image unavailable'))):new Promise((resolve,reject)=>{image.addEventListener('load',()=>resolve(image),{once:true});image.addEventListener('error',()=>reject(new Error('image unavailable')),{once:true})});
+
+ // Immediate original-art presentation, removed as soon as GPU rendering starts.
+ let previewHost=null,previewAnchor=null;
+ const previewPointer=e=>{if(!previewAnchor)return;const p=e.touches&&e.touches.length?e.touches[0]:e;if(!p||!Number.isFinite(p.clientX))return;previewAnchor.style.left=Math.max(25,Math.min(75,p.clientX/innerWidth*100))+'%';previewAnchor.style.top=Math.max(28,Math.min(68,p.clientY/innerHeight*100))+'%'};
+ function startVisiblePreview(){
+  if(previewHost)return;
+  const host=document.createElement('div');host.setAttribute('aria-hidden','true');host.style.cssText='position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:4;background:#000';
+  const style=document.createElement('style');style.textContent='@keyframes abyss-preview-breathe{from{transform:scale(1.01) translateX(-.4%)}to{transform:scale(1.09) translateX(1%)}}@keyframes abyss-preview-swim{from{transform:translateY(-7px) rotate(-1.5deg)}to{transform:translateY(9px) rotate(2deg)}}@keyframes abyss-preview-frames{from{background-position:0% 50%}to{background-position:100% 50%}}';host.appendChild(style);
+  const biome=document.createElement('img');biome.src=invertedBells.src;biome.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;image-rendering:pixelated;opacity:.93;animation:abyss-preview-breathe 10s ease-in-out infinite alternate';host.appendChild(biome);
+  const anchor=document.createElement('div');anchor.style.cssText='position:absolute;left:61%;top:43%;width:min(72vw,312px);aspect-ratio:256/160;transform:translate(-50%,-50%);transition:left .45s ease-out,top .45s ease-out;filter:drop-shadow(0 0 11px #e57807) drop-shadow(0 0 26px #ad4201)';
+  const swimming=document.createElement('div');swimming.style.cssText='width:100%;height:100%;image-rendering:pixelated;background-repeat:no-repeat;background-size:400% 100%;animation:abyss-preview-frames 1.6s steps(3,end) infinite,abyss-preview-swim 3.3s ease-in-out infinite alternate';swimming.style.backgroundImage='url("'+lanternSide.src+'")';anchor.appendChild(swimming);host.appendChild(anchor);document.body.appendChild(host);previewHost=host;previewAnchor=anchor;
+  addEventListener('pointermove',previewPointer,{passive:true});addEventListener('touchmove',previewPointer,{passive:true});
+ }
+ function finishVisiblePreview(){if(!previewHost)return;previewHost.remove();previewHost=null;previewAnchor=null;removeEventListener('pointermove',previewPointer);removeEventListener('touchmove',previewPointer)}
+
  const FIRST=8.5,PERIOD=38;
  let ready=false,gpu=null,start=0,gameFrame=-1,hiddenAt=0,lightDirection=1,lightX=Math.SQRT1_2,lightY=Math.SQRT1_2,lightDirty=true;
  let jawOpen=0,jawVelocity=0,targetCycle=-2,attackedCycle=-1,targetHero=null,heroSample=null,nextHeroSample=0;
@@ -29,6 +44,7 @@ function startGpuEncounter(images){
  const lanternState={visible:false,front:false,side:true,guide:'finger-light',z:-24,biomePlanes:3,position:[0,0],renderer:'main-webgl'};
  Object.defineProperty(window,'__abyssPlayMaw',{value:mawState,configurable:false});
  window.__abyssLanternRay=()=>lanternState;
+ startVisiblePreview();
  const aimLight=event=>{
   const point=event.touches&&event.touches.length?event.touches[0]:event;
   if(!point||!Number.isFinite(point.clientX)||!Number.isFinite(point.clientY))return;
@@ -96,7 +112,7 @@ vec2 mirrorUv(vec2 p){return 1.-abs(mod(p,2.)-1.);}
 float bubble(vec2 p,vec2 center,float radius){float d=abs(length(p-center)-radius);return 1.-smoothstep(.004,.012,d);}
 void main(){
  vec2 frag=gl_FragCoord.xy,hero=(frag-uHeroCenter)*uHeroInvRadius;if(dot(hero,hero)<1.)discard;
- if(uMode==4.0){vec4 sum=vec4(0.),c=texture2D(tBiome,mirrorUv(vUv*vec2(1.15,2.07)+uBiomeDrift01.xy));c.a*=.10;sum=overPremul(sum,c);c=texture2D(tBiome,mirrorUv(vUv*vec2(1.53,2.754)+uBiomeDrift01.zw+.31));c.a*=.16;sum=overPremul(sum,c);c=texture2D(tBiome,mirrorUv(vUv*vec2(1.91,3.438)+uBiomeDrift2+.62));c.a*=.22;sum=overPremul(sum,c);if(sum.a<.03)discard;gl_FragColor=vec4(sum.rgb/sum.a,sum.a*uAlpha);return;}
+ if(uMode==4.0){float crop=clamp(uViewport.x/max(1.,uViewport.y)*.38,.23,.82);vec2 nearUv=vec2(.5+(vUv.x-.5)*crop+sin(uTime*.055)*.011,vUv.y);vec4 nearC=texture2D(tBiome,clamp(nearUv,vec2(.001),vec2(.999)));nearC.a*=.92;vec4 farC=texture2D(tBiome,mirrorUv(vec2(.22+(vUv.x-.5)*crop*1.15+uBiomeDrift01.x*.12,vUv.y*.85+.07)));farC.a*=.19;vec4 deepC=texture2D(tBiome,mirrorUv(vec2(.80+(vUv.x-.5)*crop*1.35-uBiomeDrift2.x*.10,vUv.y*.79+.10)));deepC.a*=.12;vec4 sum=overPremul(overPremul(deepC,farC),nearC);if(sum.a<.025)discard;gl_FragColor=vec4(sum.rgb/max(sum.a,.001),sum.a*uAlpha);return;}
  if(uMode==3.0){vec2 uv=vUv;if(uFlip>.5)uv.x=1.-uv.x;float frontMix=smoothstep(.72,.9,abs(uLightDir.y));vec4 c;if(frontMix>=1.)c=texture2D(tFront,uv);else{float phase=mod(uTime*2.2,4.),frame=floor(phase),next=mod(frame+1.,4.);vec4 a=texture2D(tSide,vec2((uv.x+frame)*.25,uv.y)),b=texture2D(tSide,vec2((uv.x+next)*.25,uv.y)),side=mix(a,b,smoothstep(0.,1.,fract(phase)));c=frontMix<=0.?side:mix(side,texture2D(tFront,uv),frontMix);}float halo=exp(-dot(vUv-.5,vUv-.5)*13.)*.10*uAlpha;if(c.a<.03){if(halo<.008)discard;gl_FragColor=vec4(pal(5.),halo);return;}float tone=nearestTone(c.rgb),directional=clamp(.42+.58*dot(normalize(vUv-.5+vec2(.001)),uLightDir),.18,1.);gl_FragColor=vec4(pal(floor(tone*(.58+.42*directional)+.5)),c.a*uAlpha);return;}
  if(uMode==2.0){vec2 p=vUv-.5;float halo=exp(-dot(p,p)*8.)*.12*uGlow;float rings=0.;for(int i=0;i<12;i++){float fi=float(i),rise=fract(uTime*(.18+mod(fi,3.)*.035)+fi/12.);vec2 c=vec2(sin(fi*7.13+uTime)*.28,.32-rise*.68);rings+=bubble(p,c,.013+mod(fi,3.)*.006)*(1.-smoothstep(.88,1.,rise));}float flash=uImpact*exp(-dot(p*p,vec2(69.44444444,816.32653061)));float alpha=(halo+rings*.34+flash*.34)*uAlpha;if(alpha<.008)discard;vec3 color=mix(pal(4.),pal(6.),clamp(rings+flash,0.,1.));gl_FragColor=vec4(color,alpha);return;}
  if(uMode==1.0){vec2 breath=(vUv-.5)*(1.+sin(uTime*3.05)*.025);vec4 c=texture2D(tThroat,breath+.5);if(c.a<.025)discard;float pulse=.72+.28*sin(uTime*5.2);gl_FragColor=vec4(c.rgb*(.76+.24*pulse)+pal(4.)*.08*uGlow,c.a*uAlpha);return;}
@@ -133,7 +149,7 @@ void main(){
   const pass=prepare(time);if(!pass)return;const {gl,textures,uniforms,w,h,lightX,lightY,saved}=pass;
   bindTextures(pass,5);gl.uniform1f(uniforms.uMode,4);gl.uniform2f(uniforms.uCenter,w*.5,h*.5);gl.uniform2f(uniforms.uSize,w,h);gl.uniform1f(uniforms.uAlpha,1);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   const reach=Math.min(w,h)*.235,targetX=w*.5+lightX*reach,targetY=h*.5+lightY*reach*.78;
-  if(!lanternStarted){lanternX=w*.5-reach;lanternY=h*.57;lanternStarted=true}const follow=1-Math.exp(-Math.max(0,dt)*2.15);lanternX+=(targetX-lanternX)*follow;lanternY+=(targetY-lanternY)*follow;const lanternAlpha=clamp((time-2.5)/2.4),bob=Math.sin(time*1.35)*Math.max(2,h*.006),dx=targetX-lanternX,dy=targetY-lanternY;lanternState.visible=lanternAlpha>.02;lanternState.front=Math.abs(dy)>Math.abs(dx)*1.08;lanternState.side=!lanternState.front;lanternState.position[0]=Math.round(lanternX);lanternState.position[1]=Math.round(lanternY+bob);gl.uniform1f(uniforms.uFlip,dx<0?1:0);const raySize=Math.min(w*.52,220);bindTextures(pass,3,4);draw(pass,3,lanternX,lanternY+bob,raySize,raySize*160/256,lanternAlpha);
+  if(!lanternStarted){lanternX=w*.5+reach*.45;lanternY=h*.43;lanternStarted=true}const follow=1-Math.exp(-Math.max(0,dt)*2.15);lanternX+=(targetX-lanternX)*follow;lanternY+=(targetY-lanternY)*follow;const lanternAlpha=1,bob=Math.sin(time*1.35)*Math.max(2,h*.006),dx=targetX-lanternX,dy=targetY-lanternY;lanternState.visible=lanternAlpha>.02;lanternState.front=Math.abs(dy)>Math.abs(dx)*1.08;lanternState.side=!lanternState.front;lanternState.position[0]=Math.round(lanternX);lanternState.position[1]=Math.round(lanternY+bob);gl.uniform1f(uniforms.uFlip,dx<0?1:0);const raySize=Math.min(w*.72,312);bindTextures(pass,3,4);draw(pass,3,lanternX,lanternY+bob,raySize,raySize*160/256,lanternAlpha);
   if(q.visible>.02){
    const base=Math.min(w/217,h/289)*.86,s=base*q.scale,retreat=q.phase==='retreat'?smooth(1-q.visible):0,side=q.cycle%2?1:-1;let approachX=0,approachY=0,roll=0;
    if(q.phase==='warning'){const settle=smooth((q.light-.14)/.76);approachX=side*w*(.085-.035*settle);approachY=h*(.055-.018*settle);roll=side*(.045-.015*settle)}else if(q.phase==='emerge'){const remain=1-smooth((q.visible-.42)/.58);approachX=side*w*.05*remain;approachY=h*.037*remain;roll=side*.03*remain}
@@ -145,7 +161,7 @@ void main(){
    bindTextures(pass,0,1);draw(pass,0,cx,cy,sizeX,sizeY,alpha,0,upperRot,pivotX,pivotY,0,upperShiftY,q.light,q.impact);draw(pass,0,cx,cy,sizeX,sizeY,alpha,1,lowerRot,pivotX,pivotY,0,lowerShiftY,q.light,q.impact);
    const finWave=Math.sin(time*1.42)*.017+Math.sin(time*2.65)*.005;draw(pass,0,cx,cy,sizeX,sizeY,alpha,2,upperRot-finWave*(.38+upperOpen*.62),-.293,-.074,0,upperShiftY,q.light,q.impact);draw(pass,0,cx,cy,sizeX,sizeY,alpha,3,upperRot+finWave*(.38+upperOpen*.62),.293,-.074,0,upperShiftY,q.light,q.impact);
   }
-  restoreGl(gl,saved,gpu.webgl2,gpu.vaoExt);
+  restoreGl(gl,saved,gpu.webgl2,gpu.vaoExt);finishVisiblePreview();
  };
  const update=(now,dt)=>{
   const seconds=(now-start)/1000,q=frameState(seconds),open=springJaw(q.open,dt),w=gameCanvas.width,h=gameCanvas.height;
@@ -156,7 +172,7 @@ void main(){
   if(q.hit&&q.cycle!==attackedCycle){attackedCycle=q.cycle;const current=sampleHero(seconds,true),s=Math.min(w/217,h/289)*.86*q.scale,inMouth=!targetHero||!current||Math.hypot(aimX,aimY)<Math.max(22*s,Math.min(w,h)*.055);let hit=false;if(inMouth){try{if(typeof window.__abyssPlayMawHit==='function')hit=!!window.__abyssPlayMawHit()}catch(error){console.error('ABYSS maw hit:',error)}}else{mawState.avoidedCount++;const sweep=q.cycle%2?1:-1;retreatKickX=sweep*w*.12;retreatKickY=-h*.045;try{if(typeof window.__abyssPlayMawDodge==='function')window.__abyssPlayMawDodge(sweep)}catch(error){console.error('ABYSS maw dodge:',error)}mawState.reaction='dodged'}if(hit){cameraKick=1;retreatKickY=-h*.025;mawState.reaction='hit'}mawState.lastHit=hit;mawState.attackCount++}
   return {seconds,q,open};
  };
- Promise.all(Object.values(images).map(imageReady)).then(()=>{gpu=makeGpu();if(!gpu)throw new Error('main WebGL context unavailable');ready=true;mawState.ready=true}).catch(error=>console.error('ABYSS main-canvas encounter:',error));
+ Promise.all(Object.values(images).map(imageReady)).then(()=>{gpu=makeGpu();if(!gpu)throw new Error('main WebGL context unavailable');ready=true;mawState.ready=true}).catch(error=>{console.error('ABYSS main-canvas encounter:',error);startVisiblePreview()});
  const gameRAF=window.requestAnimationFrame.bind(window);document.addEventListener('visibilitychange',()=>{const now=performance.now();if(document.hidden){hiddenAt=now;return}if(hiddenAt){if(start)start+=now-hiddenAt;hiddenAt=0;gameFrame=now}},{passive:true});
  window.requestAnimationFrame=callback=>gameRAF(now=>{let snapshot=null;if(ready&&typeof window.__abyssPlayMawHit==='function'&&now!==gameFrame){if(!start)start=now;const dt=gameFrame<0?0:Math.min(.05,(now-gameFrame)/1000);gameFrame=now;snapshot=update(now,dt)}callback(now);if(snapshot)render(snapshot.seconds,mawState.dt||0,snapshot.q,snapshot.open)});
  return true;
