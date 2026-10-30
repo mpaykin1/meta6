@@ -1,0 +1,103 @@
+{
+  "base": 494,
+  "now": 494,
+  "lost": [],
+  "extra": [
+    {
+      "name": "Уровни",
+      "need": 3,
+      "have": 3,
+      "ok": true
+    },
+    {
+      "name": "Миссии",
+      "need": 12,
+      "have": 12,
+      "ok": true
+    },
+    {
+      "name": "Комнаты без лифта",
+      "need": 1,
+      "have": 1,
+      "ok": true
+    },
+    {
+      "name": "Улучшения",
+      "need": 6,
+      "have": 6,
+      "ok": true
+    },
+    {
+      "name": "События",
+      "need": 7,
+      "have": 7,
+      "ok": true
+    },
+    {
+      "name": "Характеры",
+      "need": 5,
+      "have": 5,
+      "ok": true
+    },
+    {
+      "name": "Звуки штурма",
+      "need": 15,
+      "have": 15,
+      "ok": true
+    },
+    {
+      "name": "Звуки",
+      "need": 35,
+      "have": 37,
+      "ok": true
+    },
+    {
+      "name": "Реплики",
+      "need": 141,
+      "have": 141,
+      "ok": true
+    }
+  ],
+  "sections": [
+    {
+      "name": "ОФИС",
+      "n": 90,
+      "ok": true
+    },
+    {
+      "name": "ДВОР",
+      "n": 61,
+      "ok": true
+    },
+    {
+      "name": "ЛИФТ ВРЕМЕНИ",
+      "n": 47,
+      "ok": true
+    },
+    {
+      "name": "БУДУЩЕЕ",
+      "n": 69,
+      "ok": true
+    },
+    {
+      "name": "ВЫСОКИЕ СТЕНЫ",
+      "n": 15,
+      "ok": true
+    },
+    {
+      "name": "ШТУРМ",
+      "n": 79,
+      "ok": true
+    },
+    {
+      "name": "АРХИВ",
+      "n": 113,
+      "ok": true
+    },
+    {
+      "name": "ПРОГРЕССИЯ",
+      "n": 20,
+      "ok": true
+    }
+  ]
+}

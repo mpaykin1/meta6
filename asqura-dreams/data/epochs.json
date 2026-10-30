@@ -1,0 +1,117 @@
+[
+  {
+    "year": 1750,
+    "lv": -1,
+    "attackers": {
+      "ru": "королевские солдаты",
+      "en": "royal soldiers"
+    },
+    "breaks": {
+      "ru": [
+        "двери",
+        "окна",
+        "мебель"
+      ],
+      "en": [
+        "doors",
+        "windows",
+        "furniture"
+      ]
+    },
+    "clues": {
+      "ru": [
+        "стрела",
+        "печать"
+      ],
+      "en": [
+        "arrow",
+        "seal"
+      ]
+    },
+    "text": {
+      "ru": "После нападения во дворе память стирается.",
+      "en": "After the court attack, memory fades."
+    },
+    "existing": {
+      "level": "buildCourt, drawFloorCourt, drawWallsCourt",
+      "lift": "chooseFloor, liftUpdate",
+      "attack": "отдельного штурма 1750 нет"
+    }
+  },
+  {
+    "year": 2026,
+    "lv": 0,
+    "attackers": {
+      "ru": "спецназ",
+      "en": "SWAT"
+    },
+    "breaks": {
+      "ru": [
+        "окна",
+        "двери",
+        "столы"
+      ],
+      "en": [
+        "windows",
+        "doors",
+        "desks"
+      ]
+    },
+    "clues": {
+      "ru": [
+        "гильза",
+        "осколок"
+      ],
+      "en": [
+        "cartridge case",
+        "shard"
+      ]
+    },
+    "text": {
+      "ru": "Спецназ штурмует офис. Лифт спасает работников.",
+      "en": "SWAT raids the office. The lift saves workers."
+    },
+    "existing": {
+      "level": "buildProps, drawFloor, drawWalls",
+      "lift": "callLift, liftUpdate",
+      "attack": "raidSchedule, raidLive, raidAI, raidUpdate, raidEnd"
+    }
+  },
+  {
+    "year": 2099,
+    "lv": 1,
+    "attackers": {
+      "ru": "монстры лаборатории",
+      "en": "lab monsters"
+    },
+    "breaks": {
+      "ru": [
+        "колбы",
+        "консоли"
+      ],
+      "en": [
+        "tanks",
+        "consoles"
+      ]
+    },
+    "clues": {
+      "ru": [
+        "обломок робота",
+        "образец"
+      ],
+      "en": [
+        "robot fragment",
+        "sample"
+      ]
+    },
+    "text": {
+      "ru": "Монстры вырываются из лаборатории.",
+      "en": "Monsters escape from the laboratory."
+    },
+    "existing": {
+      "level": "buildLab, drawFloorLab, drawWallsLab, monster",
+      "lift": "chooseFloor, liftUpdate",
+      "attack": "отдельного штурма 2099 нет"
+    }
+  }
+]

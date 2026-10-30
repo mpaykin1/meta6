@@ -1,0 +1,205 @@
+[
+  {
+    "id": "fish",
+    "employee": {
+      "name": "Алекс",
+      "role": "сотрудник ASQURA",
+      "castIndex": 0
+    },
+    "game": "ABYSS GLOW",
+    "url": null,
+    "epoch": 0,
+    "lines": {
+      "ru": [
+        "Я светящаяся рыбка.",
+        "Подо мной затонувший город.",
+        "Из темноты идёт пасть.",
+        "Просыпаюсь, но слышу воду."
+      ],
+      "en": [
+        "I am a glowing fish.",
+        "A sunken city lies below.",
+        "A giant maw rises from the dark.",
+        "I wake but still hear water."
+      ]
+    },
+    "clue": {
+      "ru": "мокрая папка ASQURA",
+      "en": "a wet ASQURA folder"
+    }
+  },
+  {
+    "id": "archer",
+    "employee": {
+      "name": "Мира",
+      "role": "сотрудник ASQURA",
+      "castIndex": 1
+    },
+    "game": "Archer in the Fog",
+    "url": "https://playgama.ai/play/4kgpul4csofiu3",
+    "epoch": 1,
+    "lines": {
+      "ru": [
+        "Я стою на башне.",
+        "Вокруг летает дракон.",
+        "Я стреляю из лука.",
+        "Утром на руке ожог."
+      ],
+      "en": [
+        "I stand on a tower.",
+        "A dragon circles above.",
+        "I fire my bow.",
+        "I wake with a burn."
+      ]
+    },
+    "clue": {
+      "ru": "обожжённый пропуск",
+      "en": "a scorched employee badge"
+    }
+  },
+  {
+    "id": "king",
+    "employee": {
+      "name": "Ева",
+      "role": "сотрудник ASQURA",
+      "castIndex": 2
+    },
+    "game": "King of Ash",
+    "url": "https://playgama.ai/play/w6vamsre5drpbe",
+    "epoch": -1,
+    "lines": {
+      "ru": [
+        "Во сне я король.",
+        "Вокруг горит Колизей.",
+        "На меня идут скелеты.",
+        "Один назвал меня директором."
+      ],
+      "en": [
+        "I dream I am a king.",
+        "The colosseum is burning.",
+        "Skeletons approach me.",
+        "One called me the boss."
+      ]
+    },
+    "clue": {
+      "ru": "корона с номером кабинета",
+      "en": "a crown marked with an office number"
+    }
+  },
+  {
+    "id": "isle",
+    "employee": {
+      "name": "Макс",
+      "role": "сотрудник ASQURA",
+      "castIndex": 3
+    },
+    "game": "Twilight Isle",
+    "url": "https://playgama.ai/play/x4kvcijqwdbfpn",
+    "epoch": 0,
+    "lines": {
+      "ru": [
+        "Мне снится остров.",
+        "У маяка движутся тени.",
+        "Я ищу путь домой.",
+        "И снова собираю монеты."
+      ],
+      "en": [
+        "I dream of an island.",
+        "Shadows move near the lighthouse.",
+        "I search for home.",
+        "And collect coins again."
+      ]
+    },
+    "clue": {
+      "ru": "монета с логотипом ASQURA",
+      "en": "an ASQURA coin"
+    }
+  },
+  {
+    "id": "classic",
+    "employee": {
+      "name": "Лина",
+      "role": "сотрудник ASQURA",
+      "castIndex": 4
+    },
+    "game": "Twilight Isle Classic",
+    "url": "https://playgama.ai/play/rszzimlduq6zw2",
+    "epoch": -1,
+    "lines": {
+      "ru": [
+        "Я снова на острове.",
+        "Но всё выглядит иначе.",
+        "Маяк светит как прежде.",
+        "Будто жизнь началась заново."
+      ],
+      "en": [
+        "I am on the island again.",
+        "But everything looks different.",
+        "The lighthouse still shines.",
+        "As if life restarted."
+      ]
+    },
+    "clue": {
+      "ru": "старый план офиса",
+      "en": "an old office blueprint"
+    }
+  },
+  {
+    "id": "under",
+    "employee": {
+      "name": "Алекс",
+      "role": "сотрудник ASQURA",
+      "castIndex": 0
+    },
+    "game": "Under and Above",
+    "url": "https://playgama.ai/play/r5z6f2cvqu75lr",
+    "epoch": 1,
+    "lines": {
+      "ru": [
+        "Я ныряю под остров.",
+        "Там стоит собор.",
+        "На двери написано ASQURA.",
+        "Я уже видел его раньше."
+      ],
+      "en": [
+        "I dive beneath the island.",
+        "A cathedral stands there.",
+        "ASQURA is written on its door.",
+        "I have seen it before."
+      ]
+    },
+    "clue": {
+      "ru": "надпись ASQURA на соборе",
+      "en": "ASQURA engraved on a cathedral"
+    }
+  },
+  {
+    "id": "fog",
+    "employee": {
+      "name": "Мира",
+      "role": "сотрудник ASQURA",
+      "castIndex": 1
+    },
+    "game": "Foggy Awakening",
+    "url": "https://playgama.ai/play/43en5yo6pqmnjb",
+    "epoch": 0,
+    "lines": {
+      "ru": [
+        "Вокруг бесконечный туман.",
+        "Вдали светится дерево.",
+        "За мной идут чудовища.",
+        "За деревом стоит наш офис."
+      ],
+      "en": [
+        "Endless fog surrounds me.",
+        "A glowing tree is far ahead.",
+        "Monsters follow me.",
+        "Our office stands behind the tree."
+      ]
+    },
+    "clue": {
+      "ru": "дверь офиса в тумане",
+      "en": "an office door in the fog"
+    }
+  }
+]
