@@ -1,0 +1,20 @@
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname,resolve} from 'node:path';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'../data');
+const read=n=>JSON.parse(readFileSync(resolve(root,n),'utf8'));
+const dreams=read('dreams.json'), inv=read('investigation.json');
+let errors=[];const check=(ok,msg)=>{if(!ok)errors.push(msg)};
+const keys=(o,k)=>Object.keys(o).sort().join(',')===k.slice().sort().join(',');
+const lines=(v,max,label)=>{check(Array.isArray(v)&&v.length>0&&v.length<=max,label+' count');if(Array.isArray(v))v.forEach((s,i)=>check(typeof s==='string'&&[...s].length<=38,label+'['+i+'] length'))};
+check(Array.isArray(dreams)&&dreams.length===8,'dream count');
+const ids=new Set(),used=new Set(),sids=new Set(inv.suspects.map(x=>x.id));
+check(inv.suspects.length>=3&&inv.suspects.length<=4,'suspect count');
+inv.suspects.forEach(x=>{check(keys(x,['id','name','nameEn']),'suspect shape');check(!used.has(x.id),'duplicate suspect');used.add(x.id)});
+const ci=new Set();
+for(const d of dreams){check(keys(d,['id','ci','game','url','ep','l','en','clue','clueEn','sus']),'dream shape '+d.id);check(/^[a-z][a-z0-9_-]*$/.test(d.id)&&!ids.has(d.id),'id '+d.id);ids.add(d.id);check(Number.isInteger(d.ci)&&d.ci>=0&&d.ci<=4,'ci '+d.id);ci.add(d.ci);check([-1,0,1].includes(d.ep),'ep '+d.id);check(/^https:\/\/playgama\.ai\/play\/[a-z0-9]+$/.test(d.url),'url '+d.id);check(typeof d.game==='string'&&d.game.length>0,'game '+d.id);lines(d.l,4,d.id+'.l');lines(d.en,4,d.id+'.en');check(d.l.length===4&&d.en.length===4,'four lines '+d.id);check(typeof d.clue==='string'&&typeof d.clueEn==='string'&&d.clue.length>0&&d.clueEn.length>0,'clue '+d.id);check(sids.has(d.sus),'sus '+d.id)}
+for(let i=0;i<5;i++)check(ci.has(i),'missing employee '+i);
+check(keys(inv,['suspects','chapters','final']),'investigation shape');check(inv.chapters.length===4,'chapters count');
+inv.chapters.forEach((c,i)=>{check(keys(c,['need','who','l','en']),'chapter shape');check(c.need===[2,4,6,8][i]&&c.need<=dreams.length,'need '+i);check(c.who==='boss'||Number.isInteger(c.who)&&c.who>=0&&c.who<=4,'who '+i);lines(c.l,4,'chapter '+i+'.l');lines(c.en,4,'chapter '+i+'.en')});
+check(keys(inv.final,['who','l','en']),'final shape');check(inv.final.who==='boss'||Number.isInteger(inv.final.who)&&inv.final.who>=0&&inv.final.who<=4,'final who');lines(inv.final.l,6,'final.l');lines(inv.final.en,6,'final.en');
+console.log(errors.length?errors.join('\n'):'0 errors: 8 dreams, 4 chapters, 5 employees');if(errors.length)process.exitCode=1;

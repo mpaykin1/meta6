@@ -36,7 +36,8 @@
       "level": "buildCourt, drawFloorCourt, drawWallsCourt",
       "lift": "chooseFloor, liftUpdate",
       "attack": "отдельного штурма 1750 нет"
-    }
+    },
+    "sus": "director"
   },
   {
     "year": 2026,
@@ -75,7 +76,8 @@
       "level": "buildProps, drawFloor, drawWalls",
       "lift": "callLift, liftUpdate",
       "attack": "raidSchedule, raidLive, raidAI, raidUpdate, raidEnd"
-    }
+    },
+    "sus": "director"
   },
   {
     "year": 2099,
@@ -112,6 +114,7 @@
       "level": "buildLab, drawFloorLab, drawWallsLab, monster",
       "lift": "chooseFloor, liftUpdate",
       "attack": "отдельного штурма 2099 нет"
-    }
+    },
+    "sus": "director"
   }
 ]

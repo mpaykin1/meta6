@@ -1,0 +1,99 @@
+{
+  "suspects": [
+    {
+      "id": "director",
+      "name": "Директор ASQURA",
+      "nameEn": "ASQURA Director"
+    },
+    {
+      "id": "warden",
+      "name": "Смотритель маяка",
+      "nameEn": "Lighthouse Warden"
+    },
+    {
+      "id": "guardian",
+      "name": "Страж дерева",
+      "nameEn": "Tree Guardian"
+    },
+    {
+      "id": "machine",
+      "name": "Машина памяти",
+      "nameEn": "Memory Machine"
+    }
+  ],
+  "chapters": [
+    {
+      "need": 2,
+      "who": 2,
+      "l": [
+        "На короне и стреле одна печать.",
+        "Приказ отдал кто-то из ASQURA."
+      ],
+      "en": [
+        "The crown and arrow share a seal.",
+        "Someone at ASQURA gave the order."
+      ]
+    },
+    {
+      "need": 4,
+      "who": 3,
+      "l": [
+        "Смотритель знает ключ от офиса.",
+        "Но жетон директора есть под водой.",
+        "Нападения связаны с лифтом."
+      ],
+      "en": [
+        "The Warden has an office key.",
+        "The director's token lies at sea.",
+        "The raids are tied to the lift."
+      ]
+    },
+    {
+      "need": 6,
+      "who": 1,
+      "l": [
+        "Страж дерева и машина — следы.",
+        "Они не отдают приказы солдатам.",
+        "След ведёт к директору ASQURA."
+      ],
+      "en": [
+        "The Guardian and machine leave traces.",
+        "Neither commands the soldiers.",
+        "The trail leads to the director."
+      ]
+    },
+    {
+      "need": 8,
+      "who": 0,
+      "l": [
+        "Золото, стрела и корона совпали.",
+        "Директор создал три вида врагов.",
+        "Но чей сон удерживает нас?"
+      ],
+      "en": [
+        "Gold, arrow and crown all match.",
+        "The director made three enemy forms.",
+        "But whose dream keeps us here?"
+      ]
+    }
+  ],
+  "final": {
+    "who": "boss",
+    "l": [
+      "Нападения устроил директор ASQURA.",
+      "В 1750 он послал солдат.",
+      "В 2026 — спецназ, в 2099 — монстров.",
+      "Он сам спит в машине памяти.",
+      "Мы — люди внутри его сна.",
+      "Лифт стирает память, чтоб не будить."
+    ],
+    "en": [
+      "ASQURA's director planned the raids.",
+      "In 1750 he sent royal soldiers.",
+      "In 2026 SWAT; in 2099 monsters.",
+      "He sleeps inside the memory machine.",
+      "We are people inside his dream.",
+      "The lift erases memory to keep him asleep."
+    ]
+  }
+}
