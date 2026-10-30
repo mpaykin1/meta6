@@ -1,5 +1,7 @@
 # three-worlds — Остров сумерек + Пепельный путь + Затонувший город
 
+**Статус 2026-10-19:** этап 7 (A–G) слит в main (PR #49), результат: [handoff/RESULT.md](https://github.com/mpaykin1/meta6/blob/handoff/handoff/RESULT.md); играть: https://mpaykin1.github.io/meta6/three-worlds-game/ . Владелец игру НЕ принимал (PASS/FAIL только его). Дальше этап 7b: подключение моделей Затонувшего города.
+
 Канонический короткий пароль для всех Claude / ChatGPT / Codex чатов: **three-worlds**.
 
 **Полный дизайн-документ:** [docs/THREE_WORLDS_MERGE_RU.md](docs/THREE_WORLDS_MERGE_RU.md)
