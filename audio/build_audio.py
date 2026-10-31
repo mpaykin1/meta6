@@ -9,7 +9,7 @@ OUT = ROOT / "audio"
 LIB = OUT / "library"
 SR = 44100
 GAMES = {
- "King of Ash": ["sword_swing","sword_hit","sword_block","hurt","death","skeleton_rattle","step_stone","jump","boss_intro","ui_click","music_arena"],
+ "King of Ash": ["sword_swing","sword_hit","sword_block","hurt","death","skeleton_rattle","step_stone","jump","boss_intro","ui_click","fire","music_arena","music_ash"],
  "Archer in the Fog": ["bow_draw","bow_release","arrow_hit","dragon_roar","monster_hurt","fireball","step_grass","wind","thunder","music_fog"],
  "Twilight Isle": ["sword_swing","sword_hit","magic_cast","monster_death","step_grass","step_sand","jump","wind","portal","music_twilight"],
  "Twilight Isle Classic": ["sword_swing","sword_hit","hurt","step_grass","step_stone","jump","ui_menu_open","music_twilight"],
