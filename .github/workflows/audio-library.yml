@@ -1,7 +1,7 @@
 name: Build CC0 OGG audio library
 on:
-  push:
-    branches: [audio-library]
+  pull_request:
+    branches: [main]
     paths:
       - audio/build_audio.py
       - audio/check_audio.mjs
