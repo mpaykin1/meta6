@@ -188,7 +188,9 @@ def synth_music(key,path):
         wav.writeframes(np.asarray(stereo*32760,dtype="<i2").tobytes())
 
 def convert(src, dst, music=False):
+    synthesized = src.stem.startswith(("generated_", "fallback_"))
     af=(["loudnorm=I=-16:TP=-2:LRA=11"] if music else
+        ["loudnorm=I=-16:TP=-3:LRA=11"] if synthesized else
         ["silenceremove=start_periods=1:start_threshold=-55dB:stop_periods=1:stop_threshold=-55dB",
          "loudnorm=I=-16:TP=-3:LRA=11"])
     cmd=["ffmpeg","-nostdin","-v","error","-y","-i",str(src),"-vn",
