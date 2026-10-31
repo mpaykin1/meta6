@@ -231,6 +231,7 @@ def main():
                             wav=td/f"generated_{cat}_{key}_{v}.wav"
                             (synth_music(key,wav) if cat=="music" else synth_sfx(key,v,wav))
                             convert(wav,dst,music=(cat=="music"))
+                        probe(dst)  # ffmpeg can return 0 but output an empty OGG after silence removal
                     except Exception as exc:
                         print("fallback synth",key,v,repr(exc))
                         used=None
