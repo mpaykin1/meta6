@@ -33,6 +33,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "$BASE_SHA" ] && [ -n "$HEAD_SHA" ]; then
+            # The checker is trusted from base; old game PR branches may not contain it.
+            mkdir -p scripts
+            git show "$BASE_SHA:scripts/check-game.cjs" > scripts/check-game.cjs
             git diff --name-only "$BASE_SHA...$HEAD_SHA" > /tmp/changed-games
           else
             printf 'ashen-sumerek/index.html\nunderwater-sumerek/index.html\n' > /tmp/changed-games
