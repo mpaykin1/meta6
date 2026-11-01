@@ -40,7 +40,20 @@ jobs:
           {
             grep -q '^ashen-sumerek/' /tmp/changed-games && echo 'ashen-sumerek/index.html' || true
             grep -q '^underwater-sumerek/' /tmp/changed-games && echo 'underwater-sumerek/index.html' || true
-            awk -F/ '$1=="games" && NF>=3 { print $1"/"$2"/index.html" }' /tmp/changed-games
+            while IFS= read -r changed; do
+              case "$changed" in
+                games/*)
+                  dir="${changed%/*}"
+                  found=
+                  while [ "$dir" != "." ] && [ "$dir" != "games" ]; do
+                    if [ -f "$dir/index.html" ]; then echo "$dir/index.html"; found=1; break; fi
+                    dir="${dir%/*}"
+                  done
+                  if [ -z "$found" ] && [ -f games/index.html ]; then echo games/index.html; found=1; fi
+                  if [ -z "$found" ]; then echo "No index.html for $changed" >&2; exit 1; fi
+                  ;;
+              esac
+            done < /tmp/changed-games
           } | sort -u > /tmp/targets
           if [ ! -s /tmp/targets ]; then echo 'No game files'; exit 0; fi
           while IFS= read -r target; do
