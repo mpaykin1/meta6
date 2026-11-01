@@ -7734,7 +7734,11 @@ function agWarn(text) {
     agWarnEl.style.cssText = 'position:fixed;left:50%;top:26%;transform:translateX(-50%);z-index:6;pointer-events:none;font:700 15px/1.2 "Courier New",monospace;letter-spacing:.22em;color:#ff7a6a;text-shadow:0 0 8px #ff2a3a,0 0 2px #000;opacity:0;transition:opacity .3s;white-space:nowrap';
     document.body.appendChild(agWarnEl);
   }
-  agWarnEl.textContent = text || agWarnEl.textContent; agWarnEl.style.opacity = text ? '1' : '0';
+  window.__ashDangerText = text || '';
+  document.body.classList.toggle('ashDanger', Boolean(text));
+  agWarnEl.textContent = '';
+  agWarnEl.style.opacity = '0';
+  agWarnEl.style.display = 'none';
 }
 function agWarnTick() {
   let best = '', bk = 0;
@@ -9136,4 +9140,60 @@ window.__isle = {
 
 </script>
 
+
+<style id="ash-clean-screen">
+/* The game keeps icons, life hearts, minimap, weapon-meter and 3D feedback; labels live in the pause menu. */
+#hud #coinN, #hud #coinT, #hud #timer, #hud #wName, #hud #wStat, #hud #wAmmo,
+#hud #toast, #hud #wNew, #hud #npcSay, #hud .boss > span,
+#hud #hotbar .slot > span, #hud .dmg { display: none !important; }
+#ashMenuButton { display: none; position: fixed; right: max(14px,env(safe-area-inset-right)); top: max(12px,env(safe-area-inset-top)); z-index: 999; width: 44px; height: 44px; border: 1px solid #c6a78099; border-radius: 9px; background: #14121ccc; color: #f7ddab; padding: 9px; cursor: pointer; place-items: center; backdrop-filter: blur(7px); }
+body:has(#hud:not([hidden])) #ashMenuButton { display: grid; }
+#ashMenuButton svg { width: 25px; height: 25px; pointer-events: none; }
+#scrPause { max-height: 100dvh; overflow-y: auto; padding-top: max(40px,env(safe-area-inset-top)); padding-bottom: max(22px,env(safe-area-inset-bottom)); }
+#scrPause #tools { position: static !important; display: flex !important; width: auto; margin: 12px auto; justify-content: center; gap: 12px; }
+#ashMenuInfo { width: min(86vw,540px); margin: 10px auto 16px; border: 1px solid #bda56b55; padding: 12px 14px; background: #130f1dba; color: #e6dec8; text-align: left; font: 13px/1.7 system-ui, sans-serif; }
+#ashMenuInfo h3 { margin: 0 0 8px; font-size: 15px; color: #f4d28f; }
+#ashMenuInfo p { margin: 2px 0; }
+#ashMenuInfo span { color: #ffebbd; }
+body.ashDanger::after { content: ""; position: fixed; z-index: 6; inset: 0; box-shadow: inset 0 0 70px 12px #9b182843; pointer-events: none; animation: ashWarningPulse 1.3s ease-in-out infinite alternate; }
+@keyframes ashWarningPulse { from { opacity: .28; } to { opacity: .84; } }
+</style>
+<button id="ashMenuButton" aria-label="Меню" title="Меню" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+<script>
+(function () {
+  'use strict';
+  const pause = document.getElementById('scrPause');
+  const button = document.getElementById('ashMenuButton');
+  const tools = document.getElementById('tools');
+  if (!pause || !button) return;
+  const info = document.createElement('section');
+  info.id = 'ashMenuInfo';
+  info.setAttribute('aria-label', 'Игровая информация');
+  info.innerHTML = '<h3>Находки и состояние</h3><p>Монеты: <span id="ashInfoCoins"></span></p><p>Время: <span id="ashInfoTime"></span></p><p>Оружие: <span id="ashInfoWeapon"></span></p><p>Характеристики: <span id="ashInfoStats"></span></p><p>Патроны: <span id="ashInfoAmmo"></span></p><p>Событие: <span id="ashInfoEvent"></span></p>';
+  const arsenal = document.getElementById('arsenal');
+  pause.insertBefore(info, arsenal || null);
+  if (tools) pause.appendChild(tools);
+  const read = (id) => (document.getElementById(id)?.textContent || '').trim();
+  function syncInfo() {
+    document.getElementById('ashInfoCoins').textContent = read('coinN') + ' ' + read('coinT');
+    document.getElementById('ashInfoTime').textContent = read('timer');
+    document.getElementById('ashInfoWeapon').textContent = read('wName');
+    document.getElementById('ashInfoStats').textContent = read('wStat');
+    document.getElementById('ashInfoAmmo').textContent = read('wAmmo');
+    document.getElementById('ashInfoEvent').textContent = window.__ashDangerText || read('toast') || read('npcSay') || '—';
+  }
+  button.addEventListener('click', function () {
+    const state = window.__isle?.G?.state;
+    if (state === 'play') {
+      syncInfo();
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape', bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Escape', key: 'Escape', bubbles: true }));
+    } else if (state === 'paused') {
+      document.getElementById('btnResume')?.click();
+    }
+  });
+  new MutationObserver(function () { if (!pause.hidden) syncInfo(); }).observe(pause, { attributes: true, attributeFilter: ['hidden'] });
+
+})();
+</script>
 </body></html>
