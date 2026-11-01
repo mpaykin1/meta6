@@ -100,6 +100,8 @@ rep("EVT.cool = ev.cooldown ?? 60;","EVT.cool = (DRY && ev.ashCool) || (ev.coold
 rep('  bloom.strength = pal.bloom + beacon.flare * 0.45 + G.hurt * 0.25;','  bloom.strength = (pal.bloom + beacon.flare * 0.45 + G.hurt * 0.25) * 0.12;')
 
 # Owner-requested clean screen: reproducible overlay generated from this source, no hand edits to the playable HTML.
+# The warning belongs to the module; never reach its lexical variables from a classic script.
+rep("  agWarnEl.textContent = text || agWarnEl.textContent; agWarnEl.style.opacity = text ? '1' : '0';", "  window.__ashDangerText = text || '';\n  document.body.classList.toggle('ashDanger', Boolean(text));\n  agWarnEl.textContent = '';\n  agWarnEl.style.opacity = '0';\n  agWarnEl.style.display = 'none';")
 ASH_CLEAN_SCREEN = r'''
 <style id="ash-clean-screen">
 /* The game keeps icons, life hearts, minimap, weapon-meter and 3D feedback; labels live in the pause menu. */
@@ -143,20 +145,17 @@ body.ashDanger::after { content: ""; position: fixed; z-index: 6; inset: 0; box-
     document.getElementById('ashInfoEvent').textContent = window.__ashDangerText || read('toast') || read('npcSay') || '—';
   }
   button.addEventListener('click', function () {
-    if (typeof G === 'undefined') return;
-    if (G.state === 'play') { syncInfo(); setPaused(true); }
-    else if (G.state === 'paused') setPaused(false);
+    const state = window.__isle?.G?.state;
+    if (state === 'play') {
+      syncInfo();
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape', bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Escape', key: 'Escape', bubbles: true }));
+    } else if (state === 'paused') {
+      document.getElementById('btnResume')?.click();
+    }
   });
   new MutationObserver(function () { if (!pause.hidden) syncInfo(); }).observe(pause, { attributes: true, attributeFilter: ['hidden'] });
-  if (typeof agWarn === 'function') {
-    const originalWarn = agWarn;
-    agWarn = function (text) {
-      originalWarn(text);
-      window.__ashDangerText = text || '';
-      document.body.classList.toggle('ashDanger', Boolean(text));
-      if (typeof agWarnEl !== 'undefined' && agWarnEl) agWarnEl.style.display = 'none';
-    };
-  }
+
 })();
 </script>
 '''
