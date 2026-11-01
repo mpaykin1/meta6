@@ -24,6 +24,13 @@ jobs:
       - name: Read announcement on push
         if: github.event_name == 'push'
         uses: actions/checkout@v4
+      - name: Prepare illustrated newspaper
+        if: github.event_name == 'push'
+        run: |
+          if python3 -c 'import json; exit(0 if json.load(open("discord/announcements/current.json")).get("poster") == "king-ash-2" else 1)'; then
+            python3 -m pip install --quiet pillow
+            python3 discord/make_poster.py /tmp/king-ash-news-2.png
+          fi
       - name: Publish announcement to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -35,6 +42,7 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import uuid
           import urllib.request
 
           webhook = os.environ.get("DISCORD_WEBHOOK_URL", "")
@@ -43,11 +51,13 @@ jobs:
 
           event = os.environ.get("EVENT_NAME")
           embeds = []
+          poster = False
           if event == "push":
               with open("discord/announcements/current.json", encoding="utf-8") as f:
                   news = json.load(f)
               content = str(news.get("content", "")).strip()
               embeds = news.get("embeds", [])
+              poster = news.get("poster") == "king-ash-2"
               if not isinstance(embeds, list) or len(embeds) > 1:
                   raise SystemExit("Expected zero or one Discord embed")
           elif event == "release":
@@ -59,20 +69,45 @@ jobs:
           if not content and not embeds:
               raise SystemExit("Message is empty")
 
-          payload = json.dumps({
+          payload = {
               "username": "META GAMES",
               "content": content[:2000],
               "embeds": embeds,
               "allowed_mentions": {"parse": []}
-          }, ensure_ascii=False).encode("utf-8")
+          }
+
+          if poster:
+              name = "king-ash-news-2.png"
+              payload["embeds"][0]["image"] = {"url": "attachment://" + name}
+              payload["attachments"] = [{"id": 0, "filename": name}]
+              boundary = "----MetaGames" + uuid.uuid4().hex
+              def part(name, content_type, data, filename=None):
+                  disposition = f'form-data; name="{name}"'
+                  if filename:
+                      disposition += f'; filename="{filename}"'
+                  head = (
+                      f"--{boundary}\r\n"
+                      f"Content-Disposition: {disposition}\r\n"
+                      f"Content-Type: {content_type}\r\n\r\n"
+                  ).encode("utf-8")
+                  return head + data + b"\r\n"
+              with open("/tmp/king-ash-news-2.png", "rb") as f:
+                  art = f.read()
+              body = part("payload_json", "application/json", json.dumps(payload, ensure_ascii=False).encode("utf-8"))
+              body += part("files[0]", "image/png", art, name)
+              body += f"--{boundary}--\r\n".encode("ascii")
+              content_type = "multipart/form-data; boundary=" + boundary
+          else:
+              body = json.dumps(payload,ensure_ascii=False).encode("utf-8")
+              content_type = "application/json"
 
           req = urllib.request.Request(
               webhook,
-              data=payload,
-              headers={"Content-Type": "application/json", "User-Agent": "MetaGames-GitHubActions/1.0"},
+              data=body,
+              headers={"Content-Type": content_type, "User-Agent": "MetaGames-GitHubActions/1.0"},
               method="POST"
           )
-          with urllib.request.urlopen(req, timeout=20) as response:
+          with urllib.request.urlopen(req, timeout=30) as response:
               if response.status not in (200, 204):
                   raise RuntimeError(f"Discord status {response.status}")
           PY
