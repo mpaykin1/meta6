@@ -1,0 +1,61 @@
+name: Discord — Meta Games
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Текст объявления для Discord'
+        required: true
+        type: string
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish announcement to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_MESSAGE: ${{ inputs.message }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          webhook = os.environ.get("DISCORD_WEBHOOK_URL", "")
+          if not webhook:
+              raise SystemExit("Missing DISCORD_WEBHOOK_URL secret")
+
+          if os.environ["EVENT_NAME"] == "release":
+              title = os.environ.get("RELEASE_NAME", "") or "Новый выпуск"
+              url = os.environ.get("RELEASE_URL", "")
+              content = f"🎮 **{title}**\n{url}"
+          else:
+              content = os.environ.get("MANUAL_MESSAGE", "").strip()
+          if not content:
+              raise SystemExit("Message is empty")
+
+          payload = json.dumps({
+              "username": "META GAMES",
+              "content": content[:2000],
+              "allowed_mentions": {"parse": []}
+          }).encode("utf-8")
+
+          req = urllib.request.Request(
+              webhook,
+              data=payload,
+              headers={"Content-Type": "application/json", "User-Agent": "MetaGames-GitHubActions/1.0"},
+              method="POST"
+          )
+          with urllib.request.urlopen(req, timeout=20) as response:
+              if response.status not in (200, 204):
+                  raise RuntimeError(f"Discord status {response.status}")
+          PY
