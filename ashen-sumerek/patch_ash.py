@@ -107,7 +107,7 @@ ASH_CLEAN_SCREEN = r'''
 /* The game keeps icons, life hearts, minimap, weapon-meter and 3D feedback; labels live in the pause menu. */
 #hud #coinN, #hud #coinT, #hud #timer, #hud #wName, #hud #wStat, #hud #wAmmo,
 #hud #toast, #hud #wNew, #hud #npcSay, #hud .boss > span,
-#hud #hotbar .slot > span { display: none !important; }
+#hud #hotbar .slot > span, #hud .dmg { display: none !important; }
 #ashMenuButton { display: none; position: fixed; right: max(14px,env(safe-area-inset-right)); top: max(12px,env(safe-area-inset-top)); z-index: 999; width: 44px; height: 44px; border: 1px solid #c6a78099; border-radius: 9px; background: #14121ccc; color: #f7ddab; padding: 9px; cursor: pointer; place-items: center; backdrop-filter: blur(7px); }
 body:has(#hud:not([hidden])) #ashMenuButton { display: grid; }
 #ashMenuButton svg { width: 25px; height: 25px; pointer-events: none; }
