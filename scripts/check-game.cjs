@@ -11,7 +11,7 @@ if (!fs.existsSync(game)) { console.error('No game: ' + name); process.exit(2); 
 
 function baseline(kind) {
   const dir = path.resolve('docs/weekly-review');
-  const col = name.startsWith('ashen-sumerek/') ? 3 : name.startsWith('underwater-sumerek/') ? 2 : -1;
+  const col = name.startsWith('ashen-sumerek/') ? 4 : name.startsWith('underwater-sumerek/') ? 3 : -1;
   if (col < 0 || !fs.existsSync(dir)) return null;
   for (const file of fs.readdirSync(dir).filter(f => /^\d{4}-\d\d-\d\d\.md$/.test(f)).sort().reverse()) {
     const line = fs.readFileSync(path.join(dir, file), 'utf8').split('\n')
