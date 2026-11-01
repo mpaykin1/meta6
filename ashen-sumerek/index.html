@@ -7734,7 +7734,11 @@ function agWarn(text) {
     agWarnEl.style.cssText = 'position:fixed;left:50%;top:26%;transform:translateX(-50%);z-index:6;pointer-events:none;font:700 15px/1.2 "Courier New",monospace;letter-spacing:.22em;color:#ff7a6a;text-shadow:0 0 8px #ff2a3a,0 0 2px #000;opacity:0;transition:opacity .3s;white-space:nowrap';
     document.body.appendChild(agWarnEl);
   }
-  agWarnEl.textContent = text || agWarnEl.textContent; agWarnEl.style.opacity = text ? '1' : '0';
+  window.__ashDangerText = text || '';
+  document.body.classList.toggle('ashDanger', Boolean(text));
+  agWarnEl.textContent = '';
+  agWarnEl.style.opacity = '0';
+  agWarnEl.style.display = 'none';
 }
 function agWarnTick() {
   let best = '', bk = 0;
@@ -9179,20 +9183,17 @@ body.ashDanger::after { content: ""; position: fixed; z-index: 6; inset: 0; box-
     document.getElementById('ashInfoEvent').textContent = window.__ashDangerText || read('toast') || read('npcSay') || '—';
   }
   button.addEventListener('click', function () {
-    if (typeof G === 'undefined') return;
-    if (G.state === 'play') { syncInfo(); setPaused(true); }
-    else if (G.state === 'paused') setPaused(false);
+    const state = window.__isle?.G?.state;
+    if (state === 'play') {
+      syncInfo();
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape', bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Escape', key: 'Escape', bubbles: true }));
+    } else if (state === 'paused') {
+      document.getElementById('btnResume')?.click();
+    }
   });
   new MutationObserver(function () { if (!pause.hidden) syncInfo(); }).observe(pause, { attributes: true, attributeFilter: ['hidden'] });
-  if (typeof agWarn === 'function') {
-    const originalWarn = agWarn;
-    agWarn = function (text) {
-      originalWarn(text);
-      window.__ashDangerText = text || '';
-      document.body.classList.toggle('ashDanger', Boolean(text));
-      if (typeof agWarnEl !== 'undefined' && agWarnEl) agWarnEl.style.display = 'none';
-    };
-  }
+
 })();
 </script>
 </body></html>
