@@ -52,12 +52,14 @@ jobs:
           event = os.environ.get("EVENT_NAME")
           embeds = []
           poster = False
+          poster_url = ""
           if event == "push":
               with open("discord/announcements/current.json", encoding="utf-8") as f:
                   news = json.load(f)
               content = str(news.get("content", "")).strip()
               embeds = news.get("embeds", [])
-              poster = news.get("poster") == "king-ash-2"
+              poster = news.get("poster") == "king-ash-2" or bool(news.get("poster_url"))
+              poster_url = news.get("poster_url", "")
               if not isinstance(embeds, list) or len(embeds) > 1:
                   raise SystemExit("Expected zero or one Discord embed")
           elif event == "release":
@@ -77,7 +79,7 @@ jobs:
           }
 
           if poster:
-              name = "king-ash-news-2.png"
+              name = "king-ash-news-3.png" if poster_url else "king-ash-news-2.png"
               payload["embeds"][0]["image"] = {"url": "attachment://" + name}
               payload["attachments"] = [{"id": 0, "filename": name}]
               boundary = "----MetaGames" + uuid.uuid4().hex
@@ -91,8 +93,12 @@ jobs:
                       f"Content-Type: {content_type}\r\n\r\n"
                   ).encode("utf-8")
                   return head + data + b"\r\n"
-              with open("/tmp/king-ash-news-2.png", "rb") as f:
-                  art = f.read()
+              if poster_url:
+                  with urllib.request.urlopen(urllib.request.Request(poster_url,headers={"User-Agent":"Mozilla/5.0"}),timeout=25) as f:
+                      art = f.read()
+              else:
+                  with open("/tmp/king-ash-news-2.png", "rb") as f:
+                      art = f.read()
               body = part("payload_json", "application/json", json.dumps(payload, ensure_ascii=False).encode("utf-8"))
               body += part("files[0]", "image/png", art, name)
               body += f"--{boundary}--\r\n".encode("ascii")
