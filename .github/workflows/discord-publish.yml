@@ -9,6 +9,10 @@ on:
         type: string
   release:
     types: [published]
+  push:
+    branches: [main]
+    paths:
+      - 'discord/announcements/current.json'
 
 permissions:
   contents: read
@@ -17,6 +21,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Read announcement on push
+        if: github.event_name == 'push'
+        uses: actions/checkout@v4
       - name: Publish announcement to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -34,20 +41,30 @@ jobs:
           if not webhook:
               raise SystemExit("Missing DISCORD_WEBHOOK_URL secret")
 
-          if os.environ["EVENT_NAME"] == "release":
+          event = os.environ.get("EVENT_NAME")
+          embeds = []
+          if event == "push":
+              with open("discord/announcements/current.json", encoding="utf-8") as f:
+                  news = json.load(f)
+              content = str(news.get("content", "")).strip()
+              embeds = news.get("embeds", [])
+              if not isinstance(embeds, list) or len(embeds) > 1:
+                  raise SystemExit("Expected zero or one Discord embed")
+          elif event == "release":
               title = os.environ.get("RELEASE_NAME", "") or "Новый выпуск"
               url = os.environ.get("RELEASE_URL", "")
               content = f"🎮 **{title}**\n{url}"
           else:
               content = os.environ.get("MANUAL_MESSAGE", "").strip()
-          if not content:
+          if not content and not embeds:
               raise SystemExit("Message is empty")
 
           payload = json.dumps({
               "username": "META GAMES",
               "content": content[:2000],
+              "embeds": embeds,
               "allowed_mentions": {"parse": []}
-          }).encode("utf-8")
+          }, ensure_ascii=False).encode("utf-8")
 
           req = urllib.request.Request(
               webhook,
