@@ -1,0 +1,49 @@
+name: game-browser-check
+on:
+  pull_request:
+    paths:
+      - 'ashen-sumerek/**'
+      - 'underwater-sumerek/**'
+      - 'games/**'
+  workflow_dispatch:
+
+jobs:
+  game-browser-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install local Three and Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1 three@0.160.0
+          npx playwright install --with-deps chromium
+      - name: Check all changed games at exact HEAD
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ -n "$BASE_SHA" ] && [ -n "$HEAD_SHA" ]; then
+            git diff --name-only "$BASE_SHA...$HEAD_SHA" > /tmp/changed-games
+          else
+            printf 'ashen-sumerek/index.html\nunderwater-sumerek/index.html\n' > /tmp/changed-games
+          fi
+          {
+            grep -q '^ashen-sumerek/' /tmp/changed-games && echo 'ashen-sumerek/index.html' || true
+            grep -q '^underwater-sumerek/' /tmp/changed-games && echo 'underwater-sumerek/index.html' || true
+            awk -F/ '$1=="games" && NF>=3 { print $1"/"$2"/index.html" }' /tmp/changed-games
+          } | sort -u > /tmp/targets
+          if [ ! -s /tmp/targets ]; then echo 'No game files'; exit 0; fi
+          while IFS= read -r target; do
+            test -f "$target" || { echo "Missing game: $target"; exit 1; }
+            node scripts/check-game.cjs "$target"
+          done < /tmp/targets
