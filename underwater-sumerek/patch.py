@@ -108,6 +108,9 @@ rep('<button class="tbtn atk" id="btnAtk" aria-label="Удар">УДАР</button
 rep('<button class="tbtn jump" id="btnJump" aria-label="Прыжок">ПРЫЖОК</button>','<button class="tbtn jump" id="btnJump" aria-label="Прыжок">'+j+'</button>')
 rep(".atk:active {",".tbtn svg { display: block; margin: auto; width: 56%; height: 56%; image-rendering: pixelated; pointer-events: none; filter: drop-shadow(0 2px 0 rgba(0,0,0,.35)); }\n.atk:active {")
 
+# The loading transition must not reopen the title after startGame() has begun.
+rep("    $('scrTitle').hidden = false;\n    renderMenu();", "    if (G.state === 'title') { $('scrTitle').hidden = false; renderMenu(); }")
+
 # Clean screen is generated, not hand-edited into index.html.
 UW_CLEAN_SCREEN = r'''
 <style id="uw-clean-screen">
