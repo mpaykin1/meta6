@@ -7283,8 +7283,7 @@ function start(data) {
   requestAnimationFrame(frame);
   setTimeout(() => {
     loadingEl.classList.add('gone');
-    $('scrTitle').hidden = false;
-    renderMenu();
+    if (G.state === 'title') { $('scrTitle').hidden = false; renderMenu(); }
     setTimeout(() => loadingEl.remove(), 1400);
   }, 350);
 }
