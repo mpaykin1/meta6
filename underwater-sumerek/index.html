@@ -7376,4 +7376,56 @@ window.__isle = {
 
 </script>
 
+
+<style id="uw-clean-screen">
+/* Keep health icons, 3D world, map, weapon icon and charge bar; move words into the menu. */
+#hud #coinN, #hud #coinT, #hud #timer, #hud #wName, #hud #wStat, #hud #wAmmo,
+#hud #toast, #hud #wNew, #hud #npcSay, #hud .boss > span,
+#hud #hotbar .slot > span, #hud .dmg { display: none !important; }
+#uwMenuButton { display: none; position: fixed; top: max(12px,env(safe-area-inset-top)); right: max(14px,env(safe-area-inset-right)); z-index: 999; width: 44px; height: 44px; padding: 9px; border: 1px solid #c6a78099; border-radius: 9px; background: #14121ccc; color: #f7ddab; cursor: pointer; place-items: center; backdrop-filter: blur(7px); }
+body:has(#hud:not([hidden])) #uwMenuButton { display: grid; }
+#uwMenuButton svg { width: 25px; height: 25px; pointer-events: none; }
+#scrPause { max-height: 100dvh; overflow-y: auto; padding-top: max(40px,env(safe-area-inset-top)); padding-bottom: max(22px,env(safe-area-inset-bottom)); }
+#scrPause #tools { position: static !important; display: flex !important; width: auto; margin: 12px auto; justify-content: center; gap: 12px; }
+#uwMenuInfo { width: min(86vw,540px); margin: 10px auto 16px; border: 1px solid #bda56b55; padding: 12px 14px; background: #130f1dba; color: #e6dec8; text-align: left; font: 13px/1.7 system-ui, sans-serif; }
+#uwMenuInfo h3 { margin: 0 0 8px; font-size: 15px; color: #f4d28f; }
+#uwMenuInfo p { margin: 2px 0; }
+#uwMenuInfo span { color: #ffebbd; }
+</style>
+<button id="uwMenuButton" aria-label="Меню" title="Меню" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+<script>
+(function () {
+  'use strict';
+  const pause = document.getElementById('scrPause');
+  const button = document.getElementById('uwMenuButton');
+  const tools = document.getElementById('tools');
+  if (!pause || !button) return;
+  const info = document.createElement('section');
+  info.id = 'uwMenuInfo';
+  info.setAttribute('aria-label', 'Игровая информация');
+  info.innerHTML = '<h3>Находки и состояние</h3><p>Монеты: <span id="uwInfoCoins"></span></p><p>Время: <span id="uwInfoTime"></span></p><p>Оружие: <span id="uwInfoWeapon"></span></p><p>Характеристики: <span id="uwInfoStats"></span></p><p>Патроны: <span id="uwInfoAmmo"></span></p><p>Событие: <span id="uwInfoEvent"></span></p>';
+  pause.insertBefore(info, document.getElementById('arsenal') || null);
+  if (tools) pause.appendChild(tools);
+  const read = (id) => (document.getElementById(id)?.textContent || '').trim();
+  function syncInfo() {
+    document.getElementById('uwInfoCoins').textContent = read('coinN') + ' ' + read('coinT');
+    document.getElementById('uwInfoTime').textContent = read('timer');
+    document.getElementById('uwInfoWeapon').textContent = read('wName');
+    document.getElementById('uwInfoStats').textContent = read('wStat');
+    document.getElementById('uwInfoAmmo').textContent = read('wAmmo');
+    document.getElementById('uwInfoEvent').textContent = read('toast') || read('npcSay') || '—';
+  }
+  button.addEventListener('click', function () {
+    const state = window.__isle?.G?.state;
+    if (state === 'play') {
+      syncInfo();
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape', bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Escape', key: 'Escape', bubbles: true }));
+    } else if (state === 'paused') {
+      document.getElementById('btnResume')?.click();
+    }
+  });
+  new MutationObserver(function () { if (!pause.hidden) syncInfo(); }).observe(pause, { attributes: true, attributeFilter: ['hidden'] });
+})();
+</script>
 </body></html>
