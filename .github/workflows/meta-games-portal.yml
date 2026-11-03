@@ -1,0 +1,25 @@
+name: META GAMES portal
+on:
+  pull_request:
+    paths:
+      - 'meta-games/**'
+      - '.github/workflows/meta-games-portal.yml'
+  workflow_dispatch:
+jobs:
+  portal:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify standalone game sources and portal links
+        run: |
+          test -s meta-games/index.html
+          test -s observer-world-en-v7/index.html
+          test -s ashen-sumerek/index.html
+          test -s three-worlds-game/index.html
+          test -s underwater-world/index.html
+          node -e "const fs=require('fs');const h=fs.readFileSync('meta-games/index.html','utf8');for(const name of ['observer-world-en-v7','ashen-sumerek','underwater-world','three-worlds-game'])if(!h.includes('../'+name+'/'))process.exitCode=1"
