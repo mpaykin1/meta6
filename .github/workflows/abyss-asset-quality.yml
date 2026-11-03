@@ -14,20 +14,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: python -m pip install Pillow==11.3.0
       - run: python -m unittest discover -s automation/asset-quality -p 'test_*.py' -v
       - name: Check production assets
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if [ -d abyss-glow/assets ]; then
+          if [ -f abyss-glow/assets/manifest.json ]; then
             python automation/asset-quality/validate.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json
             python automation/asset-quality/check_animation.py --manifest abyss-glow/assets/manifest.json --output asset-animation-report.json
             python automation/asset-quality/audit_pack.py --root abyss-glow/assets --manifest abyss-glow/assets/manifest.json --requirements automation/asset-quality/abyss-requirements.json --output asset-quality-audit.json
+          elif [ -n "$BASE_SHA" ] && [ -n "$HEAD_SHA" ]; then
+            if git diff --name-only "$BASE_SHA...$HEAD_SHA" | grep -q '^abyss-glow/assets/'; then
+              echo 'Required production asset manifest missing for changed source assets' >&2
+              exit 1
+            fi
+            echo 'Asset coverage N/A: source assets unchanged; production manifest not installed'
           else
-            echo 'Asset coverage UNKNOWN: source assets not installed'
-            echo '{"status":"UNKNOWN","reason":"source assets not installed"}' > asset-quality-audit.json
+            echo 'Required source manifest absent and changed-asset scope unknown' >&2
+            exit 1
           fi
 
       - name: Compare reference sprites

@@ -4,6 +4,8 @@ on:
     paths:
       - 'ashen-sumerek/**'
       - 'underwater-sumerek/**'
+      - 'abyss-glow/play/**'
+      - 'automation/asset-quality/abyss_stand_smoke.mjs'
       - 'games/**'
       - 'scripts/check-game.cjs'
       - '.github/workflows/game-browser-check.yml'
@@ -50,6 +52,7 @@ jobs:
           {
             grep -q '^ashen-sumerek/' /tmp/changed-games && echo 'ashen-sumerek/index.html' || true
             grep -q '^underwater-sumerek/' /tmp/changed-games && echo 'underwater-sumerek/index.html' || true
+            grep -q '^abyss-glow/play/' /tmp/changed-games && echo 'abyss-glow/play/index.html' || true
             while IFS= read -r changed; do
               case "$changed" in
                 games/*)
@@ -72,5 +75,24 @@ jobs:
           fi
           while IFS= read -r target; do
             test -f "$target" || { echo "Missing game: $target"; exit 1; }
-            node scripts/check-game.cjs "$target"
+            case "$target" in
+              abyss-glow/play/index.html)
+                python3 -m http.server 8765 --bind 127.0.0.1 --directory abyss-glow >/tmp/abyss-play-http.log 2>&1 &
+                sleep 2
+                curl --fail --silent --show-error http://127.0.0.1:8765/play/ >/dev/null
+                if [ -n "$BASE_SHA" ] && git cat-file -e "$BASE_SHA:abyss-glow/play/index.html" 2>/dev/null; then
+                  mkdir -p /tmp/abyss-old
+                  git archive "$BASE_SHA" abyss-glow/play abyss-glow/assets | tar -x -C /tmp/abyss-old
+                  python3 -m http.server 8766 --bind 127.0.0.1 --directory /tmp/abyss-old/abyss-glow >/tmp/abyss-old-http.log 2>&1 &
+                  sleep 2
+                  echo 'BASELINE: exact PR base, same Chromium runner'
+                  ABYSS_SMOKE_TARGET=play ABYSS_BASELINE=1 ABYSS_SMOKE_ROOT=/tmp/abyss-old/abyss-glow/play ABYSS_SMOKE_URL=http://127.0.0.1:8766/play/ node automation/asset-quality/abyss_stand_smoke.mjs || echo 'BASELINE comparison failed; exact HEAD check remains mandatory'
+                fi
+                echo 'HEAD: exact PR head Chromium smoke'
+                ABYSS_SMOKE_TARGET=play ABYSS_SMOKE_URL=http://127.0.0.1:8765/play/ node automation/asset-quality/abyss_stand_smoke.mjs
+                ;;
+              *)
+                node scripts/check-game.cjs "$target"
+                ;;
+            esac
           done < /tmp/targets
