@@ -52,8 +52,10 @@ jobs:
             await p.keyboard.down('w');await p.waitForTimeout(1100);await p.keyboard.up('w');
             const traveled=await state(p);
             assert.ok(Math.hypot(start.x-traveled.x,start.z-traveled.z)>.1,'WASD movement failed');
-            const beforeJump=traveled.y;
-            await p.keyboard.down(' ');await p.waitForTimeout(350);
+            await p.locator('#menuButton').click();await p.locator('#restart').click();
+            await p.waitForTimeout(500);
+            const beforeJump=(await state(p)).y;
+            await p.keyboard.down(' ');await p.waitForTimeout(250);
             const apex=await state(p);await p.keyboard.up(' ');
             assert.ok(apex.y>beforeJump+.1,'Jump did not lift avatar');
             const startHeap=await p.evaluate(()=>performance.memory?.usedJSHeapSize??null);
