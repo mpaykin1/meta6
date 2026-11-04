@@ -1,18 +1,25 @@
-# Uploads a Playgama build archive to the presigned URL from the developer console.
+# Uploads Playgama build archives to presigned URLs from the developer console.
 # Used when the agent's own network cannot reach the Playgama S3 bucket.
-# The URL is write-only, for this one archive, and expires within an hour.
+# For each playgama-upload/<name>.url the matching <name>.zip is PUT (legacy: upload-url.txt + archive.zip).
+# The URLs are write-only, for one archive each, and expire within an hour.
 name: playgama-upload
 on:
   push:
-    paths: ['playgama-upload/upload-url.txt']
+    paths: ['playgama-upload/**']
 jobs:
   put:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: PUT archive
+      - name: PUT archives
         run: |
-          ls -l playgama-upload/archive.zip
-          code=$(curl -sS -o resp.txt -w '%{http_code}' -T playgama-upload/archive.zip -H 'Content-Type: application/zip' "$(tr -d '\r\n' < playgama-upload/upload-url.txt)")
-          echo "HTTP $code"; cat resp.txt || true
-          test "$code" = 200
+          set -e
+          cd playgama-upload
+          [ -f upload-url.txt ] && [ -f archive.zip ] && cp upload-url.txt archive.url || true
+          for u in *.url; do
+            [ -f "$u" ] || continue
+            z="${u%.url}.zip"; ls -l "$z"
+            code=$(curl -sS -o resp.txt -w '%{http_code}' -T "$z" -H 'Content-Type: application/zip' "$(tr -d '\r\n' < "$u")")
+            echo "$z HTTP $code"; cat resp.txt || true
+            test "$code" = 200
+          done

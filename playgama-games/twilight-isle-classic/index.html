@@ -6919,7 +6919,7 @@ function start(data) {
    v1.1 · Retention layer (Playgama): instant start, wordless guide, rewarded
    revive, daily gift, progression + performance telemetry. Additive only.
 ============================================================================= */
-const GAME_VERSION = '1.1.0';
+const GAME_VERSION = '1.1.1';
 const RET = (() => {
   const guideEl = $('guide'), hintEl = $('tHint'), revBtn = $('btnRevive');
   const v3 = new THREE.Vector3();
@@ -7041,6 +7041,41 @@ const RET = (() => {
   if (LANG === 'ru') $('reviveTxt').textContent = 'Ожить: смотреть рекламу';
   return { onStart, frame, get firstVisit() { return num('isle.played') === 0; } };
 })();
+
+/* =============================================================================
+   СОСТАВ · built-in content counter (for agents, hidden from the player)
+   Run window.__INV() before a change and before every publish: `lost` empty, `now` ≥ baseline.
+   Every addition gets a section here and a new line at the end of INV.hist.
+============================================================================= */
+const INV = {
+  sec: {
+    'Registry (packs)': { fn: () => Object.fromEntries(Object.entries(REG).map(([k, m]) => [k, m.size])) },
+    'Packs': { fn: () => ({ packs: PACKS.length }) },
+    'Blocks': { fn: () => ({ blocks: BLK.length }) },
+    'Weapons + fists': { fn: () => ({ weapons: Object.keys(WEAPONS).length, arsenalOrder: ARSENAL_ORDER.length }) },
+    'Enemies': { fn: () => ({ foes: Object.keys(FOES).length, spawners: SPAWNERS.length }) },
+    'Heroes': { fn: () => ({ heroes: CHAR_ORDER.length }) },
+    'Sounds (SFX voices)': { fn: () => ({ sfx: Object.keys(SFX).filter((k) => typeof SFX[k] === 'function').length }) },
+    'World': { fn: () => ({ coins: world.coins.length, hearts: world.hearts.length, loot: world.loot.length }) },
+  },
+  extra: {
+    'R1 instant start': () => typeof RET.firstVisit === 'boolean',
+    'R3 guide arrow': () => !!$('guide'),
+    'R3 touch hint': () => !!$('tHint'),
+    'R5 rewarded revive': () => !!$('btnRevive'),
+    'R7 icon buttons (no text)': () => !$('btnAtk').textContent.trim() && !$('btnJump').textContent.trim(),
+    'R8 telemetry version': () => GAME_VERSION === '1.1.1',
+  },
+  hist: [['Twilight Isle Classic 1.0.0 (base)', 0], ['+ retention R1–R10 (1.1.0)', 0], ['+ СОСТАВ counter (1.1.1)', 280]],
+};
+window.__INV = () => {
+  const now = {}, lost = []; let total = 0;
+  for (const [name, sct] of Object.entries(INV.sec)) { let v = {}; try { v = sct.fn(); } catch (e) { lost.push(name + ': ' + e.message); } now[name] = v; for (const k in v) total += +v[k] || 0; }
+  const extra = Object.fromEntries(Object.entries(INV.extra).map(([k, f]) => { let ok = false; try { ok = !!f(); } catch (e) {} if (!ok) lost.push(k); return [k, { ok }]; }));
+  const base = INV.hist[INV.hist.length - 1][1];
+  if (base && total < base) lost.push(`total ${total} < baseline ${base}`);
+  return { now: total, sections: now, extra, lost, hist: INV.hist };
+};
 try { window.claude?.hot?.snapshot?.(() => ({ seed: G.seed, muted: SFX.muted, biome: G.biome })); } catch (e) { /* viewer hook is optional */ }
 const hot = window.claude?.hot;
 if (hot?.ready) { try { hot.ready(start); } catch (e) { start({}); } } else start(hot?.data ?? {});
