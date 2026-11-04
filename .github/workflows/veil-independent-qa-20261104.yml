@@ -1,0 +1,141 @@
+name: META GAMES — independent browser and public MCP QA
+on:
+  push:
+    branches:
+      - 'ai/chatgpt/veil-independent-qa-20261104'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 1fab04766894f6cb85356f7be4587bcdb1973c86
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Extended independent desktop/mobile Chromium WebGL2 verification
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import path from 'node:path';
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist','--disable-dev-shm-usage','--enable-precise-memory-info']});
+          const errors=[];
+          const state=async(page)=>page.evaluate(()=>window.__metaGamesState?.());
+          const url='file://'+path.resolve('meta-games-worlds/veil-terraces/index.html');
+          async function visit(mobile=false){
+            const c=await browser.newContext(mobile?{viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2}:{viewport:{width:1050,height:720}});
+            const p=await c.newPage();
+            p.on('pageerror',e=>errors.push(String(e)));
+            p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+            await p.goto(url,{waitUntil:'load'});
+            await p.waitForFunction(()=>window.__metaGamesState?.().chunks>=9,null,{timeout:45000});
+            return {p,c};
+          }
+          try{
+            const {p,c}=await visit();
+            const frame=await p.evaluate(()=>{
+              const gl=document.getElementById('screen').getContext('webgl2');
+              const px=(rx,ry)=>{let a=new Uint8Array(4);gl.readPixels(Math.floor(gl.drawingBufferWidth*rx),Math.floor(gl.drawingBufferHeight*ry),1,1,gl.RGBA,gl.UNSIGNED_BYTE,a);return Array.from(a)};
+              return {webgl2:!!gl,error:gl.getError(),width:gl.drawingBufferWidth,height:gl.drawingBufferHeight,topLeft:px(.03,.95),topRight:px(.97,.95),center:px(.5,.5)};
+            });
+            console.log('WEBGL2_AND_SKY_PIXELS',JSON.stringify(frame));
+            assert.equal(frame.webgl2,true);assert.equal(frame.error,0);
+            await p.screenshot({path:'veil-pc.png'});
+            const start=await state(p);
+            await p.keyboard.down('w');await p.waitForTimeout(1100);await p.keyboard.up('w');
+            const traveled=await state(p);
+            assert.ok(Math.hypot(start.x-traveled.x,start.z-traveled.z)>.1,'WASD movement failed');
+            const beforeJump=traveled.y;
+            await p.keyboard.down(' ');await p.waitForTimeout(350);
+            const apex=await state(p);await p.keyboard.up(' ');
+            assert.ok(apex.y>beforeJump+.1,'Jump did not lift avatar');
+            const startHeap=await p.evaluate(()=>performance.memory?.usedJSHeapSize??null);
+            const marks=[];
+            await p.keyboard.down('w');
+            for(let i=0;i<15;i++){await p.waitForTimeout(1000);if(i%3===0)marks.push({time:i,heap:await p.evaluate(()=>performance.memory?.usedJSHeapSize??null),pos:await state(p)})}
+            await p.keyboard.up('w');
+            const endHeap=await p.evaluate(()=>performance.memory?.usedJSHeapSize??null);
+            console.log('DESKTOP_MOVEMENT_JUMP_STRESS',JSON.stringify({start,traveled,apex,startHeap,endHeap,marks,final:await state(p)}));
+            assert.ok((await state(p)).chunks<=25,'Unbounded terrain cache');
+            assert.equal(await p.evaluate(()=>scrollX===0&&scrollY===0),true,'Desktop page scrolled');
+            await c.close();
+            const {p:m,c:mc}=await visit(true);
+            const m0=await state(m);
+            const cd=await mc.newCDPSession(m);
+            const mk=(id,x,y)=>({id,x,y,radiusX:5,radiusY:5,force:1});
+            await cd.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[mk(1,80,620),mk(2,310,400)]});
+            await cd.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[mk(1,120,610),mk(2,355,445)]});
+            await m.waitForTimeout(950);
+            const m1=await state(m);
+            await cd.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+            console.log('TWO_FINGER_TOUCH',JSON.stringify({before:m0,after:m1,travel:Math.hypot(m1.x-m0.x,m1.z-m0.z),cameraDelta:Math.hypot(...m1.cam.map((v,i)=>v-m0.cam[i]))}));
+            assert.ok(Math.hypot(m1.x-m0.x,m1.z-m0.z)>.02,'Two-finger left joystick did not move');
+            assert.equal(await m.evaluate(()=>scrollX===0&&scrollY===0),true,'Mobile page scrolled');
+            await m.screenshot({path:'veil-mobile.png'});
+            assert.deepEqual(errors,[],'Browser runtime errors');
+            await mc.close();
+            console.log('EXTENDED_QA_COMPLETED');
+          } finally {await browser.close();}
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: veil-independent-chromium-screens
+          path: |
+            veil-pc.png
+            veil-mobile.png
+          if-no-files-found: ignore
+  public-mcp:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: HTTPS health/discover/list/call and closed asset gate
+        run: |
+          node --input-type=module <<'JS'
+          const root='https://meta-games-mcp-production.onrender.com/meta-games';
+          const v='2026-07-28';
+          const wait=ms=>new Promise(r=>setTimeout(r,ms));
+          const fetchRetry=async(url,opt={})=>{let last;for(let n=0;n<4;n++){try{let r=await fetch(url,{...opt,signal:AbortSignal.timeout(85000)});let raw=await r.text();let body;try{body=JSON.parse(raw)}catch{body={raw:raw.slice(0,1000)}};return {status:r.status,body}}catch(e){last=e;console.log('REQUEST_RETRY',n+1,String(e));await wait(4500)}}throw last};
+          const health=await fetchRetry(root+'/health');
+          console.log('LIVE_HEALTH',JSON.stringify(health));if(health.status!==200||health.body.status!=='ok')process.exitCode=1;
+          const gh=await fetchRetry('https://api.github.com/repos/mpaykin1/World_server/git/ref/heads/master',{headers:{accept:'application/vnd.github+json'}});
+          const master=gh.body.object?.sha;
+          console.log('RENDER_VS_MASTER_SHA',JSON.stringify({master,render:health.body.source_sha??null,matched:!!master&&master===health.body.source_sha}));
+          if(!health.body.source_sha||!master||health.body.source_sha!==master)console.log('SHA_NOT_CONFIRMED_MATCH: deployment may lag or expose no SHA');
+          const call=async(method,name,args={})=>{
+            const payload={jsonrpc:'2.0',id:Math.floor(Math.random()*1e8),method,params:{_meta:{'io.modelcontextprotocol/protocolVersion':v,'io.modelcontextprotocol/clientCapabilities':{},'io.modelcontextprotocol/clientInfo':{name:'independent-qa',version:'1'}},...(name?{name,arguments:args}:{})}};
+            return await fetchRetry(root+'/mcp',{method:'POST',headers:{'content-type':'application/json','accept':'application/json, text/event-stream','mcp-protocol-version':v,'mcp-method':method,...(name?{'mcp-name':name}:{})},body:JSON.stringify(payload)})
+          };
+          const discover=await call('server/discover');console.log('LIVE_DISCOVER',JSON.stringify(discover));if(discover.status!==200||!discover.body.result)process.exitCode=1;
+          const listed=await call('tools/list');const names=listed.body.result?.tools?.map(x=>x.name)||[];console.log('LIVE_TOOLS_LIST',JSON.stringify({status:listed.status,names}));if(listed.status!==200||names.length<6)process.exitCode=1;
+          for(const name of ['list_games','list_assets','search_assets','search_mechanics']){
+            const data=await call('tools/call',name,name==='search_assets'||name==='search_mechanics'?{query:'observer'}:{});
+            console.log('LIVE_TOOL',name,JSON.stringify(data));if(data.status!==200||!data.body.result)process.exitCode=1;
+          }
+          const blocked=['ashen-mechanics','observer-audio','observer-buildings','observer-npcs','observer-story','observer-mobile-input'];
+          for(const asset_id of blocked){
+            const data=await call('tools/call','get_dependencies',{asset_id});
+            const denied=data.body.result?.isError===true;
+            console.log('RIGHTS_DENIAL',asset_id,JSON.stringify({status:data.status,denied,body:data.body.result?.structuredContent}));
+            if(!denied)process.exitCode=1;
+          }
+          if(names.includes('get_asset')||names.includes('get_source'))for(const name of ['get_asset','get_source'])if(names.includes(name)){
+            const data=await call('tools/call',name,{asset_id:'observer-audio'});
+            const denied=data.body.result?.isError===true;
+            console.log('UNLICENSED_SOURCE_DENIAL',name,JSON.stringify({status:data.status,denied,body:data.body.result?.structuredContent}));
+            if(!denied)process.exitCode=1;
+          }
+          const portal=await fetchRetry('https://mpaykin1.github.io/meta6/meta-games/');
+          console.log('PUBLIC_PORTAL',JSON.stringify({status:portal.status,bytes:portal.body.raw?.length||JSON.stringify(portal.body).length,hasVeil:JSON.stringify(portal.body).includes('veil-terraces')}));
+          console.log('PUBLIC_HTTPS_QA_COMPLETED');
+          JS
