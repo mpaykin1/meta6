@@ -42,7 +42,7 @@ jobs:
       - name: Deploy full website
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Confirm live play revision and preservation of originals
+      - name: Confirm live games, SEO catalog and sitemap revision
         shell: bash
         run: |
           set -euo pipefail
@@ -53,8 +53,12 @@ jobs:
                && curl --max-time 20 -fsSL "$base/abyss-glow/stand/index.html?rev=${GITHUB_SHA}" -o /tmp/meta6-stand.html \
                && cmp -s _site/abyss-glow/stand/index.html /tmp/meta6-stand.html \
                && curl --max-time 20 -fsSL "$base/observer-world-en-v7/index.html?rev=${GITHUB_SHA}" -o /tmp/meta6-other.html \
-               && cmp -s _site/observer-world-en-v7/index.html /tmp/meta6-other.html; then
-              echo 'Full GitHub Pages site deployed: play, accepted stand and other games'
+               && cmp -s _site/observer-world-en-v7/index.html /tmp/meta6-other.html \
+               && curl --max-time 20 -fsSL "$base/playgama-catalog/index.html?rev=${GITHUB_SHA}" -o /tmp/meta6-catalog.html \
+               && cmp -s _site/playgama-catalog/index.html /tmp/meta6-catalog.html \
+               && curl --max-time 20 -fsSL "$base/playgama-catalog/sitemap.xml?rev=${GITHUB_SHA}" -o /tmp/meta6-sitemap.xml \
+               && cmp -s _site/playgama-catalog/sitemap.xml /tmp/meta6-sitemap.xml; then
+              echo 'Full GitHub Pages site deployed: games, catalog and sitemap'
               exit 0
             fi
             sleep 10
