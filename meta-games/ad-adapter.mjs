@@ -12,12 +12,17 @@ export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000 } = 
   const providers = new Map();
   const counters = new Map();
   const lastShown = new Map();
-  let consent = 'unknown', busy = false;
+  let consent = 'unknown', busy = false, consentVersion = 0, cancelActive = null;
+  const revoked = Symbol('consent-revoked');
   function setConsent(value) {
     if (!CONSENTS.has(value)) throw new TypeError('Consent must be unknown, granted, or denied');
+    if (value !== consent) consentVersion++;
     consent = value;
     // A revoked consent clears all in-memory advertising data.
-    if (consent !== 'granted') { counters.clear(); lastShown.clear(); }
+    if (consent !== 'granted') {
+      counters.clear(); lastShown.clear();
+      cancelActive?.();
+    }
   }
   function registerProvider(id, adapter) {
     if (typeof id !== 'string' || !/^[a-z][a-z0-9_-]{1,39}$/.test(id))
@@ -48,13 +53,25 @@ export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000 } = 
         timestamp - lastShown.get(slot) < cooldownMs)
       return { status: 'frequency_capped', rewarded: false };
     busy = true;
+    const version = consentVersion;
+    const authorized = () => consent === 'granted' && consentVersion === version;
+    const stopped = () => ({ status: 'consent_required', rewarded: false });
+    let cancel;
+    // Stop waiting even if an SDK never settles. This cannot undo a request
+    // already sent to an SDK, but no late response can affect bridge state.
+    const withdrawal = new Promise(resolve => {
+      cancel = () => resolve(revoked);
+      cancelActive = cancel;
+    });
     try {
       for (const [id, adapter] of providers) {
+        if (!authorized()) return stopped();
         if (!adapter.formats.includes(format)) continue;
         increment(id, slot, 'requests');
         try {
           // Only nonsensitive slot + format are passed to a provider.
-          const response = await adapter.show({ slot, format });
+          const response = await Promise.race([adapter.show({ slot, format }), withdrawal]);
+          if (!authorized() || response === revoked) return stopped();
           if (!response || response.displayed !== true) continue;
           increment(id, slot, 'impressions');
           lastShown.set(slot, timestamp);
@@ -62,12 +79,14 @@ export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000 } = 
           if (rewarded) increment(id, slot, 'completions');
           return { status: 'displayed', provider: id, rewarded };
         } catch {
+          if (!authorized()) return stopped();
           // SDK failure cannot break the game; try another registered provider.
           increment(id, slot, 'errors');
         }
       }
       return { status: 'unavailable', rewarded: false };
     } finally {
+      if (cancelActive === cancel) cancelActive = null;
       busy = false;
     }
   }
@@ -80,3 +99,4 @@ export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000 } = 
   }
   return Object.freeze({ setConsent, registerProvider, show, statistics });
 }
+
