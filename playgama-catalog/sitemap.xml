@@ -69,11 +69,41 @@
   <url><loc>https://mpaykin1.github.io/meta6/playgama-catalog/games/twilight-isle-classic/</loc><lastmod>2026-11-05</lastmod></url>
   <url><loc>https://mpaykin1.github.io/meta6/playgama-catalog/games/under-and-above/</loc><lastmod>2026-11-05</lastmod></url>
   <url><loc>https://mpaykin1.github.io/meta6/playgama-catalog/games/broken-city/</loc><lastmod>2026-11-05</lastmod></url>
-  <url><loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/adventure/</loc><lastmod>2026-11-05</lastmod></url>
-  <url><loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/action/</loc><lastmod>2026-11-05</lastmod></url>
-  <url><loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/horror/</loc><lastmod>2026-11-05</lastmod></url>
-  <url><loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/arcade/</loc><lastmod>2026-11-05</lastmod></url>
-  <url><loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/story/</loc><lastmod>2026-11-05</lastmod></url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/adventure/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/adventure/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/action/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/action/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/horror/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/horror/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/arcade/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/arcade/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/genres/story/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/story/" />
+  </url>
   <url>
     <loc>https://mpaykin1.github.io/meta6/playgama-catalog/es/</loc><lastmod>2026-11-05</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/" />
@@ -95,5 +125,75 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/" />
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/action/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/action/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/adventure/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/adventure/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/horror/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/horror/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/arcade/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/arcade/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/story/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/story/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/action/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/action/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/action/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/adventure/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/adventure/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/adventure/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/horror/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/horror/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/horror/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/arcade/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/arcade/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/arcade/" />
+  </url>
+  <url>
+    <loc>https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/story/</loc><lastmod>2026-11-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://mpaykin1.github.io/meta6/playgama-catalog/es/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mpaykin1.github.io/meta6/playgama-catalog/pt-br/genres/story/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mpaykin1.github.io/meta6/playgama-catalog/genres/story/" />
   </url>
 </urlset>
