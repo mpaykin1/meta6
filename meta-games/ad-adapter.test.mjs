@@ -117,3 +117,43 @@ test('revocation settles a hanging SDK wait and releases the bridge for a new co
   ]);
 });
 
+
+test('hanging SDK expires without backup or late reward and releases bridge', async () => {
+  let late, calls = 0, backupCalls = 0;
+  const ads = createAdBridge({ cooldownMs: 0, providerTimeoutMs: 10 });
+  ads.registerProvider('slow_sdk', { formats: ['rewarded'], show: () => {
+    calls++;
+    return calls === 1 ? new Promise(resolve => { late = resolve; }) :
+      Promise.resolve({ displayed: true, completed: true });
+  }});
+  ads.registerProvider('backup_sdk', { formats: ['rewarded'], show: async () => {
+    backupCalls++; return { displayed: true, completed: true };
+  }});
+  ads.setConsent('granted');
+  const pending = ads.show('reward');
+  let watchdog;
+  try {
+    const result = await Promise.race([pending, new Promise(resolve => {
+      watchdog = setTimeout(() => resolve({ status: 'still_hanging' }), 250);
+    })]);
+    assert.deepEqual(result, { status: 'unavailable', rewarded: false });
+    assert.equal(backupCalls, 0, 'timed-out SDK might still be visible; no overlapping backup');
+    late({ displayed: true, completed: true });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(ads.statistics().counters, [
+      { provider: 'slow_sdk', slot: 'reward', requests: 1, impressions: 0, completions: 0, errors: 1 }
+    ]);
+    assert.equal((await ads.show('reward')).rewarded, true);
+  } finally {
+    clearTimeout(watchdog);
+    ads.setConsent('denied');
+    late?.({ displayed: true, completed: true });
+    await pending;
+  }
+});
+
+test('provider deadlines reject invalid or unbounded timer options', () => {
+  for (const providerTimeoutMs of [0, -1, 1.5, NaN, Infinity, 300001, '10']) {
+    assert.throws(() => createAdBridge({ providerTimeoutMs }), /Invalid ad bridge options/);
+  }
+});

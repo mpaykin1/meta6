@@ -6,14 +6,17 @@
  */
 const FORMATS = Object.freeze({ pause: 'interstitial', result: 'interstitial', reward: 'rewarded' });
 const CONSENTS = new Set(['unknown', 'granted', 'denied']);
-export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000 } = {}) {
-  if (typeof now !== 'function' || !Number.isSafeInteger(cooldownMs) || cooldownMs < 0)
+export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000,
+  providerTimeoutMs = 60000 } = {}) {
+  if (typeof now !== 'function' || !Number.isSafeInteger(cooldownMs) || cooldownMs < 0 ||
+      !Number.isSafeInteger(providerTimeoutMs) || providerTimeoutMs < 1 || providerTimeoutMs > 300000)
     throw new TypeError('Invalid ad bridge options');
   const providers = new Map();
   const counters = new Map();
   const lastShown = new Map();
   let consent = 'unknown', busy = false, consentVersion = 0, cancelActive = null;
   const revoked = Symbol('consent-revoked');
+  const expired = Symbol('provider-timeout');
   function setConsent(value) {
     if (!CONSENTS.has(value)) throw new TypeError('Consent must be unknown, granted, or denied');
     if (value !== consent) consentVersion++;
@@ -68,10 +71,20 @@ export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000 } = 
         if (!authorized()) return stopped();
         if (!adapter.formats.includes(format)) continue;
         increment(id, slot, 'requests');
+        let deadline;
         try {
+          const timeout = new Promise(resolve => {
+            deadline = setTimeout(() => resolve(expired), providerTimeoutMs);
+          });
           // Only nonsensitive slot + format are passed to a provider.
-          const response = await Promise.race([adapter.show({ slot, format }), withdrawal]);
+          const response = await Promise.race([adapter.show({ slot, format }), withdrawal, timeout]);
           if (!authorized() || response === revoked) return stopped();
+          if (response === expired) {
+            // SDK cancellation cannot be guaranteed: do not start an overlapping
+            // backup, and never accept a late completion from this request.
+            increment(id, slot, 'errors');
+            return { status: 'unavailable', rewarded: false };
+          }
           if (!response || response.displayed !== true) continue;
           increment(id, slot, 'impressions');
           lastShown.set(slot, timestamp);
@@ -82,6 +95,8 @@ export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000 } = 
           if (!authorized()) return stopped();
           // SDK failure cannot break the game; try another registered provider.
           increment(id, slot, 'errors');
+        } finally {
+          clearTimeout(deadline);
         }
       }
       return { status: 'unavailable', rewarded: false };
@@ -99,4 +114,3 @@ export function createAdBridge({ now = () => Date.now(), cooldownMs = 60000 } = 
   }
   return Object.freeze({ setConsent, registerProvider, show, statistics });
 }
-
