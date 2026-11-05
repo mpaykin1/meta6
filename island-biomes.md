@@ -1,13 +1,7 @@
-# island-biomes — Остров сумерек: новые биомы и сиды
+# Файл перенесён
 
-Канонический короткий пароль для всех ChatGPT/Claude/Codex чатов: **island-biomes**.
+Этот свод правил теперь лежит здесь: [rules/08-pravila-otdelnyh-igr/island-biomes.md](rules/08-pravila-otdelnyh-igr/island-biomes.md)
 
-**Играть:** https://mpaykin1.github.io/meta6/island-sumerek-biomes/
+https://github.com/mpaykin1/meta6/blob/main/rules/08-pravila-otdelnyh-igr/island-biomes.md
 
-**Полный исходник:** https://github.com/mpaykin1/meta6/blob/main/island-sumerek-biomes/index.html
-
-**Handoff / тесты / ограничения:** https://github.com/mpaykin1/meta6/blob/main/island-sumerek-biomes/README.md
-
-**graf:** https://github.com/mpaykin1/meta6/blob/main/graf.md
-
-Это отдельная не принятая владельцем версия «Острова сумерек», а не замена принятой Observer World V7. 10 биомов, seed, 2D/2.5D/3D анимации, камера и физика оригинальной игры; не объявлять OWNER PASS/FAIL до его ответа. В новом чате открыть эти ссылки напрямую, не просить пользователя прикладывать HTML заново.
+Открыть и читать его. Этот файл — только указатель, правила в нём не меняются.
