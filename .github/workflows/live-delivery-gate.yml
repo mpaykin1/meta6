@@ -41,7 +41,7 @@ jobs:
           URL="https://mpaykin1.github.io/meta6/en/"
           for attempt in $(seq 1 40); do
             BODY="$(curl -fLsS --max-time 20 "$URL" 2>/dev/null || true)"
-            if printf '%s' "$BODY" | grep -Fq 'Chain Reaction: Meta6 EN' && printf '%s' "$BODY" | grep -Fq 'PREPARED FALLBACK' && printf '%s' "$BODY" | grep -Fq 'Prepared Development Ideas'; then
+            if [[ "$BODY" == *'Chain Reaction: Meta6 EN'* && "$BODY" == *'PREPARED FALLBACK'* && "$BODY" == *'Prepared Development Ideas'* ]]; then
               echo "LIVE_OK $URL"
               break
             fi
