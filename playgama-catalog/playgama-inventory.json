@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "Playgama Developer Console (authenticated snapshot)",
-  "verifiedOn": "2026-11-04",
+  "verifiedOn": "2026-11-05",
   "notes": "Sandbox ACTIVE is a publicly playable sandbox, not a published Playgama catalog release. A DRAFT with no active sandbox must not receive a play URL or an indexed game page.",
   "games": [
     {
@@ -189,11 +189,16 @@
     {
       "applicationId": "cmw1rydsi0h1viu0hr8dw5w9n",
       "title": "Broken City",
-      "slug": null,
+      "slug": "broken-city",
       "formStatus": "DRAFT",
-      "sandbox": null,
-      "coverUrl": null,
-      "indexable": false
+      "sandbox": {
+        "status": "ACTIVE",
+        "discoveryStatus": "VISIBLE",
+        "siteId": "hsedvjakb2tiyn",
+        "url": "https://playgama.ai/play/hsedvjakb2tiyn"
+      },
+      "coverUrl": "https://static.playgama.com/p-img/pg/preview/c563a434bf84447cbe48ae2c117948d2?width=896",
+      "indexable": true
     }
   ]
 }
