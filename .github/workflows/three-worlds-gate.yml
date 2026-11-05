@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'three-worlds-game/**'
+      - 'rules/04-syuzhet-i-scenarii/QUEST_RULES_RU.md'
       - '.github/workflows/three-worlds-gate.yml'
       - 'docs/ACCEPTED_BEHAVIORS.md'
       - 'rules/08-pravila-otdelnyh-igr/ACCEPTED_BEHAVIORS.md'
@@ -11,6 +12,7 @@ on:
     branches: [main]
     paths:
       - 'three-worlds-game/**'
+      - 'rules/04-syuzhet-i-scenarii/QUEST_RULES_RU.md'
       - '.github/workflows/three-worlds-gate.yml'
       - 'docs/ACCEPTED_BEHAVIORS.md'
       - 'rules/08-pravila-otdelnyh-igr/ACCEPTED_BEHAVIORS.md'
