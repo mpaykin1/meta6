@@ -49,3 +49,7 @@ body.v7-touch #hud .wpanel,html.v7-test-mobile #hud .wpanel{
  bottom:auto!important;max-width:220px!important;transform:scale(.78);transform-origin:top left}
 body.v7-touch #hud .hotbar,html.v7-test-mobile #hud .hotbar{display:none!important}
 body.v7-touch #hud .toast,html.v7-test-mobile #hud .toast{display:none}
+
+/* Mobile viewport invariant: controls move the avatar, never the document. */
+html:has(body.v7-touch),body.v7-touch{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;overflow:hidden!important;overscroll-behavior:none!important}
+body.v7-touch #v7Stick{touch-action:none!important;overscroll-behavior:none!important}
