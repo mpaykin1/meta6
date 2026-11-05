@@ -5,12 +5,28 @@ import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
 
-const entry = path.resolve('meta-games-worlds/witness-vault/index.html');
+const candidate=process.argv.length===3&&process.argv[2]==='--publication-candidate';
+if(process.argv.length>2&&!candidate)throw Error('Only --publication-candidate accepted');
+const game=candidate?'generated-confluence-vault':'witness-vault';
+const entry = path.resolve('meta-games-worlds/'+game+'/index.html');
 assert.ok(fs.existsSync(entry), 'Canonical builder must produce an HTML artifact');
 const root=path.dirname(entry);
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8'));
-assert.equal(manifest.source_commit,'bf5dcdc74259fb64cf1972d3da5e18d2e50b3d6a');
-assert.equal(manifest.game_id,'witness-vault');
+assert.equal(manifest.source_commit,candidate?'0aff1fd4b46d0c1127ff6836965d9143322bc91e':'bf5dcdc74259fb64cf1972d3da5e18d2e50b3d6a');
+assert.equal(manifest.game_id,game);
+const expectedHash=candidate?'c3fe001786f21614584a65192512b2d571928ab58ebc1fee645e8e0318144ef5':'7faa03de75e01c82ada3e4790b44317adee72533fef8796eadead00a921fea94';
+assert.equal(manifest.manifest_sha256,expectedHash);
+const canonical=x=>x&&typeof x==='object'?(Array.isArray(x)?'['+x.map(canonical).join(',')+']':'{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+canonical(x[k])).join(',')+'}'):JSON.stringify(x);
+const {manifest_sha256,...unsigned}=manifest;
+assert.equal(createHash('sha256').update(canonical(unsigned)).digest('hex'),manifest_sha256);
+assert.deepEqual(manifest.files.map(f=>f.path).sort(),['data/pipeline.json','data/provenance.json','game.js','index.html','shaders/atmosphere-fragment.glsl','shaders/atmosphere-vertex.glsl']);
+console.log('CHECKED_PACKAGE',JSON.stringify({game,source_commit:manifest.source_commit,manifest_sha256}));
+if(candidate){
+ const marker='<script type="application/json" id="game-data">';
+ const world=JSON.parse(fs.readFileSync(entry,'utf8').split(marker)[1].split('</script>')[0]).world;
+ assert.equal(world.solids.length,10);assert.equal(world.sceneMarkers.length,6);
+ assert.equal(world.assetComposition.parts.length,2);
+}
 assert.equal(manifest.files.length,6);
 for(const f of manifest.files){
   const target=path.resolve(root,f.path);
@@ -103,3 +119,4 @@ try{
   assert.deepEqual(failures,[],'No JS/console errors');
   console.log('GENERATED WEBGL2 BROWSER PASS: desktop six scenes/earned ending, real GLSL, mobile touch, fixed viewport');
 }finally{await browser.close();}
+
