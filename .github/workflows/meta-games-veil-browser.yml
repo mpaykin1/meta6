@@ -1,0 +1,29 @@
+name: META GAMES — Veil Terraces WebGL2 browser
+on:
+  pull_request:
+    paths:
+      - 'meta-games-worlds/veil-terraces/**'
+      - 'scripts/meta-games-veil-browser.mjs'
+      - '.github/workflows/meta-games-veil-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  veil-terraces-webgl2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium and Playwright
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Open and play standalone WebGL2 game
+        run: node scripts/meta-games-veil-browser.mjs
