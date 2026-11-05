@@ -3,12 +3,14 @@ on:
   pull_request:
     paths:
       - 'meta-games-worlds/witness-vault/**'
+      - 'meta-games-worlds/generated-confluence-vault/**'
       - 'scripts/meta-games-witness-browser.mjs'
       - '.github/workflows/meta-games-witness-browser.yml'
   push:
     branches: [main]
     paths:
       - 'meta-games-worlds/witness-vault/**'
+      - 'meta-games-worlds/generated-confluence-vault/**'
       - 'scripts/meta-games-witness-browser.mjs'
       - '.github/workflows/meta-games-witness-browser.yml'
 permissions:
@@ -31,3 +33,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Verify manifest integrity, six-scene ending and independent mobile touch
         run: node scripts/meta-games-witness-browser.mjs
+
+      - name: Verify fixed generated release candidate when present
+        if: ${{ hashFiles('meta-games-worlds/generated-confluence-vault/index.html') != '' }}
+        run: node scripts/meta-games-witness-browser.mjs --publication-candidate
+
