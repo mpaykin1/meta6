@@ -28,7 +28,7 @@ def analyze(manifest, min_directions=8, min_frames=8, max_pivot_drift=1):
             if len(indexes)!=len(set(str(i) for i in indexes)):
                 issues.append({"rule":"duplicate_frames","group":key,"direction":direction})
             pivots=[e.get("pivot") for e in items]
-            if pivots and all(isinstance(p,list) and len(p)==2 and all(isinstance(v,(int,float)) and math.isfinite(v) for v in p) for p in pivots):
+            if pivots and all(isinstance(p,list) and len(p)==2 and all(isinstance(v,(int,float)) and not isinstance(v,bool) and math.isfinite(v) for v in p) for p in pivots):
                 x0,y0=pivots[0]
                 if any(math.hypot(p[0]-x0,p[1]-y0)>max_pivot_drift for p in pivots[1:]):
                     issues.append({"rule":"pivot_drift","group":key,"direction":direction})

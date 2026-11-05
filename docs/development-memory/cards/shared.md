@@ -9,6 +9,84 @@
 - **Применять:** Гасить скорость плавно и проверять покадровые скачки; отсутствие данных в тесте — ошибка.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-19-stage7-surface-velocity-snap.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
 
+## asset/animation-boolean-pivot
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-animation-boolean-pivot
+- **Наблюдение:** ABYSS animation gate treated boolean pivot coordinates as numbers, so [true,4] bypassed invalid_pivot and was misreported only as drift.
+- **Применять:** Reject bool explicitly before accepting finite int/float pivot coordinates in every animation frame; retain the red-first regression in test_check_animation.py.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 7f782cbf177bd142437de6d7aea701f10caaf644
+
+## asset/animation-sequence-integrity
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-animation-sequence-integrity
+- **Наблюдение:** ABYSS gate accepted incomplete frame sequences, untyped loop and fps fields, invalid frame indexes and pivot drift above the one-pixel HARD limit.
+- **Применять:** Validate complete frame ranges, consistent frame count, fps and loop, plus pivot drift at most one art pixel unless rootMotion is explicitly declared.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4724864a742ee8824077c32eb6c36fee4c14c3b3
+
+## asset/hard-failure-propagation
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-hard-failure-propagation
+- **Наблюдение:** ABYSS audit accepted a requirement explicitly marked FAIL and returned STATIC_PASS_RUNTIME_UNKNOWN, allowing a known HARD violation such as an unverified license to remain green.
+- **Применять:** Propagate every explicit requirement FAIL into a requirement_failed audit issue and retain a regression asserting that the aggregate audit status is FAIL.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 9f7334e32db801c3d83fbb71ce26a47a4d9da940
+
+## asset/legacy-crop-source
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-legacy-crop-source
+- **Наблюдение:** ABYSS audit accepted a production manifest whose source pointed into the owner's assets/sprites legacy crop directory, despite abyss.md §2 marking all 58 crops reference-only because of transparent bodies, borders, captured neighbors and frame drift.
+- **Применять:** Represent the HARD as ABYSS-SOURCE-CROPS in the traceability matrix and reject every production source path containing the exact assets/sprites directory pair; retain a red-first regression with an existing legacy source file.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 5c8ca80bdc88c25ae107f911406367272bc1ab68
+
+## asset/loop-seam-continuity
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-loop-seam-continuity
+- **Наблюдение:** ABYSS static gate accepted looped frame sequences whose last-to-first RGBA change was larger than every neighboring-frame change, permitting a visible snap at the loop boundary despite complete frame indexes and stable pivots.
+- **Применять:** For complete looped sequences with at least three frames, compare mean absolute RGBA changes and reject a closing seam larger than the maximum adjacent-frame change; retain smooth-loop and non-loop controls.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 52a7634f0288159cfdf251cc59c4cc59f7972466
+
+## asset/manifest-attachment-schema
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-attachment-schema
+- **Наблюдение:** ABYSS static gate counted any object in parts as permission for another alpha island and did not validate sockets or hitbox geometry, so an incomplete part declaration could hide a cropped neighbor.
+- **Применять:** Require §8 sockets, hitbox and parts fields; validate bounded finite points, a positive circle hitbox, unique part IDs and complete id/pivot/parent/joint records; count only valid parts when allowing disconnected components.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 4cb261e21c125c205dbc2cbe23da8764c2cf4aa3
+
+## asset/manifest-zones-layer
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-manifest-zones-layer
+- **Наблюдение:** ABYSS gate accepted a sprite manifest entry missing the §8 HARD zones and render-layer fields, so an incomplete integration contract could receive a static green result.
+- **Применять:** Require zones and layer, validate zones as a non-empty unique 0–4 list and layer as a non-empty string, and retain red-first missing/type regressions.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA c2de3f4d94ba1e1fc19cd6f307da803264f94559
+
+## asset/requirement-evidence-binding
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-requirement-evidence-binding
+- **Наблюдение:** ABYSS audit accepted a correctly hashed evidence file for any verified HARD claim without proving that the evidence record belonged to that requirement.
+- **Применять:** Require every STATIC_PASS or OWNER_APPROVED evidence record to name the exact requirement_id; reject cross-bound records and retain a red-first regression.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 6745c8356bad3e962f92a53cad2e6c7aa42f3845
+
+## asset/runtime-hard-traceability
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-runtime-hard-traceability
+- **Наблюдение:** ABYSS requirements listed only broad lighting and FPS UNKNOWNs, so omitted coordinate, LOD, terrain, input, pipeline and license HARD gates were not machine-detectable.
+- **Применять:** Declare the complete required runtime-gate ID set and fail audit_pack when any required integration requirement is omitted or duplicated.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 01e76687ccb89987b4b862df6fa02306c4464470
+
+## asset/size-pivot-bounds
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-size-pivot-bounds
+- **Наблюдение:** ABYSS static gate accepted sizeArt and atlas rect dimensions that disagreed with the decoded PNG, pivots outside the frame, and boolean pivot coordinates.
+- **Применять:** Compare sizeArt and rect dimensions with decoded PNG dimensions, require pivots inside the frame, reject booleans, and retain focused regression tests.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA e2758fb37905e67c68a21edb750f135dd421380a
+
+## asset/static-animation-frames
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-static-animation-frames
+- **Наблюдение:** ABYSS gate accepted a declared multi-frame sequence when every decoded RGBA frame was identical, so a static image could masquerade as animation.
+- **Применять:** For every complete sequence with more than one frame, compare decoded RGBA fingerprints and reject the sequence when it contains no visual change; retain a red-first regression.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 0eb0aea65684fca847051f6ff8f04d8c6b0cfb98
+
+## asset/undeclared-neighbor-components
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-undeclared-neighbor-components
+- **Наблюдение:** ABYSS static gate accepted a frame containing multiple disconnected alpha islands even when no parts were declared, allowing an accidentally cropped neighboring sprite to pass.
+- **Применять:** Count four-connected non-transparent components and allow only the main body plus parts explicitly declared as a manifest list; retain isolated-neighbor and declared-part regressions.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA ee8b5cafbc931d42aa87f441e6f36653c9a47bdf
+
+## asset/verified-requirement-evidence
+- 2026-10-22 · failure · technical · 2026-10-22-abyss-verified-requirement-evidence
+- **Наблюдение:** ABYSS audit accepted STATIC_PASS and OWNER_APPROVED requirement states with no evidence artifact, so a runtime integration claim could become green without a sealed capture or report.
+- **Применять:** For every verified requirement state, require a non-empty evidence list; resolve each path inside the requirements directory and verify the recorded SHA-256 before accepting the claim.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 578a4243c21bec67086a245073164dc53771b191
+
 ## atmosphere/depth-gradient
 - 2026-10-21 · baseline · technical · 2026-10-21-world-lesson-7
 - **Наблюдение:** Стандарт атмосферы World_server: ближний план более читаем, дальний смягчён туманом и менее контрастен.
@@ -86,6 +164,18 @@
 - **Наблюдение:** Дизайн предлагал запрещённые новые экранные панели до прочтения graf §27.
 - **Применять:** Перед дизайном читать последний стандарт; проверять любые новые UI-элементы против него.
 - **Источник:** [доказательство](https://github.com/mpaykin1/meta6/blob/715ae2ad43b07e47c9d2e6a4f65eedd608091bdd/docs/lessons/2026-10-18-three-worlds-design-vs-graf-27.md) · SHA 715ae2ad43b07e47c9d2e6a4f65eedd608091bdd
+
+## runtime/anonymous-raf-false-pass
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-anonymous-raf-false-pass
+- **Наблюдение:** The ABYSS single-loop static gate counted only identifier callbacks, so a named game loop plus an anonymous arrow or function-expression requestAnimationFrame callback incorrectly passed.
+- **Применять:** Count non-member global RAF calls not matched as named callbacks as conservative anonymous callback identities, retain named recursion deduplication, and cover named-plus-anonymous, single-anonymous and renderer-member controls.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 744fc58262c1331fc49142983f307a8520336aae
+
+## runtime/multiple-global-raf-callbacks
+- 2026-10-23 · failure · technical · 2026-10-23-abyss-multiple-raf-loops
+- **Наблюдение:** The owner-provided ABYSS standalone HTML starts both the main q0 render callback and a separate D FPS-counter callback through global requestAnimationFrame, violating the one-loop HARD contract even though the profiler does not render.
+- **Применять:** Count distinct global requestAnimationFrame callback identifiers in standalone runtime source, reject more than one, and fold FPS sampling into the existing game loop or a non-recursive observer.
+- **Источник:** [доказательство](https://github.com/mpaykin1/meta6/pull/193) · SHA 164aea48647b4053084a5e79ee382c09c215e919
 
 ## runtime/undeclared-symbols
 - 2026-10-21 · failure · technical · 2026-10-21-legacy-stage7-undeclared-symbols

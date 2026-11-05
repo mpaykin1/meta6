@@ -13,5 +13,8 @@ class AnimationTests(unittest.TestCase):
     def test_pivot_drift(self):
         self.entries[2]["pivot"]=[9,9]
         self.assertIn("pivot_drift",[x["rule"] for x in self.check(self.entries)["issues"]])
+    def test_boolean_pivot_rejected(self):
+        self.entries[2]["pivot"]=[True,4]
+        self.assertIn("invalid_pivot",[x["rule"] for x in self.check(self.entries)["issues"]])
     def test_missing_direction(self):self.assertIn("missing_directions",[x["rule"] for x in self.check(self.entries[:56])["issues"]])
 if __name__=="__main__":unittest.main()
