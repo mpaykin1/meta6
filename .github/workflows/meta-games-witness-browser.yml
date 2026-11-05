@@ -1,0 +1,33 @@
+name: META GAMES Witness Vault browser
+on:
+  pull_request:
+    paths:
+      - 'meta-games-worlds/witness-vault/**'
+      - 'scripts/meta-games-witness-browser.mjs'
+      - '.github/workflows/meta-games-witness-browser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'meta-games-worlds/witness-vault/**'
+      - 'scripts/meta-games-witness-browser.mjs'
+      - '.github/workflows/meta-games-witness-browser.yml'
+permissions:
+  contents: read
+jobs:
+  witness-vault-chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser tools without changing application dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify manifest integrity, six-scene ending and independent mobile touch
+        run: node scripts/meta-games-witness-browser.mjs
