@@ -70,14 +70,20 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
       const s = await page.evaluate(m => { const b = window.__META_BOT__; if (m !== 'data') return b.state();
         const p = b.player || {}, g = b.goal; const z = o => (o && ('z' in o) ? o.z : o && o.y);
         return { started: true, level: b.level - 1, levelDone: !!b.completed, gameDone: !!b.completed && b.level >= b.totalLevels, alive: !!b.alive,
-          hero: { x: p.x, y: z(p) }, goal: g ? { x: g.x, y: z(g) } : null, enemies: b.enemies, weapons: b.weapons, layoutHash: b.layout, menuOpen: !!b.menuOpen }; }, mode);
+          hero: { x: p.x, y: z(p) }, goal: g ? { x: g.x, y: z(g) } : null, enemies: b.enemies, weapons: b.weapons, layoutHash: b.layout, menuOpen: !!b.menuOpen,
+          ...(typeof b.progress === 'number' ? { progress: b.progress } : {}) }; }, mode);
       const miss = STATE_KEYS.filter(k => !(k in s)); if (miss.length) throw new Error('state() без полей: ' + miss.join(', '));
       latest = s; return s;
     };
     await readState();
     // Опрос состояния и ЧИСТОГО ЭКРАНА в фоне, пока бот играет.
-    polling = true; const textSeen = new Set();
-    poller = (async () => { let k = 0; while (polling) { try { await readState(); if (!skip('cleanScreen') && latest.started && !latest.menuOpen && (k++ % 10 === 0)) for (const t of await page.evaluate(visibleTextInPage)) textSeen.add(t); } catch (e) { if (polling && !/closed|context was destroyed/.test(String(e))) fail(String(e.message || e)); } await new Promise(r => setTimeout(r, 100)); } })();
+    // FIX (телефон): кроме первых трёх жестов, экран сравнивается с эталоном (снят после start) каждые 0,3 с ВСЮ игру.
+    polling = true; const textSeen = new Set(); let fixBase = null, joyHeldMs = 0;
+    const fixBad = (a, b) => b.sx || b.sy || b.st || Math.abs(a.cx - b.cx) > 1 || Math.abs(a.cy - b.cy) > 1 || Math.abs(a.cw - b.cw) > 1 || Math.abs(a.ch - b.ch) > 1;
+    poller = (async () => { let k = 0; while (polling) { try { await readState(); k++;
+      if (!skip('cleanScreen') && latest.started && !latest.menuOpen && (k % 10 === 0)) for (const t of await page.evaluate(visibleTextInPage)) textSeen.add(t);
+      if (mobile && fixBase && !skip('fix') && !latest.menuOpen && (k % 3 === 0) && fixBad(fixBase, await page.evaluate(scrollAndCanvasInPage))) fail('FIX: экран сдвинулся или прокрутился во время игры');
+    } catch (e) { if (polling && !/closed|context was destroyed/.test(String(e))) fail(String(e.message || e)); } await new Promise(r => setTimeout(r, 100)); } })();
     const input = await makeInput(page, { mobile, viewport: vp.viewport, cfg, isAborted: () => aborted });
     let fixChecks = mobile ? 0 : 3;
     // Умная ходьба к цели (идея из бота ChatGPT, PR #279): калибруем, куда реально двигает герой каждое направление
@@ -109,7 +115,9 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
     }
     const ctx = Object.freeze({
       ...input, mobile, jump, walkToGoal, viewport: { ...vp.viewport }, state: () => ({ ...latest }), info: () => ({ ...info }), log: t => console.log(`    [${viewportName}] ${t}`),
-      joystick: async (dx, dy, ms) => {
+      joystick: async (dx, dy, ms = 300) => { const t0 = Date.now(); try { return await joy(dx, dy, ms); } finally { joyHeldMs += Date.now() - t0; } }
+    });
+    async function joy(dx, dy, ms) {
         // FIX: в первых трёх жестах джойстика экран проверяется ВО ВРЕМЯ удержания (каждые 100 мс), а не только до и после.
         if (fixChecks < 3 && !skip('fix')) { fixChecks++;
           const a = await page.evaluate(scrollAndCanvasInPage); let sampling = true, bad = null;
@@ -119,8 +127,7 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
           if (bad) fail('FIX: экран сдвинулся или прокрутился во время удержания джойстика');
           return; }
         return input.joystick(dx, dy, ms);
-      }
-    });
+    }
     const timed = async (fn, sec, what, watchdog) => {
       aborted = false; let timer, wd;
       const t = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error(what + ': не успел за ' + sec + ' с')), sec * 1000); });
@@ -130,6 +137,7 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
     await timed(() => strategy.start(ctx), cfg.startTimeoutSec, 'старт', () => null);
     await new Promise(r => setTimeout(r, 500));
     if (!latest.started) throw new Error('после start() игра не началась (state().started=false)');
+    if (mobile) fixBase = await page.evaluate(scrollAndCanvasInPage);
     if (!skip('menuButton') && !(await page.evaluate(menuButtonInPage))) fail('ЧИСТЫЙ ЭКРАН: нет кнопки меню ☰ в правом верхнем углу');
     if (!skip('postepenno') && (latest.enemies > 1 || latest.weapons > 1)) fail(`ПОСТЕПЕННО: в начале врагов ${latest.enemies}, оружия ${latest.weapons} (нужно не больше 1 и 1)`);
     if (!skip('fps')) { await new Promise(r => setTimeout(r, 2000)); res.fps = Math.round(await page.evaluate(fpsInPage, 3000) * 10) / 10;
@@ -142,11 +150,15 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
         if (Date.now() - t0 > 15000) throw new Error(`уровень ${i + 1} не начался (state().level=${latest.level})`); await new Promise(r => setTimeout(r, 100)); }
       res.hashes.push(String(latest.layoutHash));
       if (firstOnly) break;
-      let best = Infinity, bestAt = Date.now(), done = false, lastGoal = null;
+      // Прогресс внутри уровня: ближе к цели, смена цели, или рост необязательного state().progress
+      // (настоящие собранные вещи / урон врагу — длинный бой у цели не «застревание»; бой без урона — застревание).
+      let best = Infinity, bestAt = Date.now(), done = false, lastGoal = null, prog = null;
       const isDone = () => (done = done || latest.levelDone || latest.gameDone || latest.level > i);
       const dist = s => s.goal ? Math.hypot(s.goal.x - s.hero.x, s.goal.y - s.hero.y) : null;
       await timed(() => strategy.playLevel(ctx, i), cfg.levelTimeoutSec, `уровень ${i + 1}`, () => {
-        if (isDone()) return null; const d = dist(latest); if (d === null) return null;
+        if (isDone()) return null; const d = dist(latest);
+        if (typeof latest.progress === 'number') { if (prog !== null && latest.progress > prog) { best = d ?? Infinity; bestAt = Date.now(); } prog = prog === null ? latest.progress : Math.max(prog, latest.progress); }
+        if (d === null) return prog !== null && Date.now() - bestAt > cfg.stuckSec * 1000 ? `уровень ${i + 1}: герой застрял (${cfg.stuckSec} с без прогресса: progress не растёт)` : null;
         // Цель внутри уровня сменилась (новая точка) — отсчёт застревания начинается заново.
         const g = latest.goal; if (!lastGoal || Math.hypot(g.x - lastGoal.x, g.y - lastGoal.y) > Math.max(1, 0.1 * d)) { lastGoal = { ...g }; best = d; bestAt = Date.now(); }
         if (d < best - 0.01) { best = d; bestAt = Date.now(); }
@@ -158,6 +170,8 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
       if (i === info.levels - 1) break;
       const t1 = Date.now(); while (latest.level <= i && !latest.gameDone) { if (Date.now() - t1 > 15000) throw new Error(`после уровня ${i + 1} следующий не начался`); await new Promise(r => setTimeout(r, 100)); }
     }
+    // FIX: джойстик под наблюдением не меньше 10 с за прогон на телефоне; если игра короткая — добрать одним удержанием.
+    if (mobile && !skip('fix') && joyHeldMs < 10000) { aborted = false; await ctx.joystick(0.7, -0.7, 10000 - joyHeldMs).catch(() => {}); await new Promise(r => setTimeout(r, 400)); }
     polling = false; await poller;
     if (textSeen.size) fail('ЧИСТЫЙ ЭКРАН: виден текст во время игры: «' + [...textSeen].slice(0, 5).join('», «') + '»');
     if (!skip('noRepeat') && new Set(res.hashes).size !== res.hashes.length) fail('БЕЗ ПОВТОРОВ: одинаковая раскладка у разных уровней: ' + res.hashes.join(' / '));

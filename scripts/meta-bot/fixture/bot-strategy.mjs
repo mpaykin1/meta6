@@ -13,7 +13,10 @@ export async function playLevel(ctx, level) {
   while (ctx.state().level === level && !ctx.state().levelDone && !ctx.state().gameDone) {
     const s = ctx.state();
     if (!s.alive) { await ctx.wait(1000); continue; }
-    if (s.goal) await ctx.walkToGoal();
+    const d = s.goal ? Math.hypot(s.goal.x - s.hero.x, s.goal.y - s.hero.y) : 0;
+    if (s.progress !== undefined && s.enemies > 0 && d < 1.2) { // бой у цели (?fight=1): бить медленно, чтобы бой шёл дольше stuckSec
+      if (ctx.mobile) await ctx.tap(ctx.viewport.width * 0.8, ctx.viewport.height * 0.5); else await ctx.key('Space', 60); await ctx.wait(700); continue; }
+    if (s.goal) await ctx.walkToGoal(s.progress !== undefined && d < 3 ? 120 : 450);
     else await ctx.key('Space', 100); // TODO: цель без точки (победить всех врагов) — атакуй
   }
 }
