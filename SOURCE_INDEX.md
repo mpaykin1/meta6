@@ -66,6 +66,9 @@ Source files: [3D game](observer-world-en-v7/index.html) · [historical builder]
 | Что | Исходник (GitHub) | Игра |
 |---|---|---|
 | **Сумерки и пепел II — эталон Claude (META GAMES, 06.11.2026)** | [games/sumerki-i-pepel-2/index.html](games/sumerki-i-pepel-2/index.html) | https://mpaykin1.github.io/meta6/games/sumerki-i-pepel-2/ |
+| **Twilight Isle Classic 1.1.1 — эталон удержания Claude (META GAMES, 06.11.2026)** | [games/twilight-isle-classic/index.html](games/twilight-isle-classic/index.html) | https://mpaykin1.github.io/meta6/games/twilight-isle-classic/ |
+| **Twilight Isles 2.0.0 — эталон удержания Claude (META GAMES, 06.11.2026)** | [games/twilight-isles/index.html](games/twilight-isles/index.html) | https://mpaykin1.github.io/meta6/games/twilight-isles/ |
+| **Лучник в тумане 2.0.0 — эталон удержания Claude (META GAMES, 06.11.2026)** | [games/archer-in-the-fog/src/](games/archer-in-the-fog/src/) | https://mpaykin1.github.io/meta6/games/archer-in-the-fog/ |
 | Оригинал RU | [observer-world/index.html](observer-world/index.html) | https://mpaykin1.github.io/meta6/observer-world/ |
 | Первый перевод EN | [observer-world-en/index.html](observer-world-en/index.html) | https://mpaykin1.github.io/meta6/observer-world-en/ |
 | **Принятый эталон V2 (PASS)** | [observer-world-en-v2/index.html](observer-world-en-v2/index.html) | https://mpaykin1.github.io/meta6/observer-world-en-v2/ |

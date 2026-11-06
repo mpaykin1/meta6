@@ -10,9 +10,9 @@
 | 4 | Three Worlds | three-worlds-game/ | очередь | UNKNOWN / 0 |
 | 5 | Veil Terraces | meta-games-worlds/veil-terraces/ | очередь | UNKNOWN / 0 |
 | 6 | ABYSS GLOW | abyss-glow/play/ | очередь, stand/ OWNER PASS | UNKNOWN / 0 |
-| 7 | Archer in the Fog | playgama-games/archer-in-the-fog/ | очередь, есть src/ | UNKNOWN / 0 |
-| 8 | Twilight Isle Classic | playgama-games/twilight-isle-classic/ | очередь | UNKNOWN / 0 |
-| 9 | Twilight Isles 2 | playgama-games/twilight-isles/ | очередь | UNKNOWN / 0 |
+| 7 | Archer in the Fog | games/archer-in-the-fog/ (эталон 06.11; сборка Playgama — playgama-games/archer-in-the-fog/) | очередь, есть src/; статус по правилам — games/archer-in-the-fog/README.md | UNKNOWN / 0 |
+| 8 | Twilight Isle Classic | games/twilight-isle-classic/ (эталон 06.11; сборка Playgama — playgama-games/twilight-isle-classic/) | очередь; статус по правилам — games/twilight-isle-classic/README.md | UNKNOWN / 0 |
+| 9 | Twilight Isles 2 | games/twilight-isles/ (эталон 06.11; сборка Playgama — playgama-games/twilight-isles/) | очередь; статус по правилам — games/twilight-isles/README.md | UNKNOWN / 0 |
 | 10 | Underwater Sumerek | underwater-sumerek/ | очередь | UNKNOWN / 0 |
 | 11 | Island Sumerek Biomes | island-sumerek-biomes/ | очередь; не эталон-донор | UNKNOWN / 0 |
 
