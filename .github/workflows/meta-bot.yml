@@ -27,5 +27,19 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Self-test of the bot core (must catch cheats, stuck hero, text, repeats)
         run: node scripts/meta-bot/selftest.mjs
+      - name: Restore FPS history
+        uses: actions/cache/restore@v4
+        with:
+          path: .meta-bot-cache
+          key: meta-bot-fps-${{ github.run_id }}
+          restore-keys: meta-bot-fps-
       - name: Play all games
+        env:
+          META_BOT_FPS_FILE: .meta-bot-cache/fps.json
         run: node scripts/meta-bot/run.mjs
+      - name: Save FPS history
+        if: always() && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: .meta-bot-cache
+          key: meta-bot-fps-${{ github.run_id }}

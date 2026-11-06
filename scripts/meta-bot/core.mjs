@@ -79,7 +79,7 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
     polling = true; const textSeen = new Set();
     poller = (async () => { let k = 0; while (polling) { try { await readState(); if (!skip('cleanScreen') && latest.started && !latest.menuOpen && (k++ % 10 === 0)) for (const t of await page.evaluate(visibleTextInPage)) textSeen.add(t); } catch (e) { if (polling && !/closed|context was destroyed/.test(String(e))) fail(String(e.message || e)); } await new Promise(r => setTimeout(r, 100)); } })();
     const input = await makeInput(page, { mobile, viewport: vp.viewport, cfg, isAborted: () => aborted });
-    let fixChecked = mobile ? false : true;
+    let fixChecks = mobile ? 0 : 3;
     // Умная ходьба к цели (идея из бота ChatGPT, PR #279): калибруем, куда реально двигает герой каждое направление
     // джойстика (камера может быть повёрнута), и идём по обратной матрице. Только настоящий ввод.
     const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -96,6 +96,7 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
         calib = { level: latest.level, R, D, det: R[0] * D[1] - D[0] * R[1], stall: 0, last: Infinity };
       }
       const s = latest, t = [s.goal.x - s.hero.x, s.goal.y - s.hero.y], d0 = Math.hypot(t[0], t[1]);
+      if (!calib.goal || Math.hypot(s.goal.x - calib.goal.x, s.goal.y - calib.goal.y) > Math.max(1, 0.1 * d0)) { calib.goal = { ...s.goal }; calib.last = Infinity; calib.stall = 0; }
       let ix, iy;
       if (Math.abs(calib.det) > 1e-6) { ix = (t[0] * calib.D[1] - calib.D[0] * t[1]) / calib.det; iy = (calib.R[0] * t[1] - t[0] * calib.R[1]) / calib.det; }
       else { ix = t[0]; iy = t[1]; }
@@ -109,8 +110,14 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
     const ctx = Object.freeze({
       ...input, mobile, jump, walkToGoal, viewport: { ...vp.viewport }, state: () => ({ ...latest }), info: () => ({ ...info }), log: t => console.log(`    [${viewportName}] ${t}`),
       joystick: async (dx, dy, ms) => {
-        if (!fixChecked && !skip('fix')) { fixChecked = true; const a = await page.evaluate(scrollAndCanvasInPage); await input.joystick(dx, dy, ms); const b = await page.evaluate(scrollAndCanvasInPage);
-          if (b.sx || b.sy || b.st || Math.abs(a.cx - b.cx) > 1 || Math.abs(a.cy - b.cy) > 1 || Math.abs(a.cw - b.cw) > 1 || Math.abs(a.ch - b.ch) > 1) fail('FIX: экран сдвинулся или прокрутился от джойстика'); return; }
+        // FIX: в первых трёх жестах джойстика экран проверяется ВО ВРЕМЯ удержания (каждые 100 мс), а не только до и после.
+        if (fixChecks < 3 && !skip('fix')) { fixChecks++;
+          const a = await page.evaluate(scrollAndCanvasInPage); let sampling = true, bad = null;
+          const sampler = (async () => { while (sampling && !bad) { try { const b = await page.evaluate(scrollAndCanvasInPage);
+            if (b.sx || b.sy || b.st || Math.abs(a.cx - b.cx) > 1 || Math.abs(a.cy - b.cy) > 1 || Math.abs(a.cw - b.cw) > 1 || Math.abs(a.ch - b.ch) > 1) bad = b; } catch {} await new Promise(r => setTimeout(r, 100)); } })();
+          try { await input.joystick(dx, dy, ms); } finally { sampling = false; await sampler; }
+          if (bad) fail('FIX: экран сдвинулся или прокрутился во время удержания джойстика');
+          return; }
         return input.joystick(dx, dy, ms);
       }
     });
@@ -126,16 +133,22 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
     if (!skip('menuButton') && !(await page.evaluate(menuButtonInPage))) fail('ЧИСТЫЙ ЭКРАН: нет кнопки меню ☰ в правом верхнем углу');
     if (!skip('postepenno') && (latest.enemies > 1 || latest.weapons > 1)) fail(`ПОСТЕПЕННО: в начале врагов ${latest.enemies}, оружия ${latest.weapons} (нужно не больше 1 и 1)`);
     if (!skip('fps')) { await new Promise(r => setTimeout(r, 2000)); res.fps = Math.round(await page.evaluate(fpsInPage, 3000) * 10) / 10;
-      if (cfg.fpsBaseline > 0 && res.fps < cfg.fpsBaseline * 0.6) fail(`FPS: ${res.fps} при базе ${cfg.fpsBaseline} (падение больше 40%)`); }
+      if (cfg.fpsBaseline > 0 && res.fps < cfg.fpsBaseline * 0.6) fail(`FPS: ${res.fps} при базе ${cfg.fpsBaseline} (падение больше 40%)`);
+      const prev = fpsHistory(gameDir, viewportName); res.fpsPrev = prev;
+      if (prev && res.fps < prev * 0.6) fail(`FPS: ${res.fps} против ${prev} в прошлых прогонах (падение больше 40%)`); }
     for (let i = 0; i < info.levels; i++) {
-      const t0 = Date.now(); while (latest.level !== i) { if (Date.now() - t0 > 15000) throw new Error(`уровень ${i + 1} не начался (state().level=${latest.level})`); await new Promise(r => setTimeout(r, 100)); }
+      const t0 = Date.now(); while (latest.level !== i) {
+        if (latest.level > i) throw new Error(`уровень ${i + 1} пропущен: игра сразу перешла на уровень ${latest.level + 1}`);
+        if (Date.now() - t0 > 15000) throw new Error(`уровень ${i + 1} не начался (state().level=${latest.level})`); await new Promise(r => setTimeout(r, 100)); }
       res.hashes.push(String(latest.layoutHash));
       if (firstOnly) break;
-      let best = Infinity, bestAt = Date.now(), done = false;
+      let best = Infinity, bestAt = Date.now(), done = false, lastGoal = null;
       const isDone = () => (done = done || latest.levelDone || latest.gameDone || latest.level > i);
       const dist = s => s.goal ? Math.hypot(s.goal.x - s.hero.x, s.goal.y - s.hero.y) : null;
       await timed(() => strategy.playLevel(ctx, i), cfg.levelTimeoutSec, `уровень ${i + 1}`, () => {
         if (isDone()) return null; const d = dist(latest); if (d === null) return null;
+        // Цель внутри уровня сменилась (новая точка) — отсчёт застревания начинается заново.
+        const g = latest.goal; if (!lastGoal || Math.hypot(g.x - lastGoal.x, g.y - lastGoal.y) > Math.max(1, 0.1 * d)) { lastGoal = { ...g }; best = d; bestAt = Date.now(); }
         if (d < best - 0.01) { best = d; bestAt = Date.now(); }
         return Date.now() - bestAt > cfg.stuckSec * 1000 ? `уровень ${i + 1}: герой застрял (${cfg.stuckSec} с без приближения к цели)` : null;
       });
@@ -154,6 +167,14 @@ export async function runOnce({ baseUrl, gameDir, repoRoot, viewportName, cfg, s
   return res;
 }
 
+// История FPS между прогонами: файл из META_BOT_FPS_FILE (на GitHub его хранит actions/cache). Медиана последних 5.
+function fpsKey(gameDir, v) { return path.basename(gameDir) + ':' + v; }
+function fpsRead() { const f = process.env.META_BOT_FPS_FILE; try { return f && fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : {}; } catch { return {}; } }
+function fpsHistory(gameDir, v) { const h = fpsRead()[fpsKey(gameDir, v)]; if (!Array.isArray(h) || !h.length) return null; const a = [...h].sort((x, y) => x - y); return a[Math.floor(a.length / 2)]; }
+function fpsSave(gameDir, runs) { const f = process.env.META_BOT_FPS_FILE; if (!f) return; const d = fpsRead();
+  for (const r of runs) if (r.ok && r.fps) { const k = fpsKey(gameDir, r.viewport); d[k] = [...(d[k] || []), r.fps].slice(-5); }
+  fs.mkdirSync(path.dirname(path.resolve(f)), { recursive: true }); fs.writeFileSync(f, JSON.stringify(d, null, 1)); }
+
 // Полная проверка игры: все экраны + второй запуск для БЕЗ ПОВТОРОВ.
 export async function checkGame({ gameDir, repoRoot, baseUrl, query = '' }) {
   const { cfg, strategy } = await loadGame(gameDir);
@@ -161,10 +182,15 @@ export async function checkGame({ gameDir, repoRoot, baseUrl, query = '' }) {
   const runs = [];
   try {
     for (const v of cfg.viewports) runs.push(await runOnce({ baseUrl, gameDir, repoRoot, viewportName: v, cfg, strategy, browser, query }));
+    // Второй независимый запуск: по умолчанию игра проходится ЦЕЛИКОМ ещё раз (новая раскладка тоже должна быть проходимой),
+    // и раскладка первого уровня должна отличаться от первого запуска. bot.json "secondRun": "hash" — только сравнить раскладку.
     if (!cfg.skipChecks.includes('noRepeat') && runs[0] && runs[0].hashes.length) {
-      const again = await runOnce({ baseUrl, gameDir, repoRoot, viewportName: cfg.viewports[0], cfg: { ...cfg, skipChecks: [...cfg.skipChecks, 'fps'] }, strategy, browser, query, firstOnly: true });
+      const full = cfg.secondRun !== 'hash';
+      const again = await runOnce({ baseUrl, gameDir, repoRoot, viewportName: cfg.viewports[0], cfg: { ...cfg, skipChecks: [...cfg.skipChecks, 'fps'] }, strategy, browser, query, firstOnly: !full });
+      again.viewport = cfg.viewports[0] + ' (2-й запуск)'; if (full) runs.push(again);
       if (again.hashes[0] !== undefined && again.hashes[0] === runs[0].hashes[0]) runs[0].errors.push('БЕЗ ПОВТОРОВ: первый уровень одинаковый в двух запусках (' + again.hashes[0] + ')'), runs[0].ok = false;
     }
+    fpsSave(gameDir, runs);
   } finally { await browser.close(); }
   return { game: path.basename(gameDir), ok: runs.every(r => r.ok), runs };
 }
