@@ -2,7 +2,7 @@
 
 Сюда относится: переиспользовать готовое, брать источник владельца, ничего не терять, не менять лишнего.
 
-- [META_GAMES_SOURCE_ALLOWLIST.md](META_GAMES_SOURCE_ALLOWLIST.md) — только пять эталонов кода/ассетов и будущие ассеты Claude для META GAMES
+- [META_GAMES_SOURCE_ALLOWLIST.md](META_GAMES_SOURCE_ALLOWLIST.md) — пять исходных эталонов плюс все игры Claude как эталоны кода и ассетов для META GAMES
 - [REUSE.md](REUSE.md) — сначала найти готовый код в своих играх, потом писать новый
 - [ISTOCHNIK_OT_VLADELTSA.md](ISTOCHNIK_OT_VLADELTSA.md) — ссылка от владельца — единственный источник
 - [PERENOS_MIROV.md](PERENOS_MIROV.md) — переносить всё целиком, ничего не пересоздавать
