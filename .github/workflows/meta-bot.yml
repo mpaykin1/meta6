@@ -1,0 +1,64 @@
+name: meta-bot
+on:
+  pull_request:
+    paths:
+      - 'games/**'
+      - 'observer-world-en-v7/**'
+      - 'ashen-sumerek/**'
+      - 'underwater-world/**'
+      - 'three-worlds-game/**'
+      - 'meta-games-worlds/**'
+      - 'abyss-glow/play/**'
+      - 'playgama-games/**'
+      - 'underwater-sumerek/**'
+      - 'island-sumerek-biomes/**'
+      - 'scripts/meta-bot/**'
+      - '.github/workflows/meta-bot.yml'
+      - 'docs/meta-bot-queue.md'
+  schedule:
+    - cron: '31 2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  meta-bot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install local Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Restore FPS benchmark from same Ubuntu runner
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/meta-bot-fps.json
+          key: meta-bot-fps-ubuntu24-${{ github.run_id }}
+          restore-keys: |
+            meta-bot-fps-ubuntu24-
+      - name: Check meta-bot source syntax
+        run: node --check scripts/meta-bot/runner.cjs
+      - name: Play all changed games or all games daily
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          META_BOT_FPS_CACHE: /tmp/meta-bot-fps.json
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            node scripts/meta-bot/runner.cjs --changed
+          else
+            node scripts/meta-bot/runner.cjs --all
+          fi
+      - name: Save FPS benchmark in Actions cache, never commit reports
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/meta-bot-fps.json
+          key: meta-bot-fps-ubuntu24-${{ github.run_id }}
