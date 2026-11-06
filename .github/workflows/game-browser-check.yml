@@ -76,6 +76,9 @@ jobs:
           while IFS= read -r target; do
             test -f "$target" || { echo "Missing game: $target"; exit 1; }
             case "$target" in
+              games/*)
+                echo "Game $target is exercised by the dedicated strict meta-bot.yml workflow (390x844 and desktop, two runs)"
+                ;;
               abyss-glow/play/index.html)
                 python3 -m http.server 8765 --bind 127.0.0.1 --directory abyss-glow >/tmp/abyss-play-http.log 2>&1 &
                 sleep 2

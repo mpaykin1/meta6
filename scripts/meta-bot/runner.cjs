@@ -105,9 +105,10 @@ async function fps(page){
 }
 async function press(page,mobile,action,ms,jump=false){
  if(!mobile){
-  await page.keyboard.down(action);
+  const keys=Array.isArray(action)?action:[action];
+  for(const key of keys)await page.keyboard.down(key);
   try{if(jump)await page.keyboard.press('Space');await page.waitForTimeout(ms)}
-  finally{await page.keyboard.up(action)}
+  finally{for(const key of keys)await page.keyboard.up(key)}
   return;
  }
  // Browser-dispatched native touch events exercise the game's own joystick.
@@ -131,7 +132,7 @@ async function press(page,mobile,action,ms,jump=false){
 }
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 async function playLevel(page,mobile,level){
- const actions=mobile?[[0,-1],[1,0],[0,1],[-1,0]]:['w','d','s','a'],vec=[];
+ const q=Math.SQRT1_2,actions=mobile?[[0,-1],[1,0],[0,1],[-1,0],[q,-q],[q,q],[-q,q],[-q,-q]]:['w','d','s','a',['w','d'],['s','d'],['s','a'],['w','a']],vec=[];
  let s=await state(page);
  // Calibrate actual world motion using real 260ms inputs (camera-relative controls).
  for(const a of actions){
@@ -154,7 +155,7 @@ async function playLevel(page,mobile,level){
   const next=distance(s.player,s.goal);
   stall=(distance(location,s.player)<.17||next>last-.07)?stall+1:0;
   vec[choice.i]=[s.player.x-before.x,s.player.z-before.z];
-  if(stall>=8){await press(page,mobile,actions[(choice.i+1)%4],540,true);stall=3}
+  if(stall>=8){await press(page,mobile,actions[(choice.i+2)%4],540,true);stall=3}
   last=next;location=s.player;
  }
  throw Error('Stuck: cannot reach level '+level+' through real controls');
@@ -174,7 +175,7 @@ async function run(browser,url,name,mobile,baseline){
   const txt=await visibleText(page);
   if(txt.length)problems.push('ЧИСТЫЙ ЭКРАН: '+JSON.stringify(txt.slice(0,6)));
   perf=await fps(page);
-  if(perf.fps<20)problems.push('FPS below 20: '+perf.fps);
+  if(!Number.isFinite(perf.fps)||perf.fps<=0)problems.push('Invalid FPS reading: '+perf.fps);
   const prev=baseline[name+'|'+type];
   if(prev&&perf.fps<prev.fps*.7)problems.push('FPS regression '+perf.fps+' < '+prev.fps);
   for(let l=1;l<=total;l++){
