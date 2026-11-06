@@ -160,7 +160,7 @@ async function playLevel(page,mobile,level){
  }
  throw Error('Stuck: cannot reach level '+level+' through real controls');
 }
-async function run(browser,url,name,mobile,baseline){
+async function run(browser,url,name,mobile,baseline,referenceFps){
  const type=mobile?'390x844':'1280x720',problems=[],layouts=[];
  const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1280,height:720},deviceScaleFactor:1,isMobile:mobile,hasTouch:mobile});
  const page=await context.newPage();let total=0,passed=0,perf;
@@ -177,7 +177,11 @@ async function run(browser,url,name,mobile,baseline){
   perf=await fps(page);
   if(!Number.isFinite(perf.fps)||perf.fps<=0)problems.push('Invalid FPS reading: '+perf.fps);
   const prev=baseline[name+'|'+type];
-  if(prev&&perf.fps<prev.fps*.7)problems.push('FPS regression '+perf.fps+' < '+prev.fps);
+  // Hosted Actions runners vary in hardware. Compare normalized FPS against the
+  // same WebGL benchmark measured on this runner, not raw FPS from another VM.
+  if(prev&&Number.isFinite(prev.referenceFps)&&prev.referenceFps>0&&
+     perf.fps/referenceFps<(prev.fps/prev.referenceFps)*.7)
+   problems.push('FPS regression relative to calibrated baseline: '+perf.fps+'/'+referenceFps+' < '+prev.fps+'/'+prev.referenceFps);
   for(let l=1;l<=total;l++){
    const s=await state(page);
    if(s.level!==l)throw Error('Level order mismatch at '+l+': '+s.level);
@@ -200,25 +204,39 @@ async function run(browser,url,name,mobile,baseline){
  finally{await context.close()}
  return {name,type,total,passed,problems,layouts,perf};
 }
+// One shared WebGL scene calibrates the actual GPU runner for this execution.
+async function referenceFps(browser,url,mobile){
+ const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1280,height:720},deviceScaleFactor:1,isMobile:mobile,hasTouch:mobile});
+ const page=await context.newPage();
+ try{
+  await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+  await page.waitForTimeout(2200);
+  const p=await fps(page);
+  if(!Number.isFinite(p.fps)||p.fps<=0)throw Error('Reference renderer FPS is unavailable');
+  return p.fps;
+ }finally{await context.close()}
+}
 (async()=>{
  const chosen=select();
  if(!chosen.length){console.log('No game changed. Browser checks not executed.');return}
  const file=process.env.META_BOT_FPS_CACHE||'/tmp/meta-bot-fps.json';
  let baseline={};try{baseline=JSON.parse(fs.readFileSync(file,'utf8'))}catch{}
  const next={...baseline},svc=await server(),browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
- const rows=[];
+ const rows=[],reference={};
  try{
   for(const g of chosen){
    for(const mobile of [true,false]){
+    const label=mobile?'mobile':'desktop';
+    if(!reference[label])reference[label]=await referenceFps(browser,'http://127.0.0.1:'+svc.port+'/meta-games-worlds/veil-terraces/',mobile);
     const u='http://127.0.0.1:'+svc.port+'/'+g.entry+'/';
-    const a=await run(browser,u,g.name,mobile,baseline),b=await run(browser,u,g.name,mobile,baseline);
+    const a=await run(browser,u,g.name,mobile,baseline,reference[label]),b=await run(browser,u,g.name,mobile,baseline,reference[label]);
     if(a.layouts.length&&b.layouts.length)
      for(let i=0;i<Math.min(a.layouts.length,b.layouts.length);i++)
       if(a.layouts[i]===b.layouts[i])a.problems.push('БЕЗ ПОВТОРОВ: identical level '+(i+1)+' layout across independent runs');
     if(a.passed!==b.passed||a.total!==b.total)a.problems.push('Second run incomplete: '+b.passed+'/'+b.total);
     a.problems.push(...b.problems.map(x=>'run2 '+x));
     rows.push(a);
-    if(!a.problems.length&&a.total&&a.passed===a.total)next[a.name+'|'+a.type]=a.perf;
+    if(!a.problems.length&&a.total&&a.passed===a.total)next[a.name+'|'+a.type]={...a.perf,referenceFps:reference[label]};
    }
   }
  }finally{await browser.close();await new Promise(ok=>svc.app.close(ok))}
