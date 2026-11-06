@@ -1,6 +1,6 @@
 # META GAMES — кроссплатформенная цель (решение владельца 06.11.2026)
 
-**КОНЕЧНАЯ ЦЕЛЬ:** одна игровая вселенная META GAMES — три официальных способа запуска: независимый Web (GitHub Pages), Android (Google Play), Windows (Steam). Все игры создаются из разрешённых эталонов и общего склада `shared/`, с тем же исходным HTML/JavaScript/Three.js/WebGL/GLSL-кодом. Это **дополнение**, а не замена основной защищённой цели [META_GAMES_PLATFORM.md](META_GAMES_PLATFORM.md) (§1–13). Подробная спецификация выпуска Steam — [STEAM_DISTRIBUTION.md](STEAM_DISTRIBUTION.md).
+**КОНЕЧНАЯ ЦЕЛЬ:** одна игровая вселенная META GAMES — три официальных способа запуска: независимый Web (GitHub Pages), Android (Google Play), Windows (Steam). Все игры создаются из разрешённых эталонов и общего склада `shared/`, с тем же исходным HTML/JavaScript/Three.js/WebGL/GLSL-кодом. Это **дополнение**, а не замена основной защищённой цели [META_GAMES_PLATFORM.md](META_GAMES_PLATFORM.md) (§1–13). Подробная спецификация выпуска Steam — [STEAM_DISTRIBUTION.md](STEAM_DISTRIBUTION.md). Подробный план автоматического пополнения Android-приложения и выпуска обновлений в Google Play — [ANDROID_DISTRIBUTION.md](ANDROID_DISTRIBUTION.md).
 
 ## Обязательные требования
 
