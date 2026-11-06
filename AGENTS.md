@@ -99,6 +99,7 @@ _то, что касается только одной конкретной иг
 _общий склад и конструктор всех игр_
 
 - [META_GAMES_PLATFORM.md](rules/09-platforma/META_GAMES_PLATFORM.md) — **КОНЕЧНАЯ ЦЕЛЬ проекта, сверяться всем ИИ:** склад `shared/`, игры из склада, автоулучшение всех игр по правилам и бот-проходчик уровней, журнал решений владельца (§11)
+- [RENDER_OPTIMIZATION_ROADMAP.md](rules/09-platforma/RENDER_OPTIMIZATION_ROADMAP.md) — **цель оптимизации рендеринга всех игр META GAMES:** frustum/backface/cave culling, секции чанков, lightmap, упаковка вершин, batching, GPU-driven по возможности, LOD/HLOD, greedy meshing; адаптация по типу сцены без потери графики.
 - [STEAM_DISTRIBUTION.md](rules/09-platforma/STEAM_DISTRIBUTION.md) — **новая цель 06.11.2026: META GAMES в Steam**, автоматическая сборка каталога новых игр из GitHub, SteamPipe, условия допуска и пошаговая реализация (без изменения защищённой основной цели).
 - [CROSS_PLATFORM_GOAL.md](rules/09-platforma/CROSS_PLATFORM_GOAL.md)
 - [MCP_AI_GAME_FACTORY_PLAN.md](rules/09-platforma/MCP_AI_GAME_FACTORY_PLAN.md) — **подробная цель MCP:** нейросеть создаёт игру из эталонов и shared, улучшает графику, бот проходит и исправляет, игры взаимно улучшаются
