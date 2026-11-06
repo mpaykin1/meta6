@@ -1,4 +1,4 @@
-**РАЗРЕШЕНИЕ ВЛАДЕЛЬЦА 06.11.2026 — META GAMES:** для автоулучшения игр платформы разрешены бот-проходчик `scripts/meta-bot/`, его workflow `.github/workflows/meta-bot.yml`, ручки `window.__META_BOT__` в играх и одна очередь `docs/meta-bot-queue.md`; это исключение из запрета «новые тесты». Цель и правила — rules/09-platforma/META_GAMES_PLATFORM.md, разделы 7–10.
+**РАЗРЕШЕНИЕ ВЛАДЕЛЬЦА 06.11.2026 — META GAMES:** для автоулучшения игр платформы разрешены бот-проходчик `scripts/meta-bot/`, его workflow `.github/workflows/meta-bot.yml`, ручки `window.__META_BOT__` в играх и одна очередь `docs/meta-bot-queue.md`; это исключение из запрета «новые тесты». Цель и правила — rules/09-platforma/META_GAMES_PLATFORM.md, разделы 7–12. Сторож meta-games-guard (принятые оригиналы и цель проекта) менять, отключать и обходить запрещено; красный сторож = не сливать.
 
 ## ВЫСШИЙ ПРИОРИТЕТ 2026-10-24 — ТОЛЬКО ВИДИМАЯ ГРАФИКА В ИГРЕ
 
