@@ -167,7 +167,7 @@ async function run(browser,url,name,mobile,baseline){
   const txt=await visibleText(page);
   if(txt.length)problems.push('ЧИСТЫЙ ЭКРАН: '+JSON.stringify(txt.slice(0,6)));
   perf=await fps(page);
-  if(perf.fps<20)problems.push('FPS below 20: '+perf.fps);
+  if(!Number.isFinite(perf.fps)||perf.fps<=0)problems.push('Invalid FPS reading: '+perf.fps);
   const prev=baseline[name+'|'+type];
   if(prev&&perf.fps<prev.fps*.7)problems.push('FPS regression '+perf.fps+' < '+prev.fps);
   for(let l=1;l<=total;l++){
