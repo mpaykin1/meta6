@@ -5,16 +5,22 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {execFileSync}=require('node:child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'../..');
 const games=[
- ['Twilight Island','observer-world-en-v7'],['Ashen Path','ashen-sumerek'],
- ['Underwater World','underwater-world'],['Three Worlds','three-worlds-game'],
- ['Veil Terraces','meta-games-worlds/veil-terraces'],['ABYSS GLOW','abyss-glow/play'],
+ ['Twilight Island','observer-world-en-v7','twilight-island'],['Ashen Path','ashen-sumerek','ashen-path'],
+ ['Underwater World','underwater-world','underwater-world'],['Three Worlds','three-worlds-game','three-worlds'],
+ ['Veil Terraces','meta-games-worlds/veil-terraces','veil-terraces'],['ABYSS GLOW','abyss-glow/play','abyss-glow'],
  ['Archer in the Fog','playgama-games/archer-in-the-fog'],
  ['Twilight Isle Classic','playgama-games/twilight-isle-classic'],
  ['Twilight Isles 2','playgama-games/twilight-isles'],
  ['Underwater Sumerek','underwater-sumerek'],['Island Sumerek Biomes','island-sumerek-biomes']
-].map(([name,source])=>({name,source,entry:
- fs.existsSync(path.join(root,'games',source.split('/').at(-1),'index.html'))?
- 'games/'+source.split('/').at(-1):source}));
+].map(([name,source,slug])=>({name,source,entry:
+ fs.existsSync(path.join(root,'games',slug||source.split('/').at(-1),'index.html'))?
+ 'games/'+(slug||source.split('/').at(-1)):source}));
+const gameDirectory=path.join(root,'games');
+if(fs.existsSync(gameDirectory))for(const dir of fs.readdirSync(gameDirectory,{withFileTypes:true})){
+ if(!dir.isDirectory()||!fs.existsSync(path.join(gameDirectory,dir.name,'index.html')))continue;
+ const entry='games/'+dir.name;
+ if(!games.some(g=>g.entry===entry))games.push({name:dir.name,source:entry,entry});
+}
 function select(){
  if(process.argv.includes('--all'))return games;
  if(process.argv.includes('--game')){
@@ -24,6 +30,7 @@ function select(){
  const b=process.env.BASE_SHA,h=process.env.HEAD_SHA;
  if(!b||!h)throw Error('Need exact BASE_SHA and HEAD_SHA');
  const changed=execFileSync('git',['diff','--name-only',b+'...'+h],{cwd:root,encoding:'utf8'}).split('\n');
+ if(changed.some(x=>x.startsWith('games/')&&!games.some(g=>x.startsWith(g.entry+'/'))))throw Error('Unregistered game in games/: no browser coverage');
  return games.filter(g=>changed.some(x=>x.startsWith(g.entry+'/')||x.startsWith(g.source+'/')));
 }
 function server(){
@@ -204,7 +211,9 @@ async function run(browser,url,name,mobile,baseline){
    for(const mobile of [true,false]){
     const u='http://127.0.0.1:'+svc.port+'/'+g.entry+'/';
     const a=await run(browser,u,g.name,mobile,baseline),b=await run(browser,u,g.name,mobile,baseline);
-    if(a.layouts.length&&b.layouts.length&&a.layouts[0]===b.layouts[0])a.problems.push('БЕЗ ПОВТОРОВ: identical first layout across independent runs');
+    if(a.layouts.length&&b.layouts.length)
+     for(let i=0;i<Math.min(a.layouts.length,b.layouts.length);i++)
+      if(a.layouts[i]===b.layouts[i])a.problems.push('БЕЗ ПОВТОРОВ: identical level '+(i+1)+' layout across independent runs');
     if(a.passed!==b.passed||a.total!==b.total)a.problems.push('Second run incomplete: '+b.passed+'/'+b.total);
     a.problems.push(...b.problems.map(x=>'run2 '+x));
     rows.push(a);
