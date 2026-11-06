@@ -1,3 +1,7 @@
+## META GAMES — обязательный закрытый список источников (06.11.2026)
+
+Для создания новых игр META GAMES повторно использовать игровые ассеты и код разрешено **только из пяти эталонов**: Twilight Island (`observer-world-en-v7/`), Ashen Path (`ashen-sumerek/`), Underwater World (`underwater-world/`), Three Worlds (`three-worlds-game/`), Veil Terraces (`meta-games-worlds/veil-terraces/`). **Из будущих игр, фактически загруженных Claude, разрешены только их ассеты после подтверждения происхождения и прав, не код.** Полное обязательное правило: [rules/06-rabota-ii-s-kodom/META_GAMES_SOURCE_ALLOWLIST.md](rules/06-rabota-ii-s-kodom/META_GAMES_SOURCE_ALLOWLIST.md).
+
 Для автозадач действует automation/prompts/chatgpt-autotask.md: отчёты, новые тесты, handoff и evidence запрещены; требования GRAF, abyss.md, evolve.md и других файлов о тестах, отчётах, evidence и gate к автозадачам не применяются
 ## ЧИСТЫЙ ЭКРАН — никаких лишних надписей в игре (обязательно, все игры, 2026-10-31)
 
