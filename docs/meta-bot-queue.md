@@ -4,11 +4,11 @@
 
 | № | Игра | Подтверждённый исходный путь meta6 | Состояние | Уровней / реально пройдено |
 |---:|---|---|---|---|
-| 1 | Twilight Island | observer-world-en-v7/ | очередь, OWNER PASS не менять | UNKNOWN / 0 |
-| 2 | Ashen Path | ashen-sumerek/ | очередь | UNKNOWN / 0 |
-| 3 | Underwater World | underwater-world/ | очередь, принятый оригинал не менять | UNKNOWN / 0 |
-| 4 | Three Worlds | three-worlds-game/ | очередь | UNKNOWN / 0 |
-| 5 | Veil Terraces | meta-games-worlds/veil-terraces/ | очередь | UNKNOWN / 0 |
+| 1 | Veil Terraces | meta-games-worlds/veil-terraces/ | в работе PR #280; исходник сохранён, бот проверяет 6 последовательных воспоминаний | 6 / UNKNOWN |
+| 2 | Twilight Island | observer-world-en-v7/ | очередь, OWNER PASS не менять | UNKNOWN / 0 |
+| 3 | Ashen Path | ashen-sumerek/ | очередь | UNKNOWN / 0 |
+| 4 | Underwater World | underwater-world/ | очередь, принятый оригинал не менять | UNKNOWN / 0 |
+| 5 | Three Worlds | three-worlds-game/ | очередь | UNKNOWN / 0 |
 | 6 | ABYSS GLOW | abyss-glow/play/ | очередь, stand/ OWNER PASS | UNKNOWN / 0 |
 | 7 | Archer in the Fog | playgama-games/archer-in-the-fog/ | очередь, есть src/ | UNKNOWN / 0 |
 | 8 | Twilight Isle Classic | playgama-games/twilight-isle-classic/ | очередь | UNKNOWN / 0 |
