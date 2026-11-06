@@ -34,7 +34,7 @@ function passableSegment(from,to){
  const n=Math.ceil(Math.hypot(to.x-from.x,to.z-from.z)*12);
  for(let i=1;i<=n;i++){
   const f=i/n,x=mix(from.x,to.x,f),z=mix(from.z,to.z,f),next=height(x,z);
-  if(next===null||surface(x,z)===null||Math.abs(next-h)>.5)return false;
+  if(next===null||surface(x,z)===null||next-h>=.5)return false;
   h=next;
  }
  return true;
@@ -46,7 +46,7 @@ function generateShards(){
   for(let n=0;n<160;n++){
    const a=Math.random()*TAU,d=2.7+Math.random()*2.4;
    const q={x:+(prev.x+Math.cos(a)*d).toFixed(2),z:+(prev.z+Math.sin(a)*d).toFixed(2)};
-   if(passableSegment(prev,q)&&out.every(t=>Math.hypot(t.x-q.x,t.z-q.z)>1.8))possible.push(q);
+   if(Math.hypot(q.x,q.z)>2.1&&passableSegment(prev,q)&&out.every(t=>Math.hypot(t.x-q.x,t.z-q.z)>2.4))possible.push(q);
   }
   if(!possible.length)throw Error('No physically traversable shard route at memory '+i);
   const next=possible[Math.floor(Math.random()*possible.length)];
