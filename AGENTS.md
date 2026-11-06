@@ -46,6 +46,7 @@ _лор героя, подписи-воспоминания, квесты_
 - [LOR.md](rules/04-syuzhet-i-scenarii/LOR.md) — жуткое детство героя, рассказанное миром; круги 2, 3, 4…; история в конце
 - [PODPISI_VOSPOMINANIYA.md](rules/04-syuzhet-i-scenarii/PODPISI_VOSPOMINANIYA.md) — короткие подписи-осколки памяти, из которых игрок сам собирает сюжет
 - [QUEST_RULES_RU.md](rules/04-syuzhet-i-scenarii/QUEST_RULES_RU.md) — понятные квесты
+- [DVIZHOK_LOR_ASSETY.md](rules/04-syuzhet-i-scenarii/DVIZHOK_LOR_ASSETY.md) — движок «Лор ⇄ Ассеты»: из психологического лора рождаются ассеты (или наоборот), затем каждый ассет оценивается по правилам прокачки
 
 ## 05. Производительность и развитие технологий — [rules/05-proizvoditelnost-i-razvitie/](rules/05-proizvoditelnost-i-razvitie/)
 
