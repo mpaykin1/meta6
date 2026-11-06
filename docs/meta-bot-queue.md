@@ -16,6 +16,7 @@
 | 10 | Underwater Sumerek | underwater-sumerek/ | очередь | UNKNOWN / 0 |
 | 11 | Island Sumerek Biomes | island-sumerek-biomes/ | очередь; не эталон-донор | UNKNOWN / 0 |
 | 12 | Сумерки и пепел II | games/sumerki-i-pepel-2/ | очередь; исходники Claude подтверждены и уже в meta6 | UNKNOWN / 0 |
+| 13 | Broken City (Сломанный город) | games/broken-city/ (эталон 06.11; источник — артефакт Claude c7b60983…, 79 файлов) | очередь; есть встроенный помощник `window.__G.BOT`; статус по правилам — games/broken-city/README.md | 9 / 0 |
 
 В репозитории существуют meta-games-worlds/witness-vault/ и meta-games-worlds/generated-confluence-vault/, но пока не подтверждены как игры Claude и не входят в пять карточек, поэтому НЕ включаются в доноры/очередь до выяснения происхождения. Изолированные файлы/демо observer-world-en-v2…v6, reference/, stand/ не трогать.
 
