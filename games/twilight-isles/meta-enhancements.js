@@ -284,7 +284,17 @@
         choices.sort((a,b) => Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z));
         const boss = G.warden && G.warden.hp>0 && G.warden.state!=='dissolve' ? G.warden.segs[0] : null;
         const firstEnemy = !G.kills ? game.foes.find(f=>f.hp>0 && f.state!=='dissolve' && !f.def.boss) : null;
-        const actualTarget = arch.guideTarget() || (firstEnemy ? firstEnemy.segs[0] : choices.length ? choices[0] : boss || w.ring || w.beacon);
+        // Seek already-unlocked, genuinely collectible weapons before a long
+        // boss battle; the physical pickup still requires walking into its reach.
+        const availableLoot = game.loot.filter(L => L.alive && game.WEAPONS[L.id] &&
+          !game.combat.arsenal.includes(L.id) && layer.allowLoot(L) &&
+          w.reach[Math.floor(L.x)+Math.floor(L.z)*w.N]);
+        availableLoot.sort((a,b) => Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z));
+        const nearestLoot = availableLoot[0];
+        const weaponGoal = game.combat.arsenal.length < 3 && nearestLoot &&
+          Math.hypot(nearestLoot.x-p.x,nearestLoot.z-p.z) < 12 ? nearestLoot : null;
+        const actualTarget = arch.guideTarget() || (firstEnemy ? firstEnemy.segs[0] :
+          weaponGoal || (choices.length ? choices[0] : boss || w.ring || w.beacon));
         const target = nextTraversablePoint(w, p, actualTarget);
         const foes=game.foes.filter(f=>f && f.state!=='dissolve' && f.hp>0);
         const h=String((G.seed>>>0).toString(16)) + ':' + G.biome + ':' + arch.island.join(',');
