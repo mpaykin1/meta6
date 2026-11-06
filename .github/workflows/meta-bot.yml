@@ -44,7 +44,9 @@ jobs:
           restore-keys: |
             meta-bot-fps-ubuntu24-
       - name: Check meta-bot source syntax
-        run: node --check scripts/meta-bot/runner.cjs
+        run: |
+          node --check scripts/meta-bot/runner.cjs
+          node --test scripts/meta-bot/viewport.test.cjs
       - name: Play all changed games or all games daily
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -53,6 +55,10 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             node scripts/meta-bot/runner.cjs --changed
+            if git diff --name-only "$BASE_SHA...$HEAD_SHA" | grep -qE '^(scripts/meta-bot/|\.github/workflows/meta-bot.yml$)'; then
+              echo 'Bot implementation changed: exercise the existing playable Veil Terraces control fixture'
+              node scripts/meta-bot/runner.cjs --game games/veil-terraces
+            fi
           else
             node scripts/meta-bot/runner.cjs --all
           fi

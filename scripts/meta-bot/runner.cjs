@@ -4,6 +4,8 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {execFileSync}=require('node:child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'../..');
+const { assertFixedViewport } = require('./viewport.cjs');
+const inputViewports = new WeakMap();
 const games=[
  ['Twilight Island','observer-world-en-v7','twilight-island'],['Ashen Path','ashen-sumerek','ashen-path'],
  ['Underwater World','underwater-world','underwater-world'],['Three Worlds','three-worlds-game','three-worlds'],
@@ -25,7 +27,9 @@ function select(){
  if(process.argv.includes('--all'))return games;
  if(process.argv.includes('--game')){
   const a=process.argv[process.argv.indexOf('--game')+1].replace(/\/index\.html$/,'').replace(/\/$/,'');
-  return games.filter(g=>g.entry===a||g.source===a);
+  const selected=games.filter(g=>g.entry===a||g.source===a);
+  if(!selected.length)throw Error('Unknown game: '+a);
+  return selected;
  }
  const b=process.env.BASE_SHA,h=process.env.HEAD_SHA;
  if(!b||!h)throw Error('Need exact BASE_SHA and HEAD_SHA');
@@ -91,8 +95,18 @@ async function bounds(page){
  return page.evaluate(()=>{
   const r=document.querySelector('canvas')?.getBoundingClientRect(),html=document.documentElement;
   return [scrollX,scrollY,html.scrollWidth,html.scrollHeight,innerWidth,innerHeight,
-   r?.x,r?.y,r?.width,r?.height,visualViewport?.width,visualViewport?.height];
+   r?.x,r?.y,r?.width,r?.height,visualViewport?.width,visualViewport?.height,
+   visualViewport?.offsetLeft,visualViewport?.offsetTop,visualViewport?.scale];
  });
+}
+async function observeDuringInput(page, milliseconds) {
+ const initial = inputViewports.get(page);
+ if (!initial) throw Error('FIX: input observation has no initial viewport');
+ const until = Date.now() + milliseconds;
+ do {
+  await page.waitForTimeout(Math.min(100, Math.max(1, until - Date.now())));
+  assertFixedViewport(initial, await bounds(page));
+ } while (Date.now() < until);
 }
 async function fps(page){
  return page.evaluate(async()=>{
@@ -107,7 +121,7 @@ async function press(page,mobile,action,ms,jump=false){
  if(!mobile){
   const keys=Array.isArray(action)?action:[action];
   for(const key of keys)await page.keyboard.down(key);
-  try{if(jump)await page.keyboard.press('Space');await page.waitForTimeout(ms)}
+  try{if(jump)await page.keyboard.press('Space');await observeDuringInput(page,ms)}
   finally{for(const key of keys)await page.keyboard.up(key)}
   return;
  }
@@ -124,7 +138,7 @@ async function press(page,mobile,action,ms,jump=false){
    await page.waitForTimeout(80);
    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[m]});
   }
-  await page.waitForTimeout(ms);
+  await observeDuringInput(page,ms);
  }finally{
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}).catch(()=>{});
   await cdp.detach().catch(()=>{});
@@ -172,6 +186,8 @@ async function run(browser,url,name,mobile,baseline){
   const first=await state(page);total=first.totalLevels;
   if(first.level!==1||!first.alive)throw Error('Not at playable first level');
   const pre=await bounds(page);
+  inputViewports.set(page, pre);
+  assertFixedViewport(pre, pre);
   const txt=await visibleText(page);
   if(txt.length)problems.push('ЧИСТЫЙ ЭКРАН: '+JSON.stringify(txt.slice(0,6)));
   perf=await fps(page);
