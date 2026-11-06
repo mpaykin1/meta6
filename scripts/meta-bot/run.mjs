@@ -14,6 +14,8 @@ const results = [];
 for (const d of dirs) { console.log(`▶ ${d}`); const r = await checkGame({ gameDir: path.resolve(repoRoot, d), repoRoot, baseUrl: srv.url }); results.push(r);
   for (const x of r.runs) console.log(`  ${x.ok ? '✅' : '❌'} ${x.viewport}: уровней ${x.levels}, пройдено ${x.passed}, FPS ${x.fps ?? '—'}${x.errors.length ? '\n     - ' + x.errors.join('\n     - ') : ''}`); }
 srv.close();
+// Аннотации GitHub: ошибки видны в прогоне и через API без входа.
+if (process.env.GITHUB_ACTIONS) for (const r of results) for (const x of r.runs) for (const e of x.errors) console.log(`::error title=META BOT ${r.game} ${x.viewport}::${e.replace(/\r?\n/g, ' ')}`);
 const lines = ['## META BOT — проходимость игр', '', '| Игра | Экран | Уровней | Пройдено | FPS | Итог |', '|---|---|---|---|---|---|'];
 for (const r of results) for (const x of r.runs) lines.push(`| ${r.game} | ${x.viewport} | ${x.levels} | ${x.passed} | ${x.fps ?? '—'} | ${x.ok ? '✅' : '❌ ' + x.errors.join('; ').replace(/\|/g, '/')} |`);
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
