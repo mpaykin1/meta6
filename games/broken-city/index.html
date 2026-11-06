@@ -2350,6 +2350,21 @@ const AUD_FILES = { step: ['step_stone_01', 'step_stone_02'], jump: ['jump_01'],
   win: ['ui_level_up_01'], caught: ['death_01'], hit: ['thunder_01'], stomp: ['thunder_02'], crash: ['crash_toys', 'office_glass_break_01'], drip: ['bubble_01'], spark: ['spark'], music: ['musicbox'], lull: ['lullaby'],
   lullRev: ['lullaby_rev'], note: ['note_0', 'note_1', 'note_2', 'note_3'], beep: ['beep'], static: ['static'], squeak: ['squeak'], boing: ['boing'], clink: ['clink'], click: ['ui_click_01'], reward: ['ui_reward_01'], hurt: ['hurt_01'] };
 const AUD_VOL = { step: .16, land: .2, drip: .08, beep: .07, spark: .09, static: .12, charge: .14, note: .35, music: .4, lull: .55, lullRev: .45, squeak: .2, clink: .2, boing: .3, click: .3, hit: .5, stomp: .55, crash: .35, glitch: .2, fold: .3, flash: .25, jump: .3, win: .45, caught: .4, reward: .45, hurt: .4 };
+
+// v1 audio-harmony map: all effect types classified; dissonant amplitude is halved.
+// Harmonic sounds retain the existing approved mix and gain.
+const AUD_HARM = Object.freeze({
+  step: 'harm', land: 'harm', drip: 'harm', beep: 'dis',
+  spark: 'harm', static: 'dis', charge: 'harm', note: 'harm',
+  music: 'harm', lull: 'harm', lullRev: 'dis', squeak: 'dis',
+  clink: 'harm', boing: 'harm', click: 'harm', hit: 'dis',
+  stomp: 'dis', crash: 'dis', glitch: 'dis', fold: 'harm',
+  flash: 'harm', jump: 'harm', win: 'harm', caught: 'dis',
+  reward: 'harm', hurt: 'dis'
+});
+for (const k of Object.keys(AUD_VOL)) {
+  if (AUD_HARM[k] === 'dis') AUD_VOL[k] *= 0.5;
+}
 const AUD_COOL = { step: .17, spark: 1.6, static: 4, beep: .8, glitch: .8, drip: 3, clink: .6, squeak: .5, charge: .7, hit: .3, stomp: .3, crash: .8, fold: .5, note: 2.5, boing: 1, flash: .4, jump: .2, music: 6 };
 const AUD_LAST = {};
 const AUD_FIXED = new Set(['music', 'lull', 'lullRev', 'note', 'beep']);
@@ -3329,5 +3344,6 @@ setLoad(1);
 frame();
 
 </script>
+<script defer src="./bot-adapter.js"></script>
 </body>
 </html>
