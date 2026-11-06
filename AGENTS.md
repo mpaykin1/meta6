@@ -69,6 +69,7 @@ _переиспользовать готовое, брать источник в
 - [PERECHEN_OBEKTOV.md](rules/06-rabota-ii-s-kodom/PERECHEN_OBEKTOV.md) — списки объектов — только из открытого источника, не по памяти
 - [NOVYY_UROVEN.md](rules/06-rabota-ii-s-kodom/NOVYY_UROVEN.md) — перед новым уровнем пересчитать всё, что есть: было N — осталось N
 - [NE_MENYAT_NEZAPROSHENNOE.md](rules/06-rabota-ii-s-kodom/NE_MENYAT_NEZAPROSHENNOE.md) — делать только то, что просили
+- [PESOCHNITSA_GPT.md](rules/06-rabota-ii-s-kodom/PESOCHNITSA_GPT.md) — **ПЕСОЧНИЦА:** ChatGPT работает только в `mpaykin1/meta6-lab` (ветка на идею, бот, карточка в LAB_QUEUE.md), в `meta6` — только чтение; забирает в `meta6` только Claude
 - [automation/prompts/chatgpt-autotask.md](automation/prompts/chatgpt-autotask.md) — правила для автозадач ChatGPT (лежат в automation/)
 
 ## 07. Публикация на Playgama — [rules/07-publikaciya-playgama/](rules/07-publikaciya-playgama/)

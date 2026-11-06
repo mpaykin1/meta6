@@ -9,4 +9,5 @@
 - [PERECHEN_OBEKTOV.md](PERECHEN_OBEKTOV.md) — списки объектов — только из открытого источника, не по памяти
 - [NOVYY_UROVEN.md](NOVYY_UROVEN.md) — перед новым уровнем пересчитать всё, что есть: было N — осталось N
 - [NE_MENYAT_NEZAPROSHENNOE.md](NE_MENYAT_NEZAPROSHENNOE.md) — делать только то, что просили
+- [PESOCHNITSA_GPT.md](PESOCHNITSA_GPT.md) — ПЕСОЧНИЦА: ChatGPT работает в `meta6-lab`, в `meta6` забирает только Claude
 - [automation/prompts/chatgpt-autotask.md](../../automation/prompts/chatgpt-autotask.md) — правила для автозадач ChatGPT (лежат в automation/)
