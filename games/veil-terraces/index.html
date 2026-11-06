@@ -25,7 +25,37 @@ function loadChunks(x,z){let cx=Math.floor(x/CHUNK),cz=Math.floor(z/CHUNK),requi
 function crystal(){let a=[],up=[0,1,0],down=[0,-1.0,0];const ring=[];for(let i=0;i<6;i++)ring.push([Math.cos(i*TAU/6)*.35,0,Math.sin(i*TAU/6)*.35]);for(let i=0;i<6;i++){let q=ring[i],r=ring[(i+1)%6];tri(a,up,q,r,[q[0],.8,q[2]],[.45,.95,.8]);tri(a,down,r,q,[q[0],-.7,q[2]],[.12,.58,.74]);}return makeBuffer(a)}const shardMesh=crystal();
 function pillar(){const a=[],faces=[[[1,0,0],[0,1,0],[0,0,1]], [[-1,0,0],[0,1,0],[0,0,-1]]];for(let i=0;i<6;i++){const p=i*TAU/6,q=(i+1)*TAU/6,x=Math.cos(p)*.35,z=Math.sin(p)*.35,X=Math.cos(q)*.35,Z=Math.sin(q)*.35;const c=i%2?[.18,.35,.37]:[.10,.23,.3],n=[Math.cos((p+q)/2),.2,Math.sin((p+q)/2)];tri(a,[x,0,z],[X,0,Z],[x,2.5,z],n,c);tri(a,[x,2.5,z],[X,0,Z],[X,2.5,Z],n,c);}return makeBuffer(a)}const ruinMesh=pillar();
 function orb(){let a=[],N=12;for(let i=0;i<N;i++){let t=i*TAU/N,T=(i+1)*TAU/N;tri(a,[0,.68,0],[Math.cos(t)*.29,0,Math.sin(t)*.29],[Math.cos(T)*.29,0,Math.sin(T)*.29],[0,.7,0],[.55,.91,.82]);tri(a,[0,-.38,0],[Math.cos(T)*.29,0,Math.sin(T)*.29],[Math.cos(t)*.29,0,Math.sin(t)*.29],[0,-1,0],[.12,.48,.63])}return makeBuffer(a)}const playerMesh=orb();
-const targets=[[-9,-10],[12,-8],[8,16],[-18,13],[22,23],[-31,-16]].map(([x,z],i)=>({x:x+(Math.random()-.5)*2,z:z+(Math.random()-.5)*2,done:false,id:i}));for(let t of targets){const ground=surface(t.x,t.z);if(ground===null){for(let step=0;step<12;step++){t.x+=1;t.z+=1;if(surface(t.x,t.z)!==null)break}}t.y=surface(t.x,t.z)??0}
+// The accepted six memories and the endless WebGL terrain remain intact.
+// Generate a fresh chain of traversable shard locations on each new attempt.
+const ORIGINAL_TARGETS=[[-9,-10],[12,-8],[8,16],[-18,13],[22,23],[-31,-16]];
+function passableSegment(from,to){
+ let h=height(from.x,from.z);
+ if(h===null)return false;
+ const n=Math.ceil(Math.hypot(to.x-from.x,to.z-from.z)*12);
+ for(let i=1;i<=n;i++){
+  const f=i/n,x=mix(from.x,to.x,f),z=mix(from.z,to.z,f),next=height(x,z);
+  if(next===null||surface(x,z)===null||Math.abs(next-h)>.5)return false;
+  h=next;
+ }
+ return true;
+}
+function generateShards(){
+ let prev={x:0,z:0},out=[];
+ for(let i=0;i<6;i++){
+  const possible=[];
+  for(let n=0;n<160;n++){
+   const a=Math.random()*TAU,d=2.7+Math.random()*2.4;
+   const q={x:+(prev.x+Math.cos(a)*d).toFixed(2),z:+(prev.z+Math.sin(a)*d).toFixed(2)};
+   if(passableSegment(prev,q)&&out.every(t=>Math.hypot(t.x-q.x,t.z-q.z)>1.8))possible.push(q);
+  }
+  if(!possible.length)throw Error('No physically traversable shard route at memory '+i);
+  const next=possible[Math.floor(Math.random()*possible.length)];
+  out.push({x:next.x,z:next.z,y:surface(next.x,next.z),done:false,id:i});
+  prev=next;
+ }
+ return out;
+}
+let targets=generateShards();
 const shards=$('progress');for(let i=0;i<6;i++)shards.appendChild(document.createElement('i'));
 let p={x:0,z:0,y:(surface(0,0)??0)+.35,vy:0,vx:0,vz:0,ground:true},lastSafe={x:0,z:0},camera=[0,8,13],yaw=.7,pitch=.37,keys=new Set(),jumpQueued=false,t=0,prev=0,dead=false,won=false,menu=false;const touch={move:null,orbit:null,ox:0,oy:0,mx:0,my:0},stick=$('stick'),nub=$('nub');
 Object.defineProperty(window,'__metaGamesState',{value:()=>Object.freeze({x:p.x,y:p.y,z:p.z,cam:[...camera],chunks:chunks.size,collected:targets.filter(q=>q.done).length,won})});
@@ -45,7 +75,7 @@ Object.defineProperty(window,'__metaGamesState',{value:()=>Object.freeze({x:p.x,
    });
  }});
 
-function resize(){let w=Math.round(canvas.clientWidth*Math.min(devicePixelRatio||1,1.7)),h=Math.round(canvas.clientHeight*Math.min(devicePixelRatio||1,1.7));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}}function reset(){for(let q of targets)q.done=false;shards.querySelectorAll('i').forEach(e=>e.className='');p={x:0,z:0,y:(surface(0,0)??0)+.35,vx:0,vz:0,vy:0,ground:true};lastSafe={x:0,z:0};won=false;dead=false;$('veil').style.opacity='0'}function openMenu(v){menu=v;$('menu').classList.toggle('open',v);$('stats').textContent=`Memories: ${targets.filter(q=>q.done).length}/6 · Infinite terraces · Original WebGL2`;}
+function resize(){let w=Math.round(canvas.clientWidth*Math.min(devicePixelRatio||1,1.7)),h=Math.round(canvas.clientHeight*Math.min(devicePixelRatio||1,1.7));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}}function reset(){targets=generateShards();for(let q of targets)q.done=false;shards.querySelectorAll('i').forEach(e=>e.className='');p={x:0,z:0,y:(surface(0,0)??0)+.35,vx:0,vz:0,vy:0,ground:true};lastSafe={x:0,z:0};won=false;dead=false;$('veil').style.opacity='0'}function openMenu(v){menu=v;$('menu').classList.toggle('open',v);$('stats').textContent=`Memories: ${targets.filter(q=>q.done).length}/6 · Infinite terraces · Original WebGL2`;}
 $('menuButton').addEventListener('click',()=>openMenu(!menu));$('resume').addEventListener('click',()=>openMenu(false));$('restart').addEventListener('click',()=>{reset();openMenu(false)});$('jump').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();jumpQueued=true});
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();keys.add(k);if(k===' '&&!e.repeat)jumpQueued=true;if(k==='escape')openMenu(!menu)});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());
 function aimJoystick(x,y){let dx=x-touch.ox,dy=y-touch.oy,d=Math.max(1,Math.hypot(dx,dy));touch.mx=clamp(dx/48,-1,1);touch.my=clamp(dy/48,-1,1);if(d>48){touch.mx=dx/d;touch.my=dy/d}nub.style.transform=`translate(${touch.mx*34}px,${touch.my*34}px) rotate(45deg)`}
@@ -56,7 +86,7 @@ canvas.addEventListener('pointerup',endTouch);canvas.addEventListener('pointerca
 function move(dt){if(menu||won)return;let side=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0)+touch.mx,forward=(keys.has('w')||keys.has('arrowup')?1:0)-(keys.has('s')||keys.has('arrowdown')?1:0)-touch.my;let mag=Math.hypot(side,forward);if(mag>1){side/=mag;forward/=mag}let fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=-fz,rz=fx;const desiredX=(fx*forward+rx*side)*5,desiredZ=(fz*forward+rz*side)*5,s=1-Math.exp(-8*dt);p.vx=mix(p.vx,desiredX,s);p.vz=mix(p.vz,desiredZ,s);if(jumpQueued&&p.ground){p.vy=6.5;p.ground=false}jumpQueued=false;
 const travel=Math.hypot(p.vx,p.vz)*dt,steps=Math.max(1,Math.ceil(travel/.12));for(let i=0;i<steps;i++)for(const axis of ['x','z']){const next=p[axis]+p['v'+axis]*dt/steps,x=axis==='x'?next:p.x,z=axis==='z'?next:p.z,land=height(x,z),current=height(p.x,p.z);if(land!==null&&(land-(current??p.y)<.5||p.y>=land-.05)||!p.ground){p[axis]=next}else p['v'+axis]=0}
 const floor=surface(p.x,p.z);p.vy-=14*dt;p.y+=p.vy*dt;if(floor!==null&&p.vy<=0&&p.y<=floor+.35){p.y=floor+.35;p.vy=0;p.ground=true;lastSafe={x:p.x,z:p.z}}else p.ground=false;if(p.y<-15){p.x=lastSafe.x;p.z=lastSafe.z;p.y=(surface(p.x,p.z)??0)+2;p.vy=0;p.vx=p.vz=0;}
-for(const q of targets)if(!q.done&&Math.hypot(q.x-p.x,q.z-p.z)<1.35&&Math.abs(p.y-q.y)<2){q.done=true;shards.children[q.id].className='lit';lastSafe={x:p.x,z:p.z};$('veil').style.opacity='.3';setTimeout(()=>$('veil').style.opacity='0',120);if(targets.every(a=>a.done)){won=true;$('veil').style.opacity='.55';setTimeout(()=>openMenu(true),900)}}}
+for(const q of targets)if(!q.done&&Math.hypot(q.x-p.x,q.z-p.z)<1.35&&Math.abs(p.y-q.y)<2){q.done=true;shards.children[q.id].className='lit';lastSafe={x:p.x,z:p.z};$('veil').style.opacity='.3';setTimeout(()=>$('veil').style.opacity='0',120);if(targets.every(a=>a.done)){won=true;$('veil').style.opacity='.55'}}}
 function draw(mesh,world){if(!mesh.count)return;bindMesh(mesh);gl.uniformMatrix4fv(u.m,false,world);gl.drawArrays(gl.TRIANGLES,0,mesh.count)}const identity=model();
 let particles=[];for(let i=0;i<140;i++){let x=(hash(i,1)-.5)*180,z=(hash(i,2)-.5)*180,y=4+hash(i,3)*13;particles.push(x,y,z)}let pvbo=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,pvbo);gl.bufferData(gl.ARRAY_BUFFER,new V3(particles),gl.STATIC_DRAW);
 function frame(ms){requestAnimationFrame(frame);resize();let dt=clamp((ms-prev)/1000,0,.042);prev=ms;t+=dt;move(dt);loadChunks(p.x,p.z);const target=[p.x,p.y+1.5,p.z],dist=11,desired=[p.x+Math.sin(yaw)*Math.cos(pitch)*dist,p.y+1.5+Math.sin(pitch)*dist,p.z+Math.cos(yaw)*Math.cos(pitch)*dist];const damp=1-Math.exp(-3.5*dt);for(let i=0;i<3;i++)camera[i]=mix(camera[i],desired[i],damp);let proj=perspective(Math.PI/3,canvas.width/canvas.height,.05,160),vp=multiply(proj,lookAt(camera,target));const lightning=Math.pow(Math.max(0,Math.sin(t*1.38)*Math.sin(t*.23)),44)*.38;
