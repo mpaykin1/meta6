@@ -56,7 +56,7 @@ _FPS, экономия, ежедневное развитие, качество 
 - [evolve.md](rules/05-proizvoditelnost-i-razvitie/evolve.md) — EVOLVE — полный контракт саморазвития
 - [model-quality.md](rules/05-proizvoditelnost-i-razvitie/model-quality.md) — качество лабораторных моделей
 
-**META GAMES — разрешённые исходники:** для новых игр только код и ассеты пяти эталонов (Twilight Island, Ashen Path, Underwater World, Three Worlds, Veil Terraces); ассеты из будущих подтверждённых загрузок Claude разрешены дополнительно, код этих игр — нет. Обязательно: [META_GAMES_SOURCE_ALLOWLIST.md](rules/06-rabota-ii-s-kodom/META_GAMES_SOURCE_ALLOWLIST.md). Правило имеет приоритет над общим REUSE в рамках META GAMES.
+**META GAMES — разрешённые исходники:** для новых игр код и ассеты пяти исходных эталонов (Twilight Island, Ashen Path, Underwater World, Three Worlds, Veil Terraces) **плюс код и ассеты всех подтверждённых игр Claude (уже загруженных и будущих)**, которые автоматически становятся эталонами. Чужие компоненты требуют проверки прав. Обязательно: [META_GAMES_SOURCE_ALLOWLIST.md](rules/06-rabota-ii-s-kodom/META_GAMES_SOURCE_ALLOWLIST.md). Правило имеет приоритет над общим REUSE в рамках META GAMES.
 
 ## 06. Как ИИ работает с кодом — [rules/06-rabota-ii-s-kodom/](rules/06-rabota-ii-s-kodom/)
 
