@@ -1,0 +1,62 @@
+# META BOT — контракт (каркас Claude, ChatGPT только дописывает)
+
+Цель: rules/09-platforma/META_GAMES_PLATFORM.md, разделы 7–8. Бот-игрок проверяет, что каждый уровень проходится, и что игра соблюдает правила.
+
+## Кто что пишет
+
+| Файл | Кто пишет | Можно ли ChatGPT менять |
+| --- | --- | --- |
+| `scripts/meta-bot/core.mjs`, `checks.mjs`, `input.mjs`, `server.mjs`, `run.mjs`, `selftest.mjs`, `fixture/`, `template/`, `CONTRACT.md`, `.github/workflows/meta-bot.yml` | Claude | **НЕТ** (сторож meta-games-guard) |
+| `games/<игра>/bot-adapter.js` — ручка `window.__META_BOT__` | ChatGPT, по шаблону `template/bot-adapter.js` | да |
+| `games/<игра>/bot-strategy.mjs` — как бот играет | ChatGPT, по шаблону `template/bot-strategy.mjs` | да |
+| `games/<игра>/bot.json` — настройки бота для игры | ChatGPT, по шаблону `template/bot.json` | да |
+
+Нужно изменить ядро — написать владельцу, что и зачем; правит Claude.
+
+Для 3D-игр в `hero`/`goal` передавать горизонтальные координаты: `{ x: pos.x, y: pos.z }`.
+
+## Ручка игры `window.__META_BOT__` (версия 1)
+
+Только **читает** состояние. Никаких функций, которые двигают героя, меняют уровень, дают жизни или оружие.
+
+```js
+window.__META_BOT__ = {
+  version: 1,
+  info()  { return { name: 'Имя игры', levels: 5 }; },       // levels: сколько уровней в одном круге
+  state() { return {
+    started:  true,        // игра началась (стартовый экран пройден)
+    level:    0,           // номер текущего уровня, с 0
+    levelDone:false,       // текущий уровень пройден
+    gameDone: false,       // все уровни круга пройдены
+    alive:    true,        // герой жив
+    hero:     { x: 0, y: 0 },          // позиция героя в мире (любые единицы, одинаковые с goal)
+    goal:     { x: 10, y: 0 } | null,  // куда нужно дойти/что победить на уровне; null, если цель — бой без точки
+    enemies:  1,           // сколько врагов сейчас активно
+    weapons:  1,           // сколько оружия открыто у героя
+    layoutHash: 'a1b2',    // отпечаток раскладки текущего уровня (препятствия, обломки, враги) — для БЕЗ ПОВТОРОВ
+    menuOpen: false        // открыто меню ☰
+  }; }
+};
+```
+Допустимые ключи объекта: только `version`, `info`, `state`. Ядро отказывает, если есть другие.
+
+**Вторая допустимая форма — «данные»** (так сделана ручка Veil Terraces в PR #280): `Object.defineProperty(window,'__META_BOT__',{get(){ return Object.freeze({...}) }})` — только геттер, без сеттера и без функций; поля `level` (с 1), `totalLevels`, `player {x,y,z}`, `goal {x,y,z}`, `alive`, `completed` (весь круг пройден), `enemies`, `weapons`, `layout`, по желанию `menuOpen`. Ядро понимает обе формы. Если `bot-strategy.mjs` нет, ядро использует свою стратегию «идти к goal» (`walkToGoal`).
+
+## Стратегия `bot-strategy.mjs`
+
+```js
+export async function start(ctx) { /* пройти стартовый экран: ctx.tap(x, y) */ }
+export async function playLevel(ctx, level) { /* играть уровень, пока ctx.state().levelDone */ }
+```
+`ctx` даёт только то, что есть у игрока: `walkToGoal()` (готовая умная ходьба к `goal` с калибровкой под камеру), `jump()` (клавиша `jumpKey` или кнопка `jumpButton` из bot.json), `tap(x,y)`, `hold(x,y,ms)`, `swipe(x1,y1,x2,y2,ms)`, `joystick(dx,dy,ms)` (dx,dy от −1 до 1), `key(code,ms)`, `wait(ms)`, `state()`, `info()`, `viewport`, `mobile`, `log(text)`. Доступа к странице, `evaluate`, внутренним переменным игры **нет** — читы невозможны.
+
+## Что проверяет ядро (раздел 8 цели)
+1. Каждый уровень круга проходится за `levelTimeoutSec` (по умолчанию 180), герой не застревает: если `goal` есть и за `stuckSec` (по умолчанию 20) расстояние до цели не уменьшилось — «застрял».
+2. Нет ошибок в консоли и необработанных исключений.
+3. ЧИСТЫЙ ЭКРАН: во время игры (меню закрыто) ноль видимых текстовых узлов; кнопка меню ☰ есть в правом верхнем углу.
+4. БЕЗ ПОВТОРОВ: `layoutHash` разный у всех уровней и у первого уровня в двух запусках.
+5. ПОСТЕПЕННО: на первом уровне в начале `enemies ≤ 1` и `weapons ≤ 1`.
+6. FIX (телефон): после джойстика страница не прокручена и canvas не сдвинулся.
+7. FPS: средний FPS за 3 с записывается; падение больше чем на 40% от `fpsBaseline` из bot.json — ошибка.
+
+Итог — в сводке прогона GitHub Actions. Файлов-отчётов в репозитории нет.

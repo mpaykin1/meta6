@@ -13,3 +13,6 @@ automation/prompts/meta-games-bot-rollout.md
 .github/protected/must-contain.txt
 .github/workflows/meta-games-guard.yml
 scripts/meta-games-guard.sh
+# Каркас бота-проходчика (пишет Claude, ChatGPT только дописывает games/<игра>/bot-*.{js,mjs,json}):
+scripts/meta-bot
+.github/workflows/meta-bot.yml
