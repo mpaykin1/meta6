@@ -99,6 +99,7 @@ _то, что касается только одной конкретной иг
 _общий склад и конструктор всех игр_
 
 - [META_GAMES_PLATFORM.md](rules/09-platforma/META_GAMES_PLATFORM.md) — **КОНЕЧНАЯ ЦЕЛЬ проекта, сверяться всем ИИ:** склад `shared/`, игры из склада, автоулучшение всех игр по правилам и бот-проходчик уровней, журнал решений владельца (§11)
+- [STEAM_DISTRIBUTION.md](rules/09-platforma/STEAM_DISTRIBUTION.md) — **новая цель 06.11.2026: META GAMES в Steam**, автоматическая сборка каталога новых игр из GitHub, SteamPipe, условия допуска и пошаговая реализация (без изменения защищённой основной цели).
 - [RULES_CHECKLIST.md](rules/09-platforma/RULES_CHECKLIST.md) — **чек-лист всех универсальных правил для автоправки и бота:** что внести в каждую игру и как проверить
 - [games/sumerki-i-pepel-2/](games/sumerki-i-pepel-2/README.md) — эталонная игра Claude «Сумерки и пепел II» (загружена 06.11.2026) и её честный статус по каждому правилу
 - [games/twilight-isle-classic/](games/twilight-isle-classic/README.md), [games/twilight-isles/](games/twilight-isles/README.md), [games/archer-in-the-fog/](games/archer-in-the-fog/README.md) — эталоны удержания Playgama R1–R11 (загружены 06.11.2026) и статус каждой по всем универсальным правилам; [games/broken-city/](games/broken-city/README.md) — эталон Claude 1.4.0 (образец ЧИСТОГО ЭКРАНА и ЛОРА) со статусом по всем правилам
