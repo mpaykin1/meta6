@@ -65,6 +65,7 @@ Source files: [3D game](observer-world-en-v7/index.html) · [historical builder]
 
 | Что | Исходник (GitHub) | Игра |
 |---|---|---|
+| **Сумерки и пепел II — эталон Claude (META GAMES, 06.11.2026)** | [games/sumerki-i-pepel-2/index.html](games/sumerki-i-pepel-2/index.html) | https://mpaykin1.github.io/meta6/games/sumerki-i-pepel-2/ |
 | Оригинал RU | [observer-world/index.html](observer-world/index.html) | https://mpaykin1.github.io/meta6/observer-world/ |
 | Первый перевод EN | [observer-world-en/index.html](observer-world-en/index.html) | https://mpaykin1.github.io/meta6/observer-world-en/ |
 | **Принятый эталон V2 (PASS)** | [observer-world-en-v2/index.html](observer-world-en-v2/index.html) | https://mpaykin1.github.io/meta6/observer-world-en-v2/ |
