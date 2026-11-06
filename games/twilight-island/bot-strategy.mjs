@@ -144,7 +144,8 @@ export async function playLevel(ctx, level) {
       if (enemyHealth.has(foe.id) && foe.hp < enemyHealth.get(foe.id)) progressAt = Date.now();
       enemyHealth.set(foe.id, foe.hp);
     }
-    if (Date.now() - progressAt > 20000) throw new Error('No navigation or combat progress for 20 seconds');
+    // The shared core enforces its 20s watchdog against real game progress and
+    // the observed traversable waypoint; a second heuristic can falsely fail detours.
     const desired = bestWeapon(state);
     if (desired.id !== state.equipped) { await swap(ctx, state); continue; }
     const fps = Math.max(1, Math.min(60, state.renderFps || 20)), ratio = Math.min(1, fps * .05);
