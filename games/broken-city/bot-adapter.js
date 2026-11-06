@@ -42,7 +42,7 @@
       goal: c ? { x: 0, y: num(c.goal + 5) } : null,
       enemies: shades.length + toys.length,
       weapons: Math.max(1, controlCount),
-      layoutHash: JSON.stringify({ level: g.li, mode: c && c.mode, geometry: geom }),
+      layoutHash: JSON.stringify({ level: g.li, mode: c && c.mode, plannedObstacleZ: num(g.nextBarrier), geometry: geom }),
       menuOpen: !!menu && !menu.classList.contains('hidden')
     };
   };
