@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(here, '..');
-const repoRoot = path.resolve(projectRoot, '..', '..');
+const repoRoot = path.resolve(projectRoot, '..');
 const outputRoot = path.join(projectRoot, 'dist', 'www');
 const channel = process.argv[2] || 'web';
 
