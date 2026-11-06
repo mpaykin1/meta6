@@ -93,3 +93,9 @@ _то, что касается только одной конкретной иг
 - [THREE_WORLDS_MERGE_RU.md](rules/08-pravila-otdelnyh-igr/THREE_WORLDS_MERGE_RU.md) — THREE-WORLDS — подробный план объединения
 - [island-biomes.md](rules/08-pravila-otdelnyh-igr/island-biomes.md) — биомы острова — короткая версия
 - [ACCEPTED_BEHAVIORS.md](rules/08-pravila-otdelnyh-igr/ACCEPTED_BEHAVIORS.md) — реестр всего, что владелец принял словом «нравится»
+
+## 09. Платформа META GAMES — [rules/09-platforma/](rules/09-platforma/)
+
+_общий склад и конструктор всех игр_
+
+- [META_GAMES_PLATFORM.md](rules/09-platforma/META_GAMES_PLATFORM.md) — цель платформы: каждая принятая вещь лежит на складе `shared/` один раз, игры собираются из склада, общий профиль и двери между мирами
