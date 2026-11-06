@@ -4,7 +4,7 @@
 
 | № | Игра | Подтверждённый исходный путь meta6 | Состояние | Уровней / реально пройдено |
 |---:|---|---|---|---|
-| 1 | Veil Terraces | meta-games-worlds/veil-terraces/ | в работе PR #280; исходник сохранён, бот проверяет 6 последовательных воспоминаний | 6 / UNKNOWN |
+| 1 | Veil Terraces | games/veil-terraces/ (оригинал: meta-games-worlds/veil-terraces/) | PR #280 слит; на платформе — проверенная версия; исходный HTML сохранён | 6 / 6 (390×844 и ПК, 2 захода) |
 | 2 | Twilight Island | observer-world-en-v7/ | очередь, OWNER PASS не менять | UNKNOWN / 0 |
 | 3 | Ashen Path | ashen-sumerek/ | очередь | UNKNOWN / 0 |
 | 4 | Underwater World | underwater-world/ | очередь, принятый оригинал не менять | UNKNOWN / 0 |
