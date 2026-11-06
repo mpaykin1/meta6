@@ -288,7 +288,7 @@
         // boss battle; the physical pickup still requires walking into its reach.
         const availableLoot = game.loot.filter(L => L.alive && game.WEAPONS[L.id] &&
           !game.combat.arsenal.includes(L.id) && layer.allowLoot(L) &&
-          w.reach[Math.floor(L.x)+Math.floor(L.z)*w.N]);
+          w.reach[Math.floor(L.x)+Math.floor(L.z)*Math.round(Math.sqrt(w.reach.length))]);
         availableLoot.sort((a,b) => Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z));
         const nearestLoot = availableLoot[0];
         const weaponGoal = game.combat.arsenal.length < 3 && nearestLoot &&
