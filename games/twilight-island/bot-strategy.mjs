@@ -170,7 +170,7 @@ export async function playLevel(ctx, level) {
       // Ordinary Space plus touch/keyboard movement; no game method changes position or jump velocity.
       const jumpDuration = Math.min(3500, 450 / ratio);
       await Promise.all([ctx.key('Space', jumpDuration), ctx.joystick(direction.x, direction.y, jumpDuration)]);
-    } else await ctx.walkToGoal(duration);
+    } else await ctx.joystick(direction.x, direction.y, duration);
     await ctx.wait(Math.min(400, 1100 / fps));
   }
 }
