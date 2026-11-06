@@ -3,7 +3,7 @@
 f52e6e54c0083911cd5a92e951f4dc30951b0a43b0fe5afbb11f54b85eabd6f7  .github/workflows/meta-bot.yml
 7293a30c76ff17212cb3fce81a123e29e36aa99edff2f3b9aa8d790b5df8b0bd  .github/workflows/meta-games-guard.yml
 d968e47997dbd1cf843fdc73fed94e682217e6d5c833a0c8d602ec5b064f94e5  abyss-glow/stand/index.html
-0ce8edbd9a582ea85b018b63aaa552e979839d61b744bef264c1e542ba8cfbd4  automation/prompts/meta-games-bot-rollout.md
+24ff803c08ddbfa2f15d173c59e1e26a5de054c303440f67778dc5580f1363e9  automation/prompts/meta-games-bot-rollout.md
 f58dfda730c7c811e84d2160203ff210844646dc18d697acab03d54bb3de8045  observer-world-en-v5/CLAUDE.md
 fac1fe1502510c73c3ec55dbc2757ea6e7c563739856af8d6f9b6a4fefeda280  observer-world-en-v5/audio.js
 10415b0d4f9b248a4894d84d55af94de51b45548fa6dc97f0da425df0ec2b704  observer-world-en-v5/editor.js

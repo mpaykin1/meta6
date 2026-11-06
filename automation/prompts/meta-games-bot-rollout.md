@@ -20,7 +20,8 @@ META GAMES — платформа всех наших игр: https://mpaykin1.g
 Шаг А. Бот-проходчик — КАРКАС УЖЕ НАПИСАН Claude, его не переписывать:
 - Прочитай scripts/meta-bot/CONTRACT.md целиком. Ядро (core.mjs, checks.mjs, input.mjs, server.mjs, run.mjs, selftest.mjs, fixture/, template/) и .github/workflows/meta-bot.yml писал Claude, они защищены сторожем: НЕ МЕНЯЙ их.
 - Убедись, что самопроверка зелёная: node scripts/meta-bot/selftest.mjs (локально или в прогоне META BOT).
-- Для каждой игры ты дописываешь ТОЛЬКО три файла по шаблонам из scripts/meta-bot/template/: games/<игра>/bot-adapter.js (ручка window.__META_BOT__, только чтение состояния, Object.freeze, ключи только version/info/state), games/<игра>/bot-strategy.mjs (как бот играет: только ctx.tap/hold/swipe/joystick/key/wait/state), games/<игра>/bot.json (настройки). Замени все TODO на настоящие данные игры.
+- ВАЖНО (06.11.2026): твой прежний бот scripts/meta-bot/runner.cjs, viewport.cjs и viewport.test.cjs (PR #279–#287) заменены каркасом Claude и удалены — НЕ восстанавливай их и не создавай новых файлов в scripts/meta-bot/ (сторож откатит). Твоя ручка Veil Terraces (форма-данные) поддерживается ядром: прогон META BOT зелёный, 6 из 6 уровней на телефоне и ПК.
+- Для каждой игры ты дописываешь ТОЛЬКО три файла по шаблонам из scripts/meta-bot/template/: games/<игра>/bot-adapter.js (ручка window.__META_BOT__, только чтение состояния: форма v1 с ключами version/info/state или форма-данные как в Veil Terraces — см. CONTRACT.md), games/<игра>/bot-strategy.mjs (как бот играет: только ctx.walkToGoal/jump/tap/hold/swipe/joystick/key/wait/state; если стратегии нет, ядро само идёт к goal), games/<игра>/bot.json (настройки). Замени все TODO на настоящие данные игры.
 - Проверка игры: node scripts/meta-bot/run.mjs games/<игра>. Красная — исправь свой адаптер, стратегию или саму игру, но не ядро.
 - Если ядро мешает или в нём ошибка — не обходи его: напиши владельцу «нужно изменить каркас бота: что и зачем», это сделает Claude.
 
@@ -47,7 +48,7 @@ META GAMES — платформа всех наших игр: https://mpaykin1.g
 и в нём:
 1) ссылка на платформу https://mpaykin1.github.io/meta6/meta-games/ ;
 2) список смерженных PR со ссылками и SHA;
-3) ссылка на последний зелёный прогон meta-bot.yml по всем играм;
+3) ссылка на последний зелёный прогон META BOT (.github/workflows/meta-bot.yml) по всем играм;
 4) таблица: игра — ссылка на исправленную версию — уровней N — пройдено ботом N;
 5) что не сделано и почему (числами), если что-то осталось.
 ```
