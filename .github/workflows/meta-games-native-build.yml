@@ -3,6 +3,10 @@ name: META GAMES native packages
 # Build candidates only: no Play Console / Steam publication, signing, or auto-publishing.
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'platforms/**'
+      - '.github/workflows/meta-games-native-build.yml'
 
 permissions:
   contents: read
