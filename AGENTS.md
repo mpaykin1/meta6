@@ -72,6 +72,7 @@ _переиспользовать готовое, брать источник в
 - [NE_MENYAT_NEZAPROSHENNOE.md](rules/06-rabota-ii-s-kodom/NE_MENYAT_NEZAPROSHENNOE.md) — делать только то, что просили
 - [PESOCHNITSA_GPT.md](rules/06-rabota-ii-s-kodom/PESOCHNITSA_GPT.md) — **ПЕСОЧНИЦА:** ChatGPT работает только в `mpaykin1/meta6-lab` (ветка на идею, бот, карточка в LAB_QUEUE.md), в `meta6` — только чтение; забирает в `meta6` только Claude
 - [OTCHETY_DLYA_CLAUDE.md](rules/06-rabota-ii-s-kodom/OTCHETY_DLYA_CLAUDE.md) — **ОТЧЁТЫ ДЛЯ CLAUDE:** каждый результат — PR со свежим описанием, прогон Actions с понятной причиной провала, карточка LAB_QUEUE; ничего важного только в чате ChatGPT
+- **ОТЧЁТ ВЛАДЕЛЬЦУ = ТОЛЬКО «ОСТАЛОСЬ СДЕЛАТЬ»** (07.11.2026): в чате владельцу — только список того, что ещё не готово, и что мешает; сделанное не перечислять, оно на GitHub. См. §5 [OTCHETY_DLYA_CLAUDE.md](rules/06-rabota-ii-s-kodom/OTCHETY_DLYA_CLAUDE.md)
 - [automation/prompts/chatgpt-autotask.md](automation/prompts/chatgpt-autotask.md) — правила для автозадач ChatGPT (лежат в automation/)
 
 ## 07. Публикация на Playgama — [rules/07-publikaciya-playgama/](rules/07-publikaciya-playgama/)

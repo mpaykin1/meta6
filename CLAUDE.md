@@ -6,6 +6,10 @@
 
 Все версии игр в META GAMES (веб-каталог, Android, Steam) публикуются без рекламного кода, рекламных SDK и наград «за рекламу». Реклама — только в отдельных версиях для Playgama. Полное правило: [rules/09-platforma/BEZ_REKLAMY.md](rules/09-platforma/BEZ_REKLAMY.md).
 
+## ОТЧЁТ ВЛАДЕЛЬЦУ — только «Осталось сделать» (07.11.2026)
+
+В чате владельцу ChatGPT, Codex и Claude пишут только список того, что ещё не готово, и что мешает. Сделанное не перечислять — оно в PR, прогонах и LAB_QUEUE. Всё готово — «Осталось: ничего». Полное правило: §5 [rules/06-rabota-ii-s-kodom/OTCHETY_DLYA_CLAUDE.md](rules/06-rabota-ii-s-kodom/OTCHETY_DLYA_CLAUDE.md).
+
 ## ОТЧЁТЫ ДЛЯ CLAUDE — все результаты видны на GitHub (07.11.2026)
 
 Каждая работа ChatGPT и агентов — PR со свежим описанием, прогон Actions с понятной причиной провала, карточка LAB_QUEUE. Ничего важного только в чате. Полное правило: [rules/06-rabota-ii-s-kodom/OTCHETY_DLYA_CLAUDE.md](rules/06-rabota-ii-s-kodom/OTCHETY_DLYA_CLAUDE.md).
