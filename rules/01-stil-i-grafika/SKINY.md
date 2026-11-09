@@ -5,6 +5,8 @@
 Учебная игра: [games/skin-trainer/](../../games/skin-trainer/index.html) (артефакт владельца `6caf418d-a99f-4a40-afee-7a3098abeeed`).
 Первый эскиз: [reference/skins/rusty-robot.png](../../reference/skins/rusty-robot.png) — «ржавый робот».
 
+**ChatGPT делает любой скин по одной инструкции: [automation/prompts/SKIN_UNIVERSAL.md](../../automation/prompts/SKIN_UNIVERSAL.md).** Владелец пишет только «Скин: эскиз <ссылка>, герой <игра>».
+
 ## 0. Термины (весь конвейер скина)
 
 | Этап | Что это | Что сдаёт ChatGPT |
