@@ -22,6 +22,20 @@
 **Ш4. Сборка куклы** → `skin.json`: каждая деталь на свою кость, точка вращения, слой (2d / 2.5d / 3d), анимация со сдвигом фаз (волна по телу, не всё разом). Сдать `preview.png`: герой в игре спереди, сбоку, сзади рядом с эскизом.
 **Ш5. Движение и сдача**: анимации, реакция на бег и вспышку, полный валидатор S1–S12 зелёный, ZIP, ссылка поиграть, карточка LAB_QUEUE.
 
+## Шаблон художественного задания для генератора (Ш2) — копировать как есть, менять только <...>
+Перед генерацией: ПРИКРЕПИТЬ эскиз картинкой (не только ссылкой).
+> Game asset sprite sheet, cutout parts of <герой: одно предложение по эскизу> for a 2D paper-doll rig. Exactly the same art style, colors, materials and lighting as the attached sketch: <стиль: напр. pixel art, rusty orange metal with dark rust spots and light paint chips, dark brown mechanics, warm orange glow>. Front orthographic view, light from top-left. Every part drawn separately with wide empty gaps, nothing touching or overlapping, nothing touching the image edges. Flat solid pure magenta #FF00FF background everywhere, no gradient, no shadow, no floor. Holes in armor are see-through (magenta inside). Glowing parts have crisp hard edges, no bloom, no halo, no glow spill onto the background. Parts: <список деталей из parts-sheet.md, через запятую>. Last row: <эффект> animation, <N> frames in one row, equal size, each frame different. No text, no numbers, no labels, no frames, no watermark, no extra parts that are not in the sketch.
+
+## Самопроверка до показа (Ш2) — обязательна, до 3 перерисовок
+Сравнить готовый лист с эскизом и с parts-sheet.md. Каждый пункт «да», иначе перерисовать (до 3 раз), и только потом сдавать:
+1. Каждая деталь из таблицы есть на листе, и нет ни одной лишней.
+2. Стиль, цвета и материал — как на эскизе (поставить рядом и сравнить).
+3. Фон сплошной розовый, детали не касаются друг друга и краёв.
+4. Дыры в броне сквозные.
+5. У светящегося жёсткий край, без ореола.
+6. Нет текста, цифр, рамок, водяных знаков.
+В ответе владельцу указать номер попытки, на которой все 6 пунктов стали «да».
+
 ## Всегда
 - Критерий: не пиксельное совпадение, а по смыслу максимально похоже на эскиз (цвет, материал, силуэт, детали на местах, настроение). Перед сдачей сравнить самому; не похоже — переделать до сдачи.
 - Нашёл ошибку → обязан сам исправить и только потом сообщать. Отчёт «я нашёл ошибку» без исправления запрещён. Красный прогон — сначала починить.
