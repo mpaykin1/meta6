@@ -10,6 +10,9 @@
 ## МНОГОРАЗОВЫЕ ПРОМПТЫ И ПОСТОЯННОЕ РАЗВИТИЕ (правило владельца, 11.11.2026)
 Любой промпт ChatGPT/агентов можно присылать повторно без изменений: прогресс в `reports/<задача>/PROGRESS.md`, повтор продолжает с несделанного. Запуск никогда не заканчивается «делать нечего»: после основной работы — цикл развития (новый материал с прошлой метки → правило + ловушка; повтор ошибки = усилить ловушку; нет нового — самоэкзамен и охота на мутантов; обновить чек-лист проверяющего; строка счёта). Минимум одно измеримое улучшение с доказательством за запуск. Полное правило: [rules/06-rabota-ii-s-kodom/MNOGORAZOVYE_PROMPTY.md](rules/06-rabota-ii-s-kodom/MNOGORAZOVYE_PROMPTY.md).
 
+## АССЕТ-ПАК — бот-проверщик ассетов (правило владельца, 11.11.2026)
+Каждый ассет-пак, сделанный ChatGPT для игр МГ/МГЛ, проверяет бот `automation/asset-check/check_pack.py` в meta6-lab по [SPEC.md](https://github.com/mpaykin1/meta6-lab/blob/main/automation/asset-check/SPEC.md). Пак идёт в игру только из `asset-packs/ready/` (0 HARD, зелёный ASSET CHECK). Каждый пропущенный ботом дефект = новая проверка + ловушка. Промпт: [ASSET_PACK_BOT.md](https://github.com/mpaykin1/meta6-lab/blob/main/automation/prompts/ASSET_PACK_BOT.md).
+
 ## ТАБЛИЦА ЗАДАЧ (правило владельца, 10.11.2026)
 Каждая задача, за которую берётся ChatGPT (чат или автозадача) по МГ и МГЛ, сразу записывается строкой в [ZADACHI.md](https://github.com/mpaykin1/meta6-lab/blob/main/ZADACHI.md) (корень meta6-lab). Статус ставит сторож `ZADACHI watch` по данным GitHub: ✅ готово (PR слит), 🛑 ЗАВИС — толкнуть (нет коммитов 3+ часа). Без строки работу не начинать. Полное правило: [rules/06-rabota-ii-s-kodom/TABLITSA_ZADACH.md](rules/06-rabota-ii-s-kodom/TABLITSA_ZADACH.md).
 
