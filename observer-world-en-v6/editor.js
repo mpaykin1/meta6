@@ -103,6 +103,15 @@ function onPlace(kind,x,z,restoring=false){
  if(state.objects.some(o=>Math.hypot(o.x-x,o.z-z)<2.5)){
   if(!restoring)tell("Too close","Choose another patch of island so the buildings do not intersect");return null
  }
+ // Buildings cannot occupy the player's or a living resident's space.
+ // Saved buildings retain their historic positions on reload.
+ const heroPos=native.player?.pos;
+ if(!restoring&&heroPos&&Math.hypot(heroPos.x-x,heroPos.z-z)<2.5){
+  tell("Too close to hero","Leave room for the player to move");return null
+ }
+ if(!restoring&&relations?.npcs?.some(n=>!n.dead&&Math.hypot(n.x-x,n.z-z)<2.5)){
+  tell("Too close to resident","A living resident occupies this building site");return null
+ }
  const o={id:state.next++,kind,x,z,y:Math.max(native.SEA,h),age:0,created:Date.now()};
  state.objects.push(o);
  addBuilding(o);
@@ -271,7 +280,7 @@ function start(){
  $("v5Stats").textContent="Population "+state.pop+" · Order "+state.order+" · Suspicion "+state.suspicion;
  $("v5Recent").textContent=state.history.at(-1)?.long||state.history.at(-1)?.text||
  "Choose a symbol then RIGHT-CLICK land. LEFT-CLICK fights. Alt+LEFT-CLICK reads an object.";
- $("v5JournalBody").textContent=state.history.slice(-20).map(e=>e.title+"\n"+e.text).join("\n\n");
+ $("v5JournalBody").textContent=story.readable||state.history.slice(-20).map(e=>e.title+"\n"+(e.long||e.text||e.short||"")).join("\n\n");
  // One audio scheduler belongs to audio.js; this slow status refresh is not another game loop.
  interval=setInterval(()=>{if(music?.enabled){const d=music.diagnostics();
   $("v5Audio").textContent=d.label+' · '+d.contextState+' · RMS '+d.musicRms;

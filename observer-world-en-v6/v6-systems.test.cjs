@@ -56,3 +56,35 @@ assert.equal(answer.mode,'reborn');
 assert.equal(native.G.state,'play');
 assert.ok(events.some(x=>x[0]==='reborn'));
 console.log('V6_ARCHITECTURE_COMBAT_STORY_PASS',JSON.stringify({buildings:assets.kinds.length,uniqueArchitectures:variants.size,npcClasses:Object.keys(C.ROLES).length,events:events.map(e=>e[0]),storyEntries:story.entries.length}));
+
+// V6 placement must reject overlap with hero or living NPC (actual onPlace logic).
+const editorSource=fs.readFileSync(__dirname+'/editor.js','utf8');
+const placeStart=editorSource.indexOf('function onPlace(');
+const placeEnd=editorSource.indexOf('function activateBuild(',placeStart);
+assert.ok(placeStart>=0&&placeEnd>placeStart,'V6 onPlace must be discoverable');
+const placeSource=editorSource.slice(placeStart,placeEnd);
+for(const scenario of [
+ {name:'player overlap',hero:{x:20,z:20},npcs:[],blocked:true},
+ {name:'resident overlap',hero:{x:8,z:8},npcs:[{x:20,z:20,dead:false}],blocked:true},
+ {name:'dead resident ignored',hero:{x:8,z:8},npcs:[{x:20,z:20,dead:true}],blocked:false},
+ {name:'empty ground',hero:{x:8,z:8},npcs:[],blocked:false}
+]){
+ const notices=[],st={version:6,next:1,objects:[],pop:2,food:8,order:20,suspicion:0};
+ const sandbox={
+  native:{SEA:3.8,terrainTop:()=>5,player:{pos:scenario.hero},SFX:{ui(){}}},
+  ACTIONS:{well:['井','Well']},
+  relations:{npcs:scenario.npcs,roleFromBuilding(){}},
+  state:st,story:{emit:()=>({title:'History',long:'Built a well.'})},
+  tell:(...args)=>notices.push(args),addBuilding(){},NEXT:{},$(){return null},
+  root:{},selected:'well',result:null
+ };
+ vm.runInNewContext(placeSource+'\nresult=onPlace("well",20,20);',sandbox,{filename:'V6 onPlace'});
+ assert.equal(Boolean(sandbox.result),!scenario.blocked,scenario.name);
+ assert.equal(st.objects.length,scenario.blocked?0:1,scenario.name);
+ if(scenario.blocked)assert.ok(notices.length,scenario.name+' must explain why');
+}
+// Restored literary events contain .long/.short; legacy history may have .text.
+const startCode=editorSource.slice(editorSource.indexOf('function start('),editorSource.indexOf('root.addEventListener("observer-v6-ready"'));
+assert.ok(startCode.includes('textContent=story.readable||state.history.slice(-20)'),
+ 'initial journal must display restored literary story, not undefined');
+console.log('V6_PLACEMENT_JOURNAL_REGRESSION_PASS');
