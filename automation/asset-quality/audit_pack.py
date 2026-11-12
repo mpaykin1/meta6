@@ -35,6 +35,9 @@ def analyze(root,manifest,requirements=None):
             name=s.get(key)
             if not isinstance(name,str) or not name:
                 issues.append({"rule":"invalid_path","id":ident,"field":key});continue
+            source_parts=pathlib.PurePosixPath(name.replace("\\","/")).parts
+            if key=="source" and any(source_parts[index:index+2]==("assets","sprites") for index in range(len(source_parts)-1)):
+                issues.append({"rule":"legacy_crop_source","id":ident,"source":name})
             target=(root/name).resolve()
             if not target.is_relative_to(root):
                 issues.append({"rule":"path_escape","id":ident,"field":key});continue
@@ -52,6 +55,7 @@ def analyze(root,manifest,requirements=None):
         try:config=json.loads(pathlib.Path(requirements).read_text(encoding="utf-8"))
         except (OSError,ValueError) as e:issues.append({"rule":"requirements_read","detail":str(e)})
     if isinstance(config,dict):
+        evidence_root=pathlib.Path(requirements).resolve().parent if requirements else root
         stages=config.get("stages")
         if isinstance(stages,list):
             for kind,found in groups.items():
@@ -60,12 +64,40 @@ def analyze(root,manifest,requirements=None):
         count=config.get("min_creature_types")
         if isinstance(count,int) and len(groups)<count:
             issues.append({"rule":"creature_coverage","actual":len(groups),"required":count})
+        requirement_ids=[]
         for item in config.get("requirements",[]):
             if not isinstance(item,dict) or not item.get("id") or not item.get("test"):
                 issues.append({"rule":"untraceable_requirement","item":item})
             elif item.get("status") not in ("FAIL","UNKNOWN","STATIC_PASS","OWNER_APPROVED"):
                 issues.append({"rule":"invalid_requirement_status","id":item["id"]})
-            elif item["status"]=="UNKNOWN":unknown.append({"rule":"requirement_unverified","id":item["id"]})
+            else:
+                if item["id"] in requirement_ids:issues.append({"rule":"duplicate_requirement","id":item["id"]})
+                requirement_ids.append(item["id"])
+                if item["status"]=="UNKNOWN":unknown.append({"rule":"requirement_unverified","id":item["id"]})
+                if item["status"]=="FAIL":issues.append({"rule":"requirement_failed","id":item["id"]})
+                if item["status"] in ("STATIC_PASS","OWNER_APPROVED"):
+                    evidence=item.get("evidence")
+                    if not isinstance(evidence,list) or not evidence:
+                        issues.append({"rule":"requirement_evidence_missing","id":item["id"]})
+                    else:
+                        for record in evidence:
+                            if not isinstance(record,dict) or record.get("requirement_id")!=item["id"]:
+                                issues.append({"rule":"requirement_evidence_binding","id":item["id"]})
+                            valid=isinstance(record,dict) and isinstance(record.get("path"),str) and bool(record["path"].strip()) and isinstance(record.get("sha256"),str) and len(record["sha256"])==64
+                            if valid:
+                                target=(evidence_root/record["path"]).resolve()
+                                valid=target.is_relative_to(evidence_root) and target.is_file()
+                                if valid:
+                                    try:valid=hashlib.sha256(target.read_bytes()).hexdigest()==record["sha256"].lower()
+                                    except OSError:valid=False
+                            if not valid:issues.append({"rule":"requirement_evidence_invalid","id":item["id"]})
+        required_ids=config.get("required_requirement_ids",[])
+        if not isinstance(required_ids,list) or any(not isinstance(item,str) or not item for item in required_ids) or len(required_ids)!=len(set(required_ids)):
+            issues.append({"rule":"invalid_required_requirement_ids"})
+        else:
+            for requirement_id in required_ids:
+                if requirement_id not in requirement_ids:
+                    issues.append({"rule":"missing_requirement","id":requirement_id})
     return {"status":"FAIL" if issues else "STATIC_PASS_RUNTIME_UNKNOWN","checks":checks,"sprites":len(sprites),"creature_types":len(groups),"issues":issues,"unknown":unknown,"provenance":provenance,
             "runtime_unknown":["visual reference parity","eight-way relighting","animation continuity","hybrid 3D","real-device FPS","owner approval"]}
 def main():
@@ -77,3 +109,4 @@ def main():
     if a.output:pathlib.Path(a.output).write_text(out,encoding="utf-8")
     print(out);return int(report["status"]=="FAIL")
 if __name__=="__main__":sys.exit(main())
+
