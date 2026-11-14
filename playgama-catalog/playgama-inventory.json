@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "source": "Playgama Developer Console (authenticated snapshot)",
   "verifiedOn": "2026-11-05",
-  "notes": "Sandbox ACTIVE is a publicly playable sandbox, not a published Playgama catalog release. A DRAFT with no active sandbox must not receive a play URL or an indexed game page.",
+  "notes": "Sandbox ACTIVE is a publicly playable sandbox, not a published Playgama catalog release. A DRAFT with no active sandbox must not receive a play URL or an indexed game page. Wild Train: Prologue is presented as an unverified game listing until a real Playgama launch URL is found; do not invent a play URL or imply playable status.",
   "games": [
     {
       "applicationId": "cmvt22v4f0kyxfx0h4rok6gm6",
@@ -199,6 +199,17 @@
       },
       "coverUrl": "https://static.playgama.com/p-img/pg/preview/c563a434bf84447cbe48ae2c117948d2?width=896",
       "indexable": true
+    }
+  ],
+  "pendingGames": [
+    {
+      "title": "Wild Train: Prologue",
+      "slug": "wild-train-prologue",
+      "coverUrl": "https://mpaykin1.github.io/meta6/playgama-catalog/covers/wild-train-prologue.webp",
+      "playgamaUrl": null,
+      "source": "User-provided official poster, 2026-11-15",
+      "verification": "Direct public Playgama game URL not found in connected developer account or public search",
+      "indexable": false
     }
   ]
 }
