@@ -28,7 +28,7 @@
       },
       {
         "path": "ink/shared/living-watercolor-3d.js",
-        "git_blob_sha": "1286ca7b6641f7b6ca9aa6cfe319d6c4c0c98bf6"
+        "git_blob_sha": "3c3436d066ab047780e63a0092b9217be1befc4d"
       },
       {
         "path": "ink/shared/living-watercolor-generators.js",
@@ -53,6 +53,7 @@
   ],
   "reuse_scope": "оригинальный код визуального эффекта и авторские материалы; сторонние зависимости только по их лицензии",
   "external_dependency": "Three.js 0.165.0 via unpkg CDN; dependency is not an owner-authored asset",
-  "owner_decision": "PASS, 2026-11-11; добавить в эталоны МГ и МГЛ под именем INK",
-  "notes": "Это эталон графической технологии, а не дополнительная игра в перечне 24 игр. Исходники не изменять."
+  "owner_decision": "PASS, 2026-11-11; БЕЗ ПАТТЕРНОВ, одобрено владельцем 13.11.2026",
+  "notes": "Изменена только форма акварельных пятен и устранена повторяемость бумажного слоя. БЕЗ ПАТТЕРНОВ, одобрено владельцем 13.11.2026. Цвета, линии и обводки без изменений; изменения ожидают приёмки PR.",
+  "ink_revision": "3D seeded FBM + domain warp; nonrepeating 896px paper; pixel shader Git blob 3c3436d066ab047780e63a0092b9217be1befc4d"
 }
