@@ -2,9 +2,9 @@
 
 - **Игра в МГ:** https://mpaykin1.github.io/meta6/games/wild-train-prologue/
 - **Игра в МГЛ:** https://mpaykin1.github.io/meta6-lab/games/wild-train-prologue/
-- **Артефакт владельца (та же версия без рекламы):** https://claude.ai/artifact/QJkn73Qc3CoP6Gp2JWCjNu — slug `bcbccfec-ffc2-419e-9b0e-7a278c08d3c6`, версия `1794719423-a46f`
-- **Версия с рекламой — только на Playgama** (песочница https://playgama.ai/play/3hpytzty2ysmic, архив `wild-train-prologue-1.0.0`). Здесь её нет — правило [БЕЗ РЕКЛАМЫ](../../rules/09-platforma/BEZ_REKLAMY.md).
-- **Сборка:** `GAME_VERSION = 1.0.1-mg` (1.0.1: пуля летит за выбранной целью — тап = попадание, снова быстрое развитие)
+- **Артефакт владельца (та же версия без рекламы):** https://claude.ai/artifact/QJkn73Qc3CoP6Gp2JWCjNu — slug `bcbccfec-ffc2-419e-9b0e-7a278c08d3c6`, версия `1794726969-25c9`
+- **Версия с рекламой — только на Playgama** (песочница https://playgama.ai/play/3hpytzty2ysmic, архив `wild-train-prologue-1.2.3`). Здесь её нет — правило [БЕЗ РЕКЛАМЫ](../../rules/09-platforma/BEZ_REKLAMY.md).
+- **Сборка:** `GAME_VERSION = 1.2.3-mg` — бесконечная сложность, раунд бутылок, сутки и 9 погод (туман, молнии, сияние из «Лучника в тумане»), сердца, патроны, нитро, лассо, молния-персонаж. Универсальные правила из неё — R12–R24 в rules/07-publikaciya-playgama/PLAYGAMA_RETENTION.md.
 - **Кто сделал:** Claude, по заданиям владельца (14–15.11.2026). По [META_GAMES_SOURCE_ALLOWLIST](../../rules/06-rabota-ii-s-kodom/META_GAMES_SOURCE_ALLOWLIST.md) §2 весь код и ассеты — эталон. Добавлено по слову владельца 15.11.2026 («добавь… на МГ и МГЛ в эталон»).
 - **Вердикта PASS/FAIL владельца нет** — технически проверено ботом в браузере.
 
