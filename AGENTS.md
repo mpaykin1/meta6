@@ -112,6 +112,7 @@ _переиспользовать готовое, брать источник в
 - [PERECHEN_OBEKTOV.md](rules/06-rabota-ii-s-kodom/PERECHEN_OBEKTOV.md) — списки объектов — только из открытого источника, не по памяти
 - [NOVYY_UROVEN.md](rules/06-rabota-ii-s-kodom/NOVYY_UROVEN.md) — перед новым уровнем пересчитать всё, что есть: было N — осталось N
 - [NE_MENYAT_NEZAPROSHENNOE.md](rules/06-rabota-ii-s-kodom/NE_MENYAT_NEZAPROSHENNOE.md) — делать только то, что просили
+- [NE_LOMAT_RABOCHEE.md](rules/06-rabota-ii-s-kodom/NE_LOMAT_RABOCHEE.md) — **НЕ ЛОМАТЬ РАБОЧЕЕ (15.11.2026):** новое — только слоем поверх старого (обернуть, не переписывать); после каждого изменения бот-проверщик играет всё, старое и новое, 0 ошибок; каждая версия — отдельный файл
 - [PESOCHNITSA_GPT.md](rules/06-rabota-ii-s-kodom/PESOCHNITSA_GPT.md) — **ПЕСОЧНИЦА:** ChatGPT работает только в `mpaykin1/meta6-lab` (ветка на идею, бот, карточка в LAB_QUEUE.md), в `meta6` — только чтение; забирает в `meta6` только Claude
 - [TABLITSA_ZADACH.md](rules/06-rabota-ii-s-kodom/TABLITSA_ZADACH.md) — **ТАБЛИЦА ЗАДАЧ (10.11.2026):** каждая взятая ChatGPT задача — строка в ZADACHI.md; сторож показывает готово / завис
 - [OTCHETY_DLYA_CLAUDE.md](rules/06-rabota-ii-s-kodom/OTCHETY_DLYA_CLAUDE.md) — **ОТЧЁТЫ ДЛЯ CLAUDE:** каждый результат — PR со свежим описанием, прогон Actions с понятной причиной провала, карточка LAB_QUEUE; ничего важного только в чате ChatGPT
