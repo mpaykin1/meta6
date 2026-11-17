@@ -1,3 +1,6 @@
+## ЕДИНЫЙ ВХОД ДЛЯ ChatGPT — GPT.md (Claude, 17.11.2026, по просьбе владельца)
+ChatGPT (чат и 5 автозадач) получает только ссылку https://github.com/mpaykin1/meta6-lab/blob/main/GPT.md и выполняет её: пульс системы → толкнуть зависшее → задача по карточке `automation/zadachi/` в МГЛ. При расхождении с другими промптами действует GPT.md. Общий промпт автозадач — [meta6-lab/automation/prompts/MG_PYAT_AVTOZADACH.md](https://github.com/mpaykin1/meta6-lab/blob/main/automation/prompts/MG_PYAT_AVTOZADACH.md).
+
 ## INK — эталон живой акварели (OWNER PASS, 11.11.2026)
 Living Watercolor 3D — эталон визуальной технологии под паролем `ink` на МГ (`ink/`, https://mpaykin1.github.io/meta6/ink/) и МГЛ (`demos/living-watercolor/`). Перед работой с акварельной/чернильной графикой прочитать [ink.md](ink.md). Исходники эталона не менять, переиспользовать как есть.
 Эталон **INK · Павший великан** (OWNER PASS 13.11.2026): `reference/ink-fallen-guardian/` (https://mpaykin1.github.io/meta6/reference/ink-fallen-guardian/, копия МГЛ) — большая акварельная долина с заросшим роботом, рендер без однообразных паттернов; только чтение, описание в его README.md.
