@@ -1,3 +1,6 @@
+## SEO — правила каталога МГ и МГЛ (17.11.2026)
+Полное правило: [SEO_KATALOG.md в МГЛ](https://github.com/mpaykin1/meta6-lab/blob/main/rules/09-platforma/SEO_KATALOG.md), задача — [карточка Z19](https://github.com/mpaykin1/meta6-lab/blob/main/automation/zadachi/Z19_SEO.md). Главное: SEO-текст только на страницах каталога, не на экране игры; индексируется МГ, дубли МГЛ — canonical на МГ; ссылка владельцу только после HTTP 200.
+
 ## ВСЁ НА GITHUB (правило владельца, 17.11.2026)
 Любая новая система, бот, промпт, правило или договорённость по МГ/МГЛ, которую придумываем в чате с Claude или ChatGPT, сразу кладётся в ту же систему на GitHub: в mpaykin1/meta6-lab — карточка `automation/zadachi/Z…` или правка [GPT.md](https://github.com/mpaykin1/meta6-lab/blob/main/GPT.md) (вход для ChatGPT), правило — в AGENTS.md. Отдельных систем, расписаний и автопроверок вне GitHub не заводить. Claude не держит других автопроверок, кроме одной суточной ([CLAUDE_SUTOCHNYJ.md](https://github.com/mpaykin1/meta6-lab/blob/main/automation/prompts/CLAUDE_SUTOCHNYJ.md)). Владелец получает только ссылку на GitHub — текст промптов в чат не вставляется.
 
