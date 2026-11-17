@@ -21,3 +21,4 @@ scripts/meta-progress
 reference/ink-fallen-guardian
 reference/ink-steam-train
 reference/ink-grin-monster
+reference/ink-car-bathyscaphe
