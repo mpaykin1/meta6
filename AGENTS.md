@@ -1,3 +1,6 @@
+## ВСЁ НА GITHUB (правило владельца, 17.11.2026)
+Любая новая система, бот, промпт, правило или договорённость по МГ/МГЛ, которую придумываем в чате с Claude или ChatGPT, сразу кладётся в ту же систему на GitHub: в mpaykin1/meta6-lab — карточка `automation/zadachi/Z…` или правка [GPT.md](https://github.com/mpaykin1/meta6-lab/blob/main/GPT.md) (вход для ChatGPT), правило — в AGENTS.md. Отдельных систем, расписаний и автопроверок вне GitHub не заводить. Claude не держит других автопроверок, кроме одной суточной ([CLAUDE_SUTOCHNYJ.md](https://github.com/mpaykin1/meta6-lab/blob/main/automation/prompts/CLAUDE_SUTOCHNYJ.md)). Владелец получает только ссылку на GitHub — текст промптов в чат не вставляется.
+
 ## ЕДИНЫЙ ВХОД ДЛЯ ChatGPT — GPT.md (Claude, 17.11.2026, по просьбе владельца)
 ChatGPT (чат и 5 автозадач) получает только ссылку https://github.com/mpaykin1/meta6-lab/blob/main/GPT.md и выполняет её: пульс системы → толкнуть зависшее → задача по карточке `automation/zadachi/` в МГЛ. При расхождении с другими промптами действует GPT.md. Общий промпт автозадач — [meta6-lab/automation/prompts/MG_PYAT_AVTOZADACH.md](https://github.com/mpaykin1/meta6-lab/blob/main/automation/prompts/MG_PYAT_AVTOZADACH.md).
 
