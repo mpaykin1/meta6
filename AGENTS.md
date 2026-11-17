@@ -1,3 +1,6 @@
+## ВСЕ ЗАДАНИЯ НА АССЕТЫ — В ОДНОМ МЕСТЕ (правило владельца, 17.11.2026)
+Любое задание на ассеты для МГ и МГЛ кладётся только строкой в общую очередь МГЛ: https://github.com/mpaykin1/meta6-lab/blob/main/automation/asset-check/OCHERED.md («Заметки Claude» + ZAKAZ.json и кадры в папке пака). Отдельных файлов-заданий, новых промптов и новых ссылок для ассетов не создавать. Ссылка для ChatGPT всегда одна: https://github.com/mpaykin1/meta6-lab/blob/main/automation/prompts/ASSET_PACK_BOT.md
+
 ## SEO — правила каталога МГ и МГЛ (17.11.2026)
 Полное правило: [SEO_KATALOG.md в МГЛ](https://github.com/mpaykin1/meta6-lab/blob/main/rules/09-platforma/SEO_KATALOG.md), задача — [карточка Z19](https://github.com/mpaykin1/meta6-lab/blob/main/automation/zadachi/Z19_SEO.md). Главное: SEO-текст только на страницах каталога, не на экране игры; индексируется МГ, дубли МГЛ — canonical на МГ; ссылка владельцу только после HTTP 200.
 
