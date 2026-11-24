@@ -8,7 +8,7 @@ on:
     paths: ['playgama-upload/**']
 jobs:
   put:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,7 +19,7 @@ jobs:
           set -e
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps chromium
-          bash automation/telefon-bez-tormozov/test.sh
+          bash scripts/telefon-bez-tormozov-selftest.sh
           for z in playgama-upload/*.zip; do
             [ -f "$z" ] || continue
             d=$(mktemp -d); unzip -q "$z" -d "$d"
