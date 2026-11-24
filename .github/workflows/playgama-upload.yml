@@ -8,9 +8,27 @@ on:
     paths: ['playgama-upload/**']
 jobs:
   put:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      # ТЕЛЕФОН БЕЗ ТОРМОЗОВ (владелец, 24.11.2026): сборка с FAIL на Playgama не уходит.
+      - name: Телефон без тормозов — строгий замер каждой сборки
+        run: |
+          set -e
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          bash scripts/telefon-bez-tormozov-selftest.sh
+          for z in playgama-upload/*.zip; do
+            [ -f "$z" ] || continue
+            d=$(mktemp -d); unzip -q "$z" -d "$d"
+            g=$(find "$d" -name index.html | awk '{print length, $0}' | sort -n | head -1 | cut -d' ' -f2-)
+            echo "::group::$z"; rc=0; node scripts/telefon-bez-tormozov.mjs "$g" || rc=$?; echo "::endgroup::"
+            [ $rc -eq 2 ] && echo "::warning::$z: бот не увидел кадра WebGL — замер пропущен"
+            [ $rc -eq 1 ] && { echo "::error::$z: ТЕЛЕФОН БЕЗ ТОРМОЗОВ FAIL — не загружаю на Playgama"; exit 1; }
+            true
+          done
       - name: PUT archives
         run: |
           set -e
