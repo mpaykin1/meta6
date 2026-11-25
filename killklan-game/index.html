@@ -158,7 +158,7 @@ const TITLES=['without ai','beyond truth','signals','dreamcore','lampochka','tim
 const ruW=i=>themes[i].split(' ').filter(w=>/[а-я]/.test(w)),enW=i=>themes[i].split(' ').filter(w=>!/[а-я]/.test(w));
 
 /* ---------- save (Playgama build will swap this for Bridge storage) ---------- */
-const BUILD='web',GAME_VERSION='1.0.0';
+const BUILD='web',GAME_VERSION='1.0.1';
 const S={w:0,circle:1,lang:'en',mute:0,seen:[],last:'',told:{}};
 /* platform layer: Playgama Bridge in the Playgama build (storage, language, pause/audio, interstitial, analytics);
    plain localStorage and no ads at all in the web build (rule БЕЗ РЕКЛАМЫ) */
@@ -289,7 +289,7 @@ glc.addEventListener('webglcontextlost',e=>{e.preventDefault();gl=null});glc.add
 function ripple(x,y,s){fx.rip[fx.ri*3]=x/innerWidth;fx.rip[fx.ri*3+1]=1-y/innerHeight;fx.rip[fx.ri*3+2]=(performance.now()/1000)%1000;fx.ri=(fx.ri+1)%6}
 let last=performance.now(),synth=0;
 let fAvg=16;function frame(now){requestAnimationFrame(frame);const raw=now-last,dt=Math.min(.1,raw/1000);last=now;if(!paused)runTQ(dt);
- fAvg+=(Math.min(raw,100)-fAvg)*.05;if(fAvg>24&&glQ>.45){slowT+=dt;if(slowT>1.5){glQ*=.8;slowT=0;resize()}}else slowT=0;
+ fAvg+=(Math.min(raw,100)-fAvg)*.05;if(fAvg>22&&glQ>.3){slowT+=dt;if(slowT>1.5){glQ*=.8;slowT=0;resize()}}else slowT=0;
  const k=1-Math.exp(-dt*2.2),c=fx.cur,tg=fx.tgt;if(!c||!tg)return;
  for(const p of['A','B','C','K'])for(let i=0;i<3;i++)c[p][i]+=(tg[p][i]-c[p][i])*k;c.s+=(tg.s-c.s)*k;KEYS.forEach(x=>c[x]+=(tg[x]-c[x])*k);
  fx.glitch*=Math.exp(-dt*3.2);fx.red+=(fx.redT-fx.red)*(1-Math.exp(-dt*(fx.redT>fx.red?3.5:1.6)));
