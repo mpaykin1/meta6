@@ -168,14 +168,13 @@ const PGM=(()=>{const br=BUILD==='pg'?window.bridge:null;let inited=false,readyS
   sync(){api.paused=platPause||hidden||adPause;if(api.onChange)api.onChange()},
   ready(){if(!readySent&&inited){readySent=true;send('game_ready')}},
   play(on){send(on?'gameplay_started':'gameplay_stopped')},
-  ad(){try{if(br&&inited&&br.advertisement.isInterstitialSupported)br.advertisement.showInterstitial('round_end')}catch(e){}},
+  ad(){},
   track(n,d){try{if(br&&inited&&br.analytics&&br.analytics.send)br.analytics.send(n,d||undefined)}catch(e){}},
   load(){if(br)return data||{};try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return{}}},
   save(o){const j=JSON.stringify(o);if(br){clearTimeout(saveT);saveT=setTimeout(()=>{try{if(inited)br.storage.set([KEY],[j]).catch(()=>{})}catch(e){}},300);return}try{localStorage.setItem(KEY,j)}catch(e){}}};
  document.addEventListener('visibilitychange',()=>{hidden=document.hidden;api.sync()});
  const init=br?br.initialize().then(()=>{inited=true;try{api.audioOn=br.platform.isAudioEnabled!==false;api.lang=br.platform.language||'en';
-   br.platform.on('pause_state_changed',p=>{platPause=!!p;api.sync()});br.platform.on('audio_state_changed',a=>{api.audioOn=!!a;api.sync()});
-   br.advertisement.on('interstitial_state_changed',st=>{if(st==='opened')adPause=true;if(st==='closed'||st==='failed')adPause=false;api.sync()})}catch(e){}
+   br.platform.on('pause_state_changed',p=>{platPause=!!p;api.sync()});br.platform.on('audio_state_changed',a=>{api.audioOn=!!a;api.sync()});}catch(e){}
    return Promise.resolve(br.storage.get([KEY])).then(r=>{const v=Array.isArray(r)?r[0]:r;if(v){try{const o=typeof v==='string'?JSON.parse(v):v;if(o&&typeof o==='object')data=o}catch(e){}}}).catch(()=>{})}).catch(e=>console.warn('Bridge init failed',e)):Promise.resolve();
  api.boot=Promise.race([init,new Promise(r=>setTimeout(r,2500))]);return api})();
 function save(){PGM.save(S)}
